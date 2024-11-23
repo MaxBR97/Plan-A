@@ -1,0 +1,65 @@
+{
+  "name": "plan-a-front",
+  "version": "0.1.0",
+  "description": "A React and Electron application",
+  "author": "Your Name <your-email@example.com>",
+  "main":"electron.js",
+  "private": true,
+  "dependencies": {
+    "@testing-library/jest-dom": "^5.17.0",
+    "@testing-library/react": "^13.4.0",
+    "@testing-library/user-event": "^13.5.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-scripts": "5.0.1",
+    "web-vitals": "^2.1.4"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "electron-start": "electron --no-sandbox .",
+    "build": "react-scripts build && cp electron.js ./build/electron.js && rm -rf ../Backend/src/main/resources/static/* && cp -r ./build/* ../Backend/src/main/resources/static",
+    "electron-build": "electron-builder",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "build": {
+    "appId": "com.example.reactelectron",
+    "files": [
+      "build/**/*",
+      "electron.js"
+    ],
+    "mac": {
+      "target": "dmg"
+    },
+    "win": {
+      "target": "nsis"
+    },
+    "linux": {
+      "target": "AppImage"
+    }
+  },
+  "proxy": "http://localhost:4000",
+  "devDependencies": {
+    "electron": "^33.2.0",
+    "electron-builder": "^25.1.8",
+    "create-react-app": "^5.0.0"
+  }
+}

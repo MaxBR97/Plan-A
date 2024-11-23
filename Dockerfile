@@ -10,7 +10,8 @@ RUN apt-get install -y \
     nodejs \
     npm \
     curl \
-    && npm install -g create-react-app
+    maven \
+    dbus
 
 RUN apt-get install -y \
     libblas3 \
@@ -25,5 +26,7 @@ RUN apt-get install -y \
 
 WORKDIR /Plan-A
 COPY . .
-
+RUN cd /Plan-A/dev/Frontend && npm install && cd /Plan-A
 RUN dpkg -i SCIPOptSuite-9.2.0-Linux-ubuntu24.deb
+
+EXPOSE 3000 4000
