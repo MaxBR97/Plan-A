@@ -26,7 +26,8 @@ RUN apt-get install -y \
 
 WORKDIR /Plan-A
 COPY . .
-RUN cd /Plan-A/dev/Frontend && npm install && cd /Plan-A
 RUN dpkg -i SCIPOptSuite-9.2.0-Linux-ubuntu24.deb
+RUN cd /Plan-A/dev/Frontend && npm install && cd /Plan-A
+RUN cd /Plan-A/dev/Backend && mvn compile && cd /Plan-A
 
 EXPOSE 3000 4000

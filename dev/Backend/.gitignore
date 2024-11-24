@@ -4,6 +4,9 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 
+## antlr
+src/main/generated-sources/
+
 ### STS ###
 .apt_generated
 .classpath
