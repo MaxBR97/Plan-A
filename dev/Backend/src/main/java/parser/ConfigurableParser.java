@@ -1,5 +1,7 @@
 package parser;
 
+import java.io.IOException;
+import java.nio.file.Paths;
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.*;
 import java.util.*;
@@ -15,6 +17,14 @@ public class ConfigurableParser {
         FormulationParser parser = new FormulationParser(tokens);
         parseTree = parser.program();
     }
+
+    public void parseFile(String filePath) throws IOException {
+    CharStream charStream = CharStreams.fromPath(Paths.get(filePath));
+    FormulationLexer lexer = new FormulationLexer(charStream);
+    CommonTokenStream tokens = new CommonTokenStream(lexer);
+    FormulationParser parser = new FormulationParser(tokens);
+    parseTree = parser.program();
+}
 
     public static class DataExtractor extends FormulationBaseVisitor<Object> {
         private final Map<String, Object> extractedData;
@@ -45,23 +55,4 @@ public class ConfigurableParser {
         return extractedData;
     }
 
-    public static void main(String[] args) {
-        String input = "set v := {\"a\", \"b\"};";
-        ConfigurableParser parser = new ConfigurableParser();
-        
-        try {
-            parser.parse(input);
-                      
-            // Extract all data
-            Map<String, Object> data = parser.extractData();
-            System.out.println("Extracted Data: " + data);
-            
-            // // Find specific patterns (e.g., all additions)
-            // List<String> additions = parser.findPattern(".*\\+.*");
-            // System.out.println("Additions found: " + additions);
-            
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
 }
