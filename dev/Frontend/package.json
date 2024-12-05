@@ -17,7 +17,7 @@
   "scripts": {
     "start": "react-scripts start",
     "electron-start": "electron --no-sandbox .",
-    "build": "react-scripts build && cp electron.js ./build/electron.js && rm -rf ../Backend/src/main/resources/static/* && cp -r ./build/* ../Backend/src/main/resources/static",
+    "build": "react-scripts build && cp electron.js ./build/electron.js && rm -rf ../Backend/src/main/resources/static/* && cp -r ./build/* ../Backend/src/main/resources/static && ( cd ../Backend/src/main/resources && port=$( grep -ioP \"(?<=server\\.port\\s=\\s)\\d+\" application.properties ) && sed -i \"s/\\(\\\"API_PORT\\\"[[:space:]]*:[[:space:]]*\\)\\\"[0-9]\\+\\\"/\\1\\\"$port\\\"/g\" ./static/config.json )",
     "electron-build": "electron-builder",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
