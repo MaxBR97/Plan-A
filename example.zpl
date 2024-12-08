@@ -15,3 +15,4 @@ subto drisha2:
 
 minimize obj:
     1;
+
