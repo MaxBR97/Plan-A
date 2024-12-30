@@ -32,7 +32,7 @@ public class Model {
     private final Set<ModelVariable> variables = new HashSet<>();
     private boolean loadElementsToRam = true;
     private final String zimplCompilationScript = "/Plan-A/dev/Backend/src/main/resources/zimpl/checkCompilation.sh";
-
+    private final String zimplSolveScript = "/Plan-A/dev/Backend/src/main/resources/zimpl/solve.sh" ;
     private String originalSource;
     
     public Model(String sourceFilePath) throws IOException {
@@ -126,13 +126,8 @@ public class Model {
 
     public boolean isCompiling(float timeout) {
         try {
-            // Build the command to execute the script with the file path as an argument
             String[] command = {"/bin/bash", zimplCompilationScript, sourceFilePath, String.valueOf(timeout)};
-            
-            // Execute the script
             Process process = Runtime.getRuntime().exec(command);
-    
-            // Capture the script's output
             BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
             StringBuilder output = new StringBuilder();
             String line;
@@ -152,6 +147,28 @@ public class Model {
         }
     }
     
+    public SolutionDTO solve(float timeout) {
+        try {
+            String[] command = {"/bin/bash", zimplSolveScript, sourceFilePath, String.valueOf(timeout)};
+            Process process = Runtime.getRuntime().exec(command);
+            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+            StringBuilder output = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                output.append(line).append("\n");
+            }
+
+            int exitCode = process.waitFor();
+            if (exitCode == 0) {
+                //SolutionDTO ans = new SolutionDTO()
+            } else {
+                return null; 
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null; 
+        }
+    }
     private class CollectorVisitor extends FormulationBaseVisitor<Void> {
 
 
