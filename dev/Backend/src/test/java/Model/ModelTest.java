@@ -174,6 +174,11 @@ public class ModelTest {
             assertFalse(true);
         }
     }
+
+    @Test
+    public void testSolve(){
+        assertFalse(true); // test is not implemented yet because SolutionDTO is not implemented yet
+    }
     
     // Collection Getter Tests
     @Test

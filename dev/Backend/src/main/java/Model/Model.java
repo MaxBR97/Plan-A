@@ -2,6 +2,8 @@ package Model;
 
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.*;
+
+import DTO.SolutionDTO;
 import parser.*;
 import parser.FormulationBaseVisitor;
 import parser.FormulationLexer;
@@ -160,7 +162,7 @@ public class Model {
 
             int exitCode = process.waitFor();
             if (exitCode == 0) {
-                //SolutionDTO ans = new SolutionDTO()
+                return new SolutionDTO(sourceFilePath+"SOLUTION");
             } else {
                 return null; 
             }
