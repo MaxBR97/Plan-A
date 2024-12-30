@@ -128,7 +128,7 @@ public class ModelTest {
     @Test
     public void testSetParameterInput() throws Exception {
         String parameter = "soldiers";
-        String valueToSet = "543205222";
+        String valueToSet = "12";
 
         ModelParameter param = getParameter(model, parameter);
         assertNotNull(param);
