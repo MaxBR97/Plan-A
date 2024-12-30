@@ -51,8 +51,4 @@ subto minimalRivuahCons:
 minimize rivuah: 
     ((maxShmirot-minShmirot)+conditioner)**3 -
     (minimalRivuah)**2 +
-<<<<<<< HEAD
     sum<i,a,b> in CxS: sum<m,n> in S | m != a or b!=n :(edge[i,a,b] * edge[i,m,n] * (b-n));
-=======
-    sum<i,a,b> in CxS: sum<m,n> in S | m != a or b!=n :(edge[i,a,b] * edge[i,m,n] * (b-n));
->>>>>>> dfffc87 (save local changes)
