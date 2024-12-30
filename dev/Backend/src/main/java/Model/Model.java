@@ -31,6 +31,7 @@ public class Model {
     private final Set<ModelPreference> preferences = new HashSet<>();
     private final Set<ModelVariable> variables = new HashSet<>();
     private boolean loadElementsToRam = true;
+    private final String zimplCompilationScript = "/Plan-A/dev/Backend/src/main/resources/zimpl/checkCompilation.sh";
 
     private String originalSource;
     
@@ -123,9 +124,32 @@ public class Model {
         }
     }
 
-    public boolean isCompiling () {
-        //unimplemented yet
-        return true;
+    public boolean isCompiling(float timeout) {
+        try {
+            // Build the command to execute the script with the file path as an argument
+            String[] command = {"/bin/bash", zimplCompilationScript, sourceFilePath, String.valueOf(timeout)};
+            
+            // Execute the script
+            Process process = Runtime.getRuntime().exec(command);
+    
+            // Capture the script's output
+            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+            StringBuilder output = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                output.append(line).append("\n");
+            }
+
+            int exitCode = process.waitFor();
+            if (exitCode == 0 && output.toString().contains("Compilation Successful")) {
+                return true; 
+            } else {
+                return false; 
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false; 
+        }
     }
     
     private class CollectorVisitor extends FormulationBaseVisitor<Void> {
@@ -196,6 +220,7 @@ public class Model {
         private java.util.List<String> parseSetElements(FormulationParser.SetExprContext ctx) {
             java.util.List<String> elements = new ArrayList<>();
             // Parse set elements based on the context type
+            
             if (ctx instanceof FormulationParser.SetExprStackContext) {
                 FormulationParser.SetExprStackContext stackCtx = (FormulationParser.SetExprStackContext) ctx;
                 if (stackCtx.setDesc() != null) {

@@ -9,8 +9,16 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.IOException;
+<<<<<<< HEAD
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+=======
+import java.nio.channels.FileChannel;
+import java.nio.file.Files;
+import java.nio.file.OpenOption;
+import java.nio.file.StandardCopyOption;
+import java.nio.file.StandardOpenOption;
+>>>>>>> dfffc87 (save local changes)
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Set;
@@ -29,8 +37,13 @@ import java.io.IOException;
 
 public class ModelTest {
     private Model model;
+<<<<<<< HEAD
     private static String source = "/Plan-A/dev/Backend/src/main/resources/zimpl/ExampleZimplProgram.zpl";
     private static String TEST_FILE_PATH = "/Plan-A/dev/Backend/src/test/java/Model/TestFile.zpl";
+=======
+    private static String source = "/Plan-A/dev/Backend/src/test/java/Model/TestFile.zpl";
+    private static String TEST_FILE_PATH = "/Plan-A/dev/Backend/src/test/java/Model/TestFileINSTANCE.zpl";
+>>>>>>> dfffc87 (save local changes)
 
     private static String[][] expectedParameters = {{"Conditioner","10"}, {"soldiers", "9"}, {"absoluteMinimalRivuah", "8"}};
     
@@ -77,7 +90,11 @@ public class ModelTest {
     @Test
     public void testModelConstruction() {
         assertNotNull(model);
+<<<<<<< HEAD
         assertTrue(model.isCompiling());
+=======
+        assertTrue(model.isCompiling(3));
+>>>>>>> dfffc87 (save local changes)
     }
     
     @Test
@@ -97,19 +114,31 @@ public class ModelTest {
         assertEquals(testSet.identifier,setName);
         assertEquals(testSet.getType(), type);
         
+<<<<<<< HEAD
         String addValue = "MyValue";
+=======
+        String addValue = "\"MyValue\"";
+>>>>>>> dfffc87 (save local changes)
 
         // Test append
         model.appendToSet(testSet, addValue);
         testSet = getSet(model, setName);
         assertTrue(testSet.getElements().contains(addValue));
+<<<<<<< HEAD
         assertTrue(model.isCompiling());
+=======
+        assertTrue(model.isCompiling(2));
+>>>>>>> dfffc87 (save local changes)
 
         // Test remove
         model.removeFromSet(testSet, addValue);
         testSet = getSet(model, setName);
         assertFalse(testSet.getElements().contains(addValue));
+<<<<<<< HEAD
         assertTrue(model.isCompiling());
+=======
+        assertTrue(model.isCompiling(2));
+>>>>>>> dfffc87 (save local changes)
     }
     
     // Input Setting Tests
@@ -124,7 +153,11 @@ public class ModelTest {
         model.setInput(param, valueToSet);
         param = getParameter(model, parameter);
         assertEquals( param.getValue(), valueToSet);
+<<<<<<< HEAD
         assertTrue(model.isCompiling());
+=======
+        assertTrue(model.isCompiling(2));
+>>>>>>> dfffc87 (save local changes)
     }
     
     // Functionality Toggle Tests
@@ -136,6 +169,7 @@ public class ModelTest {
         assertNotNull(mf);
         model.toggleFunctionality(mf, false);
         assertNull(getConstraint(model, testConstraint));
+<<<<<<< HEAD
         assertTrue(model.isCompiling());
 
         model.toggleFunctionality(mf, true);
@@ -146,6 +180,30 @@ public class ModelTest {
     @Test
     public void testCompilation(){
         assertFalse(true); //unimplemented
+=======
+        assertTrue(model.isCompiling(2));
+
+        model.toggleFunctionality(mf, true);
+        assertNotNull(getConstraint(model, testConstraint));
+        assertTrue(model.isCompiling(2));
+    }
+
+    @Test
+    public void testBasicCompilation(){
+        assertFalse(model.isCompiling(0.000000001f));
+        assertTrue(model.isCompiling(3));
+        try{
+        String gibbrish = "gfsgfd;";
+        Files.writeString(Path.of(TEST_FILE_PATH), gibbrish, StandardOpenOption.APPEND);
+        assertFalse(model.isCompiling(3));
+        FileChannel fileChannel = FileChannel.open(Path.of(TEST_FILE_PATH), StandardOpenOption.WRITE);
+        long newSize = fileChannel.size() - gibbrish.length();
+        fileChannel.truncate(newSize);
+        assertTrue(model.isCompiling(3));
+        } catch (Exception e){
+            assertFalse(true);
+        }
+>>>>>>> dfffc87 (save local changes)
     }
     
     // Collection Getter Tests
@@ -188,9 +246,17 @@ public class ModelTest {
     }
     
 
+<<<<<<< HEAD
     // @AfterAll
     // public static void cleanUp() throws IOException {
     //     Path targetPath = Path.of(TEST_FILE_PATH);
     //     Files.deleteIfExists(targetPath);
     // }
+=======
+    @AfterAll
+    public static void cleanUp() throws IOException {
+        Path targetPath = Path.of(TEST_FILE_PATH);
+        Files.deleteIfExists(targetPath);
+    }
+>>>>>>> dfffc87 (save local changes)
 }

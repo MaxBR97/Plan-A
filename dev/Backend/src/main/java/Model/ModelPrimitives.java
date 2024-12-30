@@ -15,7 +15,10 @@ public enum ModelPrimitives implements ModelType{
             case BINARY:
                 return false;
             case TEXT:
-              return true;
+              if (str.matches("\".*\""))
+                return true;
+              else
+                return false;
             case INT:
               try{
                 Integer.valueOf(str); 
