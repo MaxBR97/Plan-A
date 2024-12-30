@@ -9,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.IOException;
+
 import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.OpenOption;
@@ -32,6 +33,7 @@ import java.io.IOException;
 
 public class ModelTest {
     private Model model;
+
     private static String source = "/Plan-A/dev/Backend/src/test/java/Model/TestFile.zpl";
     private static String TEST_FILE_PATH = "/Plan-A/dev/Backend/src/test/java/Model/TestFileINSTANCE.zpl";
 
@@ -81,6 +83,7 @@ public class ModelTest {
     public void testModelConstruction() {
         assertNotNull(model);
         assertTrue(model.isCompiling(3));
+
     }
     
     @Test
@@ -100,19 +103,25 @@ public class ModelTest {
         assertEquals(testSet.identifier,setName);
         assertEquals(testSet.getType(), type);
         
+
         String addValue = "\"MyValue\"";
+
 
         // Test append
         model.appendToSet(testSet, addValue);
         testSet = getSet(model, setName);
         assertTrue(testSet.getElements().contains(addValue));
+
         assertTrue(model.isCompiling(2));
+
 
         // Test remove
         model.removeFromSet(testSet, addValue);
         testSet = getSet(model, setName);
         assertFalse(testSet.getElements().contains(addValue));
+
         assertTrue(model.isCompiling(2));
+
     }
     
     // Input Setting Tests
@@ -127,7 +136,9 @@ public class ModelTest {
         model.setInput(param, valueToSet);
         param = getParameter(model, parameter);
         assertEquals( param.getValue(), valueToSet);
+
         assertTrue(model.isCompiling(2));
+
     }
     
     // Functionality Toggle Tests
@@ -139,6 +150,7 @@ public class ModelTest {
         assertNotNull(mf);
         model.toggleFunctionality(mf, false);
         assertNull(getConstraint(model, testConstraint));
+
         assertTrue(model.isCompiling(2));
 
         model.toggleFunctionality(mf, true);
@@ -203,9 +215,11 @@ public class ModelTest {
     }
     
 
+
     @AfterAll
     public static void cleanUp() throws IOException {
         Path targetPath = Path.of(TEST_FILE_PATH);
         Files.deleteIfExists(targetPath);
     }
+
 }
