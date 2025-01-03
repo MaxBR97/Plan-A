@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "description": "A React and Electron application",
   "author": "Your Name <your-email@example.com>",
-  "main":"electron.js",
+  "main": "electron.js",
   "private": true,
   "dependencies": {
     "@testing-library/jest-dom": "^5.17.0",
@@ -11,6 +11,7 @@
     "@testing-library/user-event": "^13.5.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-router-dom": "^7.1.1",
     "react-scripts": "5.0.1",
     "web-vitals": "^2.1.4"
   },
@@ -58,8 +59,8 @@
   },
   "proxy": "http://localhost:4000",
   "devDependencies": {
+    "create-react-app": "^5.0.0",
     "electron": "^33.2.0",
-    "electron-builder": "^25.1.8",
-    "create-react-app": "^5.0.0"
+    "electron-builder": "^25.1.8"
   }
 }
