@@ -3,7 +3,7 @@ package Model;
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.*;
 
-import DTO.SolutionDTO;
+import DTO.Solution;
 import parser.*;
 import parser.FormulationBaseVisitor;
 import parser.FormulationLexer;
@@ -32,6 +32,7 @@ public class Model {
     private final Set<ModelConstraint> constraints = new HashSet<>();
     private final Set<ModelPreference> preferences = new HashSet<>();
     private final Set<ModelVariable> variables = new HashSet<>();
+    private final Set<String> toggledOffFunctionalities = new HashSet<>();
     private boolean loadElementsToRam = true;
     private final String zimplCompilationScript = "/Plan-A/dev/Backend/src/main/resources/zimpl/checkCompilation.sh";
     private final String zimplSolveScript = "/Plan-A/dev/Backend/src/main/resources/zimpl/solve.sh" ;
@@ -106,28 +107,44 @@ public class Model {
             parseSource();
         }
     }
-
-    public void toggleFunctionality (ModelFunctionality mf, boolean turnOn) throws Exception {
-        ModifierVisitor modifier;
-        if(turnOn == false)
-             modifier = new ModifierVisitor(tokens, mf.getIdentifier(), null,  ModifierVisitor.Action.COMMENT_OUT, originalSource);
-        else
-        {
-            modifier = new ModifierVisitor(tokens, mf.getIdentifier(), null,  ModifierVisitor.Action.UNCOMMENT, originalSource);
-            throw new Exception("didnt implement uncomment functionality");
-        }
-        modifier.visit(tree);
-        
-        if (modifier.isModified()) {
-            
-            String modifiedSource = modifier.getModifiedSource();
-            Files.write(Paths.get(sourceFilePath), modifiedSource.getBytes());
-            parseSource();
+   
+    public void toggleFunctionality(ModelFunctionality mf, boolean turnOn) {
+        if (!turnOn) {
+            toggledOffFunctionalities.add(mf.getIdentifier());
+        } else {
+            toggledOffFunctionalities.remove(mf.getIdentifier());
         }
     }
 
+    private void commentOutToggledFunctionalities() throws IOException {
+        if (toggledOffFunctionalities.isEmpty()) {
+            return;
+        }
+
+        ModifierVisitor modifier = new ModifierVisitor(tokens, null, null, ModifierVisitor.Action.COMMENT_OUT, originalSource);
+        modifier.setTargetFunctionalities(toggledOffFunctionalities); // Set functionalities to be commented out
+        modifier.visit(tree);
+        
+        if (modifier.isModified()) {
+            String modifiedSource = modifier.getModifiedSource();
+            Files.write(Paths.get(sourceFilePath), modifiedSource.getBytes());
+        //    parseSource();
+        }
+    }
+
+    private void restoreToggledFunctionalities() throws IOException {
+        if (toggledOffFunctionalities.isEmpty()) {
+            return;
+        }
+
+        // Read the original file content and restore it
+        Files.write(Paths.get(sourceFilePath), originalSource.getBytes());
+        parseSource();
+    }
     public boolean isCompiling(float timeout) {
         try {
+            commentOutToggledFunctionalities();
+            
             String[] command = {"/bin/bash", zimplCompilationScript, sourceFilePath, String.valueOf(timeout)};
             Process process = Runtime.getRuntime().exec(command);
             BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
@@ -138,19 +155,25 @@ public class Model {
             }
 
             int exitCode = process.waitFor();
-            if (exitCode == 0 && output.toString().contains("Compilation Successful")) {
-                return true; 
-            } else {
-                return false; 
-            }
+            boolean result = exitCode == 0 && output.toString().contains("Compilation Successful");
+            
+            restoreToggledFunctionalities();
+            return result;
         } catch (Exception e) {
+            try {
+                restoreToggledFunctionalities();
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
             e.printStackTrace();
-            return false; 
+            return false;
         }
     }
     
-    public SolutionDTO solve(float timeout) {
+    public Solution solve(float timeout) {
         try {
+            commentOutToggledFunctionalities();
+            
             String[] command = {"/bin/bash", zimplSolveScript, sourceFilePath, String.valueOf(timeout)};
             Process process = Runtime.getRuntime().exec(command);
             BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
@@ -161,16 +184,21 @@ public class Model {
             }
 
             int exitCode = process.waitFor();
-            if (exitCode == 0) {
-                return new SolutionDTO(sourceFilePath+"SOLUTION");
-            } else {
-                return null; 
-            }
+            Solution result = exitCode == 0 ? new Solution(sourceFilePath+"SOLUTION") : null;
+            
+            restoreToggledFunctionalities();
+            return result;
         } catch (Exception e) {
+            try {
+                restoreToggledFunctionalities();
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
             e.printStackTrace();
-            return null; 
+            return null;
         }
     }
+
     private class CollectorVisitor extends FormulationBaseVisitor<Void> {
 
 
@@ -259,40 +287,37 @@ public class Model {
     
     private class ModifierVisitor extends FormulationBaseVisitor<Void> {
         private final CommonTokenStream tokens;
-        private final String targetSet;
-        private final String value;
+        private String targetIdentifier; // For single-target operations
+        private String targetValue; // For single-target operations
+        private Set<String> targetFunctionalities; // For multi-target operations
         private final Action act;
         private final String originalSource;
         private boolean modified = false;
         private StringBuilder modifiedSource;
+
         enum Action {
             APPEND,
             DELETE,
             SET,
-            COMMENT_OUT, 
-            UNCOMMENT;
+            COMMENT_OUT,
+            UNCOMMENT
         }
-        public ModifierVisitor(CommonTokenStream tokens, String targetSet, String value, Action act, String originalSource) {
+
+        // Original constructor for backward compatibility
+        public ModifierVisitor(CommonTokenStream tokens, String targetIdentifier, String value, Action act, String originalSource) {
             this.tokens = tokens;
-            this.targetSet = targetSet;
-            this.value = value;
+            this.targetIdentifier = targetIdentifier;
+            this.targetValue = value;
             this.act = act;
             this.originalSource = originalSource;
             this.modifiedSource = new StringBuilder(originalSource);
         }
-        
-        @Override
-        public Void visitParamDecl(FormulationParser.ParamDeclContext ctx) {
-            String paramName = extractName(ctx.sqRef().getText());
-            if (paramName.equals(targetSet)) {
-                if(act == Action.SET)
-                    modifyParamContent(ctx.expr());
-                else if (act == Action.COMMENT_OUT)
-                    commentOutParameter(ctx);
-            }
-            return super.visitParamDecl(ctx);
+
+        // Method to set target functionalities for commenting out
+        public void setTargetFunctionalities(Set<String> functionalities) {
+            this.targetFunctionalities = functionalities;
         }
-        
+
         private void modifyParamContent(FormulationParser.ExprContext ctx) {
             // Get the original text with its formatting
             int startIndex = ctx.start.getStartIndex();
@@ -307,7 +332,7 @@ public class Model {
             }
 
             // Modify the set content while preserving formatting
-            String modifiedLine = originalLine.replaceFirst(ctx.getText(), value);
+            String modifiedLine = originalLine.replaceFirst(ctx.getText(), targetValue);
             
             if (!originalLine.equals(modifiedLine)) {
                 modifiedSource.replace(startIndex, stopIndex + 1, modifiedLine);
@@ -315,35 +340,6 @@ public class Model {
             }
         }
 
-        @Override
-        public Void visitSetDefExpr(FormulationParser.SetDefExprContext ctx) {
-            String setName = extractName(ctx.sqRef().getText());
-            if (setName.equals(targetSet)) {
-                if (act == Action.COMMENT_OUT)
-                    commentOutSet(ctx);
-                else if (ctx.setExpr() instanceof FormulationParser.SetExprStackContext) {
-                    FormulationParser.SetExprStackContext stackCtx = 
-                        (FormulationParser.SetExprStackContext) ctx.setExpr();
-                    if (stackCtx.setDesc() instanceof FormulationParser.SetDescStackContext) {
-                        modifySetContent(ctx, stackCtx);
-                    }
-                }
-            }
-            return super.visitSetDefExpr(ctx);
-        }
-
-        @Override
-        public Void visitConstraint(FormulationParser.ConstraintContext ctx) {
-            String constraintName = extractName(ctx.name.getText());
-            if (constraintName.equals(targetSet)) {
-                if (act == Action.COMMENT_OUT)
-                    commentOutConstraint(ctx);
-                
-            }
-            return super.visitConstraint(ctx);
-        }
-
-        
         private void modifySetContent(FormulationParser.SetDefExprContext ctx, 
                                     FormulationParser.SetExprStackContext stackCtx) {
             // Get the original text with its formatting
@@ -360,9 +356,9 @@ public class Model {
             String modifiedLine = originalLine;
             // Modify the set content while preserving formatting
             if(act == Action.APPEND)
-                modifiedLine = modifySetLine(originalLine, value, true);
+                modifiedLine = modifySetLine(originalLine, targetValue, true);
             else if (act == Action.DELETE)
-                modifiedLine = modifySetLine(originalLine, value, false);
+                modifiedLine = modifySetLine(originalLine, targetValue, false);
             else
                 System.out.println("ERROR - shouldnt reach this line (Model.java - modifySetContent(...))");
 
@@ -409,29 +405,61 @@ public class Model {
                 indentation + "# " + originalLine.substring(indentation.length()));
             modified = true;
         }
-        
-        private void commentOutConstraint(FormulationParser.ConstraintContext ctx) {
-            // Get the original text with its formatting
-            int startIndex = ctx.start.getStartIndex();
-            int stopIndex = ctx.stop.getStopIndex();
-            String originalLine = originalSource.substring(startIndex, stopIndex + 1);
-            
-            // Preserve indentation
-            String indentation = "";
-            int lineStart = originalSource.lastIndexOf('\n', startIndex);
-            if (lineStart != -1) {
-                indentation = originalSource.substring(lineStart + 1, startIndex);
+
+        @Override
+        public Void visitParamDecl(FormulationParser.ParamDeclContext ctx) {
+            String paramName = extractName(ctx.sqRef().getText());
+            if (paramName.equals(targetIdentifier)) {
+                if(act == Action.SET)
+                    modifyParamContent(ctx.expr());
+                else if (act == Action.COMMENT_OUT)
+                    commentOutParameter(ctx);
             }
-            
-            // Add comment marker while preserving indentation
-            modifiedSource.replace(startIndex, stopIndex + 1, 
-                indentation + "# " + originalLine.substring(indentation.length()));
-            modified = true;
+            return super.visitParamDecl(ctx);
         }
-        
-        private void commentOutPreference(FormulationParser.ObjectiveContext ctx) {
-            // To be implemented
+
+        @Override
+        public Void visitSetDefExpr(FormulationParser.SetDefExprContext ctx) {
+            String setName = extractName(ctx.sqRef().getText());
+            if (setName.equals(targetIdentifier)) {
+                if (act == Action.COMMENT_OUT)
+                    commentOutSet(ctx);
+                else if (ctx.setExpr() instanceof FormulationParser.SetExprStackContext) {
+                    FormulationParser.SetExprStackContext stackCtx = 
+                        (FormulationParser.SetExprStackContext) ctx.setExpr();
+                    if (stackCtx.setDesc() instanceof FormulationParser.SetDescStackContext) {
+                        modifySetContent(ctx, stackCtx);
+                    }
+                }
+            }
+            return super.visitSetDefExpr(ctx);
         }
+
+        @Override
+        public Void visitConstraint(FormulationParser.ConstraintContext ctx) {
+            String constraintName = extractName(ctx.name.getText());
+            if ((targetFunctionalities != null && targetFunctionalities.contains(constraintName)) ||
+                (targetIdentifier != null && constraintName.equals(targetIdentifier))) {
+                if (act == Action.COMMENT_OUT)
+                    commentOutConstraint(ctx);
+            }
+            return super.visitConstraint(ctx);
+        }
+
+        @Override
+        public Void visitObjective(FormulationParser.ObjectiveContext ctx) {
+            if (ctx.name != null) {
+                String objectiveName = extractName(ctx.name.getText());
+                if ((targetFunctionalities != null && targetFunctionalities.contains(objectiveName)) ||
+                    (targetIdentifier != null && objectiveName.equals(targetIdentifier))) {
+                    if (act == Action.COMMENT_OUT)
+                        commentOutPreference(ctx);
+                }
+            }
+            return super.visitObjective(ctx);
+        }
+
+        // ... keep all existing helper methods (modifyParamContent, commentOutParameter, etc.) ...
 
         private String modifySetLine(String line, String value, boolean isAppend) {
             // Find the set content between braces
@@ -458,21 +486,66 @@ public class Model {
             }
             return line;
         }
-        
+
+        private void commentOutConstraint(FormulationParser.ConstraintContext ctx) {
+            int startIndex = ctx.start.getStartIndex();
+            int stopIndex = ctx.stop.getStopIndex();
+            String fullStatement = originalSource.substring(startIndex, stopIndex + 1);
+            
+            // Split into lines while preserving the original line endings
+            String[] lines = fullStatement.split("(?<=\n)");
+            StringBuilder commentedOut = new StringBuilder();
+            
+            // Get the initial indentation from the first line
+            String initialIndent = "";
+            int lineStart = originalSource.lastIndexOf('\n', startIndex);
+            if (lineStart != -1) {
+                initialIndent = originalSource.substring(lineStart + 1, startIndex);
+            }
+            
+            // Comment out each line while preserving its relative indentation
+            for (String line : lines) {
+                // If it's not the last line (which won't have a newline)
+                if (line.endsWith("\n")) {
+                    commentedOut.append(initialIndent).append("# ").append(line.substring(0, line.length()-1)).append("\n");
+                } else {
+                    commentedOut.append(initialIndent).append("# ").append(line);
+                }
+            }
+            
+            modifiedSource.replace(startIndex, stopIndex + 1, commentedOut.toString());
+            modified = true;
+        }
+
+        private void commentOutPreference(FormulationParser.ObjectiveContext ctx) {
+            int startIndex = ctx.start.getStartIndex();
+            int stopIndex = ctx.stop.getStopIndex();
+            String originalLine = originalSource.substring(startIndex, stopIndex + 1);
+            
+            String indentation = "";
+            int lineStart = originalSource.lastIndexOf('\n', startIndex);
+            if (lineStart != -1) {
+                indentation = originalSource.substring(lineStart + 1, startIndex);
+            }
+            
+            modifiedSource.replace(startIndex, stopIndex + 1, 
+                indentation + "# " + originalLine.substring(indentation.length()));
+            modified = true;
+        }
+
         private String extractName(String sqRef) {
             int bracketIndex = sqRef.indexOf('[');
             return bracketIndex == -1 ? sqRef : sqRef.substring(0, bracketIndex);
         }
-        
+
         public boolean isModified() {
             return modified;
         }
-        
+
         public String getModifiedSource() {
             return modifiedSource.toString();
         }
     }
-    
     private class TypeVisitor extends FormulationBaseVisitor<Void> {
         ModelType type = ModelPrimitives.UNKNOWN;
 

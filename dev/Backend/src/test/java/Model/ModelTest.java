@@ -59,7 +59,7 @@ public class ModelTest {
     }
     
     private ModelVariable getVariable(Model m, String identifier) throws Exception{
-        m = new Model(TEST_FILE_PATH);
+        //m = new Model(TEST_FILE_PATH);
         return m.getVariable(identifier);
     }
     
@@ -149,7 +149,6 @@ public class ModelTest {
         ModelFunctionality mf = getConstraint(model, testConstraint);
         assertNotNull(mf);
         model.toggleFunctionality(mf, false);
-        assertNull(getConstraint(model, testConstraint));
 
         assertTrue(model.isCompiling(2));
 
@@ -177,30 +176,33 @@ public class ModelTest {
 
     @Test
     public void testSolve(){
-        assertFalse(true); // test is not implemented yet because SolutionDTO is not implemented yet
+        model.solve(6);
+        assertFalse(true); // test is not implemented yet because Solution class is not implemented yet
     }
     
     // Collection Getter Tests
     @Test
     public void testParameterParsing() {
-
-        Set<ModelParameter> params = model.getParameters();
-        
+        assertFalse(true); 
         
     }
     @Test
     public void testSetParsing() {
+        assertFalse(true); 
     }
 
     @Test
     public void testConstraintParsing() {
+        assertFalse(true); 
     }
 
     @Test
     public void testPreferenceParsing() {
+        assertFalse(true); 
     }
     @Test
     public void testVariableParsing() {
+        assertFalse(true); 
     }
     
     // Exception Tests
