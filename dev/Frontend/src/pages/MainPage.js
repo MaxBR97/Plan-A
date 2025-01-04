@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import './MainPage.css';
 
 const MainPage = () => {
@@ -6,12 +7,16 @@ const MainPage = () => {
         <div className="main-page">
             <h1 className="main-title">Plan A</h1>
             <div className="button-container">
-                <button className="main-button">טעינת סביבה חדשה</button>
-                <button className="main-button">תכנון שיבוץ קורסים</button>
-                <button className="main-button">תכנון שיבוץ עבודה</button>
+                <Link to="/work-assignment" className="main-button">
+                    Shifts assignment
+                </Link>
+                <button className="main-button">Courses assignmnent</button>
+                <button className="main-button">Upload new environment</button>
             </div>
             <div className="footer-button-container">
-                <button className="footer-button">יצירת סביבה חדשה (למפתחים)</button>
+                <Link to="/upload-zpl" className="footer-button">
+                    Create new environment (For developers)
+                </Link>
             </div>
         </div>
     );
