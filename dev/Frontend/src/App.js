@@ -6,6 +6,7 @@ import UploadZPLPage from './pages/UploadZPLPage';
 import ConfigureVariablesPage from './pages/ConfigureVariablesPage';
 import ConfigureConstraintsPage from './pages/ConfigureConstraintsPage';
 import ConfigurePreferencesPage from './pages/ConfigurePreferencesPage';
+import SolutionPreviewPage from './pages/SolutionPreviewPage';
 
 function App() {
     return (
@@ -17,6 +18,7 @@ function App() {
                 <Route path="/configure-variables" element={<ConfigureVariablesPage />} />
                 <Route path="/configure-constraints" element={<ConfigureConstraintsPage />} />
                 <Route path="/configure-preferences" element={<ConfigurePreferencesPage />} />
+                <Route path="/solution-preview" element={<SolutionPreviewPage />} />
             </Routes>
         </Router>
     );

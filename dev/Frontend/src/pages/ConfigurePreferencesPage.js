@@ -1,16 +1,18 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import './ConfigurePreferencesPage.css';
 
 const ConfigurePreferencesPage = () => {
     // State for preferences
     const [preferences, setPreferences] = useState([
-        { name: 'preference 1', checked: true },
-        { name: 'preference 2', checked: true },
+        { name: 'My Preference 1', checked: true },
+        { name: 'My Preference 2', checked: true },
     ]);
 
     const [preferenceDescription, setPreferenceDescription] = useState('');
     const [adjustableBar, setAdjustableBar] = useState(50); // For the adjustable bar
+
+    const navigate = useNavigate(); // Initialize the navigation function
 
     // Handle checkbox change
     const handleCheckboxChange = (index) => {
@@ -21,7 +23,7 @@ const ConfigurePreferencesPage = () => {
 
     // Handle adding a new preference
     const handleAddPreference = () => {
-        setPreferences([...preferences, { name: `preference ${preferences.length + 1}`, checked: false }]);
+        setPreferences([...preferences, { name: `My Preference ${preferences.length + 1}`, checked: false }]);
     };
 
     return (
@@ -43,54 +45,6 @@ const ConfigurePreferencesPage = () => {
             </div>
 
             <div className="preference-details">
-                <h2>Involved Sets</h2>
-                <div className="dropdown">
-                    <label>Set 2:</label>
-                    <select>
-                        <option>Choose Type</option>
-                        <option>Type 1</option>
-                        <option>Type 2</option>
-                    </select>
-                </div>
-
-                <div className="dropdown">
-                    <label>Set 4:</label>
-                    <select>
-                        <option>Choose Type</option>
-                        <option>Type 1</option>
-                        <option>Type 2</option>
-                    </select>
-                </div>
-
-                <h2>Involved Params</h2>
-                <div className="dropdown">
-                    <label>Param 3:</label>
-                    <select>
-                        <option>Choose Type</option>
-                        <option>Type 1</option>
-                        <option>Type 2</option>
-                    </select>
-                </div>
-
-                <div className="dropdown">
-                    <label>Param 1:</label>
-                    <select>
-                        <option>Choose Type</option>
-                        <option>Type 1</option>
-                        <option>Type 2</option>
-                    </select>
-                </div>
-
-                <h2>Adjustable Bar</h2>
-                <input
-                    type="range"
-                    min="0"
-                    max="100"
-                    value={adjustableBar}
-                    onChange={(e) => setAdjustableBar(e.target.value)}
-                />
-                <p>Value: {adjustableBar}</p>
-
                 <h2>Preference Description</h2>
                 <textarea
                     value={preferenceDescription}
@@ -99,8 +53,23 @@ const ConfigurePreferencesPage = () => {
                 />
             </div>
 
+            <h2>Adjustable Bar</h2>
+            <input
+                type="range"
+                min="0"
+                max="100"
+                value={adjustableBar}
+                onChange={(e) => setAdjustableBar(e.target.value)}
+            />
+            <p>Value: {adjustableBar}</p>
+
             <button className="add-button" onClick={handleAddPreference}>
                 Add Preference
+            </button>
+
+            {/* "Continue" Button to Navigate to Solution Preview Page */}
+            <button className="continue-button" onClick={() => navigate('/solution-preview')}>
+                Continue
             </button>
 
             <Link to="/" className="back-button">Back</Link>
