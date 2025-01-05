@@ -1,6 +1,6 @@
 
 SCIP Status        : solving was interrupted [termination signal received]
-Solving Time (sec) : 5.62
+Solving Time (sec) : 5.67
 Solving Nodes      : 1
 Primal Bound       : +2.13300000000000e+03 (1 solutions)
 Dual Bound         : +1.08271260224369e+03

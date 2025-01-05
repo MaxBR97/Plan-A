@@ -143,9 +143,9 @@ setExpr
 	;
 
 setDesc:'{' '}'						# SetDescEmpty
+	|	'{' condition '}' 			# SetDescStack
 	|	'{' csv '}'					# SetDescStack
 	|	'{' range '}'				# SetDescStack 
-	|	'{' condition '}' 			# SetDescStack
 	;
 
 range	:	lhs=nExpr '..' rhs=nExpr ;

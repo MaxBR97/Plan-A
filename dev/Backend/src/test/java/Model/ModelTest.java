@@ -160,7 +160,7 @@ public class ModelTest {
 
     @Test
     public void testBasicCompilation(){
-        assertFalse(model.isCompiling(0.000000001f));
+        assertFalse(model.isCompiling(0.00000000001f));
         assertTrue(model.isCompiling(3));
         try{
         String gibbrish = "gfsgfd;";
@@ -282,7 +282,7 @@ public class ModelTest {
     @Test
     public void testCxSxSCrossProductStructure() {
         ModelSet cxsxs = model.getSet("CxSxS");
-        assertEquals(2, cxsxs.getSetDependencies().size());
+        assertEquals(3, cxsxs.getSetDependencies().size());
     }
 
     // Test parameter dependencies
@@ -313,6 +313,49 @@ public class ModelTest {
         assertNotNull(emdot);
         assertNotNull(zmanim);
     }
+
+    @Test
+    public void typeCheckC(){
+        ModelSet s = model.getSet("C");
+        ModelType expectedType = ModelPrimitives.INT;
+        assertTrue( s.isCompatible(expectedType));
+    }
+
+    @Test
+    public void typeCheckZmanim(){
+        ModelSet s = model.getSet("Zmanim");
+        ModelType expectedType = ModelPrimitives.INT;
+        assertTrue( s.isCompatible(expectedType));
+    }
+
+    @Test
+    public void typeEmdot(){
+        ModelSet s = model.getSet("Emdot");
+        ModelType expectedType = ModelPrimitives.TEXT;
+        assertTrue( s.isCompatible(expectedType));
+    }
+
+    @Test
+    public void typeCheckS(){
+        ModelSet s = model.getSet("S");
+        ModelType expectedType = new Tuple(new ModelPrimitives[]{ModelPrimitives.TEXT,ModelPrimitives.INT});
+        assertTrue( s.isCompatible(expectedType));
+    }
+
+    @Test
+    public void typeCheckCxS(){
+        ModelSet s = model.getSet("CxS");
+        ModelType expectedType = new Tuple(new ModelPrimitives[]{ModelPrimitives.INT,ModelPrimitives.TEXT,ModelPrimitives.INT});
+        assertTrue( s.isCompatible(expectedType));
+    }
+
+    @Test
+    public void typeCheckCxSxS(){
+        ModelSet s = model.getSet("CxSxS");
+        ModelType expectedType = new Tuple(new ModelPrimitives[]{ModelPrimitives.INT,ModelPrimitives.TEXT,ModelPrimitives.INT,ModelPrimitives.TEXT,ModelPrimitives.INT});
+        assertTrue( s.isCompatible(expectedType));
+    }
+    
 
     @Test
     public void testSolve(){

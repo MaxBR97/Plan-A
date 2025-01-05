@@ -638,52 +638,69 @@ public class Model {
             // Handle binary set operations (*, +, \, -)
             TypeVisitor leftVisitor = new TypeVisitor();
             TypeVisitor rightVisitor = new TypeVisitor();
-            
-            leftVisitor.visit(ctx.setExpr(0));
-            rightVisitor.visit(ctx.setExpr(1));
-            
-            if(getSet(ctx.setExpr(0).getText()) != null){
-                basicSets.add(getSet(ctx.setExpr(0).getText()));
-                basicParams.add(getParameter(ctx.setExpr(0).getText()));
-            }else {
+        
+            // Check if the left set is already identified
+            ModelSet leftSet = getSet(ctx.setExpr(0).getText());
+            if (leftSet != null) {
+                basicSets.add(leftSet);
+                type = leftSet.getType(); // Inherit the type
+            } else {
+                leftVisitor.visit(ctx.setExpr(0));
                 basicSets.addAll(leftVisitor.getBasicSets());
                 basicParams.addAll(leftVisitor.getBasicParams());
             }
-
-            if(getSet(ctx.setExpr(1).getText()) != null){
-                basicSets.add(getSet(ctx.setExpr(1).getText()));
-                basicParams.add(getParameter(ctx.setExpr(1).getText()));
-            }else {
+        
+            // Check if the right set is already identified
+            ModelSet rightSet = getSet(ctx.setExpr(1).getText());
+            if (rightSet != null) {
+                basicSets.add(rightSet);
+                type = rightSet.getType(); // Inherit the type
+            } else {
+                rightVisitor.visit(ctx.setExpr(1));
                 basicSets.addAll(rightVisitor.getBasicSets());
                 basicParams.addAll(rightVisitor.getBasicParams());
             }
-            
-            // Handle type combination based on operator
-            if (ctx.op.getText().equals("*") || ctx.op.getText().equals("cross") ) {
-                // For Cartesian product, combine types into tuple
+        
+            // Handle type combination based on the operator
+            if (ctx.op.getText().equals("*") || ctx.op.getText().equals("cross")) {
+                // For Cartesian product, combine types into a tuple
                 type = new Tuple();
-                if (leftVisitor.getType() instanceof Tuple) {
+                if (leftSet != null) {
+                    ((Tuple) type).append(leftSet.getType());
+                } else if (leftVisitor.getType() instanceof Tuple) {
                     ((Tuple) type).append((Tuple) leftVisitor.getType());
                 } else {
                     ((Tuple) type).append(leftVisitor.getType());
                 }
-                
-                if (rightVisitor.getType() instanceof Tuple) {
+        
+                if (rightSet != null) {
+                    ((Tuple) type).append(rightSet.getType());
+                } else if (rightVisitor.getType() instanceof Tuple) {
                     ((Tuple) type).append((Tuple) rightVisitor.getType());
                 } else {
                     ((Tuple) type).append(rightVisitor.getType());
                 }
             } else {
                 // For union, difference, etc., types must match
-                type = leftVisitor.getType();
+                if (leftSet != null) {
+                    type = leftSet.getType();
+                } else if (rightSet != null) {
+                    type = rightSet.getType();
+                } else {
+                    type = leftVisitor.getType();
+                }
             }
-            
+        
             return null;
         }
+        
     
         @Override
         public Void visitSetDescStack(FormulationParser.SetDescStackContext ctx) {
-            if (ctx.csv() != null) {
+            if (ctx.condition() != null){
+                this.visit(ctx.condition());
+            }
+            else if (ctx.csv() != null) {
                 // Handle explicit set elements
                 analyzeSetElements(ctx.csv());
                 // Add this as a basic set since it's explicitly defined
@@ -692,9 +709,7 @@ public class Model {
                 // Handle range-based sets
                 type = ModelPrimitives.INT;
                 basicSets.add(new ModelSet("anonymous_range", type));
-            } else if (ctx.condition()!=null){
-                visitCondition(ctx.condition());
-            }
+            } 
             return null;
         }
 
@@ -732,10 +747,8 @@ public class Model {
 
         @Override
         public Void visitCondition(FormulationParser.ConditionContext ctx){
-            //TypeVisitor visitor = new TypeVisitor();
             this.visit(ctx.setExpr());
-            // basicParams.addAll(visitor.getBasicParams());
-            // basicSets.addAll(visitor.getBasicSets());
+            
             return null;
         }
         
