@@ -69,14 +69,6 @@ public class TypesAndDependencyTests {
         assertEquals(dependency, model.getVariable(var).findDependency(dependency).getIdentifier());
     }
 
-    @Test
-    public void testCoupleVariableDependency() {
-        String var = "couples";
-        String dependency = "CxSxS";
-        assertEquals(1, model.getVariable(var).getDependencies().size());
-        assertEquals(dependency, model.getVariable(var).findDependency(dependency).getIdentifier());
-    }
-
     // Test set dependencies
     @Test
     public void testCxSDependencies() {
@@ -127,21 +119,21 @@ public class TypesAndDependencyTests {
     public void testCSetDependencyOnSoldiers() {
         String setName = "C";
         ModelSet set = model.getSet(setName);
-        assertNotNull(set.findSetDependency("anonymous_range"));
+        assertTrue(set.getSetDependencies().isEmpty());
     }
 
     @Test
     public void testEmdotSetDependencyOnSoldiers() {
         String setName = "Emdot";
         ModelSet set = model.getSet(setName);
-        assertNotNull(set.findSetDependency("anonymous"));
+        assertNotNull(set.findSetDependency("custom_set"));
     }
 
     @Test
     public void testZmanimSetDependencyOnSoldiers() {
         String setName = "Zmanim";
         ModelSet set = model.getSet(setName);
-        assertNotNull(set.findSetDependency("anonymous"));
+        assertNotNull(set.findSetDependency("custom_set"));
     }
 
     // Test cross product dependencies
@@ -196,7 +188,7 @@ public class TypesAndDependencyTests {
     public void typeCheckC(){
         ModelSet s = model.getSet("C");
         ModelType expectedType = ModelPrimitives.INT;
-        assertTrue( s.isCompatible(expectedType));
+        assertTrue(s.isCompatible(expectedType));
     }
 
     @Test

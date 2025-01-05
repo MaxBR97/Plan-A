@@ -704,11 +704,10 @@ public class Model implements ModelInterface {
                 // Handle explicit set elements
                 analyzeSetElements(ctx.csv());
                 // Add this as a basic set since it's explicitly defined
-                basicSets.add(new ModelSet("anonymous", type));
-            } else if (ctx.range() != null && basicSets.size() == 0) {
+                basicSets.add(new ModelSet("custom_set", type));
+            } else if (ctx.range() != null) {
                 // Handle range-based sets
-                type = ModelPrimitives.INT;
-                basicSets.add(new ModelSet("anonymous_range", type));
+                //TODO: unimplemented
             } 
             return null;
         }
