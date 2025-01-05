@@ -175,6 +175,14 @@ public class ModelTest {
     }
 
     @Test
+    public void setDependencyInference() {
+        String var = "couples";
+        String dependency = "CxSxS";
+        assertEquals(1,model.getVariable(var).getDependencies().size() );
+        assertEquals(dependency,model.getVariable(var).getDependencies().get(0).identifier);
+    }
+
+    @Test
     public void testSolve(){
         model.solve(6);
         assertFalse(true); // test is not implemented yet because Solution class is not implemented yet

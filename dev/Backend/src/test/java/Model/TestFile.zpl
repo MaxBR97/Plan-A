@@ -14,6 +14,8 @@ var edge[CxS] binary;
 var couples[CxSxS] binary;
 
 
+
+
 subto trivial1:
     forall <j,a1,a2,b1,b2> in CxSxS | a1 != b1 or a2 != b2 : vif couples[j,a1,a2,b1,b2] == 1 then edge[j,a1,a2] == 1  end;
 

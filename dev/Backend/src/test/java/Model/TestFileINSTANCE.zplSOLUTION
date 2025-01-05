@@ -1,0 +1,30 @@
+
+SCIP Status        : solving was interrupted [termination signal received]
+Solving Time (sec) : 5.69
+Solving Nodes      : 1
+Primal Bound       : +2.13300000000000e+03 (1 solutions)
+Dual Bound         : +1.18699991133157e+03
+Gap                : 79.70 %
+objective value:                                 2133
+edge#1$Shin Gimel#12                                1 	(obj:0)
+edge#1$Fillbox#0                                    1 	(obj:0)
+edge#1$Fillbox#20                                   1 	(obj:0)
+edge#2$Shin Gimel#20                                1 	(obj:0)
+edge#2$Fillbox#4                                    1 	(obj:0)
+edge#2$Fillbox#12                                   1 	(obj:0)
+edge#3$Shin Gimel#0                                 1 	(obj:0)
+edge#3$Shin Gimel#8                                 1 	(obj:0)
+edge#3$Shin Gimel#16                                1 	(obj:0)
+edge#4$Fillbox#8                                    1 	(obj:0)
+edge#4$Fillbox#16                                   1 	(obj:0)
+edge#7$Shin Gimel#4                                 1 	(obj:0)
+couples#1$Shin Gimel#12$Fillbox#20                    1 	(obj:0)
+couples#1$Fillbox#0$Shin Gimel#12                    1 	(obj:0)
+couples#2$Fillbox#4$Fillbox#12                      1 	(obj:0)
+couples#2$Fillbox#12$Shin Gimel#20                    1 	(obj:0)
+couples#3$Shin Gimel#0$Shin Gimel#8                    1 	(obj:0)
+couples#3$Shin Gimel#8$Shin Gimel#16                    1 	(obj:0)
+couples#4$Fillbox#8$Fillbox#16                      1 	(obj:0)
+maxShmirot                                          3 	(obj:0)
+minimalRivuah                                       8 	(obj:0)
+objvar                                           1133 	(obj:1)

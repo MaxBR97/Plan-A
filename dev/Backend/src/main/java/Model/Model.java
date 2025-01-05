@@ -3,7 +3,7 @@ package Model;
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.*;
 
-import DTO.Solution;
+
 import parser.*;
 import parser.FormulationBaseVisitor;
 import parser.FormulationLexer;
@@ -25,7 +25,7 @@ import org.antlr.runtime.tree.TreeWizard;
 
 public class Model {
     private final String sourceFilePath;
-    private ParseTree tree;
+    ParseTree tree;
     private CommonTokenStream tokens;
     private final Set<ModelSet> sets = new HashSet<>();
     private final Set<ModelParameter> params = new HashSet<>();
@@ -206,7 +206,7 @@ public class Model {
             String paramName = extractName(ctx.sqRef().getText());
             TypeVisitor typer = new TypeVisitor();
             typer.visit(ctx.expr());
-            ModelParameter param = new ModelParameter(paramName,typer.getType());
+            ModelParameter param = new ModelParameter(paramName,typer.getType(), typer.getBasicSets(),typer.getBasicParams());
             if(loadElementsToRam){
                 param.setValue(ctx.expr().getText());
             }
@@ -228,7 +228,7 @@ public class Model {
             
             TypeVisitor typer = new TypeVisitor();
             typer.visit(ctx.setExpr());
-            ModelSet set = new ModelSet(setName,typer.getType());
+            ModelSet set = new ModelSet(setName,typer.getType(),typer.getBasicSets(),typer.getBasicParams());
             if(loadElementsToRam){
                 java.util.List<String> elements = parseSetElements(ctx.setExpr());
                 set.setElements(elements);
@@ -254,7 +254,12 @@ public class Model {
         
         public Void visitVariable(FormulationParser.VariableContext ctx){
             String varName = extractName(ctx.sqRef().getText());
-            variables.add(new ModelVariable(varName));
+            TypeVisitor visitor = new TypeVisitor();
+            visitor.visit(ctx.sqRef());
+            List<ModelInput> allDep = new LinkedList<>();
+            allDep.addAll(visitor.getBasicSets());
+            allDep.addAll(visitor.getBasicParams());
+            variables.add(new ModelVariable(varName, visitor.getBasicSets()));
             return super.visitVariable(ctx);
         }
 
@@ -546,49 +551,242 @@ public class Model {
             return modifiedSource.toString();
         }
     }
-    private class TypeVisitor extends FormulationBaseVisitor<Void> {
-        ModelType type = ModelPrimitives.UNKNOWN;
 
-        public ModelType getType(){
+    // private class TypeVisitor extends FormulationBaseVisitor<Void> {
+    //     ModelType type = ModelPrimitives.UNKNOWN;
+    //     List<ModelSet> setComposition = new LinkedList<ModelSet>();
+    //     List<ModelParameter> paramComposition = new LinkedList<ModelParameter>();
+    //     boolean isVariable = false;
+
+    //     public ModelType getType(){
+    //         return type;
+    //     }
+    //     public List<ModelSet> getComposition() {
+    //         //implement
+    //     } 
+
+    //     public Void visitStrExprToken(FormulationParser.StrExprTokenContext ctx){
+    //         if(type == ModelPrimitives.UNKNOWN)
+    //             type = ModelPrimitives.TEXT;
+    //         else if( type instanceof Tuple){
+    //             ((Tuple)type).append(ModelPrimitives.TEXT);
+    //         } else {
+    //             //nothing
+    //         }
+    //         return super.visitStrExprToken(ctx);
+    //     }
+
+    //     public Void visitBasicExprToken(FormulationParser.BasicExprTokenContext ctx){
+    //         ModelPrimitives tmp = ModelPrimitives.UNKNOWN;
+    //         if(ctx.FLOAT() != null){
+    //             tmp = ModelPrimitives.FLOAT;
+    //         } else if(ctx.INFINITY() != null){
+    //             tmp = ModelPrimitives.INFINITY;
+    //         } else if(ctx.INT() != null){
+    //             tmp = ModelPrimitives.INT;
+    //         }
+    //         if(type == ModelPrimitives.UNKNOWN){
+    //             type = tmp;
+    //         } else if ( type instanceof Tuple){
+    //             ((Tuple) type).append(tmp);
+    //         } else {
+
+    //         }
+    //         return super.visitBasicExprToken(ctx);
+    //     }
+    
+    //     public Void visitTuple(FormulationParser.TupleContext ctx){
+    //         if(type == ModelPrimitives.UNKNOWN){
+    //             type = new Tuple();
+    //         } else if (type instanceof Tuple) {
+
+    //         }
+    //         return super.visitTuple(ctx);
+    //     }
+        
+    //     public Void visitVairable (FormulationParser.VariableContext ctx){
+    //         isVariable = true;
+
+    //         return super.visitVariable(ctx);
+    //     }
+
+    //     public Void visitSetExprBin(FormulationParser.SetExprBinContext ctx) {
+    //         TypeVisitor left = new TypeVisitor();
+    //         TypeVisitor right = new TypeVisitor();
+    //         left.visit(ctx.setExpr(0));
+    //         right.visit(ctx.setExpr(0));
+    //         setComposition.addAll(left.getComposition());
+    //         setComposition.addAll(right.getComposition());
+    //         return super.visitSetExprBin(ctx);
+    //     }
+    // }
+
+    public class TypeVisitor extends FormulationBaseVisitor<Void> {
+        private ModelType type = ModelPrimitives.UNKNOWN;
+        private  List<ModelSet> basicSets ;
+        private  List<ModelParameter> basicParams;
+        
+
+        public TypeVisitor(){
+            basicSets = new LinkedList<>();
+            basicParams = new LinkedList<>();
+        }
+    
+        // Main visitor methods for type analysis
+        @Override
+        public Void visitSetExprBin(FormulationParser.SetExprBinContext ctx) {
+            // Handle binary set operations (*, +, \, -)
+            TypeVisitor leftVisitor = new TypeVisitor();
+            TypeVisitor rightVisitor = new TypeVisitor();
+            
+            leftVisitor.visit(ctx.setExpr(0));
+            rightVisitor.visit(ctx.setExpr(1));
+            
+            if(getSet(ctx.setExpr(0).getText()) != null){
+                basicSets.add(getSet(ctx.setExpr(0).getText()));
+                basicParams.add(getParameter(ctx.setExpr(0).getText()));
+            }else {
+                basicSets.addAll(leftVisitor.getBasicSets());
+                basicParams.addAll(leftVisitor.getBasicParams());
+            }
+
+            if(getParameter(ctx.setExpr(1).getText()) != null){
+                basicSets.add(getSet(ctx.setExpr(1).getText()));
+                basicParams.add(getParameter(ctx.setExpr(1).getText()));
+            }else {
+                basicSets.addAll(rightVisitor.getBasicSets());
+                basicParams.addAll(rightVisitor.getBasicParams());
+            }
+            
+            // Handle type combination based on operator
+            if (ctx.op.getText().equals("*") || ctx.op.getText().equals("cross") ) {
+                // For Cartesian product, combine types into tuple
+                type = new Tuple();
+                if (leftVisitor.getType() instanceof Tuple) {
+                    ((Tuple) type).append((Tuple) leftVisitor.getType());
+                } else {
+                    ((Tuple) type).append(leftVisitor.getType());
+                }
+                
+                if (rightVisitor.getType() instanceof Tuple) {
+                    ((Tuple) type).append((Tuple) rightVisitor.getType());
+                } else {
+                    ((Tuple) type).append(rightVisitor.getType());
+                }
+            } else {
+                // For union, difference, etc., types must match
+                type = leftVisitor.getType();
+            }
+            
+            return null;
+        }
+    
+        @Override
+        public Void visitSetDescStack(FormulationParser.SetDescStackContext ctx) {
+            if (ctx.csv() != null) {
+                // Handle explicit set elements
+                analyzeSetElements(ctx.csv());
+                // Add this as a basic set since it's explicitly defined
+                basicSets.add(new ModelSet("anonymous", type));
+            } else if (ctx.range() != null) {
+                // Handle range-based sets
+                type = ModelPrimitives.INT;
+                basicSets.add(new ModelSet("anonymous_range", type));
+            } else if (ctx.condition()!=null){
+                visitCondition(ctx.condition());
+            }
+            return null;
+        }
+
+        @Override
+        public Void visitSqRefCsv(FormulationParser.SqRefCsvContext ctx){
+            if(ctx.csv() != null && getSet(ctx.csv().getText()) != null){
+                basicSets.add(getSet(ctx.csv().getText()));
+            }else {
+                
+            }
+
+            if(ctx.csv() != null && getParameter(ctx.csv().getText()) != null){
+                basicParams.add(getParameter(ctx.csv().getText()));
+            }
+            return null;
+        }
+        
+        @Override
+        public Void visitStrExprToken(FormulationParser.StrExprTokenContext ctx) {
+            handleBasicType(ModelPrimitives.TEXT);
+            return null;
+        }
+        
+        @Override
+        public Void visitBasicExprToken(FormulationParser.BasicExprTokenContext ctx) {
+            if (ctx.FLOAT() != null) {
+                handleBasicType(ModelPrimitives.FLOAT);
+            } else if (ctx.INT() != null) {
+                handleBasicType(ModelPrimitives.INT);
+            } else if (ctx.INFINITY() != null) {
+                handleBasicType(ModelPrimitives.INFINITY);
+            }
+            return null;
+        }
+
+        @Override
+        public Void visitCondition(FormulationParser.ConditionContext ctx){
+            //TypeVisitor visitor = new TypeVisitor();
+            this.visit(ctx.setExpr());
+            // basicParams.addAll(visitor.getBasicParams());
+            // basicSets.addAll(visitor.getBasicSets());
+            return null;
+        }
+        
+        @Override
+        public Void visitTuple(FormulationParser.TupleContext ctx) {
+            Tuple tupleType = new Tuple();
+            
+            // Visit each element in the tuple
+            if (ctx.csv() != null) {
+                TypeVisitor elementVisitor = new TypeVisitor();
+                elementVisitor.visit(ctx.csv());
+                if (elementVisitor.getType() instanceof Tuple) {
+                    tupleType.append((Tuple) elementVisitor.getType());
+                } else {
+                    tupleType.append(elementVisitor.getType());
+                }
+            //     basicSets.addAll(elementVisitor.basicSets);
+            //     basicParams.addAll(elementVisitor.basicParams);
+            }
+            
+            type = tupleType;
+            return null;
+        }
+    
+        private void handleBasicType(ModelType newType) {
+            if (type == ModelPrimitives.UNKNOWN) {
+                type = newType;
+            } else if (type instanceof Tuple) {
+                ((Tuple) type).append(newType);
+            }
+        }
+        
+        private void analyzeSetElements(FormulationParser.CsvContext ctx) {
+            // Create a new tuple for the first element to determine the structure
+            TypeVisitor elementVisitor = new TypeVisitor();
+            elementVisitor.visit(ctx.expr(0));
+            type = elementVisitor.getType();
+            basicSets.addAll(elementVisitor.getBasicSets());
+            basicParams.addAll(elementVisitor.getBasicParams());
+        }
+    
+        // Getter methods
+        public ModelType getType() {
             return type;
         }
-
-        public Void visitStrExprToken(FormulationParser.StrExprTokenContext ctx){
-            if(type == ModelPrimitives.UNKNOWN)
-                type = ModelPrimitives.TEXT;
-            else if( type instanceof Tuple){
-                ((Tuple)type).append(ModelPrimitives.TEXT);
-            } else {
-                //nothing
-            }
-            return super.visitStrExprToken(ctx);
+        
+        public List<ModelSet> getBasicSets() {
+            return basicSets;
         }
-
-        public Void visitBasicExprToken(FormulationParser.BasicExprTokenContext ctx){
-            ModelPrimitives tmp = ModelPrimitives.UNKNOWN;
-            if(ctx.FLOAT() != null){
-                tmp = ModelPrimitives.FLOAT;
-            } else if(ctx.INFINITY() != null){
-                tmp = ModelPrimitives.INFINITY;
-            } else if(ctx.INT() != null){
-                tmp = ModelPrimitives.INT;
-            }
-            if(type == ModelPrimitives.UNKNOWN){
-                type = tmp;
-            } else if ( type instanceof Tuple){
-                ((Tuple) type).append(tmp);
-            } else {
-
-            }
-            return super.visitBasicExprToken(ctx);
-        }
-        public Void visitTuple(FormulationParser.TupleContext ctx){
-            if(type == ModelPrimitives.UNKNOWN){
-                type = new Tuple();
-            } else if (type instanceof Tuple) {
-
-            }
-            return super.visitTuple(ctx);
+        public List<ModelParameter> getBasicParams() {
+            return basicParams;
         }
     }
 

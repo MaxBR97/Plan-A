@@ -14,6 +14,10 @@ public class Tuple implements ModelType {
         val = new LinkedList();
     }
 
+    public List<ModelPrimitives> getTypes(){
+        return val;
+    }
+
     public boolean isCompatible(ModelType p){
         if(p instanceof Tuple){
             if(((Tuple)p).val.size() == this.val.size()){
@@ -63,8 +67,14 @@ public class Tuple implements ModelType {
         return true;
     }
 
-    void append(ModelPrimitives tmp) {
-        val.add(tmp);
+    void append(ModelType tmp) {
+        if(tmp instanceof ModelPrimitives)
+            val.add((ModelPrimitives)tmp);
+        else {
+            for(ModelPrimitives p : ((Tuple)tmp).getTypes())
+                val.add(p);
+        }
+
     }
 
     public String toString() {

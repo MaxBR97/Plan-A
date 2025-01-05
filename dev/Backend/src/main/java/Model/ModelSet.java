@@ -3,11 +3,17 @@ package Model;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import parser.FormulationParser.SetDefExprContext;
+
 public class ModelSet extends ModelInput {
     private List<String> elements;
 
     public ModelSet(String identifier, ModelType type) {
         super(identifier,type);
+    }
+
+    public ModelSet(String setName, ModelType type, List<ModelSet> basicSets, List<ModelParameter> basicParams) {
+        super(setName, type, basicSets, basicParams);
     }
 
     public List<String> getElements() {
@@ -57,4 +63,6 @@ public class ModelSet extends ModelInput {
     public boolean isEmpty() {
         return elements.isEmpty();
     }
+
+
 }
