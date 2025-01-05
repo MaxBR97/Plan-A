@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 
 import org.antlr.runtime.tree.TreeWizard;
 
-public class Model {
+public class Model implements ModelInterface {
     private final String sourceFilePath;
     ParseTree tree;
     private CommonTokenStream tokens;
