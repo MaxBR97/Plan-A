@@ -6,7 +6,7 @@ import java.util.LinkedList;
 import java.util.List;
 public abstract class ModelInput extends ModelComponent {
     private ModelType myType;
-    protected List<ModelSet> setDependencies;
+    protected List<ModelSet> setDependencies; // order matters
     protected List<ModelParameter> paramDependencies;
 
     public ModelInput(String identifier, ModelType type) {
@@ -23,7 +23,21 @@ public abstract class ModelInput extends ModelComponent {
         paramDependencies = b;
     }
 
+    public ModelSet findSetDependency(String identifier){
+        for( ModelSet s : setDependencies){
+            if(s.identifier.equals(identifier))
+                return s;
+        }
+        return null;
+    }
 
+    public ModelParameter findParamDependency(String identifier){
+        for( ModelParameter s : paramDependencies){
+            if(s.identifier.equals(identifier))
+                return s;
+        }
+        return null;
+    }
 
     // Existing methods
     public ModelType getType() {

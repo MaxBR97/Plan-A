@@ -27,11 +27,11 @@ public class Model {
     private final String sourceFilePath;
     ParseTree tree;
     private CommonTokenStream tokens;
-    private final Set<ModelSet> sets = new HashSet<>();
-    private final Set<ModelParameter> params = new HashSet<>();
-    private final Set<ModelConstraint> constraints = new HashSet<>();
-    private final Set<ModelPreference> preferences = new HashSet<>();
-    private final Set<ModelVariable> variables = new HashSet<>();
+    private final Map<String,ModelSet> sets = new HashMap<>();
+    private final Map<String,ModelParameter> params = new HashMap<>();
+    private final Map<String,ModelConstraint> constraints = new HashMap<>();
+    private final Map<String,ModelPreference> preferences = new HashMap<>();
+    private final Map<String,ModelVariable> variables = new HashMap<>();
     private final Set<String> toggledOffFunctionalities = new HashSet<>();
     private boolean loadElementsToRam = true;
     private final String zimplCompilationScript = "/Plan-A/dev/Backend/src/main/resources/zimpl/checkCompilation.sh";
@@ -210,7 +210,7 @@ public class Model {
             if(loadElementsToRam){
                 param.setValue(ctx.expr().getText());
             }
-            params.add(param);
+            params.put(paramName,param);
             return super.visitParamDecl(ctx);
         }
 
@@ -218,7 +218,7 @@ public class Model {
         public Void visitSetDecl(FormulationParser.SetDeclContext ctx) {
             String setName = extractName(ctx.sqRef().getText());
             
-            sets.add(new ModelSet(setName,ModelPrimitives.UNKNOWN));
+            sets.put(setName,new ModelSet(setName,ModelPrimitives.UNKNOWN));
             return super.visitSetDecl(ctx);
         }
         
@@ -233,14 +233,14 @@ public class Model {
                 java.util.List<String> elements = parseSetElements(ctx.setExpr());
                 set.setElements(elements);
             }
-            sets.add(set);
+            sets.put(setName, set);
             return super.visitSetDefExpr(ctx);
         }
 
         @Override
         public Void visitConstraint(FormulationParser.ConstraintContext ctx) {
             String constName = extractName(ctx.name.getText());
-            constraints.add(new ModelConstraint(constName));
+            constraints.put(constName, new ModelConstraint(constName));
             return super.visitConstraint(ctx);
         }
 
@@ -259,7 +259,7 @@ public class Model {
             List<ModelInput> allDep = new LinkedList<>();
             allDep.addAll(visitor.getBasicSets());
             allDep.addAll(visitor.getBasicParams());
-            variables.add(new ModelVariable(varName, visitor.getBasicSets()));
+            variables.put(varName, new ModelVariable(varName, visitor.getBasicSets()));
             return super.visitVariable(ctx);
         }
 
@@ -650,7 +650,7 @@ public class Model {
                 basicParams.addAll(leftVisitor.getBasicParams());
             }
 
-            if(getParameter(ctx.setExpr(1).getText()) != null){
+            if(getSet(ctx.setExpr(1).getText()) != null){
                 basicSets.add(getSet(ctx.setExpr(1).getText()));
                 basicParams.add(getParameter(ctx.setExpr(1).getText()));
             }else {
@@ -688,7 +688,7 @@ public class Model {
                 analyzeSetElements(ctx.csv());
                 // Add this as a basic set since it's explicitly defined
                 basicSets.add(new ModelSet("anonymous", type));
-            } else if (ctx.range() != null) {
+            } else if (ctx.range() != null && basicSets.size() == 0) {
                 // Handle range-based sets
                 type = ModelPrimitives.INT;
                 basicSets.add(new ModelSet("anonymous_range", type));
@@ -789,61 +789,26 @@ public class Model {
             return basicParams;
         }
     }
-
-    public Set<ModelSet> getSets() {
-        return Collections.unmodifiableSet(sets);
-    }
     
-    public Set<ModelParameter> getParameters() {
-        return Collections.unmodifiableSet(params);
-    }
     
-    public Set<ModelConstraint> getConstraints() {
-        return Collections.unmodifiableSet(constraints);
-    }
-    
-    public Set<ModelPreference> getPreferences() {
-        return Collections.unmodifiableSet(preferences);
-    }
-    
-    public Set<ModelVariable> getVariables() {
-        return Collections.unmodifiableSet(variables);
-    }
-    
-    // Getters for individual elements by identifier
     public ModelSet getSet(String identifier) {
-        return sets.stream()
-            .filter(set -> set.getIdentifier().equals(identifier))
-            .findFirst()
-            .orElse(null);
+        return sets.get(identifier);
     }
     
     public ModelParameter getParameter(String identifier) {
-        return params.stream()
-            .filter(param -> param.getIdentifier().equals(identifier))
-            .findFirst()
-            .orElse(null);
+        return params.get(identifier);
     }
     
     public ModelConstraint getConstraint(String identifier) {
-        return constraints.stream()
-            .filter(constraint -> constraint.getIdentifier().equals(identifier))
-            .findFirst()
-            .orElse(null);
+        return constraints.get(identifier);
     }
     
     public ModelPreference getPreference(String identifier) {
-        return preferences.stream()
-            .filter(preference -> preference.getIdentifier().equals(identifier))
-            .findFirst()
-            .orElse(null);
+        return preferences.get(identifier);
     }
     
     public ModelVariable getVariable(String identifier) {
-        return variables.stream()
-            .filter(variable -> variable.getIdentifier().equals(identifier))
-            .findFirst()
-            .orElse(null);
+        return variables.get(identifier);
     }
     
 }

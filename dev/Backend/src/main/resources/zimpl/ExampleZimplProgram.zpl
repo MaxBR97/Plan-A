@@ -6,7 +6,7 @@ param absoluteMinimalRivuah := 8;
 set C := {1..soldiers};
 set Emdot := {"Shin Gimel", "Fillbox"};
 set Zmanim := {0,4,8,12,16,20};
-set S := Emdot cross Zmanim;
+set S := Emdot * Zmanim;
 set CxS := C * S;
 set CxSxS := {<i,a,b,c,d> in C * S * S | b < d };
 
