@@ -1,0 +1,85 @@
+/* ConfigureConstraintsPage.css */
+
+.configure-constraints-page {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+}
+
+.page-title {
+    font-size: 36px;
+    font-weight: bold;
+    margin-bottom: 30px;
+}
+
+.constraints-list,
+.constraint-details {
+    width: 100%;
+    max-width: 600px;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    background-color: #f9f9f9;
+    margin-bottom: 20px;
+}
+
+.checkbox-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.checkbox-item label {
+    margin-left: 10px;
+    font-size: 16px;
+}
+
+.dropdown {
+    margin-bottom: 20px;
+}
+
+.dropdown label {
+    font-size: 16px;
+    margin-right: 10px;
+}
+
+textarea {
+    width: 100%;
+    height: 80px;
+    padding: 10px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.add-button {
+    padding: 10px 20px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    background-color: #ffffff;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.add-button:hover {
+    background-color: #e0e0e0;
+}
+
+.back-button {
+    margin-top: 20px;
+    padding: 10px 20px;
+    font-size: 14px;
+    text-decoration: none;
+    color: #000;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    background-color: #ffffff;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.back-button:hover {
+    background-color: #e0e0e0;
+}

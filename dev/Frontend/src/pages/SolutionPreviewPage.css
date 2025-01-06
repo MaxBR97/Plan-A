@@ -1,0 +1,138 @@
+/* SolutionPreviewPage.css */
+
+/* Center the entire page content */
+.solution-preview-page {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+}
+
+.page-title {
+    font-size: 36px;
+    font-weight: bold;
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+/* Layout for the main section (flexbox) */
+.main-section {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    max-width: 1200px;
+    gap: 20px;
+}
+
+/* Left Section Styling */
+.left-section {
+    flex: 1;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    padding: 20px;
+    background-color: #f9f9f9;
+}
+
+/* Right Section Styling */
+.right-section {
+    flex: 1;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    padding: 20px;
+    background-color: #f9f9f9;
+}
+
+/* Shifts Table Section */
+.shifts-section {
+    width: 100%;
+    max-width: 1200px;
+    margin-top: 20px;
+}
+
+.shifts-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.shifts-table th,
+.shifts-table td {
+    border: 1px solid #ccc;
+    padding: 10px;
+    text-align: center;
+}
+
+.shifts-table th {
+    background-color: #f0f0f0;
+    font-weight: bold;
+}
+
+/* Salaries Table Section */
+.salaries-section {
+    width: 100%;
+    max-width: 600px;
+    margin-top: 20px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    padding: 20px;
+    background-color: #ffffff;
+}
+
+.salaries-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.salaries-table th,
+.salaries-table td {
+    border: 1px solid #ccc;
+    padding: 10px;
+    text-align: center;
+}
+
+.salaries-table th {
+    background-color: #f0f0f0;
+    font-weight: bold;
+}
+
+/* Action Buttons */
+.action-buttons {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    max-width: 600px;
+    margin-top: 20px;
+}
+
+.create-image-button,
+.solve-button {
+    padding: 10px 20px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    background-color: #ffffff;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.create-image-button:hover,
+.solve-button:hover {
+    background-color: #e0e0e0;
+}
+
+/* Back Button Styling */
+.back-button {
+    margin-top: 20px;
+    padding: 10px 20px;
+    font-size: 14px;
+    text-decoration: none;
+    color: #000;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    background-color: #ffffff;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.back-button:hover {
+    background-color: #e0e0e0;
+}
