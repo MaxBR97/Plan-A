@@ -20,6 +20,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+import Model.Stubs.ModelStub;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -33,7 +34,7 @@ import java.io.IOException;
 
 
 public class ModelTest {
-    private Model model;
+    private ModelInterface model;
 
     private static String source = "/Plan-A/dev/Backend/src/test/java/Model/TestFile.zpl";
     private static String TEST_FILE_PATH = "/Plan-A/dev/Backend/src/test/java/Model/TestFileINSTANCE.zpl";
@@ -49,27 +50,27 @@ public class ModelTest {
         Files.copy(sourcePath, targetPath, StandardCopyOption.REPLACE_EXISTING);
     }
 
-    private ModelSet getSet(Model m, String identifier) throws Exception{
+    private ModelSet getSet(ModelInterface m, String identifier) throws Exception{
         m = new Model(TEST_FILE_PATH);
         return m.getSet(identifier);
     }
     
-    private ModelParameter getParameter(Model m, String identifier) throws Exception{
+    private ModelParameter getParameter(ModelInterface m, String identifier) throws Exception{
         m = new Model(TEST_FILE_PATH);
         return m.getParameter(identifier);
     }
     
-    private ModelVariable getVariable(Model m, String identifier) throws Exception{
+    private ModelVariable getVariable(ModelInterface m, String identifier) throws Exception{
         //m = new Model(TEST_FILE_PATH);
         return m.getVariable(identifier);
     }
     
-    private ModelConstraint getConstraint(Model m, String identifier) throws Exception{
+    private ModelConstraint getConstraint(ModelInterface m, String identifier) throws Exception{
         m = new Model(TEST_FILE_PATH);
         return m.getConstraint(identifier);
     }
     
-    private ModelPreference getPreference(Model m, String identifier) throws Exception{
+    private ModelPreference getPreference(ModelInterface m, String identifier) throws Exception{
         m = new Model(TEST_FILE_PATH);
         return m.getPreference(identifier);
     }
@@ -77,7 +78,7 @@ public class ModelTest {
     
     @BeforeEach
     public void setUp() throws IOException {
-        model = new Model(TEST_FILE_PATH);
+        model = new ModelStub(TEST_FILE_PATH);
     }
     
     @Test
