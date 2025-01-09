@@ -148,7 +148,7 @@ setDesc:'{' '}'						# SetDescEmpty
 	|	'{' range '}'				# SetDescStack 
 	;
 
-range	:	lhs=nExpr '..' rhs=nExpr ;
+range	:	lhs=nExpr '..' rhs=nExpr ('by' step=nExpr)?;
 
 tuple	:	'<' csv '>' ;
 

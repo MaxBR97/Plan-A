@@ -16,15 +16,18 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
     import java.nio.file.StandardOpenOption;
     import java.util.Arrays;
     import java.util.Collections;
-    import java.util.List;
+import java.util.HashMap;
+import java.util.List;
     import java.util.Set;
     
     import org.junit.jupiter.api.AfterAll;
     import org.junit.jupiter.api.BeforeAll;
     import org.junit.jupiter.api.BeforeEach;
     import org.junit.jupiter.api.Test;
-    import org.junit.jupiter.params.provider.NullAndEmptySource;
-    import org.springframework.boot.test.context.SpringBootTest;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.springframework.boot.test.context.SpringBootTest;
     import java.nio.file.Files;
     import java.nio.file.Path;
     import java.nio.file.StandardCopyOption;
@@ -37,7 +40,8 @@ public class TypesAndDependencyTests {
     private static String source = "/Plan-A/dev/Backend/src/test/java/Model/TestFile.zpl";
     private static String TEST_FILE_PATH = "/Plan-A/dev/Backend/src/test/java/Model/TestFileINSTANCE.zpl";
 
-    private static String[][] expectedParameters = {{"Conditioner","10"}, {"soldiers", "9"}, {"absoluteMinimalRivuah", "8"}};
+    private static HashMap<String,String[]> setDependencies =  new HashMap<String,String[]>();
+    private static HashMap<String,String[]> paramDependencies =  new HashMap<String,String[]>();
     
     @BeforeAll
     public static void setUpFile() throws IOException {
@@ -46,6 +50,36 @@ public class TypesAndDependencyTests {
         Files.deleteIfExists(targetPath);
         
         Files.copy(sourcePath, targetPath, StandardCopyOption.REPLACE_EXISTING);
+
+        //TRUTH
+        setDependencies.put("setWithRange",new String[]{});
+        paramDependencies.put("setWithRange", new String[]{"conditioner"});
+        setDependencies.put("C", new String[]{});
+        paramDependencies.put("C", new String[]{"soldiers"});
+        setDependencies.put("CxS", new String[]{"C","S"});
+        paramDependencies.put("CxS", new String[]{});
+        setDependencies.put("Emdot", new String[]{"custom_set"});
+        paramDependencies.put("Emdot", new String[]{});
+        setDependencies.put("Zmanim", new String[]{"custom_set"});
+        paramDependencies.put("Zmanim", new String[]{});
+        setDependencies.put("S", new String[]{"Emdot", "Zmanim"});
+        paramDependencies.put("S", new String[]{});
+        setDependencies.put("CxSxS", new String[]{"C", "S", "S"});
+        paramDependencies.put("CxSxS", new String[]{});
+
+        setDependencies.put("conditioner", new String[]{});
+        paramDependencies.put("conditioner", new String[]{});
+        setDependencies.put("absoluteMinimalRivuah", new String[]{});
+        paramDependencies.put("absoluteMinimalRivuah", new String[]{});
+        setDependencies.put("soldiers", new String[]{});
+        paramDependencies.put("soldiers", new String[]{});
+        
+
+        setDependencies.put("couples", new String[]{"CxSxS"});
+        paramDependencies.put("couples", new String[]{});
+        setDependencies.put("edge", new String[]{"CxS"});
+        paramDependencies.put("edge", new String[]{});
+        
     }
 
     @BeforeEach
@@ -69,104 +103,60 @@ public class TypesAndDependencyTests {
         assertEquals(dependency, model.getVariable(var).findDependency(dependency).getIdentifier());
     }
 
-    // Test set dependencies
-    @Test
-    public void testCxSDependencies() {
-        String setName = "CxS";
-        List<String> expectedDeps = Arrays.asList("C", "S");
+    
+    @ParameterizedTest
+    @ValueSource(strings = {"setWithRange","C","S","Zmanim", "Emdot", "CxS", "CxSxS"})
+    public void testSetDependenciesOfSets(String identifier) {
+        String setName = identifier;
+        List<String> expectedDeps = Arrays.asList(setDependencies.get(identifier));
         ModelSet set = model.getSet(setName);
-        assertEquals(2, set.getSetDependencies().size());
+        assertEquals(expectedDeps.size(), set.getSetDependencies().size());
         for (String dep : expectedDeps) {
             assertNotNull(
                             set.findSetDependency(dep));
         }
     }
 
-    @Test
-    public void testSDependencies() {
-        String setName = "S";
-        List<String> expectedDeps = Arrays.asList("Emdot", "Zmanim");
+    @ParameterizedTest
+    @ValueSource(strings = {"setWithRange","C","S","Zmanim", "Emdot", "CxS", "CxSxS"})
+    public void testParamDependenciesOfSets(String identifier) {
+        String setName = identifier;
+        List<String> expectedDeps = Arrays.asList(paramDependencies.get(identifier));
         ModelSet set = model.getSet(setName);
-        assertEquals(2, set.getSetDependencies().size());
+        assertEquals(expectedDeps.size(), set.getParamDependencies().size());
         for (String dep : expectedDeps) {
             assertNotNull(
-                            set.findSetDependency(dep));
+                            set.findParamDependency(dep));
         }
     }
 
-    @Test
-    public void testCxSxSDependencies() {
-        String setName = "CxSxS";
-        List<String> expectedDeps = Arrays.asList("C", "S", "S");
-        ModelSet set = model.getSet(setName);
-        assertEquals(3  , set.getSetDependencies().size());
+    @ParameterizedTest
+    @ValueSource(strings = {"conditioner", "absoluteMinimalRivuah", "soldiers"})
+    public void testSetDependenciesOfParameters(String identifier) {
+        String paramName = identifier;
+        List<String> expectedDeps = Arrays.asList(setDependencies.get(identifier));
+        ModelParameter param = model.getParameter(paramName);
+        assertEquals(expectedDeps.size(), param.getSetDependencies().size());
         for (String dep : expectedDeps) {
             assertNotNull(
-                            set.findSetDependency(dep));
+                            param.findSetDependency(dep));
         }
     }
 
-    // Test set definitions with ranges
-    @Test
-    public void testCDependencyOnSoldiers() {
-        String setName = "C";
-        ModelSet set = model.getSet(setName);
-        ModelParameter soldiers = model.getParameter("soldiers");
-        assertNotNull(set.findParamDependency("soldiers"));
-    }
-
-    @Test
-    public void testCSetDependencyOnSoldiers() {
-        String setName = "C";
-        ModelSet set = model.getSet(setName);
-        assertTrue(set.getSetDependencies().isEmpty());
-    }
-
-    @Test
-    public void testEmdotSetDependencyOnSoldiers() {
-        String setName = "Emdot";
-        ModelSet set = model.getSet(setName);
-        assertNotNull(set.findSetDependency("custom_set"));
-    }
-
-    @Test
-    public void testZmanimSetDependencyOnSoldiers() {
-        String setName = "Zmanim";
-        ModelSet set = model.getSet(setName);
-        assertNotNull(set.findSetDependency("custom_set"));
-    }
-
-    // Test cross product dependencies
-    @Test
-    public void testSCrossProductStructure() {
-        ModelSet s = model.getSet("S");
-        assertEquals(2, s.getSetDependencies().size());
-    }
-
-    @Test
-    public void testCxSCrossProductStructure() {
-        ModelSet cxs = model.getSet("CxS");
-        assertEquals(2, cxs.getSetDependencies().size());
-    }
-
-    @Test
-    public void testCxSxSCrossProductStructure() {
-        ModelSet cxsxs = model.getSet("CxSxS");
-        assertEquals(3, cxsxs.getSetDependencies().size());
-    }
-
-    // Test parameter dependencies
-    @Test
-    public void testParameterIndependence() {
-        List<String> params = Arrays.asList("conditioner", "soldiers", "absoluteMinimalRivuah");
-        for (String param : params) {
-            ModelParameter parameter = model.getParameter(param);
-            assertEquals(
-                        0, parameter.getParamDependencies().size());
+    @ParameterizedTest
+    @ValueSource(strings = {"conditioner", "absoluteMinimalRivuah", "soldiers"})
+    public void testParamDependenciesOfParameters(String identifier) {
+        String paramName = identifier;
+        List<String> expectedDeps = Arrays.asList(paramDependencies.get(identifier));
+        ModelParameter param = model.getParameter(paramName);
+        assertEquals(expectedDeps.size(), param.getParamDependencies().size());
+        for (String dep : expectedDeps) {
+            assertNotNull(
+                            param.findParamDependency(dep));
         }
     }
 
-    // Test recursive dependencies
+    //TODO: test this case more thoroughly by explicitly check the dependency of each set, instead of just checking NotNull.
     @Test
     public void testRecursiveDependencies() {
         ModelVariable couples = model.getVariable("couples");
@@ -184,6 +174,8 @@ public class TypesAndDependencyTests {
         assertNotNull(zmanim);
     }
 
+
+    //TODO: tests that check types, may be converted to parameterized tests.
     @Test
     public void typeCheckC(){
         ModelSet s = model.getSet("C");

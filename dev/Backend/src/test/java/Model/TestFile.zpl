@@ -2,7 +2,7 @@ param conditioner := 10;
 param soldiers := 9;
 param absoluteMinimalRivuah := 8;
 
-
+set setWithRange := {1..100 by conditioner};
 set C := {1..soldiers};
 set Emdot := {"Shin Gimel", "Fillbox"};
 set Zmanim := {0,4,8,12,16,20};

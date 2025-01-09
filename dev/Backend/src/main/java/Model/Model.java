@@ -706,9 +706,23 @@ public class Model implements ModelInterface {
                 // Add this as a basic set since it's explicitly defined
                 basicSets.add(new ModelSet("custom_set", type));
             } else if (ctx.range() != null) {
-                // Handle range-based sets
-                //TODO: unimplemented
+                this.visit(ctx.range());
             } 
+            return null;
+        }
+
+        @Override
+        public Void visitRange(FormulationParser.RangeContext ctx){
+            if(params.get(ctx.lhs.getText()) != null){
+                basicParams.add(params.get(ctx.lhs.getText()));
+            }
+            if(params.get(ctx.rhs.getText()) != null){
+                basicParams.add(params.get(ctx.rhs.getText()));
+            }
+            if(ctx.step != null && params.get(ctx.step.getText()) != null){
+                basicParams.add(params.get(ctx.step.getText()));
+            }
+            type = ModelPrimitives.INT;
             return null;
         }
 
@@ -747,7 +761,6 @@ public class Model implements ModelInterface {
         @Override
         public Void visitCondition(FormulationParser.ConditionContext ctx){
             this.visit(ctx.setExpr());
-            
             return null;
         }
         
