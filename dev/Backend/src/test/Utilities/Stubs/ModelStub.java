@@ -21,10 +21,14 @@ public class ModelStub implements ModelInterface {
     }
 
     @Override
-    public void setInput(ModelInput identifier, String value) throws Exception {
+    public void setInput(ModelSet identifier, String[] values) throws Exception {
 
     }
 
+    @Override
+    public void setInput(ModelParameter identifier, String value) throws Exception {
+
+    }
     @Override
     public void toggleFunctionality(ModelFunctionality mf, boolean turnOn) {
 
