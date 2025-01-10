@@ -1,4 +1,4 @@
-package Model.Stubs;
+package Utilities.Stubs;
 
 import Model.*;
 

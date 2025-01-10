@@ -1,4 +1,4 @@
-package Model;
+package Unit;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -12,25 +12,16 @@ import java.io.IOException;
 
 import java.nio.channels.FileChannel;
 import java.nio.file.Files;
-import java.nio.file.OpenOption;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
 
-import Model.Stubs.ModelStub;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.provider.NullAndEmptySource;
-import org.springframework.boot.test.context.SpringBootTest;
-import java.nio.file.Files;
+import Model.*;
+import Model.ModelInterface;
+import Model.ModelSet;
+import Utilities.Stubs.ModelStub;
+import org.junit.jupiter.api.*;
+
 import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
-import java.io.IOException;
 
 
 public class ModelTest {
@@ -102,7 +93,7 @@ public class ModelTest {
 
         ModelSet testSet = model.getSet(setName);
         assertNotNull(testSet);
-        assertEquals(testSet.identifier,setName);
+        assertEquals(testSet.getIdentifier(),setName);
         assertEquals(testSet.getType(), type);
         
 
@@ -134,10 +125,10 @@ public class ModelTest {
 
         ModelParameter param = getParameter(model, parameter);
         assertNotNull(param);
-        assertEquals(param.getType(), ModelPrimitives.INT);
+        Assertions.assertEquals(param.getType(), ModelPrimitives.INT);
         model.setInput(param, valueToSet);
         param = getParameter(model, parameter);
-        assertEquals( param.getValue(), valueToSet);
+        Assertions.assertEquals( param.getValue(), valueToSet);
 
         assertTrue(model.isCompiling(2));
 

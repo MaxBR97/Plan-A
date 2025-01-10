@@ -1,4 +1,4 @@
-package Model;
+package Unit;
 import static org.junit.jupiter.api.Assertions.assertEquals;
     import static org.junit.jupiter.api.Assertions.assertFalse;
     import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -8,28 +8,17 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
     import static org.junit.jupiter.api.Assertions.fail;
     
     import java.io.IOException;
-    
-    import java.nio.channels.FileChannel;
-    import java.nio.file.Files;
-    import java.nio.file.OpenOption;
-    import java.nio.file.StandardCopyOption;
-    import java.nio.file.StandardOpenOption;
-    import java.util.Arrays;
-    import java.util.Collections;
-    import java.util.List;
-    import java.util.Set;
-    
-    import org.junit.jupiter.api.AfterAll;
-    import org.junit.jupiter.api.BeforeAll;
-    import org.junit.jupiter.api.BeforeEach;
-    import org.junit.jupiter.api.Test;
-    import org.junit.jupiter.params.provider.NullAndEmptySource;
-    import org.springframework.boot.test.context.SpringBootTest;
-    import java.nio.file.Files;
-    import java.nio.file.Path;
-    import java.nio.file.StandardCopyOption;
-    import java.io.IOException;
-    
+
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
+import java.util.Arrays;
+import java.util.List;
+
+import Model.*;
+import org.junit.jupiter.api.*;
+
+import java.nio.file.Path;
+
 public class TypesAndDependencyTests {
    
     private Model model;
@@ -83,7 +72,7 @@ public class TypesAndDependencyTests {
         String setName = "CxS";
         List<String> expectedDeps = Arrays.asList("C", "S");
         ModelSet set = model.getSet(setName);
-        assertEquals(2, set.getSetDependencies().size());
+        Assertions.assertEquals(2, set.getSetDependencies().size());
         for (String dep : expectedDeps) {
             assertNotNull(
                             set.findSetDependency(dep));
@@ -95,7 +84,7 @@ public class TypesAndDependencyTests {
         String setName = "S";
         List<String> expectedDeps = Arrays.asList("Emdot", "Zmanim");
         ModelSet set = model.getSet(setName);
-        assertEquals(2, set.getSetDependencies().size());
+        Assertions.assertEquals(2, set.getSetDependencies().size());
         for (String dep : expectedDeps) {
             assertNotNull(
                             set.findSetDependency(dep));
@@ -107,7 +96,7 @@ public class TypesAndDependencyTests {
         String setName = "CxSxS";
         List<String> expectedDeps = Arrays.asList("C", "S", "S");
         ModelSet set = model.getSet(setName);
-        assertEquals(3  , set.getSetDependencies().size());
+        Assertions.assertEquals(3  , set.getSetDependencies().size());
         for (String dep : expectedDeps) {
             assertNotNull(
                             set.findSetDependency(dep));
@@ -148,19 +137,19 @@ public class TypesAndDependencyTests {
     @Test
     public void testSCrossProductStructure() {
         ModelSet s = model.getSet("S");
-        assertEquals(2, s.getSetDependencies().size());
+        Assertions.assertEquals(2, s.getSetDependencies().size());
     }
 
     @Test
     public void testCxSCrossProductStructure() {
         ModelSet cxs = model.getSet("CxS");
-        assertEquals(2, cxs.getSetDependencies().size());
+        Assertions.assertEquals(2, cxs.getSetDependencies().size());
     }
 
     @Test
     public void testCxSxSCrossProductStructure() {
         ModelSet cxsxs = model.getSet("CxSxS");
-        assertEquals(3, cxsxs.getSetDependencies().size());
+        Assertions.assertEquals(3, cxsxs.getSetDependencies().size());
     }
 
     // Test parameter dependencies
@@ -169,7 +158,7 @@ public class TypesAndDependencyTests {
         List<String> params = Arrays.asList("conditioner", "soldiers", "absoluteMinimalRivuah");
         for (String param : params) {
             ModelParameter parameter = model.getParameter(param);
-            assertEquals(
+            Assertions.assertEquals(
                         0, parameter.getParamDependencies().size());
         }
     }
@@ -196,42 +185,42 @@ public class TypesAndDependencyTests {
     public void typeCheckC(){
         ModelSet s = model.getSet("C");
         ModelType expectedType = ModelPrimitives.INT;
-        assertTrue( s.isCompatible(expectedType));
+        Assertions.assertTrue( s.isCompatible(expectedType));
     }
 
     @Test
     public void typeCheckZmanim(){
         ModelSet s = model.getSet("Zmanim");
         ModelType expectedType = ModelPrimitives.INT;
-        assertTrue( s.isCompatible(expectedType));
+        Assertions.assertTrue( s.isCompatible(expectedType));
     }
 
     @Test
     public void typeEmdot(){
         ModelSet s = model.getSet("Emdot");
         ModelType expectedType = ModelPrimitives.TEXT;
-        assertTrue( s.isCompatible(expectedType));
+        Assertions.assertTrue( s.isCompatible(expectedType));
     }
 
     @Test
     public void typeCheckS(){
         ModelSet s = model.getSet("S");
-        ModelType expectedType = new Tuple(new ModelPrimitives[]{ModelPrimitives.TEXT,ModelPrimitives.INT});
-        assertTrue( s.isCompatible(expectedType));
+        ModelType expectedType = new Tuple(new ModelPrimitives[]{ModelPrimitives.TEXT, ModelPrimitives.INT});
+        Assertions.assertTrue( s.isCompatible(expectedType));
     }
 
     @Test
     public void typeCheckCxS(){
         ModelSet s = model.getSet("CxS");
-        ModelType expectedType = new Tuple(new ModelPrimitives[]{ModelPrimitives.INT,ModelPrimitives.TEXT,ModelPrimitives.INT});
-        assertTrue( s.isCompatible(expectedType));
+        ModelType expectedType = new Tuple(new ModelPrimitives[]{ModelPrimitives.INT, ModelPrimitives.TEXT, ModelPrimitives.INT});
+        Assertions.assertTrue( s.isCompatible(expectedType));
     }
 
     @Test
     public void typeCheckCxSxS(){
         ModelSet s = model.getSet("CxSxS");
-        ModelType expectedType = new Tuple(new ModelPrimitives[]{ModelPrimitives.INT,ModelPrimitives.TEXT,ModelPrimitives.INT,ModelPrimitives.TEXT,ModelPrimitives.INT});
-        assertTrue( s.isCompatible(expectedType));
+        ModelType expectedType = new Tuple(new ModelPrimitives[]{ModelPrimitives.INT, ModelPrimitives.TEXT, ModelPrimitives.INT, ModelPrimitives.TEXT, ModelPrimitives.INT});
+        Assertions.assertTrue( s.isCompatible(expectedType));
     }
     
 
