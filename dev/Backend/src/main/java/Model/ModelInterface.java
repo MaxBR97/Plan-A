@@ -31,7 +31,16 @@ public interface ModelInterface {
      * @param value The value to set
      * @throws Exception if the value is incompatible with the input's type
      */
-    void setInput(ModelInput identifier, String value) throws Exception;
+    void setInput(ModelParameter identifier, String value) throws Exception;
+
+    /**
+     * Sets the value of a model input (set).
+     * 
+     * @param identifier The input identifier
+     * @param value The values to set
+     * @throws Exception if the values are incompatible with the input's type
+     */
+    void setInput(ModelSet identifier, String[] values) throws Exception;
 
     /**
      * Toggles a model functionality on or off.

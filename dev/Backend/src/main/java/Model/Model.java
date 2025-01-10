@@ -90,14 +90,30 @@ public class Model implements ModelInterface {
         }
     }
 
-    public void setInput(ModelInput identifier, String value) throws Exception {
+    public void setInput(ModelParameter identifier, String value) throws Exception {
 
         if(!identifier.isCompatible(value))
             throw new Exception("incompatible type");
-        if(identifier instanceof ModelSet)
-            throw new Exception("unimplemented for sets yet!");
         
         ModifierVisitor modifier = new ModifierVisitor(tokens, identifier.getIdentifier(), value,  ModifierVisitor.Action.SET, originalSource);
+        modifier.visit(tree);
+        
+        if (modifier.isModified()) {
+            // Write modified source back to file, preserving original formatting
+            String modifiedSource = modifier.getModifiedSource();
+            Files.write(Paths.get(sourceFilePath), modifiedSource.getBytes());
+            parseSource();
+        }
+    }
+
+    public void setInput(ModelSet identifier, String[] values) throws Exception {
+
+        for(String str : values){
+           if( !identifier.isCompatible(str))
+             throw new Exception(str + " is an incompatible value");
+        }
+        
+        ModifierVisitor modifier = new ModifierVisitor(tokens, identifier.getIdentifier(), values,  ModifierVisitor.Action.SET, originalSource);
         modifier.visit(tree);
         
         if (modifier.isModified()) {
@@ -121,7 +137,7 @@ public class Model implements ModelInterface {
             return;
         }
 
-        ModifierVisitor modifier = new ModifierVisitor(tokens, null, null, ModifierVisitor.Action.COMMENT_OUT, originalSource);
+        ModifierVisitor modifier = new ModifierVisitor(tokens, null, "", ModifierVisitor.Action.COMMENT_OUT, originalSource);
         modifier.setTargetFunctionalities(toggledOffFunctionalities); // Set functionalities to be commented out
         modifier.visit(tree);
         
@@ -293,7 +309,7 @@ public class Model implements ModelInterface {
     private class ModifierVisitor extends FormulationBaseVisitor<Void> {
         private final CommonTokenStream tokens;
         private String targetIdentifier; // For single-target operations
-        private String targetValue; // For single-target operations
+        private String[] targetValues; // For single-target operations
         private Set<String> targetFunctionalities; // For multi-target operations
         private final Action act;
         private final String originalSource;
@@ -312,7 +328,16 @@ public class Model implements ModelInterface {
         public ModifierVisitor(CommonTokenStream tokens, String targetIdentifier, String value, Action act, String originalSource) {
             this.tokens = tokens;
             this.targetIdentifier = targetIdentifier;
-            this.targetValue = value;
+            this.targetValues = new String[]{value};
+            this.act = act;
+            this.originalSource = originalSource;
+            this.modifiedSource = new StringBuilder(originalSource);
+        }
+
+        public ModifierVisitor(CommonTokenStream tokens, String targetIdentifier, String[] values, Action act, String originalSource) {
+            this.tokens = tokens;
+            this.targetIdentifier = targetIdentifier;
+            this.targetValues = values;
             this.act = act;
             this.originalSource = originalSource;
             this.modifiedSource = new StringBuilder(originalSource);
@@ -337,7 +362,7 @@ public class Model implements ModelInterface {
             }
 
             // Modify the set content while preserving formatting
-            String modifiedLine = originalLine.replaceFirst(ctx.getText(), targetValue);
+            String modifiedLine = originalLine.replaceFirst(ctx.getText(), targetValues[0]);
             
             if (!originalLine.equals(modifiedLine)) {
                 modifiedSource.replace(startIndex, stopIndex + 1, modifiedLine);
@@ -361,9 +386,11 @@ public class Model implements ModelInterface {
             String modifiedLine = originalLine;
             // Modify the set content while preserving formatting
             if(act == Action.APPEND)
-                modifiedLine = modifySetLine(originalLine, targetValue, true);
+                modifiedLine = modifySetLine(originalLine, targetValues, true);
             else if (act == Action.DELETE)
-                modifiedLine = modifySetLine(originalLine, targetValue, false);
+                modifiedLine = modifySetLine(originalLine, targetValues, false);
+            else if (act == Action.SET)
+                modifiedLine = modifySetLine(originalLine, targetValues, true);
             else
                 System.out.println("ERROR - shouldnt reach this line (Model.java - modifySetContent(...))");
 
@@ -466,7 +493,7 @@ public class Model implements ModelInterface {
 
         // ... keep all existing helper methods (modifyParamContent, commentOutParameter, etc.) ...
 
-        private String modifySetLine(String line, String value, boolean isAppend) {
+        private String modifySetLine(String line, String[] values, boolean isAppend) {
             // Find the set content between braces
             int openBrace = line.indexOf('{');
             int closeBrace = line.lastIndexOf('}');
@@ -474,19 +501,21 @@ public class Model implements ModelInterface {
             if (openBrace != -1 && closeBrace != -1) {
                 String beforeBraces = line.substring(0, openBrace + 1);
                 String afterBraces = line.substring(closeBrace);
-                String content = line.substring(openBrace + 1, closeBrace).trim();
-                
-                if (isAppend) {
-                    // Add value
-                    content = content.isEmpty() ? value : content + ", " + value;
-                } else {
-                    // Remove value
-                    content = Arrays.stream(content.split(","))
-                                  .map(String::trim)
-                                  .filter(s -> !s.equals(value))
-                                  .collect(Collectors.joining(", "));
+                String content = ""; // if Action.SET, then leave content empty string
+                if(this.act == Action.APPEND || this.act == Action.DELETE)
+                    content = line.substring(openBrace + 1, closeBrace).trim();
+                for(String val : values){
+                    if (isAppend) {
+                        // Add value
+                        content = content.isEmpty() ? val : content + ", " + val;
+                    } else {
+                        // Remove value
+                        content = Arrays.stream(content.split(","))
+                                    .map(String::trim)
+                                    .filter(s -> !s.equals(val))
+                                    .collect(Collectors.joining(", "));
+                    }
                 }
-                
                 return beforeBraces + content + afterBraces;
             }
             return line;

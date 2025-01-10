@@ -1,5 +1,6 @@
 package Model;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -28,6 +29,7 @@ import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.springframework.boot.test.context.SpringBootTest;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.io.IOException;
 
@@ -50,12 +52,12 @@ public class ModelTest {
     }
 
     private ModelSet getSet(Model m, String identifier) throws Exception{
-        m = new Model(TEST_FILE_PATH);
+       // m = new Model(TEST_FILE_PATH);
         return m.getSet(identifier);
     }
     
     private ModelParameter getParameter(Model m, String identifier) throws Exception{
-        m = new Model(TEST_FILE_PATH);
+       // m = new Model(TEST_FILE_PATH);
         return m.getParameter(identifier);
     }
     
@@ -65,12 +67,12 @@ public class ModelTest {
     }
     
     private ModelConstraint getConstraint(Model m, String identifier) throws Exception{
-        m = new Model(TEST_FILE_PATH);
+        //m = new Model(TEST_FILE_PATH);
         return m.getConstraint(identifier);
     }
     
     private ModelPreference getPreference(Model m, String identifier) throws Exception{
-        m = new Model(TEST_FILE_PATH);
+        //m = new Model(TEST_FILE_PATH);
         return m.getPreference(identifier);
     }
     
@@ -103,43 +105,76 @@ public class ModelTest {
         assertNotNull(testSet);
         assertEquals(testSet.identifier,setName);
         assertEquals(testSet.getType(), type);
-        
 
         String addValue = "\"MyValue\"";
-
 
         // Test append
         model.appendToSet(testSet, addValue);
         testSet = getSet(model, setName);
         assertTrue(testSet.getElements().contains(addValue));
-
         assertTrue(model.isCompiling(2));
-
+        
 
         // Test remove
         model.removeFromSet(testSet, addValue);
         testSet = getSet(model, setName);
         assertFalse(testSet.getElements().contains(addValue));
-
         assertTrue(model.isCompiling(2));
-
     }
     
-    // Input Setting Tests
     @Test
-    public void testSetParameterInput() throws Exception {
+    public void testSetInputForParameter() throws Exception {
         String parameter = "soldiers";
-        String valueToSet = "12";
+        String correctValueToSet = "12";
+        String incorrectValueToSet = "\"myText\"";
 
         ModelParameter param = getParameter(model, parameter);
         assertNotNull(param);
         assertEquals(param.getType(), ModelPrimitives.INT);
-        model.setInput(param, valueToSet);
-        param = getParameter(model, parameter);
-        assertEquals( param.getValue(), valueToSet);
 
+        //Set correct value
+        model.setInput(param, correctValueToSet);
+        param = getParameter(model, parameter);
+        assertEquals( param.getValue(), correctValueToSet);
+        assertTrue(model.isCompiling(2));
+        
+        //Set Incorrect Value
+        assertThrows(Exception.class, () -> {
+            ModelParameter paramInLambda = getParameter(model, parameter);
+            model.setInput(paramInLambda, incorrectValueToSet);
+        });
+        param = getParameter(model, parameter);
+        assertEquals(param.getValue(), correctValueToSet);
+        assertTrue(model.isCompiling(2));
+    }
+
+    @Test
+    public void testSetInputForSet() throws Exception {
+        String setName = "Emdot";
+        String correctValueToSet[] = new String[] {"\"12\"", "\"Hi\""};
+        String incorrectValueToSet[] = new String[] {"12", "Hi","5432.2", ""};
+
+        ModelSet set = getSet(model, setName);
+        assertNotNull(set);
+        assertEquals(set.getType(), ModelPrimitives.TEXT);
+
+        //Set correct values
+        model.setInput(set, correctValueToSet);
+        set = getSet(model, setName);
+        assertEquals(correctValueToSet.length, set.getElements().size());
+        assertArrayEquals(correctValueToSet, set.getElements().toArray());
         assertTrue(model.isCompiling(2));
 
+        //set incorrect values
+        assertThrows(Exception.class, () -> {
+            ModelSet setInLambda = getSet(model, setName);
+            model.setInput(setInLambda, incorrectValueToSet);
+        });
+        set = getSet(model, setName);
+        assertEquals(correctValueToSet.length, set.getElements().size());
+        assertArrayEquals(correctValueToSet, set.getElements().toArray());
+        assertTrue(model.isCompiling(2));
+        
     }
     
     // Functionality Toggle Tests
@@ -227,7 +262,9 @@ public class ModelTest {
     @AfterAll
     public static void cleanUp() throws IOException {
         Path targetPath = Path.of(TEST_FILE_PATH);
+        Path solutionPath = Path.of(TEST_FILE_PATH + "SOLUTION");
         Files.deleteIfExists(targetPath);
+        Files.deleteIfExists(solutionPath);
     }
 
 }
