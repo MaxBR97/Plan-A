@@ -27,7 +27,10 @@ RUN apt-get install -y \
 WORKDIR /Plan-A
 COPY . .
 RUN dpkg -i SCIPOptSuite-9.2.0-Linux-ubuntu24.deb
-RUN cd /Plan-A/dev/Frontend && npm install && cd /Plan-A
-RUN cd /Plan-A/dev/Backend && mvn compile && mvn generate-sources && cd /Plan-A
+RUN cd /Plan-A/dev/Frontend && npm install
+RUN cd /Plan-A/dev/Backend && mvn compile
+RUN cd /Plan-A/dev/Backend && mvn generate-sources
+
+ENTRYPOINT ["./containerEntryScript.sh"]
 
 EXPOSE 3000 4000
