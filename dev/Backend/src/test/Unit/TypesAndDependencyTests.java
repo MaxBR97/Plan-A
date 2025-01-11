@@ -1,4 +1,4 @@
-package Model;
+package Unit;
 import static org.junit.jupiter.api.Assertions.assertEquals;
     import static org.junit.jupiter.api.Assertions.assertFalse;
     import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -8,31 +8,17 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
     import static org.junit.jupiter.api.Assertions.fail;
     
     import java.io.IOException;
-    
-    import java.nio.channels.FileChannel;
-    import java.nio.file.Files;
-    import java.nio.file.OpenOption;
-    import java.nio.file.StandardCopyOption;
-    import java.nio.file.StandardOpenOption;
-    import java.util.Arrays;
-    import java.util.Collections;
-import java.util.HashMap;
+
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
+import java.util.Arrays;
 import java.util.List;
-    import java.util.Set;
-    
-    import org.junit.jupiter.api.AfterAll;
-    import org.junit.jupiter.api.BeforeAll;
-    import org.junit.jupiter.api.BeforeEach;
-    import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.NullAndEmptySource;
-import org.junit.jupiter.params.provider.ValueSource;
-import org.springframework.boot.test.context.SpringBootTest;
-    import java.nio.file.Files;
-    import java.nio.file.Path;
-    import java.nio.file.StandardCopyOption;
-    import java.io.IOException;
-    
+
+import Model.*;
+import org.junit.jupiter.api.*;
+
+import java.nio.file.Path;
+
 public class TypesAndDependencyTests {
    
     private Model model;
@@ -40,8 +26,7 @@ public class TypesAndDependencyTests {
     private static String source = "/Plan-A/dev/Backend/src/test/java/Model/TestFile.zpl";
     private static String TEST_FILE_PATH = "/Plan-A/dev/Backend/src/test/java/Model/TestFileINSTANCE.zpl";
 
-    private static HashMap<String,String[]> setDependencies =  new HashMap<String,String[]>();
-    private static HashMap<String,String[]> paramDependencies =  new HashMap<String,String[]>();
+    private static String[][] expectedParameters = {{"Conditioner","10"}, {"soldiers", "9"}, {"absoluteMinimalRivuah", "8"}};
     
     @BeforeAll
     public static void setUpFile() throws IOException {
@@ -50,36 +35,6 @@ public class TypesAndDependencyTests {
         Files.deleteIfExists(targetPath);
         
         Files.copy(sourcePath, targetPath, StandardCopyOption.REPLACE_EXISTING);
-
-        //TRUTH
-        setDependencies.put("setWithRange",new String[]{});
-        paramDependencies.put("setWithRange", new String[]{"conditioner"});
-        setDependencies.put("C", new String[]{});
-        paramDependencies.put("C", new String[]{"soldiers"});
-        setDependencies.put("CxS", new String[]{"C","S"});
-        paramDependencies.put("CxS", new String[]{});
-        setDependencies.put("Emdot", new String[]{"custom_set"});
-        paramDependencies.put("Emdot", new String[]{});
-        setDependencies.put("Zmanim", new String[]{"custom_set"});
-        paramDependencies.put("Zmanim", new String[]{});
-        setDependencies.put("S", new String[]{"Emdot", "Zmanim"});
-        paramDependencies.put("S", new String[]{});
-        setDependencies.put("CxSxS", new String[]{"C", "S", "S"});
-        paramDependencies.put("CxSxS", new String[]{});
-
-        setDependencies.put("conditioner", new String[]{});
-        paramDependencies.put("conditioner", new String[]{});
-        setDependencies.put("absoluteMinimalRivuah", new String[]{});
-        paramDependencies.put("absoluteMinimalRivuah", new String[]{});
-        setDependencies.put("soldiers", new String[]{});
-        paramDependencies.put("soldiers", new String[]{});
-        
-
-        setDependencies.put("couples", new String[]{"CxSxS"});
-        paramDependencies.put("couples", new String[]{});
-        setDependencies.put("edge", new String[]{"CxS"});
-        paramDependencies.put("edge", new String[]{});
-        
     }
 
     @BeforeEach
@@ -103,60 +58,112 @@ public class TypesAndDependencyTests {
         assertEquals(dependency, model.getVariable(var).findDependency(dependency).getIdentifier());
     }
 
-    
-    @ParameterizedTest
-    @ValueSource(strings = {"setWithRange","C","S","Zmanim", "Emdot", "CxS", "CxSxS"})
-    public void testSetDependenciesOfSets(String identifier) {
-        String setName = identifier;
-        List<String> expectedDeps = Arrays.asList(setDependencies.get(identifier));
+    @Test
+    public void testCoupleVariableDependency() {
+        String var = "couples";
+        String dependency = "CxSxS";
+        assertEquals(1, model.getVariable(var).getDependencies().size());
+        assertEquals(dependency, model.getVariable(var).findDependency(dependency).getIdentifier());
+    }
+
+    // Test set dependencies
+    @Test
+    public void testCxSDependencies() {
+        String setName = "CxS";
+        List<String> expectedDeps = Arrays.asList("C", "S");
         ModelSet set = model.getSet(setName);
-        assertEquals(expectedDeps.size(), set.getSetDependencies().size());
+        Assertions.assertEquals(2, set.getSetDependencies().size());
         for (String dep : expectedDeps) {
             assertNotNull(
                             set.findSetDependency(dep));
         }
     }
 
-    @ParameterizedTest
-    @ValueSource(strings = {"setWithRange","C","S","Zmanim", "Emdot", "CxS", "CxSxS"})
-    public void testParamDependenciesOfSets(String identifier) {
-        String setName = identifier;
-        List<String> expectedDeps = Arrays.asList(paramDependencies.get(identifier));
+    @Test
+    public void testSDependencies() {
+        String setName = "S";
+        List<String> expectedDeps = Arrays.asList("Emdot", "Zmanim");
         ModelSet set = model.getSet(setName);
-        assertEquals(expectedDeps.size(), set.getParamDependencies().size());
+        Assertions.assertEquals(2, set.getSetDependencies().size());
         for (String dep : expectedDeps) {
             assertNotNull(
-                            set.findParamDependency(dep));
+                            set.findSetDependency(dep));
         }
     }
 
-    @ParameterizedTest
-    @ValueSource(strings = {"conditioner", "absoluteMinimalRivuah", "soldiers"})
-    public void testSetDependenciesOfParameters(String identifier) {
-        String paramName = identifier;
-        List<String> expectedDeps = Arrays.asList(setDependencies.get(identifier));
-        ModelParameter param = model.getParameter(paramName);
-        assertEquals(expectedDeps.size(), param.getSetDependencies().size());
+    @Test
+    public void testCxSxSDependencies() {
+        String setName = "CxSxS";
+        List<String> expectedDeps = Arrays.asList("C", "S", "S");
+        ModelSet set = model.getSet(setName);
+        Assertions.assertEquals(3  , set.getSetDependencies().size());
         for (String dep : expectedDeps) {
             assertNotNull(
-                            param.findSetDependency(dep));
+                            set.findSetDependency(dep));
         }
     }
 
-    @ParameterizedTest
-    @ValueSource(strings = {"conditioner", "absoluteMinimalRivuah", "soldiers"})
-    public void testParamDependenciesOfParameters(String identifier) {
-        String paramName = identifier;
-        List<String> expectedDeps = Arrays.asList(paramDependencies.get(identifier));
-        ModelParameter param = model.getParameter(paramName);
-        assertEquals(expectedDeps.size(), param.getParamDependencies().size());
-        for (String dep : expectedDeps) {
-            assertNotNull(
-                            param.findParamDependency(dep));
+    // Test set definitions with ranges
+    @Test
+    public void testCDependencyOnSoldiers() {
+        String setName = "C";
+        ModelSet set = model.getSet(setName);
+        ModelParameter soldiers = model.getParameter("soldiers");
+        assertNotNull(set.findParamDependency("soldiers"));
+    }
+
+    @Test
+    public void testCSetDependencyOnSoldiers() {
+        String setName = "C";
+        ModelSet set = model.getSet(setName);
+        assertNotNull(set.findSetDependency("anonymous_range"));
+    }
+
+    @Test
+    public void testEmdotSetDependencyOnSoldiers() {
+        String setName = "Emdot";
+        ModelSet set = model.getSet(setName);
+        assertNotNull(set.findSetDependency("anonymous"));
+    }
+
+    @Test
+    public void testZmanimSetDependencyOnSoldiers() {
+        String setName = "Zmanim";
+        ModelSet set = model.getSet(setName);
+        assertNotNull(set.findSetDependency("anonymous"));
+    }
+
+    // Test cross product dependencies
+    @Test
+    public void testSCrossProductStructure() {
+        ModelSet s = model.getSet("S");
+        Assertions.assertEquals(2, s.getSetDependencies().size());
+    }
+
+    @Test
+    public void testCxSCrossProductStructure() {
+        ModelSet cxs = model.getSet("CxS");
+        Assertions.assertEquals(2, cxs.getSetDependencies().size());
+    }
+
+    @Test
+    public void testCxSxSCrossProductStructure() {
+        ModelSet cxsxs = model.getSet("CxSxS");
+        Assertions.assertEquals(3, cxsxs.getSetDependencies().size());
+    }
+
+    // Test parameter dependencies
+    @Test
+    public void testParameterIndependence() {
+        List<String> params = Arrays.asList("conditioner", "soldiers", "absoluteMinimalRivuah");
+        for (String param : params) {
+            ModelParameter parameter = model.getParameter(param);
+            Assertions.assertEquals(
+                        0, parameter.getParamDependencies().size());
         }
     }
 
-    //TODO: test this case more thoroughly by explicitly check the dependency of each set, instead of just checking NotNull.
+    // Test recursive dependencies
     @Test
     public void testRecursiveDependencies() {
         ModelVariable couples = model.getVariable("couples");
@@ -174,48 +181,46 @@ public class TypesAndDependencyTests {
         assertNotNull(zmanim);
     }
 
-
-    //TODO: tests that check types, may be converted to parameterized tests.
     @Test
     public void typeCheckC(){
         ModelSet s = model.getSet("C");
         ModelType expectedType = ModelPrimitives.INT;
-        assertTrue(s.isCompatible(expectedType));
+        Assertions.assertTrue( s.isCompatible(expectedType));
     }
 
     @Test
     public void typeCheckZmanim(){
         ModelSet s = model.getSet("Zmanim");
         ModelType expectedType = ModelPrimitives.INT;
-        assertTrue( s.isCompatible(expectedType));
+        Assertions.assertTrue( s.isCompatible(expectedType));
     }
 
     @Test
     public void typeEmdot(){
         ModelSet s = model.getSet("Emdot");
         ModelType expectedType = ModelPrimitives.TEXT;
-        assertTrue( s.isCompatible(expectedType));
+        Assertions.assertTrue( s.isCompatible(expectedType));
     }
 
     @Test
     public void typeCheckS(){
         ModelSet s = model.getSet("S");
-        ModelType expectedType = new Tuple(new ModelPrimitives[]{ModelPrimitives.TEXT,ModelPrimitives.INT});
-        assertTrue( s.isCompatible(expectedType));
+        ModelType expectedType = new Tuple(new ModelPrimitives[]{ModelPrimitives.TEXT, ModelPrimitives.INT});
+        Assertions.assertTrue( s.isCompatible(expectedType));
     }
 
     @Test
     public void typeCheckCxS(){
         ModelSet s = model.getSet("CxS");
-        ModelType expectedType = new Tuple(new ModelPrimitives[]{ModelPrimitives.INT,ModelPrimitives.TEXT,ModelPrimitives.INT});
-        assertTrue( s.isCompatible(expectedType));
+        ModelType expectedType = new Tuple(new ModelPrimitives[]{ModelPrimitives.INT, ModelPrimitives.TEXT, ModelPrimitives.INT});
+        Assertions.assertTrue( s.isCompatible(expectedType));
     }
 
     @Test
     public void typeCheckCxSxS(){
         ModelSet s = model.getSet("CxSxS");
-        ModelType expectedType = new Tuple(new ModelPrimitives[]{ModelPrimitives.INT,ModelPrimitives.TEXT,ModelPrimitives.INT,ModelPrimitives.TEXT,ModelPrimitives.INT});
-        assertTrue( s.isCompatible(expectedType));
+        ModelType expectedType = new Tuple(new ModelPrimitives[]{ModelPrimitives.INT, ModelPrimitives.TEXT, ModelPrimitives.INT, ModelPrimitives.TEXT, ModelPrimitives.INT});
+        Assertions.assertTrue( s.isCompatible(expectedType));
     }
     
 
