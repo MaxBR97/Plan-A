@@ -7,9 +7,11 @@ public abstract class Module {
     public Module(String name, String description) {
         this.name = name;
         this.description = description;
+        isActive=true;
     }
     private String name;
     private String description;
+    private boolean isActive;
 
     public String getName() {
         return name;
@@ -22,5 +24,11 @@ public abstract class Module {
     }
     public void setDescription(String description) {
         this.description = description;
+    }
+    public void ToggleModule(){
+        isActive=!isActive;
+    }
+    public boolean isActive(){
+        return isActive;
     }
 }
