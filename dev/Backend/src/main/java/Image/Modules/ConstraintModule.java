@@ -18,5 +18,4 @@ public class ConstraintModule extends Module{
         super(name, description);
         this.constraints = new HashSet<>();
     }
-
 }

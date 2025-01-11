@@ -1,5 +1,9 @@
 package Model;
 
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Set;
+
 /**
  * Interface defining the public API for interacting with a mathematical optimization model.
  * This interface provides methods for managing sets, parameters, constraints, preferences,
@@ -91,13 +95,22 @@ public interface ModelInterface {
     ModelConstraint getConstraint(String identifier);
 
     /**
+     * Retrieves a all constraints loaded in the model
+     * @return set of all constraints parsed from the model
+     */
+    Collection<ModelConstraint> getConstraints();
+    /**
      * Retrieves a preference by its identifier.
      * 
      * @param identifier The preference identifier
      * @return ModelPreference object if found, null otherwise
      */
     ModelPreference getPreference(String identifier);
-
+    /**
+     * Retrieves a all preferences loaded in the model
+     * @return set of all preferences parsed from the model
+     */
+    Collection<ModelPreference> getPreferences();
     /**
      * Retrieves a variable by its identifier.
      * 

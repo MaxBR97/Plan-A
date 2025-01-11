@@ -169,7 +169,7 @@ public class Model implements ModelInterface {
             while ((line = reader.readLine()) != null) {
                 output.append(line).append("\n");
             }
-
+            String tmp= output.toString();
             int exitCode = process.waitFor();
             boolean result = exitCode == 0 && output.toString().contains("Compilation Successful");
             
@@ -856,11 +856,21 @@ public class Model implements ModelInterface {
     public ModelConstraint getConstraint(String identifier) {
         return constraints.get(identifier);
     }
-    
+
+    @Override
+    public Collection<ModelConstraint> getConstraints() {
+        return constraints.values();
+    }
+
     public ModelPreference getPreference(String identifier) {
         return preferences.get(identifier);
     }
-    
+
+    @Override
+    public Collection<ModelPreference> getPreferences() {
+        return preferences.values();
+    }
+
     public ModelVariable getVariable(String identifier) {
         return variables.get(identifier);
     }
