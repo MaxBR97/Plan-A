@@ -1,7 +1,6 @@
 package Model;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Set;
 
 /**
@@ -41,7 +40,6 @@ public interface ModelInterface {
      * Sets the value of a model input (set).
      * 
      * @param identifier The input identifier
-     * @param value The values to set
      * @throws Exception if the values are incompatible with the input's type
      */
     void setInput(ModelSet identifier, String[] values) throws Exception;
@@ -118,4 +116,5 @@ public interface ModelInterface {
      * @return ModelVariable object if found, null otherwise
      */
     ModelVariable getVariable(String identifier);
+
 }

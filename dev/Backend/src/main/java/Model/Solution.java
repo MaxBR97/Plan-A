@@ -2,7 +2,7 @@ package Model;
 
 public class Solution {
 
-    public Solution(String string) {
+    public Solution(String solutionPath) {
         
     }
     

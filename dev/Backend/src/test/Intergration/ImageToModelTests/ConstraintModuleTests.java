@@ -27,6 +27,7 @@ public class ConstraintModuleTests {
     @BeforeAll
     public static void setup(){
         try {
+            //System default tmp folder, for now I delete it at end of run, not 100% sure if should
             tmpDirPath= Files.createDirectories(Paths.get(System.getProperty("java.io.tmpdir")));
         }
         catch (IOException e){
@@ -86,6 +87,7 @@ public class ConstraintModuleTests {
         try {
             Path badZimpl = tmpDirPath.resolve("badZimpl.zimpl");
             Files.copy(Path.of(sourcePath), badZimpl, StandardCopyOption.REPLACE_EXISTING);
+            badZimpl.toFile().deleteOnExit();
             Files.writeString(badZimpl, "\nThis text is appended to zimpl code and make it not compile", StandardOpenOption.APPEND, StandardOpenOption.WRITE);
             model = new Model(badZimpl.toFile().getPath());
             assertFalse(model.isCompiling(1000));
@@ -93,7 +95,6 @@ public class ConstraintModuleTests {
         catch (IOException e){
             fail("IO error in GivenInvalidZimplCode_WhenCompiling_ReturnsFalse: "+ e.getMessage());
         }
-
     }
 
 

@@ -27,11 +27,10 @@ import java.nio.file.Path;
 public class ModelTest {
     private ModelInterface model;
 
-    private static String source = "/Plan-A/dev/Backend/src/test/java/Model/TestFile.zpl";
-    private static String TEST_FILE_PATH = "/Plan-A/dev/Backend/src/test/java/Model/TestFileINSTANCE.zpl";
+    private static String source = "/home/denis/Documents/University/Plan-A/dev/Backend/src/test/Utilities/Stubs/ExampleZimplProgram.zpl";
+    private static String TEST_FILE_PATH = "/dev/Backend/src/test/TestFileINSTANCE.zpl";
 
     private static String[][] expectedParameters = {{"Conditioner","10"}, {"soldiers", "9"}, {"absoluteMinimalRivuah", "8"}};
-    
     @BeforeAll
     public static void setUpFile() throws IOException {
         Path sourcePath = Path.of(source);
@@ -76,7 +75,6 @@ public class ModelTest {
     public void testModelConstruction() {
         assertNotNull(model);
         assertTrue(model.isCompiling(3));
-
     }
     
     @Test
@@ -218,8 +216,8 @@ public class ModelTest {
 
     @AfterAll
     public static void cleanUp() throws IOException {
-        Path targetPath = Path.of(TEST_FILE_PATH);
-        Files.deleteIfExists(targetPath);
+//        Path targetPath = Path.of(TEST_FILE_PATH);
+//        Files.deleteIfExists(targetPath);
     }
 
 }
