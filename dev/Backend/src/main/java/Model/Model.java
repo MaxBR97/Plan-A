@@ -874,5 +874,10 @@ public class Model implements ModelInterface {
     public ModelVariable getVariable(String identifier) {
         return variables.get(identifier);
     }
-    
+
+    @Override
+    public Collection<ModelVariable> getVariables() {
+        return variables.values();
+    }
+
 }

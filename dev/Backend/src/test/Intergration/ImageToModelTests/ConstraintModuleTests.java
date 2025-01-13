@@ -96,7 +96,9 @@ public class ConstraintModuleTests {
             fail("IO error in GivenInvalidZimplCode_WhenCompiling_ReturnsFalse: "+ e.getMessage());
         }
     }
-
-
-
+    @Test
+    public void testSolve(){
+        model.solve(50);
+        assertFalse(true); // test is not implemented yet because Solution class is not implemented yet
+    }
 }

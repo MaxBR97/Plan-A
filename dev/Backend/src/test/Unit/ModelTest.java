@@ -68,7 +68,7 @@ public class ModelTest {
     
     @BeforeEach
     public void setUp() throws IOException {
-        model = new ModelStub(TEST_FILE_PATH);
+        model = new Model(TEST_FILE_PATH);
     }
     
     @Test

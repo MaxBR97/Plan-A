@@ -12,7 +12,6 @@ public abstract class Module {
     private String name;
     private String description;
     private boolean isActive;
-
     public String getName() {
         return name;
     }
