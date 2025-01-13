@@ -9,7 +9,9 @@ set Zmanim := {0,4,8,12,16,20};
 set S := Emdot * Zmanim;
 set CxS := C * S;
 set CxSxS := {<i,a,b,c,d> in C * S * S | b < d };
-set try:= {<a> in {"a","b","c"} : <soldiers, a>};
+set forTest1 := {<a> in {"a","b","c"} : <soldiers, a>};
+set forTest2 := {"a", "b"} * S * {1..soldiers} * C * {2.2 , -3.14 ,5}; 
+
 var edge[CxS] binary;
 var couples[CxSxS] binary;
 

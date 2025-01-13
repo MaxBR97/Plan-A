@@ -106,4 +106,33 @@ public abstract class ModelInput extends ModelComponent {
         setDependencies.clear();
         paramDependencies.clear();
     }
+
+
+    // param w := 20;
+    // param  x := 10;
+    // set A := {1,2};
+    // set B := {<1,2> , <3,4>};
+    // set Range := {x .. w};
+    // set C := B * {<1,"a">, <2,"b">, <3,"c">} * A * Range;
+    // set D := {<i,j> in {<"a","b">, <"c","d">} : <i,2,j,x>};
+    // set E := {<i,j> in B : <j,i> * D};
+    // set Range2 := {1..5}; 
+
+    // Note - ano
+    // A.getStructure() -> [null]
+    // Range.getStructure() -> [null]
+    // C.getStructure() -> [(B,0), (B,1) , null, null, (A,0), (A,1), (Range,0)]
+    // D.getStructure() -> [null, null, null, (x,0)]
+    // E.getStructure() -> [(B,1), (B,0), (D,0), (D,1), (D,2), (D,3)]
+    // Range2.getStructure() -> [null]
+
+    class StructureBlock {
+        ModelInput dependency;
+        int position;
+    }
+    //TODO: implement
+    // the length of the list output must be the length of the tuple held in field 'type', or length 1 if type is a primitive.
+    public StructureBlock[] getStructure(){
+        return null;
+    }
 }

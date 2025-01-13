@@ -69,6 +69,10 @@ public class TypesAndDependencyTests {
         paramDependencies.put("S", new String[]{});
         setDependencies.put("CxSxS", new String[]{"C", "S", "S"});
         paramDependencies.put("CxSxS", new String[]{});
+        setDependencies.put("forTest1", new String[]{"custom_set"});
+        paramDependencies.put("forTest1", new String[]{"soldiers"});
+        setDependencies.put("forTest2", new String[]{"custom_set", "S", });
+        paramDependencies.put("forTest2", new String[]{"soldiers"});
 
         setDependencies.put("conditioner", new String[]{});
         paramDependencies.put("conditioner", new String[]{});
