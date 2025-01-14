@@ -1,4 +1,4 @@
-package Model;
+package Unit;
 import static org.junit.jupiter.api.Assertions.assertEquals;
     import static org.junit.jupiter.api.Assertions.assertFalse;
     import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -40,8 +40,8 @@ public class TypesAndDependencyTests {
    
     private Model model;
 
-    private static String source = "/Plan-A/dev/Backend/src/test/java/Model/TestFile.zpl";
-    private static String TEST_FILE_PATH = "/Plan-A/dev/Backend/src/test/java/Model/TestFileINSTANCE.zpl";
+    private static String source = "/Plan-A/dev/Backend/src/test/Unit/TestFile.zpl";
+    private static String TEST_FILE_PATH = "/Plan-A/dev/Backend/src/test/Unit/TestFileINSTANCE.zpl";
 
     private static HashMap<String,String[]> setDependencies =  new HashMap<String,String[]>();
     private static HashMap<String,String[]> paramDependencies =  new HashMap<String,String[]>();
@@ -112,7 +112,7 @@ public class TypesAndDependencyTests {
 
     
     @ParameterizedTest
-    @ValueSource(strings = {"setWithRange","C","S","Zmanim", "Emdot", "CxS", "CxSxS"})
+    @ValueSource(strings = {"setWithRange","C","S","Zmanim", "Emdot", "CxS", "CxSxS", "forTest2"})
     public void testSetDependenciesOfSets(String identifier) {
         String setName = identifier;
         List<String> expectedDeps = Arrays.asList(setDependencies.get(identifier));
