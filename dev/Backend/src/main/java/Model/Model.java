@@ -727,21 +727,35 @@ public class Model implements ModelInterface {
         @Override
         public Void visitSetDescStack(FormulationParser.SetDescStackContext ctx) {
             if (ctx.condition() != null){
-                this.visit(ctx.condition());
+                TypeVisitor elementVisitor = new TypeVisitor();
+                elementVisitor.visit(ctx.condition());
+                ModelSet s = new ModelSet("anonymous_set", elementVisitor.type,elementVisitor.basicSets,elementVisitor.basicParams);
+                basicSets.add(s);
+                type = elementVisitor.getType();
             }
             else if (ctx.csv() != null) {
                 // Handle explicit set elements
-                analyzeSetElements(ctx.csv());
+                TypeVisitor elementVisitor = new TypeVisitor();
+                elementVisitor.visit(ctx.csv().expr(0));
+                ModelSet s = new ModelSet("anonymous_set", elementVisitor.type,elementVisitor.basicSets,elementVisitor.basicParams);
                 // Add this as a basic set since it's explicitly defined
-                basicSets.add(new ModelSet("custom_set", type));
+                basicSets.add(s);
+                type = elementVisitor.getType();
             } else if (ctx.range() != null) {
-                this.visit(ctx.range());
+                ModelSet s = new ModelSet("anonymous_set", ModelPrimitives.INT);
+                basicSets.add(s);
+                type = ModelPrimitives.INT;
+                TypeVisitor visitor = new TypeVisitor();
+                visitor.visit(ctx.range());
+                s.paramDependencies.addAll(visitor.getBasicParams());
+                s.setDependencies.addAll(visitor.getBasicSets());
             } 
             return null;
         }
 
         @Override
         public Void visitRange(FormulationParser.RangeContext ctx){
+
             if(params.get(ctx.lhs.getText()) != null){
                 basicParams.add(params.get(ctx.lhs.getText()));
             }
@@ -754,6 +768,8 @@ public class Model implements ModelInterface {
             type = ModelPrimitives.INT;
             return null;
         }
+
+        
 
         @Override
         public Void visitSqRefCsv(FormulationParser.SqRefCsvContext ctx){
@@ -799,15 +815,15 @@ public class Model implements ModelInterface {
             
             // Visit each element in the tuple
             if (ctx.csv() != null) {
-                TypeVisitor elementVisitor = new TypeVisitor();
-                elementVisitor.visit(ctx.csv());
-                if (elementVisitor.getType() instanceof Tuple) {
-                    tupleType.append((Tuple) elementVisitor.getType());
-                } else {
-                    tupleType.append(elementVisitor.getType());
+                for (ExprContext ec : ctx.csv().expr()){
+                    TypeVisitor elementVisitor = new TypeVisitor();
+                    elementVisitor.visit(ec);
+                    if (elementVisitor.getType() instanceof Tuple) {
+                        tupleType.append((Tuple) elementVisitor.getType());
+                    } else {
+                        tupleType.append(elementVisitor.getType());
+                    }
                 }
-            //     basicSets.addAll(elementVisitor.basicSets);
-            //     basicParams.addAll(elementVisitor.basicParams);
             }
             
             type = tupleType;
@@ -820,15 +836,6 @@ public class Model implements ModelInterface {
             } else if (type instanceof Tuple) {
                 ((Tuple) type).append(newType);
             }
-        }
-        
-        private void analyzeSetElements(FormulationParser.CsvContext ctx) {
-            // Create a new tuple for the first element to determine the structure
-            TypeVisitor elementVisitor = new TypeVisitor();
-            elementVisitor.visit(ctx.expr(0));
-            type = elementVisitor.getType();
-            basicSets.addAll(elementVisitor.getBasicSets());
-            basicParams.addAll(elementVisitor.getBasicParams());
         }
     
         // Getter methods

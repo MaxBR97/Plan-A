@@ -1,7 +1,9 @@
 package Model;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 
 public class Tuple implements ModelType {
     private List<ModelPrimitives> val;
@@ -94,6 +96,10 @@ public class Tuple implements ModelType {
         
         sb.append('>');
         return sb.toString();
+    }
+
+    public int size() {
+        return this.val.size();
     }
     
 
