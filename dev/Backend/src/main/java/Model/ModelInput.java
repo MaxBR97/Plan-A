@@ -8,6 +8,7 @@ public abstract class ModelInput extends ModelComponent {
     private ModelType myType;
     protected List<ModelSet> setDependencies; // order matters
     protected List<ModelParameter> paramDependencies;
+    protected StructureBlock[] myStruct;
 
     public ModelInput(String identifier, ModelType type) {
         super(identifier);
@@ -21,6 +22,14 @@ public abstract class ModelInput extends ModelComponent {
         myType = type;
         setDependencies = a;
         paramDependencies = b;
+    }
+
+    ModelInput(String identifier, ModelType type, List<ModelSet> a, List<ModelParameter> b, StructureBlock[] struct) {
+        super(identifier);
+        myType = type;
+        setDependencies = a;
+        paramDependencies = b;
+        this.myStruct = struct;
     }
 
     public ModelSet findSetDependency(String identifier){
@@ -72,37 +81,37 @@ public abstract class ModelInput extends ModelComponent {
     }
 
     // Individual add/remove for sets
-    public void addSetDependency(ModelSet dependency) {
+     void addSetDependency(ModelSet dependency) {
         if (dependency != null && !setDependencies.contains(dependency)) {
             setDependencies.add(dependency);
         }
     }
 
-    public void removeSetDependency(ModelSet dependency) {
+     void removeSetDependency(ModelSet dependency) {
         setDependencies.remove(dependency);
     }
 
     // Individual add/remove for parameters
-    public void addParamDependency(ModelParameter dependency) {
+    void addParamDependency(ModelParameter dependency) {
         if (dependency != null && !paramDependencies.contains(dependency)) {
             paramDependencies.add(dependency);
         }
     }
 
-    public void removeParamDependency(ModelParameter dependency) {
+    void removeParamDependency(ModelParameter dependency) {
         paramDependencies.remove(dependency);
     }
 
     // Bulk operations
-    public void clearSetDependencies() {
+    void clearSetDependencies() {
         setDependencies.clear();
     }
 
-    public void clearParamDependencies() {
+    void clearParamDependencies() {
         paramDependencies.clear();
     }
 
-    public void clearAllDependencies() {
+    void clearAllDependencies() {
         setDependencies.clear();
         paramDependencies.clear();
     }
@@ -118,21 +127,48 @@ public abstract class ModelInput extends ModelComponent {
     // set E := {<i,j> in B : <j,i> * D};
     // set Range2 := {1..5}; 
 
-    // Note - ano
-    // A.getStructure() -> [null]
-    // Range.getStructure() -> [null]
-    // C.getStructure() -> [(B,0), (B,1) , null, null, (A,0), (A,1), (Range,0)]
-    // D.getStructure() -> [null, null, null, (x,0)]
-    // E.getStructure() -> [(B,1), (B,0), (D,0), (D,1), (D,2), (D,3)]
-    // Range2.getStructure() -> [null]
+    // x.getStructure() -> [null]
+    // A.getStructure() -> [(anonymous_set,0)] ; anonymous_set.getStructure() -> [null]
+    // B.getStructure() -> [(anonymous_set, 0), (anonymous_set,1)] ; anonymous_set.getStructure() -> [null,null]
+    // Range.getStructure() -> [(anonymous_set,0)] ; anonymous_set.getStructure() -> [null]
+    // C.getStructure() -> [(B,0), (B,1) , (anonymous_set, 0), (anonymous_set,1), (A,0), (Range,0)] ; anonymous_set.getStructure() -> [null,null]
+    // D.getStructure() -> [(anonymous_set, 0), (anonymous_set, 1),(anonymous_set, 2), (anonymous_set, 3)] ; anonymous_set.getStrucutre() -> [(anonymous_set2,0), null, (anonymous_set2,1), (x,0)]
+    // Range2.getStructure() -> [(anonymous_set,0)] ; anonymous_set.getStructure() -> [null]
 
-    class StructureBlock {
-        ModelInput dependency;
-        int position;
+    public class StructureBlock {
+        final public ModelInput dependency;
+        final public int position;
+
+        public StructureBlock(ModelInput dep, int pos){
+            this.dependency = dep;
+            this.position = pos;
+        }
     }
-    //TODO: implement
+
     // the length of the list output must be the length of the tuple held in field 'type', or length 1 if type is a primitive.
     public StructureBlock[] getStructure(){
-        return null;
+        if (myStruct != null){
+            return myStruct;
+        }
+
+        StructureBlock[] ans;
+        if(this.myType instanceof ModelPrimitives){
+            ans = new StructureBlock[1];
+        } else {
+            ans = new StructureBlock[((Tuple)this.myType).size()];
+        }
+
+        int i = 0;
+        for (ModelSet set : setDependencies){
+            int j =0;
+            for (StructureBlock sb : set.getStructure()){
+                ans[i] = new StructureBlock(set, j);
+                i++;
+                j++;
+            }
+        }
+
+        myStruct = ans;
+        return ans;
     }
 }
