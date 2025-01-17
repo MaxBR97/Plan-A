@@ -114,6 +114,10 @@ public class TypesAndDependencyTests {
         immidiateParamDependencies.put("trivial1", new String[]{});
         immidiateSetDependencies.put("trivial5", new String[]{"CxS","Zmanim","CxS","CxSxS"});
         immidiateParamDependencies.put("trivial5", new String[]{});
+        immidiateSetDependencies.put("Hayal_Lo_Shomer_Beshtey_Emdot_Bo_Zmanit", new String[]{"CxS","CxS"});
+        immidiateParamDependencies.put("Hayal_Lo_Shomer_Beshtey_Emdot_Bo_Zmanit", new String[]{});
+        immidiateSetDependencies.put("Kol_Haemdot_Meshubatsot_Hayal_Ehad", new String[]{"S","CxS"});
+        immidiateParamDependencies.put("Kol_Haemdot_Meshubatsot_Hayal_Ehad", new String[]{});
         
     }
 
@@ -139,7 +143,7 @@ public class TypesAndDependencyTests {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"trivial1","trivial5"})
+    @ValueSource(strings = {"trivial1","trivial5","Hayal_Lo_Shomer_Beshtey_Emdot_Bo_Zmanit","Kol_Haemdot_Meshubatsot_Hayal_Ehad"})
     public void testConstraintsDependencies(String id){
         ModelConstraint mc = model.getConstraint(id);
         assertNotNull(mc);

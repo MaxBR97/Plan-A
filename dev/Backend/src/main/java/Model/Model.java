@@ -744,10 +744,14 @@ public class Model implements ModelInterface {
         
         @Override
         public Void visitForall(FormulationParser.ForallContext ctx){
-            TypeVisitor v = new TypeVisitor();
-            v.visit(ctx.condition());
-            basicParams.addAll(v.basicParams);
-            basicSets.addAll(v.basicSets);
+            this.visit(ctx.condition());
+            return null;
+        }
+
+        @Override
+        public Void visitRedExpr(FormulationParser.RedExprContext ctx){
+            this.visit(ctx.condition());
+            this.visit(ctx.nExpr());
             return null;
         }
 
@@ -818,6 +822,13 @@ public class Model implements ModelInterface {
 
         @Override
         public Void visitSqRefCsv(FormulationParser.SqRefCsvContext ctx){
+
+            if(ctx.ID().getText() != null && getSet(ctx.ID().getText()) != null){
+                basicSets.add(getSet(ctx.ID().getText()));
+            } else if(ctx.ID().getText() != null && getParameter(ctx.ID().getText()) != null){
+                basicParams.add(getParameter(ctx.ID().getText()));
+            }
+
             if(ctx.csv() != null && getSet(ctx.csv().getText()) != null){
                 basicSets.add(getSet(ctx.csv().getText()));
             }else {

@@ -155,11 +155,12 @@ tuple	:	'<' csv '>' ;
 /* reduce expression */
 // TODO: test non-sum
 //sumExpr :	'sum' condition sep=('do' | ':') nExpr ;
-//redExpr :	op=('min'|'max'|'prod'|'sum') condition sep=('do'|':') nExpr ;
+redExpr :	op=('min'|'max'|'prod'|'sum') condition sep=('do'|':') nExpr ;
 // Defining RED as lexical rule brings token conflict with (functions) 'min', 'max'
-redExpr :	op=ID condition sep=('do'|':') nExpr ;
+//redExpr :	op=ID condition sep=('do'|':') nExpr ;
 
 index	:	condition | setExpr ;
+
 
 // In Section 4.5, [Koch2020] calls this an 'index'.
 condition : tuple 'in' setExpr (sep=('with' | '|') boolExpr)? ;
