@@ -6,8 +6,6 @@ import java.util.LinkedList;
 import java.util.List;
 public abstract class ModelInput extends ModelComponent {
     private ModelType myType;
-    protected List<ModelSet> setDependencies; // order matters
-    protected List<ModelParameter> paramDependencies;
     protected StructureBlock[] myStruct;
 
     public ModelInput(String identifier, ModelType type) {
@@ -32,21 +30,6 @@ public abstract class ModelInput extends ModelComponent {
         this.myStruct = struct;
     }
 
-    public ModelSet findSetDependency(String identifier){
-        for( ModelSet s : setDependencies){
-            if(s.identifier.equals(identifier))
-                return s;
-        }
-        return null;
-    }
-
-    public ModelParameter findParamDependency(String identifier){
-        for( ModelParameter s : paramDependencies){
-            if(s.identifier.equals(identifier))
-                return s;
-        }
-        return null;
-    }
 
     // Existing methods
     public ModelType getType() {
@@ -61,45 +44,6 @@ public abstract class ModelInput extends ModelComponent {
         if(myType == ModelPrimitives.UNKNOWN)
             return true;
         return myType.isCompatible(str);
-    }
-
-    public List<ModelSet> getSetDependencies() {
-        return Collections.unmodifiableList(setDependencies);
-    }
-
-    public List<ModelParameter> getParamDependencies() {
-        return Collections.unmodifiableList(paramDependencies);
-    }
-
-    // Setters
-    public void setSetDependencies(List<ModelSet> dependencies) {
-        this.setDependencies = new ArrayList<>(dependencies);
-    }
-
-    public void setParamDependencies(List<ModelParameter> dependencies) {
-        this.paramDependencies = new ArrayList<>(dependencies);
-    }
-
-    // Individual add/remove for sets
-     void addSetDependency(ModelSet dependency) {
-        if (dependency != null && !setDependencies.contains(dependency)) {
-            setDependencies.add(dependency);
-        }
-    }
-
-     void removeSetDependency(ModelSet dependency) {
-        setDependencies.remove(dependency);
-    }
-
-    // Individual add/remove for parameters
-    void addParamDependency(ModelParameter dependency) {
-        if (dependency != null && !paramDependencies.contains(dependency)) {
-            paramDependencies.add(dependency);
-        }
-    }
-
-    void removeParamDependency(ModelParameter dependency) {
-        paramDependencies.remove(dependency);
     }
 
     // Bulk operations

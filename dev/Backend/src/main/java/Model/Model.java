@@ -256,7 +256,9 @@ public class Model implements ModelInterface {
         @Override
         public Void visitConstraint(FormulationParser.ConstraintContext ctx) {
             String constName = extractName(ctx.name.getText());
-            constraints.put(constName, new ModelConstraint(constName));
+            TypeVisitor visitor = new TypeVisitor();
+            visitor.visit(ctx);
+            constraints.put(constName, new ModelConstraint(constName,visitor.getBasicSets(),visitor.getBasicParams()));
             return super.visitConstraint(ctx);
         }
 
@@ -722,7 +724,50 @@ public class Model implements ModelInterface {
         
             return null;
         }
+
+        @Override
+        public Void visitConstraint(FormulationParser.ConstraintContext ctx){
+            
+            for(FormulationParser.ForallContext ctxFA : ctx.forall()){
+                TypeVisitor v = new TypeVisitor();
+                v.visit(ctxFA);
+                basicParams.addAll(v.basicParams);
+                basicSets.addAll(v.basicSets);
+            }
+            TypeVisitor v = new TypeVisitor();
+            v.visit(ctx.comparison());
+            basicParams.addAll(v.basicParams);
+            basicSets.addAll(v.basicSets);
+
+            return null;
+        }
         
+        @Override
+        public Void visitForall(FormulationParser.ForallContext ctx){
+            TypeVisitor v = new TypeVisitor();
+            v.visit(ctx.condition());
+            basicParams.addAll(v.basicParams);
+            basicSets.addAll(v.basicSets);
+            return null;
+        }
+
+        @Override
+        public Void visitRegIfExpr(FormulationParser.RegIfExprContext ctx){
+            visit(ctx.boolExpr());
+            visit(ctx.thenExpr);
+            visit(ctx.elseExpr);
+
+            return null;
+        }
+
+        @Override
+        public Void visitVarIfExpr(FormulationParser.VarIfExprContext ctx){
+            visit(ctx.boolExpr());
+            visit(ctx.thenExpr);
+            visit(ctx.elseExpr);
+
+            return null;
+        }
     
         @Override
         public Void visitSetDescStack(FormulationParser.SetDescStackContext ctx) {
