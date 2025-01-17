@@ -98,7 +98,12 @@ public class ConstraintModuleTests {
     }
     @Test
     public void testSolve(){
-        model.solve(50);
-        assertFalse(true); // test is not implemented yet because Solution class is not implemented yet
+        Solution solution= model.solve(1000);
+        try {
+            solution.ParseSolution(model);
+        }
+        catch (IOException e){
+            fail(e.getMessage());
+        }
     }
 }
