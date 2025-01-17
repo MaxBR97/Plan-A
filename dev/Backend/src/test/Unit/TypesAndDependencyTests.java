@@ -109,6 +109,11 @@ public class TypesAndDependencyTests {
         immidiateParamDependencies.put("couples", new String[]{});
         immidiateSetDependencies.put("edge", new String[]{"CxS"});
         immidiateParamDependencies.put("edge", new String[]{});
+
+        immidiateSetDependencies.put("trivial1", new String[]{"CxSxS"});
+        immidiateParamDependencies.put("trivial1", new String[]{});
+        immidiateSetDependencies.put("trivial5", new String[]{"CxS","Zmanim","CxS","CxSxS"});
+        immidiateParamDependencies.put("trivial5", new String[]{});
         
     }
 
@@ -131,6 +136,22 @@ public class TypesAndDependencyTests {
         String dependency = "CxS";
         assertEquals(1, model.getVariable(var).getDependencies().size());
         assertEquals(dependency, model.getVariable(var).findDependency(dependency).getIdentifier());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"trivial1","trivial5"})
+    public void testConstraintsDependencies(String id){
+        ModelConstraint mc = model.getConstraint(id);
+        assertNotNull(mc);
+        assertEquals(mc.getSetDependencies().size(), immidiateSetDependencies.get(id).length);
+        for(String setId : immidiateSetDependencies.get(id)){
+            assertNotNull(mc.findSetDependency(setId));
+        }
+
+        assertEquals(mc.getParamDependencies().size(), immidiateParamDependencies.get(id).length);
+        for(String setId : immidiateParamDependencies.get(id)){
+            assertNotNull(mc.findParamDependency(setId));
+        }
     }
 
     @Test

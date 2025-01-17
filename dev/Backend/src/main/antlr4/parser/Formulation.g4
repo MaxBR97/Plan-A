@@ -219,7 +219,9 @@ strExpr	:	STRING					# StrExprToken
 		|	ifExpr					# StrExprIf
 		;
 
-ifExpr	:	'if' boolExpr 'then' thenExpr=expr 'else' elseExpr=expr 'end' ;
+ifExpr	:	'vif' boolExpr 'then' thenExpr=expr 'else' elseExpr=expr 'end' #varIfExpr
+		| 	'if' boolExpr 'then' thenExpr=expr 'else' elseExpr=expr 'end' #regIfExpr
+		;
 
 // LEXERRULES:
 
