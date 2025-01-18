@@ -20,6 +20,14 @@ public class ConstraintModule extends Module{
         super(name, description);
         this.constraints = new HashMap<>();
     }
+    @Deprecated
+    public Set<ModelSet> getInvolvedSets(){
+        HashSet<ModelSet> involvedSets = new HashSet<>();
+        for(ModelConstraint constraint : constraints.values()){
+            //TODO: Waiting implementation of constraint logic in model
+        }
+        return null;
+    }
     public Map<String, ModelConstraint> getConstraints() {
         return constraints;
     }
