@@ -1,6 +1,10 @@
 package groupId;
 
-import DTO.Records.*;
+import DTO.Records.Commands.CreateImageDTO;
+import DTO.Records.Commands.ImageConfigDTO;
+import DTO.Records.Commands.ImageInputDTO;
+import DTO.Records.Image.ImageDTO;
+import DTO.Records.Image.SolutionDTO;
 import org.springframework.stereotype.Service;
 
 @Service

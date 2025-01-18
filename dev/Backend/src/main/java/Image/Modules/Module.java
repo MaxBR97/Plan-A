@@ -1,9 +1,12 @@
 package Image.Modules;
 
 import Model.ModelFunctionality;
+import Model.ModelParameter;
+import Model.ModelSet;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Set;
 
 public abstract class Module {
     /**
@@ -17,8 +20,8 @@ public abstract class Module {
     private String name;
     private String description;
     private boolean isActive;
-
-
+    public abstract Set<ModelSet> getInvolvedSets();
+    public abstract Set<ModelParameter> getInvolvedParameters();
     public String getName() {
         return name;
     }
@@ -32,7 +35,7 @@ public abstract class Module {
         this.description = description;
     }
     /**
-     * Toggle module, disables if its on and enables if it's off.
+     * Disables if its on and enables if it's off.
      */
     public void ToggleModule(){
         isActive=!isActive;

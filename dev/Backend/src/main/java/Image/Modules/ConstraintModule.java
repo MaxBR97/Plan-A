@@ -2,14 +2,15 @@ package Image.Modules;
 
 import Model.ModelConstraint;
 import Model.ModelFunctionality;
+import Model.ModelParameter;
 import Model.ModelSet;
 
 import java.util.*;
 
 public class ConstraintModule extends Module{
     /**
-     * uses common data and logic across all module types (constraints and preferences) from Module
-     * a constraint module, holding the user definition for a group of model constraints (a group of subto expressions in zimpl code)
+     * a constraint module, holding the user definition for a group of model constraints
+     * (a group of subTo expressions in zimpl code)
      */
 
     private final Map<String,ModelConstraint> constraints;
@@ -18,13 +19,25 @@ public class ConstraintModule extends Module{
         super(name, description);
         this.constraints = new HashMap<>();
     }
-
+    /**
+     * Fetch all ModelSets that are in use in any of the constraints in the module.
+     * @return all sets that are part of any constraint in the module
+     */
+    @Override
     public Set<ModelSet> getInvolvedSets(){
         HashSet<ModelSet> involvedSets = new HashSet<>();
         for(ModelConstraint constraint : constraints.values()){
             involvedSets.addAll(constraint.getSetDependencies());
         }
         return involvedSets;
+    }
+    @Override
+    public Set<ModelParameter> getInvolvedParameters(){
+        HashSet<ModelParameter> involvedParameters = new HashSet<>();
+        for(ModelConstraint constraint : constraints.values()){
+            involvedParameters.addAll(constraint.getParamDependencies());
+        }
+        return involvedParameters;
     }
     public Map<String, ModelConstraint> getConstraints() {
         return constraints;

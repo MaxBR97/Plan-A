@@ -1,4 +1,4 @@
-package DTO.Records;
+package DTO.Records.Image;
 
 import java.util.HashMap;
 import java.util.List;

@@ -79,16 +79,6 @@ public ModelComponent(String identifier, List<ModelSet> setDep, List<ModelParame
     void removeParamDependency(ModelParameter dependency) {
         paramDependencies.remove(dependency);
     }
-    @Override
-    public boolean equals(Object o) {
-        if (o == null || getClass() != o.getClass()) return false;
-        ModelComponent that = (ModelComponent) o;
-        return Objects.equals(identifier, that.identifier);
-    }
 
-    @Override
-    public int hashCode() {
-        return Objects.hashCode(identifier);
-    }
 }
 

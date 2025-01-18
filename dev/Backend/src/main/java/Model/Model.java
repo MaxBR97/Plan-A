@@ -169,7 +169,6 @@ public class Model implements ModelInterface {
             while ((line = reader.readLine()) != null) {
                 output.append(line).append("\n");
             }
-            String tmp= output.toString();
             int exitCode = process.waitFor();
             boolean result = exitCode == 0 && output.toString().contains("Compilation Successful");
             
@@ -200,7 +199,7 @@ public class Model implements ModelInterface {
             }
 
             int exitCode = process.waitFor();
-            Solution result = exitCode == 0 ? new Solution(sourceFilePath+"SOLUTION") : null;
+            Solution result = exitCode == 0 ? new Solution(sourceFilePath+"SOLUTION",output.toString(),true) : null;
             
             restoreToggledFunctionalities();
             return result;

@@ -7,6 +7,8 @@ import java.util.*;
 import java.util.regex.*;
 
 public class Solution {
+    final String engineMsg;
+    final boolean engineRunSuccess;
     boolean parsed;
     final String solutionPath;
     boolean solved;
@@ -30,6 +32,16 @@ public class Solution {
         variableSolution = new HashMap<>();
         variableStructure = new HashMap<>();
         parsed = false;
+        engineRunSuccess = true;
+        engineMsg = "";
+    }
+    public Solution(String solutionPath,String engineMsg,boolean engineRunSuccess) {
+        this.solutionPath = solutionPath;
+        variableSolution = new HashMap<>();
+        variableStructure = new HashMap<>();
+        parsed = false;
+        this.engineMsg = engineMsg;
+        this.engineRunSuccess = engineRunSuccess;
     }
     //Implement as lazy call or run during initialization?
     public void ParseSolution(ModelInterface model, Set<String> varsToParse) throws IOException {

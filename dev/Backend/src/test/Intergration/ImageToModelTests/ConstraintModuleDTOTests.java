@@ -11,7 +11,6 @@ import org.mockito.junit.jupiter.*;
 import java.io.IOException;
 import java.nio.file.*;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -48,13 +47,10 @@ public class ConstraintModuleDTOTests {
         }
     }
     @Test
-    public void GivenPath_WhenPathInvalid_ThrowsException() throws IOException {
+    public void GivenPath_WhenPathInvalid_ThrowsException() {
         String badPath= sourcePath+ "/IDontExist.zpl";
-        try {
-            model = new ModelStub(badPath);
-        } catch (IOException e) {
-            fail();
-        }
+        //TODO: a custom exception will probably be a better choice, instead of letting IO be thrown upwards
+        assertThrows(IOException.class, () -> new Model(badPath));
     }
     //TODO: Writer an easier to work with zimpl example, this one throws warnings
     @Test
