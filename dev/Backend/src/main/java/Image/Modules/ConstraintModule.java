@@ -1,12 +1,10 @@
 package Image.Modules;
 
 import Model.ModelConstraint;
+import Model.ModelFunctionality;
 import Model.ModelSet;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class ConstraintModule extends Module{
     /**
@@ -20,13 +18,13 @@ public class ConstraintModule extends Module{
         super(name, description);
         this.constraints = new HashMap<>();
     }
-    @Deprecated
+
     public Set<ModelSet> getInvolvedSets(){
         HashSet<ModelSet> involvedSets = new HashSet<>();
         for(ModelConstraint constraint : constraints.values()){
-            //TODO: Waiting implementation of constraint logic in model
+            involvedSets.addAll(constraint.getSetDependencies());
         }
-        return null;
+        return involvedSets;
     }
     public Map<String, ModelConstraint> getConstraints() {
         return constraints;
@@ -37,6 +35,7 @@ public class ConstraintModule extends Module{
     public void addConstraint(ModelConstraint constraint){
         constraints.put(constraint.getIdentifier(),constraint);
     }
+
     public void removeConstraint(ModelConstraint constraint){
         constraints.remove(constraint.getIdentifier());
     }

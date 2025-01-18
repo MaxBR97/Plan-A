@@ -1,9 +1,6 @@
 package Model;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 public abstract class ModelComponent {
     protected String identifier;
@@ -59,6 +56,8 @@ public ModelComponent(String identifier, List<ModelSet> setDep, List<ModelParame
         this.paramDependencies = new ArrayList<>(dependencies);
     }
 
+
+
     // Individual add/remove for sets
      void addSetDependency(ModelSet dependency) {
         if (dependency != null && !setDependencies.contains(dependency)) {
@@ -80,6 +79,16 @@ public ModelComponent(String identifier, List<ModelSet> setDep, List<ModelParame
     void removeParamDependency(ModelParameter dependency) {
         paramDependencies.remove(dependency);
     }
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        ModelComponent that = (ModelComponent) o;
+        return Objects.equals(identifier, that.identifier);
+    }
 
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(identifier);
+    }
 }
 

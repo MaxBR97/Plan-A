@@ -1,5 +1,10 @@
 package Image.Modules;
 
+import Model.ModelFunctionality;
+
+import java.util.Collection;
+import java.util.HashSet;
+
 public abstract class Module {
     /**
      * Common data and logic across all module types (constraints and preferences)
@@ -12,6 +17,8 @@ public abstract class Module {
     private String name;
     private String description;
     private boolean isActive;
+
+
     public String getName() {
         return name;
     }
