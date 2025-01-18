@@ -15,12 +15,4 @@ public class ModelVariable extends ModelOutput {
         super(ident,dep);
     }
 
-   public List<String> getLeafIdentifiers() {
-       ArrayList<String> identifiers = new ArrayList<>();
-        for (ModelSet modelSet: dependency){
-            //TODO: Unclear order between params/sets in ModelSet, implementations ignores params
-
-        }
-        return identifiers;
-   }
 }

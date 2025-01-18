@@ -1,9 +1,7 @@
 package groupId;
 
-import org.springframework.stereotype.Component;
+import DTO.Records.*;
 import org.springframework.stereotype.Service;
-
-import DTO.*;
 
 @Service
 public class UserController {

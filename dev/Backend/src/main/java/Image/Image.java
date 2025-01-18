@@ -1,12 +1,12 @@
 package Image;
 
+import DTO.Records.ConstraintDTO;
+import DTO.Records.PreferenceDTO;
 import Image.Modules.*;
 import Model.ModelInterface;
-import Model.ModelVariable;
 
 import java.util.HashMap;
 import java.util.LinkedHashSet;
-import java.util.Set;
 
 public class Image {
     // Note: this implies names must be unique between user constraints/preferences.
@@ -33,6 +33,26 @@ public class Image {
     }
     public PreferenceModule getPreferenceModules(String name) {
         return preferenceModules.get(name);
+    }
+
+    public HashMap<String, ConstraintModule> getConstraintsModules() {
+        return constraintsModules;
+    }
+
+    public HashMap<String, PreferenceModule> getPreferenceModules() {
+        return preferenceModules;
+    }
+    public void addConstraint(String moduleName, ConstraintDTO constraint) {
+        constraintsModules.get(moduleName).addConstraint(model.getConstraint(constraint.identifier()));
+    }
+    public void removeConstraint(String moduleName, ConstraintDTO constraint) {
+        constraintsModules.get(moduleName).removeConstraint(model.getConstraint(constraint.identifier()));
+    }
+    public void addPreference(String moduleName, PreferenceDTO preferenceDTO) {
+        preferenceModules.get(moduleName).addPreference(model.getPreference(preferenceDTO.identifier()));
+    }
+    public void removePreference(String moduleName, PreferenceDTO preferenceDTO) {
+        preferenceModules.get(moduleName).removePreference(model.getPreference(preferenceDTO.identifier()));
     }
     public void TogglePreference(String name){
         if(preferenceModules.get(name) == null)

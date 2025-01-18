@@ -24,6 +24,9 @@ public abstract class Module {
     public void setDescription(String description) {
         this.description = description;
     }
+    /**
+     * Toggle module, disables if its on and enables if it's off.
+     */
     public void ToggleModule(){
         isActive=!isActive;
     }

@@ -7,7 +7,8 @@ import java.util.*;
 import java.util.regex.*;
 
 public class Solution {
-    String solutionPath;
+    boolean parsed;
+    final String solutionPath;
     boolean solved;
     /*
     maps variable names to a list of lists with each list holding elements of the solution,
@@ -15,8 +16,8 @@ public class Solution {
     an example for a solution is: V -> { [1,"a"], [2, "b"] } note: order matters!
     Since from this point on this is only static data to be shown to the user, only Strings are in use
      */
-    HashMap<String, List<List<String>>> variableSolution;
-    HashMap<String, List<String>> variableStructure;
+    final HashMap<String, List<List<String>>> variableSolution;
+    final HashMap<String, List<String>> variableStructure;
     double solvingTime;
     double objectiveValue; // the actual numeric value of the expression that was optimized
 
@@ -28,15 +29,22 @@ public class Solution {
         this.solutionPath = solutionPath;
         variableSolution = new HashMap<>();
         variableStructure = new HashMap<>();
+        parsed = false;
     }
     //Implement as lazy call or run during initialization?
-    public void ParseSolution(ModelInterface model) throws IOException {
-        //init all variables with as keys to an empty list
+    public void ParseSolution(ModelInterface model, Set<String> varsToParse) throws IOException {
         variables = model.getVariables();
         for (ModelVariable variable : variables) {
-            variableSolution.put(variable.getIdentifier(), new ArrayList<>());
-            variableStructure.put(variable.getIdentifier(), new ArrayList<>());
-            //TODO: figure out how to extract the structure of a variable
+            if (varsToParse.contains(variable.getIdentifier())) {
+                variableSolution.put(variable.getIdentifier(), new ArrayList<>());
+                variableStructure.put(variable.getIdentifier(), new ArrayList<>());
+                //below lines are not solution dependent but problem dependent, will be more efficient to maintain them inside the image
+                for (ModelSet modelSet : variable.getDependencies()) {
+                    for (ModelInput.StructureBlock block : modelSet.getStructure()) {
+                        variableStructure.get(variable.getIdentifier()).add(block.dependency.identifier);
+                    }
+                }
+            }
         }
         try (BufferedReader reader = new BufferedReader(new FileReader(solutionPath))) {
             String line;
@@ -64,12 +72,13 @@ public class Solution {
                         solutionSection = true; // Objective value is defined right before the solution values section
                     }
                 } else {
-                    parseSolutionValues(reader);
+                    parseSolutionValues(reader,varsToParse);
                 }
             }
         }
+        parsed=true;
     }
-    private void parseSolutionValues(BufferedReader reader) throws IOException {
+    private void parseSolutionValues(BufferedReader reader, Set<String> varsToParse) throws IOException {
         Pattern variablePattern = Pattern.compile("([a-zA-Z_\\$0-9]+)(#[a-zA-Z0-9\\$#]+(?:\\s+[a-zA-Z0-9\\$#]+)*)\\s+(\\d+)\\s+\\(obj:(\\d+)\\)");
         String line;
         while ((line = reader.readLine()) != null){
@@ -78,13 +87,40 @@ public class Solution {
                 String variableName = variableMatcher.group(1);
                 String values = variableMatcher.group(2);
                 int objectiveValue = Integer.parseInt(variableMatcher.group(3));
-                if(objectiveValue!=0) {
+                if(varsToParse.contains(variableName) && objectiveValue!=0) {
                     //A 0 objective value means the solution part has no effect on the actual max/min expression
-                    List<String> variableValues = new ArrayList<>(Arrays.asList(values.split("[#&$]")));
+                    List<String> variableValues = new ArrayList<>(Arrays.asList(values.split("[#&$]"))); //need a new array to remove dependence
                     variableValues.removeIf(String::isEmpty); // I hate this, but I hate regex even more. removes empty strings
                     variableSolution.get(variableName).add(variableValues);
                 }
             }
         }
+    }
+    public boolean parsed(){
+        return parsed;
+    }
+
+    public boolean isSolved() {
+        return solved;
+    }
+
+    public HashMap<String, List<List<String>>> getVariableSolution() {
+        return variableSolution;
+    }
+
+    public HashMap<String, List<String>> getVariableStructure() {
+        return variableStructure;
+    }
+
+    public double getSolvingTime() {
+        return solvingTime;
+    }
+
+    public double getObjectiveValue() {
+        return objectiveValue;
+    }
+
+    public Collection<ModelVariable> getVariables() {
+        return variables;
     }
 }

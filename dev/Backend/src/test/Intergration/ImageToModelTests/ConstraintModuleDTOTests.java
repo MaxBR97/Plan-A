@@ -11,6 +11,7 @@ import org.mockito.junit.jupiter.*;
 import java.io.IOException;
 import java.nio.file.*;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -18,7 +19,7 @@ import Model.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(MockitoExtension.class)
-public class ConstraintModuleTests {
+public class ConstraintModuleDTOTests {
 
     @Mock
     ModelInterface model;
@@ -99,8 +100,9 @@ public class ConstraintModuleTests {
     @Test
     public void testSolve(){
         Solution solution= model.solve(1000);
+        Set<String> vars= model.getVariables().stream().map(ModelVariable -> ModelVariable.getIdentifier()).collect(Collectors.toSet());
         try {
-            solution.ParseSolution(model);
+            solution.ParseSolution(model,vars);
         }
         catch (IOException e){
             fail(e.getMessage());
