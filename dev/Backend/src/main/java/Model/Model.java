@@ -264,9 +264,10 @@ public class Model implements ModelInterface {
 
         @Override
         public Void visitObjective(FormulationParser.ObjectiveContext ctx) {
-            //String constName = extractName(ctx.name.getText());
-            //preferences.add(new ModelConstraint(constName,));
-            //return super.visitSetDefExpr(ctx);
+            String preferenceName = extractName(ctx.name.getText());
+            TypeVisitor visitor = new TypeVisitor();
+            visitor.visit(ctx);
+            preferences.put(preferenceName, new ModelPreference(preferenceName,visitor.getBasicSets(),visitor.getBasicParams()));
             return super.visitObjective(ctx);
         }
         
@@ -739,6 +740,12 @@ public class Model implements ModelInterface {
             basicParams.addAll(v.basicParams);
             basicSets.addAll(v.basicSets);
 
+            return null;
+        }
+
+        @Override
+        public Void visitObjective(FormulationParser.ObjectiveContext ctx){
+            this.visit(ctx.nExpr());
             return null;
         }
         

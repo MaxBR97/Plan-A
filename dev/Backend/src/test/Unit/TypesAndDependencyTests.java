@@ -118,6 +118,9 @@ public class TypesAndDependencyTests {
         immidiateParamDependencies.put("Hayal_Lo_Shomer_Beshtey_Emdot_Bo_Zmanit", new String[]{});
         immidiateSetDependencies.put("Kol_Haemdot_Meshubatsot_Hayal_Ehad", new String[]{"S","CxS"});
         immidiateParamDependencies.put("Kol_Haemdot_Meshubatsot_Hayal_Ehad", new String[]{});
+
+        immidiateSetDependencies.put("rivuah", new String[]{"CxS","S"});
+        immidiateParamDependencies.put("rivuah", new String[]{"conditioner"});
         
     }
 
@@ -140,6 +143,22 @@ public class TypesAndDependencyTests {
         String dependency = "CxS";
         assertEquals(1, model.getVariable(var).getDependencies().size());
         assertEquals(dependency, model.getVariable(var).findDependency(dependency).getIdentifier());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"rivuah"})
+    public void testPreferencesDependencies(String id){
+        ModelPreference mp = model.getPreference(id);
+        assertNotNull(mp);
+        assertEquals(mp.getSetDependencies().size(), immidiateSetDependencies.get(id).length);
+        for(String setId : immidiateSetDependencies.get(id)){
+            assertNotNull(mp.findSetDependency(setId));
+        }
+
+        assertEquals(mp.getParamDependencies().size(), immidiateParamDependencies.get(id).length);
+        for(String setId : immidiateParamDependencies.get(id)){
+            assertNotNull(mp.findParamDependency(setId));
+        }
     }
 
     @ParameterizedTest
