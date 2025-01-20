@@ -14,5 +14,4 @@ public class ExceptionHandlerService {
         ExceptionDTO errorResponse = RecordFactory.makeDTO(ex);
         return ResponseEntity.status(500).body(errorResponse);
     }
-    
 }

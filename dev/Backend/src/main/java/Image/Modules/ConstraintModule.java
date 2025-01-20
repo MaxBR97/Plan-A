@@ -19,6 +19,13 @@ public class ConstraintModule extends Module{
         super(name, description);
         this.constraints = new HashMap<>();
     }
+    public ConstraintModule(String name, String description, Collection<ModelConstraint> constraints) {
+        super(name, description);
+        this.constraints = new HashMap<>();
+        for (ModelConstraint constraint : constraints) {
+            this.constraints.put(constraint.getIdentifier(), constraint);
+        }
+    }
     /**
      * Fetch all ModelSets that are in use in any of the constraints in the module.
      * @return all sets that are part of any constraint in the module

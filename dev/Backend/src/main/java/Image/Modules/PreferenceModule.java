@@ -5,10 +5,7 @@ import Model.ModelParameter;
 import Model.ModelPreference;
 import Model.ModelSet;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class PreferenceModule extends Module{
     /**
@@ -16,11 +13,18 @@ public class PreferenceModule extends Module{
      * (a preference is a single expressions in the expression sum in the minimize/maximize expression in zimpl)
      */
     private final Map<String, ModelPreference> preferences;
+
     public PreferenceModule(String name, String description) {
         super(name, description);
         preferences = new HashMap<>();
     }
-
+    public PreferenceModule(String name, String description, Collection<ModelPreference> preferences) {
+        super(name, description);
+        this.preferences = new HashMap<>();
+        for (ModelPreference constraint : preferences) {
+            this.preferences.put(constraint.getIdentifier(), constraint);
+        }
+    }
     /**
      * Fetch all ModelSets that are in use in any of the preferences in the module.
      * @return all sets that are part of any preferences in the module

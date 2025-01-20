@@ -23,7 +23,8 @@ public class Service implements ServiceInterface {
     
     @PostMapping("/images")
     public ResponseEntity<ImageDTO> createImage(@RequestBody CreateImageDTO zplFile) throws IOException {
-        ImageDTO response = controller.createImage(zplFile);
+        ImageDTO response = controller.createImage(zplFile.path());
+        System.out.println("returning response: ");
         return ResponseEntity.ok(response);
     }
 

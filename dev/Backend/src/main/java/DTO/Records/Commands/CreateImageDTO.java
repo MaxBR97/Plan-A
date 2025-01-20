@@ -1,5 +1,5 @@
 package DTO.Records.Commands;
 
-public record CreateImageDTO() {
+public record CreateImageDTO(String path) {
 
 }

@@ -1,4 +1,3 @@
 package DTO.Records.Commands;
 
-public record ImageInputDTO() {
-}
+public record ImageInputDTO() {}

@@ -3,12 +3,14 @@ package Image;
 import DTO.Records.Model.ModelDefinition.ConstraintDTO;
 import DTO.Records.Model.ModelDefinition.PreferenceDTO;
 import Image.Modules.*;
-import Model.Model;
+import Model.*;
 import Model.ModelInterface;
 import Model.ModelVariable;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 
 public class Image {
     // Note: this implies module names must be unique between user constraints/preferences.
@@ -35,8 +37,34 @@ public class Image {
     public void addConstraintModule(ConstraintModule module) {
         constraintsModules.put(module.getName(), module);
     }
+    public void addConstraintModule(String moduleName, String description) {
+        constraintsModules.put(moduleName, new ConstraintModule(moduleName, description));
+    }
+    public void addConstraintModule(String moduleName, String description, Collection<String> constraints) {
+        HashSet<ModelConstraint> modelConstraints = new HashSet<>();
+        for (String name : constraints) {
+            ModelConstraint constraint = model.getConstraint(name);
+            if(constraint != null) {
+                modelConstraints.add(constraint);
+            }
+        }
+        constraintsModules.put(moduleName, new ConstraintModule(moduleName, description, modelConstraints));
+    }
     public void addPreferenceModule(PreferenceModule module) {
         preferenceModules.put(module.getName(), module);
+    }
+    public void addPreferenceModule(String moduleName, String description) {
+        preferenceModules.put(moduleName, new PreferenceModule(moduleName, description));
+    }
+    public void addPreferenceModule(String moduleName, String description, Collection<String> preferences) {
+        HashSet<ModelPreference> modelPreferences = new HashSet<>();
+        for (String name : preferences) {
+            ModelPreference preference = model.getPreference(name);
+            if(preference != null) {
+                modelPreferences.add(preference);
+            }
+        }
+        preferenceModules.put(moduleName, new PreferenceModule(moduleName, description, modelPreferences));
     }
     public ConstraintModule getConstraintModule(String name) {
         return constraintsModules.get(name);

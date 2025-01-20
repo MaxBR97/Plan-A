@@ -8,7 +8,6 @@ import Image.Image;
 import Image.Modules.ConstraintModule;
 import Image.Modules.PreferenceModule;
 import Model.*;
-import org.apache.tomcat.util.http.parser.Cookie;
 
 import java.util.*;
 
@@ -65,9 +64,9 @@ public class RecordFactory {
     @Deprecated
     public static SetDefinitionDTO makeDTO(ModelSet set){
         LinkedList<String> dependencies = new LinkedList<>();
-        LinkedList<DataTypes> types = new LinkedList<>();
+        LinkedList<String> types = new LinkedList<>();
         for(ModelSet dependency: set.getSetDependencies()){
-            for(Model.ModelInput.StructureBlock block:dependency.getStructure()){
+            for(ModelInput.StructureBlock block:dependency.getStructure()){
                 dependencies.add(block.dependency.getIdentifier());
                 //TODO: implement converting types
             }
@@ -93,7 +92,7 @@ public class RecordFactory {
         for(ModelSet dependency: variable.getSetDependencies()){
             dependencies.add(makeDTO(dependency));
         }
-        return new VariableDTO(variable.getIdentifier(),variable.isComplex(),dependencies);
+        return new VariableDTO(variable.getIdentifier(),dependencies);
     }
     private static Collection<ParameterDefinitionDTO> makeDTO(Set<ModelParameter> params) {
         LinkedList<ParameterDefinitionDTO> paramDTOs= new LinkedList<>();
@@ -105,16 +104,11 @@ public class RecordFactory {
     public static SetDTO makeDTO(ModelSet set, Collection<String> values){
         return new SetDTO(makeDTO(set), values);
     }
-    public static DataTypes makeDTO(ModelPrimitives type) {
-        return switch (type) {
-            case BINARY -> DataTypes.BINARY;
-            case TEXT -> DataTypes.TEXT;
-            case UNKNOWN -> DataTypes.UNKNOWN;
-            case INT -> DataTypes.INT;
-            case INFINITY -> DataTypes.INFINITY;
-            case FLOAT -> DataTypes.FLOAT;
-        };
-    }
+
+    /**
+     * Inefficient, maps the whole image, including all its contents into DTOs.
+     * should only be called when loading a new Image, not when modifying it.
+     */
     public static ImageDTO makeDTO(Image image){
         if(image == null)
             throw new NullPointerException("Null image in DTO mapping");
