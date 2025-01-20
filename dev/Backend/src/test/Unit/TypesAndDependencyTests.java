@@ -177,6 +177,8 @@ public class TypesAndDependencyTests {
         }
     }
 
+        
+    
     @Test
     public void testStructureforTest2(){
         ModelSet set = model.getSet("forTest2");

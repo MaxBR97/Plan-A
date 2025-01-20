@@ -1,4 +1,7 @@
 package Model;
+
+import java.util.List;
+
 public enum ModelPrimitives implements ModelType{
     BINARY,
     TEXT,
@@ -38,6 +41,5 @@ public enum ModelPrimitives implements ModelType{
           }
     }
 
-    
 
 }

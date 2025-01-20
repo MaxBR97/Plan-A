@@ -80,4 +80,8 @@ public class ModelStub implements ModelInterface {
     public ModelVariable getVariable(String identifier) {
         return null;
     }
+    @Override
+    public Collection<ModelVariable> getVariables() {
+        return List.of();
+    }
 }
