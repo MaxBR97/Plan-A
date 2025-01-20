@@ -18,7 +18,7 @@ import Model.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(MockitoExtension.class)
-public class ConstraintModuleTests {
+public class ConstraintModuleDTOTests {
 
     @Mock
     ModelInterface model;
@@ -47,13 +47,10 @@ public class ConstraintModuleTests {
         }
     }
     @Test
-    public void GivenPath_WhenPathInvalid_ThrowsException() throws IOException {
+    public void GivenPath_WhenPathInvalid_ThrowsException() {
         String badPath= sourcePath+ "/IDontExist.zpl";
-        try {
-            model = new ModelStub(badPath);
-        } catch (IOException e) {
-            fail();
-        }
+        //TODO: a custom exception will probably be a better choice, instead of letting IO be thrown upwards
+        assertThrows(IOException.class, () -> new Model(badPath));
     }
     //TODO: Writer an easier to work with zimpl example, this one throws warnings
     @Test
@@ -96,7 +93,15 @@ public class ConstraintModuleTests {
             fail("IO error in GivenInvalidZimplCode_WhenCompiling_ReturnsFalse: "+ e.getMessage());
         }
     }
-
-
-
+    @Test
+    public void testSolve(){
+        Solution solution= model.solve(1000);
+        Set<String> vars= model.getVariables().stream().map(ModelVariable -> ModelVariable.getIdentifier()).collect(Collectors.toSet());
+        try {
+            solution.ParseSolution(model,vars);
+        }
+        catch (IOException e){
+            fail(e.getMessage());
+        }
+    }
 }

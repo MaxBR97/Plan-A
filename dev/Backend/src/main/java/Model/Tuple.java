@@ -90,7 +90,7 @@ public class Tuple implements ModelType {
         for (int i = 0; i < val.size(); i++) {
             sb.append(val.get(i).toString());
             if (i < val.size() - 1) {
-                sb.append(", ");
+                sb.append(",");
             }
         }
         
@@ -102,6 +102,5 @@ public class Tuple implements ModelType {
         return this.val.size();
     }
     
-
 }
 

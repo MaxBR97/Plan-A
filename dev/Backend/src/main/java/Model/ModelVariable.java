@@ -1,5 +1,6 @@
 package Model;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import parser.FormulationParser.VariableContext;
@@ -14,5 +15,4 @@ public class ModelVariable extends ModelOutput {
         super(ident,dep);
     }
 
-   
 }

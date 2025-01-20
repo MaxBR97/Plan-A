@@ -117,4 +117,6 @@ public interface ModelInterface {
      */
     ModelVariable getVariable(String identifier);
 
+    Collection<ModelVariable> getVariables();
+
 }
