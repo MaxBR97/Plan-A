@@ -1,5 +1,7 @@
 package Image;
 
+import DTO.Factories.RecordFactory;
+import DTO.Records.Image.SolutionDTO;
 import DTO.Records.Model.ModelDefinition.ConstraintDTO;
 import DTO.Records.Model.ModelDefinition.PreferenceDTO;
 import Image.Modules.*;
@@ -11,6 +13,7 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Objects;
 
 public class Image {
     // Note: this implies module names must be unique between user constraints/preferences.
@@ -120,13 +123,14 @@ public class Image {
         }
     }
     public void TogglePreference(String name){
-        if(preferenceModules.get(name) == null)
-            throw new IllegalArgumentException("No such preference module");
-        else preferenceModules.get(name).ToggleModule();
+            Objects.requireNonNull(name,"Null value during Toggle Preference in Image");
+            preferenceModules.get(name).ToggleModule();
     }
     public void ToggleConstraint(String name){
-        if(constraintsModules.get(name) == null)
-            throw new IllegalArgumentException("No such constraint module");
-        else constraintsModules.get(name).ToggleModule();
+            Objects.requireNonNull(name,"Null value during Toggle Constraint in Image");
+            constraintsModules.get(name).ToggleModule();
+    }
+    public SolutionDTO solve(int timeout){
+            return RecordFactory.makeDTO(model.solve(timeout));
     }
 }

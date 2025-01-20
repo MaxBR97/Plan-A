@@ -1,9 +1,9 @@
-package DTO;
+package DTO.Factories;
 
-import DTO.Records.Commands.*;
 import DTO.Records.Image.*;
 import DTO.Records.Model.ModelDefinition.*;
 import DTO.Records.Model.ModelData.*;
+import DTO.Records.Requests.Responses.ImageResponseDTO;
 import Image.Image;
 import Image.Modules.ConstraintModule;
 import Image.Modules.PreferenceModule;
@@ -35,11 +35,7 @@ public class RecordFactory {
             throw new NullPointerException("Null constraint in DTO mapping");
         return new ConstraintDTO(constraint.getIdentifier());
     }
-    public static ExceptionDTO makeDTO(Exception exception) {
-        if(exception == null)
-            throw new NullPointerException("Null exception in DTO mapping");
-        return new ExceptionDTO(exception.getMessage());
-    }
+
     public static ConstraintModuleDTO makeDTO(ConstraintModule module) {
         if(module == null)
             throw new NullPointerException("Null constraint module in DTO mapping");
@@ -61,17 +57,14 @@ public class RecordFactory {
                 new HashSet<>(makeDTO(module.getInvolvedSets())),new HashSet<>(makeDTO(module.getInvolvedParameters())));
     }
 
-    @Deprecated
     public static SetDefinitionDTO makeDTO(ModelSet set){
         LinkedList<String> dependencies = new LinkedList<>();
-        LinkedList<String> types = new LinkedList<>();
         for(ModelSet dependency: set.getSetDependencies()){
             for(ModelInput.StructureBlock block:dependency.getStructure()){
                 dependencies.add(block.dependency.getIdentifier());
-                //TODO: implement converting types
             }
         }
-        return new SetDefinitionDTO(set.getIdentifier(), dependencies, types);
+        return new SetDefinitionDTO(set.getIdentifier(), dependencies, set.getType().toString());
     }
 
     public static Collection<SetDefinitionDTO> makeDTO(Collection<ModelSet> sets){
@@ -82,11 +75,13 @@ public class RecordFactory {
         return setDTOs;
     }
 
-    @Deprecated
     public static ParameterDefinitionDTO makeDTO(ModelParameter parameter){
-        //TODO: implement converting types
-        return null;
+        return new ParameterDefinitionDTO(parameter.getIdentifier(), parameter.getType().toString());
     }
+    public static ParameterDTO makeDTO(ModelParameter parameter, String value){
+        return new ParameterDTO(makeDTO(parameter), value);
+    }
+
     private static VariableDTO makeDTO(ModelVariable variable) {
         HashSet<SetDefinitionDTO> dependencies = new HashSet<>();
         for(ModelSet dependency: variable.getSetDependencies()){
@@ -126,7 +121,9 @@ public class RecordFactory {
         }
         return new ImageDTO(constraints, preferences,variables);
     }
-
+    public static ImageResponseDTO makeDTO(UUID id, boolean compiled, String message, Image image){
+        return new ImageResponseDTO(id.toString(),compiled,message,makeDTO(image));
+    }
 
 
 }

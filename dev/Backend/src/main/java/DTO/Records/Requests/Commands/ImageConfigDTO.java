@@ -1,4 +1,4 @@
-package DTO.Records.Commands;
+package DTO.Records.Requests.Commands;
 
 public record ImageConfigDTO() {
     
