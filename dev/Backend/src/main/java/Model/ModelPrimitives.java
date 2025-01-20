@@ -47,7 +47,7 @@ public enum ModelPrimitives implements ModelType{
         case BINARY:
             return "BINARY";
         case TEXT:
-          return "TEXt";
+          return "TEXT";
         case INT:
           return "INT";
           
