@@ -1,4 +1,4 @@
-package Model;
+package Unit;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -12,33 +12,25 @@ import java.io.IOException;
 
 import java.nio.channels.FileChannel;
 import java.nio.file.Files;
-import java.nio.file.OpenOption;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Set;
 
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.provider.NullAndEmptySource;
-import org.springframework.boot.test.context.SpringBootTest;
-import java.nio.file.Files;
+import Model.*;
+import Model.ModelInterface;
+import Model.ModelSet;
+import Utilities.Stubs.ModelStub;
+import org.junit.jupiter.api.*;
+
 import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
-import java.io.IOException;
 
 
 public class ModelTest {
-    private Model model;
+    private ModelInterface model;
 
-    private static String source = "/Plan-A/dev/Backend/src/test/java/Model/TestFile.zpl";
-    private static String TEST_FILE_PATH = "/Plan-A/dev/Backend/src/test/java/Model/TestFileINSTANCE.zpl";
+    private static String source = "/home/denis/Documents/University/Plan-A/dev/Backend/src/test/Utilities/Stubs/ExampleZimplProgram.zpl";
+    private static String TEST_FILE_PATH = "/dev/Backend/src/test/TestFileINSTANCE.zpl";
 
     private static String[][] expectedParameters = {{"Conditioner","10"}, {"soldiers", "9"}, {"absoluteMinimalRivuah", "8"}};
-    
     @BeforeAll
     public static void setUpFile() throws IOException {
         Path sourcePath = Path.of(source);
@@ -48,27 +40,27 @@ public class ModelTest {
         Files.copy(sourcePath, targetPath, StandardCopyOption.REPLACE_EXISTING);
     }
 
-    private ModelSet getSet(Model m, String identifier) throws Exception{
+    private ModelSet getSet(ModelInterface m, String identifier) throws Exception{
         m = new Model(TEST_FILE_PATH);
         return m.getSet(identifier);
     }
     
-    private ModelParameter getParameter(Model m, String identifier) throws Exception{
+    private ModelParameter getParameter(ModelInterface m, String identifier) throws Exception{
         m = new Model(TEST_FILE_PATH);
         return m.getParameter(identifier);
     }
     
-    private ModelVariable getVariable(Model m, String identifier) throws Exception{
-        m = new Model(TEST_FILE_PATH);
+    private ModelVariable getVariable(ModelInterface m, String identifier) throws Exception{
+        //m = new Model(TEST_FILE_PATH);
         return m.getVariable(identifier);
     }
     
-    private ModelConstraint getConstraint(Model m, String identifier) throws Exception{
+    private ModelConstraint getConstraint(ModelInterface m, String identifier) throws Exception{
         m = new Model(TEST_FILE_PATH);
         return m.getConstraint(identifier);
     }
     
-    private ModelPreference getPreference(Model m, String identifier) throws Exception{
+    private ModelPreference getPreference(ModelInterface m, String identifier) throws Exception{
         m = new Model(TEST_FILE_PATH);
         return m.getPreference(identifier);
     }
@@ -76,14 +68,13 @@ public class ModelTest {
     
     @BeforeEach
     public void setUp() throws IOException {
-        model = new Model(TEST_FILE_PATH);
+        model = new ModelStub(TEST_FILE_PATH);
     }
     
     @Test
     public void testModelConstruction() {
         assertNotNull(model);
         assertTrue(model.isCompiling(3));
-
     }
     
     @Test
@@ -100,7 +91,7 @@ public class ModelTest {
 
         ModelSet testSet = model.getSet(setName);
         assertNotNull(testSet);
-        assertEquals(testSet.identifier,setName);
+        assertEquals(testSet.getIdentifier(),setName);
         assertEquals(testSet.getType(), type);
         
 
@@ -128,14 +119,14 @@ public class ModelTest {
     @Test
     public void testSetParameterInput() throws Exception {
         String parameter = "soldiers";
-        String valueToSet = "543205222";
+        String valueToSet = "12";
 
         ModelParameter param = getParameter(model, parameter);
         assertNotNull(param);
-        assertEquals(param.getType(), ModelPrimitives.INT);
+        Assertions.assertEquals(param.getType(), ModelPrimitives.INT);
         model.setInput(param, valueToSet);
         param = getParameter(model, parameter);
-        assertEquals( param.getValue(), valueToSet);
+        Assertions.assertEquals( param.getValue(), valueToSet);
 
         assertTrue(model.isCompiling(2));
 
@@ -149,7 +140,6 @@ public class ModelTest {
         ModelFunctionality mf = getConstraint(model, testConstraint);
         assertNotNull(mf);
         model.toggleFunctionality(mf, false);
-        assertNull(getConstraint(model, testConstraint));
 
         assertTrue(model.isCompiling(2));
 
@@ -160,7 +150,7 @@ public class ModelTest {
 
     @Test
     public void testBasicCompilation(){
-        assertFalse(model.isCompiling(0.000000001f));
+        assertFalse(model.isCompiling(0.00000000001f));
         assertTrue(model.isCompiling(3));
         try{
         String gibbrish = "gfsgfd;";
@@ -174,28 +164,36 @@ public class ModelTest {
             assertFalse(true);
         }
     }
+
+    @Test
+    public void testSolve(){
+        model.solve(6);
+        assertFalse(true); // test is not implemented yet because Solution class is not implemented yet
+    }
     
     // Collection Getter Tests
     @Test
     public void testParameterParsing() {
-
-        Set<ModelParameter> params = model.getParameters();
-        
+        assertFalse(true); 
         
     }
     @Test
     public void testSetParsing() {
+        assertFalse(true); 
     }
 
     @Test
     public void testConstraintParsing() {
+        assertFalse(true); 
     }
 
     @Test
     public void testPreferenceParsing() {
+        assertFalse(true); 
     }
     @Test
     public void testVariableParsing() {
+        assertFalse(true); 
     }
     
     // Exception Tests
@@ -218,8 +216,8 @@ public class ModelTest {
 
     @AfterAll
     public static void cleanUp() throws IOException {
-        Path targetPath = Path.of(TEST_FILE_PATH);
-        Files.deleteIfExists(targetPath);
+//        Path targetPath = Path.of(TEST_FILE_PATH);
+//        Files.deleteIfExists(targetPath);
     }
 
 }

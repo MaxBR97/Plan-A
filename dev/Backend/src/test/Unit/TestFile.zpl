@@ -2,16 +2,21 @@ param conditioner := 10;
 param soldiers := 9;
 param absoluteMinimalRivuah := 8;
 
-
+set setWithRange := {1..100 by conditioner};
 set C := {1..soldiers};
 set Emdot := {"Shin Gimel", "Fillbox"};
 set Zmanim := {0,4,8,12,16,20};
-set S := Emdot cross Zmanim;
+set S := Emdot * Zmanim;
 set CxS := C * S;
 set CxSxS := {<i,a,b,c,d> in C * S * S | b < d };
+set forTest1 := {<a> in {"a","b","c"} : <soldiers, a>};
+set forTest2 := {"a", "b"} * S * {1..soldiers} * C * {<"h",2.2> , <"a",-3.14>}; 
+set forTest3 := {<2,"a",3>,<6,"2",3>};
+
 
 var edge[CxS] binary;
 var couples[CxSxS] binary;
+
 
 
 subto trivial1:

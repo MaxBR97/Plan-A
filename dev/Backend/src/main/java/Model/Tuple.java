@@ -1,7 +1,9 @@
 package Model;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 
 public class Tuple implements ModelType {
     private List<ModelPrimitives> val;
@@ -12,6 +14,10 @@ public class Tuple implements ModelType {
 
     Tuple() {
         val = new LinkedList();
+    }
+
+    public List<ModelPrimitives> getTypes(){
+        return val;
     }
 
     public boolean isCompatible(ModelType p){
@@ -63,8 +69,14 @@ public class Tuple implements ModelType {
         return true;
     }
 
-    void append(ModelPrimitives tmp) {
-        val.add(tmp);
+    void append(ModelType tmp) {
+        if(tmp instanceof ModelPrimitives)
+            val.add((ModelPrimitives)tmp);
+        else {
+            for(ModelPrimitives p : ((Tuple)tmp).getTypes())
+                val.add(p);
+        }
+
     }
 
     public String toString() {
@@ -84,6 +96,10 @@ public class Tuple implements ModelType {
         
         sb.append('>');
         return sb.toString();
+    }
+
+    public int size() {
+        return this.val.size();
     }
     
 

@@ -143,23 +143,24 @@ setExpr
 	;
 
 setDesc:'{' '}'						# SetDescEmpty
+	|	'{' condition '}' 			# SetDescStack
 	|	'{' csv '}'					# SetDescStack
 	|	'{' range '}'				# SetDescStack 
-	|	'{' condition '}' 			# SetDescStack
 	;
 
-range	:	lhs=nExpr '..' rhs=nExpr ;
+range	:	lhs=nExpr '..' rhs=nExpr ('by' step=nExpr)?;
 
 tuple	:	'<' csv '>' ;
 
 /* reduce expression */
 // TODO: test non-sum
 //sumExpr :	'sum' condition sep=('do' | ':') nExpr ;
-//redExpr :	op=('min'|'max'|'prod'|'sum') condition sep=('do'|':') nExpr ;
+redExpr :	op=('min'|'max'|'prod'|'sum') condition sep=('do'|':') nExpr ;
 // Defining RED as lexical rule brings token conflict with (functions) 'min', 'max'
-redExpr :	op=ID condition sep=('do'|':') nExpr ;
+//redExpr :	op=ID condition sep=('do'|':') nExpr ;
 
 index	:	condition | setExpr ;
+
 
 // In Section 4.5, [Koch2020] calls this an 'index'.
 condition : tuple 'in' setExpr (sep=('with' | '|') boolExpr)? ;
@@ -219,7 +220,9 @@ strExpr	:	STRING					# StrExprToken
 		|	ifExpr					# StrExprIf
 		;
 
-ifExpr	:	'if' boolExpr 'then' thenExpr=expr 'else' elseExpr=expr 'end' ;
+ifExpr	:	'vif' boolExpr 'then' thenExpr=expr 'else' elseExpr=expr 'end' #varIfExpr
+		| 	'if' boolExpr 'then' thenExpr=expr 'else' elseExpr=expr 'end' #regIfExpr
+		;
 
 // LEXERRULES:
 
