@@ -41,5 +41,25 @@ public enum ModelPrimitives implements ModelType{
           }
     }
 
+    @Override
+    public String toString() {
+      switch(this) {
+        case BINARY:
+            return "BINARY";
+        case TEXT:
+          return "TEXt";
+        case INT:
+          return "INT";
+          
+        case INFINITY:
+          return "INFINITY";
+          
+        case FLOAT:
+          return "FLOAT";
+        default:
+          return "UNKNOWN";
+      }
+    }
+
 
 }
