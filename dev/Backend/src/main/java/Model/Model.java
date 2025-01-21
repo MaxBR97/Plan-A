@@ -273,11 +273,8 @@ public class Model implements ModelInterface {
         public Void visitVariable(FormulationParser.VariableContext ctx){
             String varName = extractName(ctx.sqRef().getText());
             TypeVisitor visitor = new TypeVisitor();
-            visitor.visit(ctx.sqRef());
-            List<ModelInput> allDep = new LinkedList<>();
-            allDep.addAll(visitor.getBasicSets());
-            allDep.addAll(visitor.getBasicParams());
-            variables.put(varName, new ModelVariable(varName, visitor.getBasicSets()));
+            visitor.visit(ctx);
+            variables.put(varName, new ModelVariable(varName, visitor.getBasicSets(), visitor.getBasicParams()));
             return super.visitVariable(ctx);
         }
 
@@ -726,6 +723,12 @@ public class Model implements ModelInterface {
         }
 
         @Override
+        public Void visitVariable(FormulationParser.VariableContext ctx){
+            visit(ctx.sqRef());
+            return null;
+        }
+
+        @Override
         public Void visitConstraint(FormulationParser.ConstraintContext ctx){
             
             for(FormulationParser.ForallContext ctxFA : ctx.forall()){
@@ -837,12 +840,12 @@ public class Model implements ModelInterface {
 
             if(ctx.csv() != null && getSet(ctx.csv().getText()) != null){
                 basicSets.add(getSet(ctx.csv().getText()));
-            }else {
-                
             }
-
-            if(ctx.csv() != null && getParameter(ctx.csv().getText()) != null){
+            else if(ctx.csv() != null && getParameter(ctx.csv().getText()) != null){
                 basicParams.add(getParameter(ctx.csv().getText()));
+            }  
+            else if(ctx.csv() != null){
+                visit(ctx.csv());
             }
             return null;
         }

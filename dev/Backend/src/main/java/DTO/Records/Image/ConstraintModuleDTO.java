@@ -18,5 +18,4 @@ import java.util.Set;
  */
 public record ConstraintModuleDTO(boolean isActive, String name, String description, Map<String, ConstraintDTO> constraints,
                                   Set<SetDefinitionDTO> setDependencies,
-                                  Set<ParameterDefinitionDTO> parameterDependencies) {
-}
+                                  Set<ParameterDefinitionDTO> parameterDependencies) {}

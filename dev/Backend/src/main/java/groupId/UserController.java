@@ -1,29 +1,49 @@
 package groupId;
 
-import DTO.Records.Commands.CreateImageDTO;
-import DTO.Records.Commands.ImageConfigDTO;
-import DTO.Records.Commands.ImageInputDTO;
+import DTO.Factories.RecordFactory;
+import DTO.Records.Requests.Commands.SolveCommandDTO;
 import DTO.Records.Image.ImageDTO;
 import DTO.Records.Image.SolutionDTO;
+import DTO.Records.Requests.Responses.ImageResponseDTO;
+import Image.Image;
 import org.springframework.stereotype.Service;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 @Service
 public class UserController {
-    //Image image; // commented out for succesful compilation
+private final Map<UUID,Image> images;
+
 
     public UserController(){
-        
+        images = new HashMap<>();
     }
 
-    public ImageDTO createImage(CreateImageDTO zplFile){
-        return null;
+    public ImageResponseDTO createImageFromPath(String path) throws IOException {
+        Image image=new Image(path);
+        UUID id= UUID.randomUUID();
+        images.put(id,image);
+        // If there is a compilation error, and exception is to be caught and returned.
+        return RecordFactory.makeDTO(id,true, "",image);
+    }
+    public ImageDTO createImageFromFile(String name,String code) throws IOException {
+        Path path= Paths.get("User/Models"+ File.separator+name+".zpl");
+        Files.write(path,code.getBytes());
+        Image image=new Image(path.toAbsolutePath().toString());
+        images.put(UUID.randomUUID(),image);
+        return RecordFactory.makeDTO(image);
     }
 
-    public void configureImage(ImageConfigDTO config){
-    }
 
-    public SolutionDTO solve(ImageInputDTO inputs) {
-        return null;
+    public SolutionDTO solve(SolveCommandDTO command) {
+        return images.get(UUID.fromString(command.id())).solve(Integer.parseInt(command.timeout()));
     }
 
     
