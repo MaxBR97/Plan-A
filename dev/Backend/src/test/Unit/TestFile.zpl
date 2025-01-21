@@ -13,11 +13,11 @@ set forTest1 := {<a> in {"a","b","c"} : <soldiers, a>};
 set forTest2 := {"a", "b"} * S * {1..soldiers} * C * {<"h",2.2> , <"a",-3.14>}; 
 set forTest3 := {<2,"a",3>,<6,"2",3>};
 
-
 var edge[CxS] binary;
 var couples[CxSxS] binary;
 var varForTest1[CxS *{"A","a"} * S * {1 .. 5}];
 
+#vif edge[i,a,b] == 1 then sum <j,a1,a2,b1,b2> in CxSxS | i == j and (a==a1 and b==a2) : couples[j,a1,a2,b1,b2] == 1 end;
 
 subto trivial1:
     forall <j,a1,a2,b1,b2> in CxSxS | a1 != b1 or a2 != b2 : vif couples[j,a1,a2,b1,b2] == 1 then edge[j,a1,a2] == 1  end;

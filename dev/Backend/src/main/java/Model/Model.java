@@ -746,6 +746,12 @@ public class Model implements ModelInterface {
         }
 
         @Override
+        public Void visitComparisonIfExpr(FormulationParser.ComparisonIfExprContext ctx){
+            this.visit(ctx.ifExpr());
+            return null;
+        }
+
+        @Override
         public Void visitObjective(FormulationParser.ObjectiveContext ctx){
             this.visit(ctx.nExpr());
             return null;
@@ -758,9 +764,15 @@ public class Model implements ModelInterface {
         }
 
         @Override
-        public Void visitRedExpr(FormulationParser.RedExprContext ctx){
+        public Void visitLongRedExpr(FormulationParser.LongRedExprContext ctx){
             this.visit(ctx.condition());
             this.visit(ctx.nExpr());
+            return null;
+        }
+
+        @Override
+        public Void visitShortRedExpr(FormulationParser.ShortRedExprContext ctx){
+            this.visit(ctx.index());
             return null;
         }
 
@@ -768,7 +780,8 @@ public class Model implements ModelInterface {
         public Void visitRegIfExpr(FormulationParser.RegIfExprContext ctx){
             visit(ctx.boolExpr());
             visit(ctx.thenExpr);
-            visit(ctx.elseExpr);
+            if (ctx.elseExpr != null)
+                visit(ctx.elseExpr);
 
             return null;
         }
@@ -777,7 +790,8 @@ public class Model implements ModelInterface {
         public Void visitVarIfExpr(FormulationParser.VarIfExprContext ctx){
             visit(ctx.boolExpr());
             visit(ctx.thenExpr);
-            visit(ctx.elseExpr);
+            if (ctx.elseExpr != null)
+                visit(ctx.elseExpr);
 
             return null;
         }
@@ -871,6 +885,21 @@ public class Model implements ModelInterface {
         @Override
         public Void visitCondition(FormulationParser.ConditionContext ctx){
             this.visit(ctx.setExpr());
+            if(ctx.boolExpr() != null)
+                this.visit(ctx.boolExpr());
+            return null;
+        }
+
+        @Override
+        public Void visitComparisonStrExpr(FormulationParser.ComparisonStrExprContext ctx){
+            this.visit(ctx.lhs);
+            this.visit(ctx.rhs);
+            return null;
+        }
+        @Override
+        public Void visitBoolExprBin(FormulationParser.BoolExprBinContext ctx){
+            this.visit(ctx.boolExpr(0));
+            this.visit(ctx.boolExpr(1));
             return null;
         }
         
