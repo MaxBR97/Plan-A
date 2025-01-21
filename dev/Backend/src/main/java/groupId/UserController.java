@@ -31,20 +31,18 @@ private final Map<UUID,Image> images;
         UUID id= UUID.randomUUID();
         images.put(id,image);
         // If there is a compilation error, and exception is to be caught and returned.
-        return RecordFactory.makeDTO(id,true, "",image);
+        return RecordFactory.makeDTO(id,image);
     }
-    public ImageDTO createImageFromFile(String name,String code) throws IOException {
+    public ImageResponseDTO createImageFromFile(String name,String code) throws IOException {
         Path path= Paths.get("User/Models"+ File.separator+name+".zpl");
         Files.write(path,code.getBytes());
         Image image=new Image(path.toAbsolutePath().toString());
-        images.put(UUID.randomUUID(),image);
-        return RecordFactory.makeDTO(image);
+        UUID id= UUID.randomUUID();
+        images.put(id,image);
+        return RecordFactory.makeDTO(id,image);
     }
-
 
     public SolutionDTO solve(SolveCommandDTO command) {
         return images.get(UUID.fromString(command.id())).solve(Integer.parseInt(command.timeout()));
     }
-
-    
 }

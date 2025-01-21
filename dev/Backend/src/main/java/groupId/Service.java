@@ -2,10 +2,10 @@ package groupId;
 
 import java.io.IOException;
 
+import DTO.Records.Requests.Commands.CreateImageFromFileDTO;
 import DTO.Records.Requests.Commands.CreateImageFromPathDTO;
 import DTO.Records.Requests.Commands.ImageConfigDTO;
 import DTO.Records.Requests.Commands.SolveCommandDTO;
-import DTO.Records.Image.ImageDTO;
 import DTO.Records.Image.SolutionDTO;
 import DTO.Records.Requests.Responses.ImageResponseDTO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,12 +22,16 @@ public class Service implements ServiceInterface {
         this.controller = controller;
     }
     
-    @PostMapping("/images")
-    public ResponseEntity<ImageResponseDTO> createImage(@RequestBody CreateImageFromPathDTO zplFile) throws IOException {
-        ImageResponseDTO response = controller.createImageFromPath(zplFile.path());
+    @PostMapping("/images/from-path")
+    public ResponseEntity<ImageResponseDTO> createImage(@RequestBody CreateImageFromPathDTO path) throws IOException {
+        ImageResponseDTO response = controller.createImageFromPath(path.path());
         return ResponseEntity.ok(response);
     }
-
+    @PostMapping("/images/from-data")
+    public ResponseEntity<ImageResponseDTO> createImage(@RequestBody CreateImageFromFileDTO data) throws IOException {
+        ImageResponseDTO response = controller.createImageFromFile(data.name(),data.code());
+        return ResponseEntity.ok(response);
+    }
     @PatchMapping("/images")
     public ResponseEntity<Void> configureImage(@RequestBody ImageConfigDTO imgConfig){
         return ResponseEntity.badRequest().build();

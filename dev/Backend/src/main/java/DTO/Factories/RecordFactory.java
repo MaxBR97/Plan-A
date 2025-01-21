@@ -121,8 +121,8 @@ public class RecordFactory {
         }
         return new ImageDTO(constraints, preferences,variables);
     }
-    public static ImageResponseDTO makeDTO(UUID id, boolean compiled, String message, Image image){
-        return new ImageResponseDTO(id.toString(),compiled,message,makeDTO(image));
+    public static ImageResponseDTO makeDTO(UUID id, Image image){
+        return new ImageResponseDTO(id.toString(),makeDTO(image));
     }
 
 
