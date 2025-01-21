@@ -60,6 +60,19 @@ public abstract class ModelInput extends ModelComponent {
         paramDependencies.clear();
     }
 
+    // set C := {<3,2>, <1,3>};  # set C is primitive
+    // set D := {<3,2>} union {<1,3>};  # set D is not primitive
+    public boolean isPrimitive(){
+        boolean identified_set = !this.identifier.equals("anonymous_set");
+        boolean exactlyOneSetDescendant = this.setDependencies.size() == 1;
+        boolean exactlyZeroParamDescendant = this.paramDependencies.size() == 0;
+        if(identified_set && exactlyOneSetDescendant && exactlyZeroParamDescendant){
+            if(this.setDependencies.get(0).setDependencies.size() == 0 && this.setDependencies.get(0).paramDependencies.size() == 0){
+                return true;
+            }
+        }
+        return false;
+    }
 
     // param w := 20;
     // param  x := 10;

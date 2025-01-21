@@ -49,6 +49,7 @@ public class TypesAndDependencyTests {
     private static HashMap<String,String[]> immidiateParamDependencies =  new HashMap<String,String[]>();
     private static HashMap<String,String[]> secondDegreeSetDependencies =  new HashMap<String,String[]>();
     private static HashMap<String,String[]> secondDegreeParamDependencies =  new HashMap<String,String[]>();
+    private static HashMap<String,Boolean> primitives = new HashMap<>();
     
     @BeforeAll
     public static void setUpFile() throws IOException {
@@ -124,12 +125,31 @@ public class TypesAndDependencyTests {
 
         immidiateSetDependencies.put("rivuah", new String[]{"CxS","S"});
         immidiateParamDependencies.put("rivuah", new String[]{"conditioner"});
+
+        primitives.put("C",false);
+        primitives.put("CxS",false);
+        primitives.put("Zmanim",true);
+        primitives.put("conditioner",true);
+        primitives.put("soldiers",true);
         
     }
 
     @BeforeEach
     public void setUp() throws IOException {
         model = new Model(TEST_FILE_PATH);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"C","CxS","Zmanim","conditioner","soldiers"})
+    public void testIsPrimitive(String id){
+        ModelInput inp = model.getParameter(id);
+        if(inp != null){
+            assertEquals(primitives.get(id), inp.isPrimitive());
+        } else {
+            inp = model.getSet(id);
+            assertEquals(primitives.get(id), inp.isPrimitive());
+        }
+        
     }
 
     @ParameterizedTest
