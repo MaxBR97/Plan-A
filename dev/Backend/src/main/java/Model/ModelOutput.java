@@ -1,6 +1,7 @@
 package Model;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public abstract class ModelOutput extends ModelComponent {
     protected List<ModelSet> dependency;
@@ -11,9 +12,8 @@ public abstract class ModelOutput extends ModelComponent {
         this.dependency = new ArrayList<>();
     }
 
-    public ModelOutput(String ident, List<ModelSet> dep) {
-        super(ident);
-        this.dependency = new ArrayList<>(dep);
+    public ModelOutput(String ident, List<ModelSet> dep, List<ModelParameter> paramDep) {
+        super(ident,dep,paramDep);
     }
 
     /**
