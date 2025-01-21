@@ -16,7 +16,7 @@ set forTest3 := {<2,"a",3>,<6,"2",3>};
 
 var edge[CxS] binary;
 var couples[CxSxS] binary;
-
+var varForTest1[CxS *{"A","a"} * S * {1 .. 5}];
 
 
 subto trivial1:

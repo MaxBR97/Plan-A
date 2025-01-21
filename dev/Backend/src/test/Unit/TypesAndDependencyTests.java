@@ -35,6 +35,8 @@ import java.nio.file.Files;
     import java.nio.file.Path;
     import java.nio.file.StandardCopyOption;
     import java.io.IOException;
+
+import com.sun.source.tree.AssertTree;
     
 public class TypesAndDependencyTests {
    
@@ -47,7 +49,6 @@ public class TypesAndDependencyTests {
     private static HashMap<String,String[]> immidiateParamDependencies =  new HashMap<String,String[]>();
     private static HashMap<String,String[]> secondDegreeSetDependencies =  new HashMap<String,String[]>();
     private static HashMap<String,String[]> secondDegreeParamDependencies =  new HashMap<String,String[]>();
-    private static HashMap<String,String[][]> structure =  new HashMap<>();
     
     @BeforeAll
     public static void setUpFile() throws IOException {
@@ -109,6 +110,8 @@ public class TypesAndDependencyTests {
         immidiateParamDependencies.put("couples", new String[]{});
         immidiateSetDependencies.put("edge", new String[]{"CxS"});
         immidiateParamDependencies.put("edge", new String[]{});
+        immidiateSetDependencies.put("varForTest1", new String[]{"CxS","anonymous_set", "S","anonymous_set"});
+        immidiateParamDependencies.put("varForTest1", new String[]{});
 
         immidiateSetDependencies.put("trivial1", new String[]{"CxSxS"});
         immidiateParamDependencies.put("trivial1", new String[]{});
@@ -129,20 +132,20 @@ public class TypesAndDependencyTests {
         model = new Model(TEST_FILE_PATH);
     }
 
-    @Test
-    public void setDependencyInference() {
-        String var = "couples";
-        String dependency = "CxSxS";
-        assertEquals(1,model.getVariable(var).getDependencies().size());
-        assertEquals(dependency,model.getVariable(var).findDependency(dependency).getIdentifier());
-    }
+    @ParameterizedTest
+    @ValueSource(strings = {"edge", "couples", "varForTest1"})
+    public void setDependencyInference(String id) {
+        ModelVariable var = model.getVariable(id);
+        assertNotNull(var);
+        assertEquals(var.getSetDependencies().size(), immidiateSetDependencies.get(id).length);
+        for(String setId : immidiateSetDependencies.get(id)){
+            assertNotNull(var.findSetDependency(setId));
+        }
 
-        @Test
-    public void testEdgeVariableDependency() {
-        String var = "edge";
-        String dependency = "CxS";
-        assertEquals(1, model.getVariable(var).getDependencies().size());
-        assertEquals(dependency, model.getVariable(var).findDependency(dependency).getIdentifier());
+        assertEquals(var.getParamDependencies().size(), immidiateParamDependencies.get(id).length);
+        for(String setId : immidiateParamDependencies.get(id)){
+            assertNotNull(var.findParamDependency(setId));
+        }
     }
 
     @ParameterizedTest
