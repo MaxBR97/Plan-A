@@ -951,5 +951,16 @@ public class Model implements ModelInterface {
     public Collection<ModelVariable> getVariables() {
         return variables.values();
     }
+    @Override
+    public Collection<ModelSet> getSets(){
+        return this.sets.values();
+    }
+    
+    @Override
+    public Collection<ModelParameter> getParameters(){
+        return this.params.values();
+    }
+
+    
 
 }

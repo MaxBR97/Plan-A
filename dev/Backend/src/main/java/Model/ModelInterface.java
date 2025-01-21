@@ -1,6 +1,7 @@
 package Model;
 
 import java.util.Collection;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -118,5 +119,9 @@ public interface ModelInterface {
     ModelVariable getVariable(String identifier);
 
     Collection<ModelVariable> getVariables();
+
+    public Collection<ModelSet> getSets();
+
+    public Collection<ModelParameter> getParameters() ;
 
 }

@@ -16,10 +16,12 @@ import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
 
 import Model.*;
-import Model.ModelInterface;
-import Model.ModelSet;
 import Utilities.Stubs.ModelStub;
 import org.junit.jupiter.api.*;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+
+import java.util.*;
 
 import java.nio.file.Path;
 
@@ -27,8 +29,8 @@ import java.nio.file.Path;
 public class ModelTest {
     private ModelInterface model;
 
-    private static String source = "/home/denis/Documents/University/Plan-A/dev/Backend/src/test/Utilities/Stubs/ExampleZimplProgram.zpl";
-    private static String TEST_FILE_PATH = "/dev/Backend/src/test/TestFileINSTANCE.zpl";
+    private static String source = "/Plan-A/dev/Backend/src/test/Unit/TestFile.zpl";
+    private static String TEST_FILE_PATH = "/Plan-A/dev/Backend/src/test/Unit/TestFileINSTANCE.zpl";
 
     private static String[][] expectedParameters = {{"Conditioner","10"}, {"soldiers", "9"}, {"absoluteMinimalRivuah", "8"}};
     @BeforeAll
@@ -41,27 +43,22 @@ public class ModelTest {
     }
 
     private ModelSet getSet(ModelInterface m, String identifier) throws Exception{
-        m = new Model(TEST_FILE_PATH);
         return m.getSet(identifier);
     }
     
     private ModelParameter getParameter(ModelInterface m, String identifier) throws Exception{
-        m = new Model(TEST_FILE_PATH);
         return m.getParameter(identifier);
     }
     
     private ModelVariable getVariable(ModelInterface m, String identifier) throws Exception{
-        //m = new Model(TEST_FILE_PATH);
         return m.getVariable(identifier);
     }
     
     private ModelConstraint getConstraint(ModelInterface m, String identifier) throws Exception{
-        m = new Model(TEST_FILE_PATH);
         return m.getConstraint(identifier);
     }
     
     private ModelPreference getPreference(ModelInterface m, String identifier) throws Exception{
-        m = new Model(TEST_FILE_PATH);
         return m.getPreference(identifier);
     }
     
@@ -211,13 +208,19 @@ public class ModelTest {
     public void testInvalidParameterAssignment() throws Exception {
         assertFalse(true); //unimplemented
     }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"C","CxS","Zmanim","conditioner","soldiers","minShmirot","maxShmirot","minimalRivuah"})
+    public void isParsed(String id){
+        assertTrue(model.getSet(id) != null || model.getConstraint(id) != null || model.getParameter(id) != null || model.getPreference(id) != null || model.getVariable(id) != null);
+    }
     
 
 
     @AfterAll
     public static void cleanUp() throws IOException {
-//        Path targetPath = Path.of(TEST_FILE_PATH);
-//        Files.deleteIfExists(targetPath);
+       Path targetPath = Path.of(TEST_FILE_PATH);
+       Files.deleteIfExists(targetPath);
     }
 
 }
