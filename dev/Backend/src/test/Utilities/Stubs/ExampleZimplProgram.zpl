@@ -9,7 +9,7 @@ set Stations := {"Shin Gimel", "Fillbox"};
 #Hours from 0:00 to 20:00 in 4 hour intervals
 set Times := {0,4,8,12,16,20};
 set S := Stations * Times;
-set Possible_Soldier_Shifts := C * S;
+set Possible_Soldier_Shifts := C * S; # [<Ben, <Fillbox, 4>> , <Ron, 8>]
 set Possible_Transitions := {<i,a,b,c,d> in C * S * S | b < d };
 
 var Soldier_Shift[Possible_Soldier_Shifts] binary;

@@ -1,4 +1,4 @@
-package DTO.Records.Requests.Commands;
+package DTO.Records.Requests.Responses;
 
 public record CompilationStatusDTO(int exitCode, String message) {
     
