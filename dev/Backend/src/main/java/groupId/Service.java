@@ -52,7 +52,6 @@ public class Service implements ServiceInterface {
     public ResponseEntity<Void> configureImage(@RequestBody ImageConfigDTO imgConfig){
         return ResponseEntity.badRequest().build();
     }
-
     @PostMapping("/solve")
     public ResponseEntity<SolutionDTO> solve(@RequestBody SolveCommandDTO input) {
         SolutionDTO res = controller.solve(input);
