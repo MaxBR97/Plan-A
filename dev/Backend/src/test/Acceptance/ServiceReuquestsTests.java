@@ -42,15 +42,20 @@ public class ServiceReuquestsTests {
     public void setUp() {
         service=new Service(new UserController());
     }
+
     @Test
-    public void GivenEmptyZimplFIle_WhenCreatingIMage_CreateEmptyImage(){
+    public void GivenEmptyZimplFIle_WhenCreatingIMageFrom_CreateEmptyImage(){
         try {
-            Path badZimpl = tmpDirPath.resolve("badZimpl.zimpl");
-            Files.copy(Path.of(sourcePath), badZimpl, StandardCopyOption.REPLACE_EXISTING);
-            badZimpl.toFile().deleteOnExit();
-            FileWriter writer = new FileWriter(badZimpl.toString(), false);
-            ResponseEntity<ImageResponseDTO> response= service.createImage(new CreateImageFromPathDTO(badZimpl.toString()));
+            /*
+            Path emptyZimple = tmpDirPath.resolve("badZimpl.zimpl");
+            Files.copy(Path.of(sourcePath), emptyZimple, StandardCopyOption.REPLACE_EXISTING);
+            emptyZimple.toFile().deleteOnExit();
+            FileWriter writer = new FileWriter(emptyZimple.toString(), false);
             assertNotNull(response.getBody().image());
+*/
+            String name= "emptyZimplFIle";
+            String data="";
+            ResponseEntity<ImageResponseDTO> response= service.createImage(new CreateImageFromFileDTO(name,data));
 
             ImageDTO image= response.getBody().image();
             assertEquals(0, image.constraints().size());
