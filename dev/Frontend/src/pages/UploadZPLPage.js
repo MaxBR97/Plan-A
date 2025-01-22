@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { useZPL } from '../context/ZPLContext'; // Import context
 import './UploadZPLPage.css';
 
 const UploadZPLPage = () => {
+    const { setImageId, setVariables, setTypes, setConstraints, setPreferences } = useZPL(); // Use context to store response
     const [fileName, setFileName] = useState('');
     const [fileContent, setFileContent] = useState('');
     const [message, setMessage] = useState('');
@@ -25,13 +27,33 @@ const UploadZPLPage = () => {
                 headers: { 'Content-Type': 'application/json' }
             });
 
-            alert(`Response received: ${JSON.stringify(response.data, null, 2)}`); // Show response in an alert
+            console.log("Full Response Data:", response.data); // Debugging log
+
+            const { imageId, model } = response.data;
+
+            if (!model) {
+                throw new Error("Invalid response format: 'model' is missing");
+            }
+
+            // Store extracted data in the global context
+            setImageId(imageId || "No ID received");
+            setVariables(model.variables || {});
+            setTypes(model.types || {});
+            setConstraints(model.constraints || {});
+            setPreferences(model.preferences || {});
 
             setMessage('File uploaded successfully!');
             navigate('/configure-variables'); // Redirect to next page
         } catch (error) {
-            const errorMsg = error.response?.data?.msg || "Unknown error";
-            setMessage(`Error: ${error.response?.status} - ${errorMsg}`);
+            console.error("Upload Error:", error);
+            if (error.response) {
+                const errorMsg = error.response.data?.msg || "Unknown error occurred";
+                setMessage(`Error: ${error.response.status} - ${errorMsg}`);
+            } else if (error.request) {
+                setMessage('Error: No response from server. Check if backend is running.');
+            } else {
+                setMessage(`Error: ${error.message}`);
+            }
         }
     };
 

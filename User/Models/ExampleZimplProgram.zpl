@@ -54,3 +54,4 @@ minimize Spacing:
     ((maxGuards-minGuards)+weight)**3 -
     (minimalSpacing)**2 +
     sum<i,a,b> in Possible_Soldier_Shifts: sum<m,n> in S | m != a or b!=n :(Soldier_Shift[i,a,b] * Soldier_Shift[i,m,n] * (b-n));
+(Soldier_Shift[i,a,b] * Soldier_Shift[i,m,n] * (b-n));
