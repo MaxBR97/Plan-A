@@ -1,5 +1,6 @@
 package groupId;
 
+import DTO.Records.Requests.Commands.CreateImageFromFileDTO;
 import DTO.Records.Requests.Responses.ImageResponseDTO;
 import org.springframework.http.ResponseEntity;
 
@@ -9,7 +10,7 @@ import DTO.Records.Requests.Commands.SolveCommandDTO;
 import DTO.Records.Image.SolutionDTO;
 
 public interface ServiceInterface {
-    public ResponseEntity<ImageResponseDTO> createImage(CreateImageFromPathDTO sourcePath) throws Exception;
+    public ResponseEntity<ImageResponseDTO> createImage(CreateImageFromFileDTO sourcePath) throws Exception;
 
     public ResponseEntity<Void> configureImage(ImageConfigDTO config) throws Exception;
 

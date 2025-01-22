@@ -36,14 +36,15 @@ public class Service implements ServiceInterface {
             .contentType(MediaType.TEXT_HTML)
             .body(resource);
     }
-
-    
+    /*
+    @Deprecated
     @PostMapping("/images/from-path")
     public ResponseEntity<ImageResponseDTO> createImage(@RequestBody CreateImageFromPathDTO path) throws IOException {
         ImageResponseDTO response = controller.createImageFromPath(path.path());
         return ResponseEntity.ok(response);
     }
-    @PostMapping("/images/from-data")
+    */
+    @PostMapping("/images")
     public ResponseEntity<ImageResponseDTO> createImage(@RequestBody CreateImageFromFileDTO data) throws IOException {
         ImageResponseDTO response = controller.createImageFromFile(data.name(),data.code());
         return ResponseEntity.ok(response);
