@@ -1,30 +1,18 @@
 package Acceptance;
 import DTO.Records.Image.ImageDTO;
 import DTO.Records.Requests.Commands.CreateImageFromFileDTO;
-import DTO.Records.Requests.Commands.CreateImageFromPathDTO;
 import DTO.Records.Requests.Responses.ImageResponseDTO;
-import Model.Model;
-import Model.ModelInterface;
-import Utilities.Stubs.ModelStub;
 import groupId.Service;
 import groupId.UserController;
 import org.junit.jupiter.api.*;
-import org.junit.jupiter.api.extension.*;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.*;
 
-import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.*;
-import java.util.Collection;
-import java.util.Set;
-import java.util.stream.Collectors;
 
-import Model.*;
 import org.springframework.http.ResponseEntity;
 
 import static org.junit.jupiter.api.Assertions.*;
-public class ServiceReuquestsTests {
+public class ServiceRequestsTests {
     static Path tmpDirPath;
     static String sourcePath = "src/test/Utilities/Stubs/ExampleZimplProgram.zpl";
     Service service;
