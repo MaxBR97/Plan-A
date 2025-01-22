@@ -1,30 +1,25 @@
-import React, { createContext, useState, useContext } from 'react';
+import React, { createContext, useContext, useState } from "react";
 
-// Create Context
 const ZPLContext = createContext();
 
-// Create a Provider Component
 export const ZPLProvider = ({ children }) => {
     const [imageId, setImageId] = useState(null);
     const [variables, setVariables] = useState({});
-    const [types, setTypes] = useState({});
     const [constraints, setConstraints] = useState({});
     const [preferences, setPreferences] = useState({});
+    const [types, setTypes] = useState({});
 
     return (
         <ZPLContext.Provider value={{ 
             imageId, setImageId, 
             variables, setVariables, 
-            types, setTypes,
-            constraints, setConstraints,
-            preferences, setPreferences
+            constraints, setConstraints, 
+            preferences, setPreferences, 
+            types, setTypes 
         }}>
             {children}
         </ZPLContext.Provider>
     );
 };
 
-// Custom Hook to Use the Context
-export const useZPL = () => {
-    return useContext(ZPLContext);
-};
+export const useZPL = () => useContext(ZPLContext);
