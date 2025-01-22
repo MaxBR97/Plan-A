@@ -1,6 +1,6 @@
 
 SCIP Status        : problem is solved [optimal solution found]
-Solving Time (sec) : 5.43
+Solving Time (sec) : 6.28
 Solving Nodes      : 16
 Primal Bound       : +1.18700000000000e+03 (4 solutions)
 Dual Bound         : +1.18700000000000e+03

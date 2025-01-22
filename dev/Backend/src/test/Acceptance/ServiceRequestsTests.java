@@ -43,7 +43,7 @@ public class ServiceRequestsTests {
 */
             String name= "emptyZimplFIle";
             String data="";
-            ResponseEntity<ImageResponseDTO> response= service.createImage(new CreateImageFromFileDTO(name,data));
+            ResponseEntity<ImageResponseDTO> response= null;//ervice.createImage(new CreateImageFromFileDTO(name,data));
 
             ImageDTO image= response.getBody().image();
             assertEquals(0, image.constraints().size());
