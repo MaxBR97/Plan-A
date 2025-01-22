@@ -34,12 +34,15 @@ private final Map<UUID,Image> images;
         // If there is a compilation error, and exception is to be caught and returned.
         return RecordFactory.makeDTO(id,image);
     }
-    public ImageResponseDTO createImageFromFile(String name,String code) throws IOException {
+
+    public ImageResponseDTO createImageFromFile(String code) throws IOException {
+        UUID id= UUID.randomUUID();
+        String name = id.toString();
+        
         Path path= Paths.get("User/Models"+ File.separator+name+".zpl");
         Files.createDirectories(path.getParent());
         Files.writeString(path,code, StandardOpenOption.CREATE);
         Image image=new Image(path.toAbsolutePath().toString());
-        UUID id= UUID.randomUUID();
         images.put(id,image);
         return RecordFactory.makeDTO(id,image);
     }

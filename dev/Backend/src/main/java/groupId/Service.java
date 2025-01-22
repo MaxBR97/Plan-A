@@ -36,22 +36,18 @@ public class Service implements ServiceInterface {
             .contentType(MediaType.TEXT_HTML)
             .body(resource);
     }
-
     
-    @PostMapping("/images/from-path")
-    public ResponseEntity<ImageResponseDTO> createImage(@RequestBody CreateImageFromPathDTO path) throws IOException {
-        ImageResponseDTO response = controller.createImageFromPath(path.path());
-        return ResponseEntity.ok(response);
-    }
-    @PostMapping("/images/from-data")
+    @PostMapping("/images")
     public ResponseEntity<ImageResponseDTO> createImage(@RequestBody CreateImageFromFileDTO data) throws IOException {
-        ImageResponseDTO response = controller.createImageFromFile(data.name(),data.code());
+        ImageResponseDTO response = controller.createImageFromFile(data.code());
         return ResponseEntity.ok(response);
     }
+
     @PatchMapping("/images")
     public ResponseEntity<Void> configureImage(@RequestBody ImageConfigDTO imgConfig){
         return ResponseEntity.badRequest().build();
     }
+    
     @PostMapping("/solve")
     public ResponseEntity<SolutionDTO> solve(@RequestBody SolveCommandDTO input) {
         SolutionDTO res = controller.solve(input);
