@@ -94,6 +94,20 @@ public class ConstraintModuleDTOTests {
         }
     }
     @Test
+    public void GivenEmptyZimplFIle_WhenCompiling_ReturnsTrue() {
+        try {
+            Path badZimpl = tmpDirPath.resolve("badZimpl.zimpl");
+            Files.copy(Path.of(sourcePath), badZimpl, StandardCopyOption.REPLACE_EXISTING);
+            badZimpl.toFile().deleteOnExit();
+            Files.writeString(badZimpl, "", StandardOpenOption.WRITE, StandardOpenOption.WRITE);
+            model = new Model(badZimpl.toFile().getPath());
+            assertFalse(model.isCompiling(1000));
+        }
+        catch (IOException e){
+            fail("IO error in GivenInvalidZimplCode_WhenCompiling_ReturnsFalse: "+ e.getMessage());
+        }
+    }
+    @Test
     public void testSolve(){
         Solution solution= model.solve(1000);
         Set<String> vars= model.getVariables().stream().map(ModelVariable -> ModelVariable.getIdentifier()).collect(Collectors.toSet());

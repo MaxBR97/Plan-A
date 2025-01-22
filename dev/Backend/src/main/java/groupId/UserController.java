@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -35,7 +36,8 @@ private final Map<UUID,Image> images;
     }
     public ImageResponseDTO createImageFromFile(String name,String code) throws IOException {
         Path path= Paths.get("User/Models"+ File.separator+name+".zpl");
-        Files.write(path,code.getBytes());
+        Files.createDirectories(path.getParent());
+        Files.writeString(path,code, StandardOpenOption.CREATE);
         Image image=new Image(path.toAbsolutePath().toString());
         UUID id= UUID.randomUUID();
         images.put(id,image);

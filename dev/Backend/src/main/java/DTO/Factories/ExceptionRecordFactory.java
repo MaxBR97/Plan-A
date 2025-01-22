@@ -10,7 +10,8 @@ import java.util.Objects;
 public class ExceptionRecordFactory {
     private static final String ohNo= "An extra extra fatal occurred while handling an error";
 
-    //TODO A singular exceptionDTO factory, made with the purpose of having a central fatal/non fatal error logging class, need to implement logger
+    //TODO A singular exceptionDTO factory, made with the purpose of having a central fatal/non fatal error logging class,
+    // need to implement logger.
     public static ExceptionDTO makeDTO(Exception exception) {
         Objects.requireNonNull(exception,ohNo);
         //TODO: LOG
