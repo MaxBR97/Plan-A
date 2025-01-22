@@ -1,119 +1,99 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useZPL } from "../context/ZPLContext";
 import "./ConfigureVariablesPage.css";
 
 const ConfigureVariablesPage = () => {
-  // State for checkboxes
-  const [envolvedSets, setEnvolvedSets] = useState({
-    people: true,
-    dates: true,
-    times: false,
-    stations: true,
-  });
+    const { types, variables } = useZPL();
+    
+    const [involvedSetsAndParams, setInvolvedSetsAndParams] = useState({});
+    const [parsedVariables, setParsedVariables] = useState({});
+    
+    useEffect(() => {
+        if (types) {
+            setInvolvedSetsAndParams(
+                Object.keys(types).reduce((acc, key) => {
+                    acc[key] = false;
+                    return acc;
+                }, {})
+            );
+        }
 
-  const [envolvedParams, setEnvolvedParams] = useState({
-    shiftTimeIntervals: true,
-    extraTimeRate: false,
-    baseSalaryRate: true,
-  });
+        if (variables) {
+            setParsedVariables(
+                variables.reduce((acc, variable) => {
+                    acc[variable.identifier] = false;
+                    return acc;
+                }, {})
+            );
+        }
+    }, [types, variables]);
 
-  const [parsedVariables, setParsedVariables] = useState({
-    shifts: true,
-    salaries: false,
-  });
+    const navigate = useNavigate();
 
-  const navigate = useNavigate();
+    const handleCheckboxChange = (category, key) => {
+        if (category === "setsAndParams") {
+            setInvolvedSetsAndParams((prev) => ({
+                ...prev,
+                [key]: !prev[key],
+            }));
+        } else if (category === "variables") {
+            setParsedVariables((prev) => ({
+                ...prev,
+                [key]: !prev[key],
+            }));
+        }
+    };
 
-  // Handle checkbox changes
-  const handleCheckboxChange = (category, key) => {
-    if (category === "sets") {
-      setEnvolvedSets((prev) => ({
-        ...prev,
-        [key]: !prev[key],
-      }));
-    } else if (category === "params") {
-      setEnvolvedParams((prev) => ({
-        ...prev,
-        [key]: !prev[key],
-      }));
-    } else if (category === "variables") {
-      setParsedVariables((prev) => ({
-        ...prev,
-        [key]: !prev[key],
-      }));
-    }
-  };
+    const handleContinue = () => {
+        navigate("/configure-constraints");
+    };
 
-  // Handle Continue button click
-  const handleContinue = () => {
-    // Navigate to the next page
-    navigate("/next-page"); // Replace with your actual next page route
-  };
+    return (
+        <div className="configure-variables-page">
+            <h1 className="page-title">Configure Variables of Interest</h1>
 
-  return (
-    <div className="configure-variables-page">
-      <h1 className="page-title">Configure Variables of Interest</h1>
+            <div className="config-section">
+                <h2>Involved Sets and Params</h2>
+                {Object.keys(involvedSetsAndParams).map((key) => (
+                    <div key={key} className="checkbox-item">
+                        <input
+                            type="checkbox"
+                            checked={involvedSetsAndParams[key]}
+                            onChange={() => handleCheckboxChange("setsAndParams", key)}
+                        />
+                        <label>
+                            {key.charAt(0).toUpperCase() + key.slice(1).replace("_", " ")}
+                        </label>
+                    </div>
+                ))}
+            </div>
 
-      <div className="config-section">
-        <h2>Envolved Sets</h2>
-        {Object.keys(envolvedSets).map((key) => (
-          <div key={key} className="checkbox-item">
-            <input
-              type="checkbox"
-              checked={envolvedSets[key]}
-              onChange={() => handleCheckboxChange("sets", key)}
-            />
-            <label>
-              {key.charAt(0).toUpperCase() + key.slice(1).replace("_", " ")}
-            </label>
-          </div>
-        ))}
-      </div>
+            <div className="config-section">
+                <h2>Parsed Variables</h2>
+                {Object.keys(parsedVariables).map((key) => (
+                    <div key={key} className="checkbox-item">
+                        <input
+                            type="checkbox"
+                            checked={parsedVariables[key]}
+                            onChange={() => handleCheckboxChange("variables", key)}
+                        />
+                        <label>
+                            {key.charAt(0).toUpperCase() + key.slice(1).replace("_", " ")}
+                        </label>
+                    </div>
+                ))}
+            </div>
 
-      <div className="config-section">
-        <h2>Envolved Params</h2>
-        {Object.keys(envolvedParams).map((key) => (
-          <div key={key} className="checkbox-item">
-            <input
-              type="checkbox"
-              checked={envolvedParams[key]}
-              onChange={() => handleCheckboxChange("params", key)}
-            />
-            <label>
-              {key.charAt(0).toUpperCase() + key.slice(1).replace("_", " ")}
-            </label>
-          </div>
-        ))}
-      </div>
+            <button className="continue-button" onClick={handleContinue}>
+                Continue
+            </button>
 
-      <div className="config-section">
-        <h2>Parsed Variables</h2>
-        {Object.keys(parsedVariables).map((key) => (
-          <div key={key} className="checkbox-item">
-            <input
-              type="checkbox"
-              checked={parsedVariables[key]}
-              onChange={() => handleCheckboxChange("variables", key)}
-            />
-            <label>
-              {key.charAt(0).toUpperCase() + key.slice(1).replace("_", " ")}
-            </label>
-          </div>
-        ))}
-      </div>
-
-      <button
-        className="continue-button"
-        onClick={() => navigate("/configure-constraints")}
-      >
-        Continue
-      </button>
-
-      <Link to="/" className="back-button">
-        Back
-      </Link>
-    </div>
-  );
+            <Link to="/" className="back-button">
+                Back
+            </Link>
+        </div>
+    );
 };
 
 export default ConfigureVariablesPage;
