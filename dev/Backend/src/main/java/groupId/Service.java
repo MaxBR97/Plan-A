@@ -7,7 +7,9 @@ import DTO.Records.Requests.Commands.CreateImageFromPathDTO;
 import DTO.Records.Requests.Commands.ImageConfigDTO;
 import DTO.Records.Requests.Commands.SolveCommandDTO;
 import DTO.Records.Image.SolutionDTO;
+import DTO.Records.Requests.Responses.CreateImageResponseDTO;
 import DTO.Records.Requests.Responses.ImageResponseDTO;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.ResponseEntity;
@@ -38,8 +40,8 @@ public class Service implements ServiceInterface {
     }
     
     @PostMapping("/images")
-    public ResponseEntity<ImageResponseDTO> createImage(@RequestBody CreateImageFromFileDTO data) throws IOException {
-        ImageResponseDTO response = controller.createImageFromFile(data.code());
+    public ResponseEntity<CreateImageResponseDTO> createImage(@RequestBody CreateImageFromFileDTO data) throws IOException {
+        CreateImageResponseDTO response = controller.createImageFromFile(data.code());
         return ResponseEntity.ok(response);
     }
 

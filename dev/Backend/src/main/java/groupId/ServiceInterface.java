@@ -1,5 +1,6 @@
 package groupId;
 
+import DTO.Records.Requests.Responses.CreateImageResponseDTO;
 import DTO.Records.Requests.Responses.ImageResponseDTO;
 
 import java.io.IOException;
@@ -15,7 +16,7 @@ import DTO.Records.Image.SolutionDTO;
 
 public interface ServiceInterface {
     
-    public ResponseEntity<ImageResponseDTO> createImage(@RequestBody CreateImageFromFileDTO data) throws IOException;
+    public ResponseEntity<CreateImageResponseDTO> createImage(@RequestBody CreateImageFromFileDTO data) throws IOException;
 
     public ResponseEntity<Void> configureImage(ImageConfigDTO config) throws Exception;
 

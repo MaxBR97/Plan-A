@@ -133,4 +133,7 @@ public class Image {
     public SolutionDTO solve(int timeout){
             return RecordFactory.makeDTO(model.solve(timeout));
     }
+    public ModelInterface getModel() {
+        return this.model;
+    }
 }

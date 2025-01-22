@@ -26,19 +26,27 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.*;
 import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.http.ResponseEntity;
 import static org.junit.jupiter.api.Assertions.*;
 
 import DTO.Records.Image.ImageDTO;
+import DTO.Records.Model.ModelDefinition.ConstraintDTO;
+import DTO.Records.Model.ModelDefinition.DependenciesDTO;
+import DTO.Records.Model.ModelDefinition.ModelDTO;
+import DTO.Records.Model.ModelDefinition.PreferenceDTO;
+import DTO.Records.Model.ModelDefinition.VariableDTO;
 import DTO.Records.Requests.Commands.*;
+import DTO.Records.Requests.Responses.CreateImageResponseDTO;
 import DTO.Records.Requests.Responses.ImageResponseDTO;
 import groupId.Main;
 import groupId.Service;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,classes = Main.class)
-class ServiceTest {
+public class ServiceTest {
     @LocalServerPort
     private int port;
 
@@ -49,19 +57,20 @@ class ServiceTest {
     private TestRestTemplate restTemplate;
 
     @Test
-    void testCreateUser() {
+    public void testCreateImage() {
         // sample Zimpl code
         CreateImageFromFileDTO body = new CreateImageFromFileDTO(
             """
                 param x := 10;
                 set mySet := {1,2,3};
-                set composition := mySet * mySet;
 
-                var myVar[composition] binary;
+                var myVar[mySet];
 
                 subto sampleConstraint:
-                    myVar[<1,1>] == 0;
+                    myVar[x] == mySet[1];
 
+                maximize myObjective:
+                    1; 
             """
                     );
 
@@ -74,19 +83,32 @@ class ServiceTest {
 
         // Send POST request with body
         String url = "http://localhost:" + port + "/images";
-        ResponseEntity<ImageResponseDTO> response = restTemplate.exchange(
+        ResponseEntity<CreateImageResponseDTO> response = restTemplate.exchange(
             url,
             HttpMethod.POST,
             request,
-            ImageResponseDTO.class
+            CreateImageResponseDTO.class
         );
 
-        //Expected ImageDTO returned
-        ImageResponseDTO imageResponseDTO = new ImageResponseDTO("", new ImageDTO(null, null, null))
+        //Expected response
+        CreateImageResponseDTO expected = new CreateImageResponseDTO(
+            "some id", new ModelDTO(
+              List.of(new ConstraintDTO("sampleConstraint", new DependenciesDTO(List.of("mySet"),List.of("x")))),
+              List.of(new PreferenceDTO("myObjective", new DependenciesDTO(List.of(),List.of()))),
+              List.of(new VariableDTO("myVar", new DependenciesDTO(List.of("mySet"),List.of()))),
+              Map.of(
+                "mySet","INT",
+                "x","INT"
+                )
+            ));
         
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(response.getBody().id() != null);
-        assertEquals(response.getBody().image(). != null);
+        assertTrue(response.getBody().imageId() != null);
+        assertEquals(response.getBody().model().constraints(), expected.model().constraints());
+        assertEquals(response.getBody().model().preferences(), expected.model().preferences());
+        assertEquals(response.getBody().model().variables(), expected.model().variables());
+        assertEquals(response.getBody().model().types(), expected.model().types());
+        
     }
 
 }
