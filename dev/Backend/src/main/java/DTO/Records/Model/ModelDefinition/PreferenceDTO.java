@@ -1,8 +1,8 @@
 package DTO.Records.Model.ModelDefinition;
 
-/**
- *
- * @param identifier The preference's name
- */
-public record PreferenceDTO(String identifier) {
-}
+import java.util.List;
+
+public record PreferenceDTO(
+    String identifier,
+    DependenciesDTO dep
+) {}

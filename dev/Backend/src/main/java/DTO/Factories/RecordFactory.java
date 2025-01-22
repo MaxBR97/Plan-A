@@ -3,6 +3,7 @@ package DTO.Factories;
 import DTO.Records.Image.*;
 import DTO.Records.Model.ModelDefinition.*;
 import DTO.Records.Model.ModelData.*;
+import DTO.Records.Requests.Responses.CreateImageResponseDTO;
 import DTO.Records.Requests.Responses.ImageResponseDTO;
 import Image.Image;
 import Image.Modules.ConstraintModule;
@@ -28,12 +29,12 @@ public class RecordFactory {
     public static PreferenceDTO makeDTO(ModelPreference preference) {
         if(preference == null)
             throw new NullPointerException("Null preference in DTO mapping");
-        return new PreferenceDTO(preference.getIdentifier());
+        return new PreferenceDTO(preference.getIdentifier(),makeDTO(preference.getSetDependencies(), preference.getParamDependencies()));
     }
     public static ConstraintDTO makeDTO(ModelConstraint constraint) {
         if(constraint == null)
             throw new NullPointerException("Null constraint in DTO mapping");
-        return new ConstraintDTO(constraint.getIdentifier());
+        return new ConstraintDTO(constraint.getIdentifier(),makeDTO(constraint.getSetDependencies(), constraint.getParamDependencies()));
     }
 
     public static ConstraintModuleDTO makeDTO(ConstraintModule module) {
@@ -83,11 +84,7 @@ public class RecordFactory {
     }
 
     private static VariableDTO makeDTO(ModelVariable variable) {
-        HashSet<SetDefinitionDTO> dependencies = new HashSet<>();
-        for(ModelSet dependency: variable.getSetDependencies()){
-            dependencies.add(makeDTO(dependency));
-        }
-        return new VariableDTO(variable.getIdentifier(),dependencies);
+        return new VariableDTO(variable.getIdentifier(),makeDTO(variable.getSetDependencies(), variable.getParamDependencies()));
     }
     private static Collection<ParameterDefinitionDTO> makeDTO(Set<ModelParameter> params) {
         LinkedList<ParameterDefinitionDTO> paramDTOs= new LinkedList<>();
@@ -123,6 +120,50 @@ public class RecordFactory {
     }
     public static ImageResponseDTO makeDTO(UUID id, Image image){
         return new ImageResponseDTO(id.toString(),makeDTO(image));
+    }
+
+    public static CreateImageResponseDTO makeDTO(UUID id, ModelInterface md){
+        return new CreateImageResponseDTO(id.toString(), makeDTO(md));
+    }
+    
+    private static ModelDTO makeDTO(ModelInterface md) {
+        List<ConstraintDTO> a = new LinkedList<>();
+        List<PreferenceDTO> b = new LinkedList<>();
+        List<VariableDTO> c = new LinkedList<>();
+        Map<String,String> d = new HashMap<>();
+        for(ModelConstraint mc : md.getConstraints()){
+            a.add(makeDTO(mc));
+            for(ModelSet s : mc.getSetDependencies())
+                d.put(s.getIdentifier(),s.getType().toString());
+            for(ModelParameter s : mc.getParamDependencies())
+                d.put(s.getIdentifier(),s.getType().toString());
+        }
+        for(ModelPreference mc : md.getPreferences()){
+            b.add(makeDTO(mc));
+            for(ModelSet s : mc.getSetDependencies())
+                d.put(s.getIdentifier(),s.getType().toString());
+            for(ModelParameter s : mc.getParamDependencies())
+                d.put(s.getIdentifier(),s.getType().toString());
+        }
+        for(ModelVariable mc : md.getVariables()){
+            c.add(makeDTO(mc));
+            for(ModelSet s : mc.getSetDependencies())
+                d.put(s.getIdentifier(),s.getType().toString());
+            for(ModelParameter s : mc.getParamDependencies())
+                d.put(s.getIdentifier(),s.getType().toString());
+        }
+        return new ModelDTO(a, b, c, d);
+    }
+    public static DependenciesDTO makeDTO(List<ModelSet> s, List<ModelParameter> p){
+        List<String> resS = new LinkedList<>();
+        List<String> resP = new LinkedList<>();
+        for(ModelSet x : s){
+            resS.add(x.getIdentifier());
+        }
+        for(ModelParameter x : p){
+            resP.add(x.getIdentifier());
+        }
+        return new DependenciesDTO(resS, resP);
     }
 
 

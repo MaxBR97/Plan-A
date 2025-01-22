@@ -1,6 +1,8 @@
 package DTO.Records.Model.ModelDefinition;
 
-import DTO.Records.Model.ModelData.SetDefinitionDTO;
-import java.util.Collection;
+import java.util.List;
 
-public record VariableDTO(String name, Collection<SetDefinitionDTO> dependencies) {}
+public record VariableDTO(
+    String identifier,
+    DependenciesDTO dep
+) {}

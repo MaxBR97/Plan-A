@@ -4,6 +4,7 @@ import DTO.Factories.RecordFactory;
 import DTO.Records.Requests.Commands.SolveCommandDTO;
 import DTO.Records.Image.ImageDTO;
 import DTO.Records.Image.SolutionDTO;
+import DTO.Records.Requests.Responses.CreateImageResponseDTO;
 import DTO.Records.Requests.Responses.ImageResponseDTO;
 import Image.Image;
 import org.springframework.stereotype.Service;
@@ -34,14 +35,17 @@ private final Map<UUID,Image> images;
         // If there is a compilation error, and exception is to be caught and returned.
         return RecordFactory.makeDTO(id,image);
     }
-    public ImageResponseDTO createImageFromFile(String name,String code) throws IOException {
+
+    public CreateImageResponseDTO createImageFromFile(String code) throws IOException {
+        UUID id= UUID.randomUUID();
+        String name = id.toString();
+
         Path path= Paths.get("User/Models"+ File.separator+name+".zpl");
         Files.createDirectories(path.getParent());
         Files.writeString(path,code, StandardOpenOption.CREATE);
         Image image=new Image(path.toAbsolutePath().toString());
-        UUID id= UUID.randomUUID();
         images.put(id,image);
-        return RecordFactory.makeDTO(id,image);
+        return RecordFactory.makeDTO(id,image.getModel());
     }
 
     public SolutionDTO solve(SolveCommandDTO command) {

@@ -7,7 +7,9 @@ import DTO.Records.Requests.Commands.CreateImageFromPathDTO;
 import DTO.Records.Requests.Commands.ImageConfigDTO;
 import DTO.Records.Requests.Commands.SolveCommandDTO;
 import DTO.Records.Image.SolutionDTO;
+import DTO.Records.Requests.Responses.CreateImageResponseDTO;
 import DTO.Records.Requests.Responses.ImageResponseDTO;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.ResponseEntity;
@@ -36,23 +38,18 @@ public class Service implements ServiceInterface {
             .contentType(MediaType.TEXT_HTML)
             .body(resource);
     }
-    /*
-    @Deprecated
-    @PostMapping("/images/from-path")
-    public ResponseEntity<ImageResponseDTO> createImage(@RequestBody CreateImageFromPathDTO path) throws IOException {
-        ImageResponseDTO response = controller.createImageFromPath(path.path());
-        return ResponseEntity.ok(response);
-    }
-    */
+    
     @PostMapping("/images")
-    public ResponseEntity<ImageResponseDTO> createImage(@RequestBody CreateImageFromFileDTO data) throws IOException {
-        ImageResponseDTO response = controller.createImageFromFile(data.name(),data.code());
+    public ResponseEntity<CreateImageResponseDTO> createImage(@RequestBody CreateImageFromFileDTO data) throws IOException {
+        CreateImageResponseDTO response = controller.createImageFromFile(data.code());
         return ResponseEntity.ok(response);
     }
+
     @PatchMapping("/images")
     public ResponseEntity<Void> configureImage(@RequestBody ImageConfigDTO imgConfig){
         return ResponseEntity.badRequest().build();
     }
+    
     @PostMapping("/solve")
     public ResponseEntity<SolutionDTO> solve(@RequestBody SolveCommandDTO input) {
         SolutionDTO res = controller.solve(input);

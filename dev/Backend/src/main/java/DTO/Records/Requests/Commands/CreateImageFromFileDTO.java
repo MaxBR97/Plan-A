@@ -1,3 +1,3 @@
 package DTO.Records.Requests.Commands;
 
-public record CreateImageFromFileDTO(String name,String code) {}
+public record CreateImageFromFileDTO(String code) {}
