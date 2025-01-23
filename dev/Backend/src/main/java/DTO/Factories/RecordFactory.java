@@ -23,9 +23,13 @@ public class RecordFactory {
             throw new NullPointerException("Null solution in DTO mapping");
         if(!solution.parsed())
             throw new RuntimeException("Solution must be parsed before attempting to convert to DTO.");
-        return new SolutionDTO(solution.isSolved(),solution.getVariableSolution(),solution.getVariableStructure(),
-                solution.getSolvingTime(), solution.getSolvingTime());
+        Map<String,List<SolutionDetail>> solutionDetails = new HashMap<>();
+        for( Map.Entry<String,List<List<String>>> entry: solution.getVariableSolution().entrySet()){
+            solutionDetails.put(entry.getKey(), makeDTO(entry.getValue()));
+        }
+        return new SolutionDTO(solution.isSolved(),makeDTO(solution.getVariableSolution(),));
     }
+
     public static PreferenceDTO makeDTO(ModelPreference preference) {
         if(preference == null)
             throw new NullPointerException("Null preference in DTO mapping");
@@ -40,22 +44,42 @@ public class RecordFactory {
     public static ConstraintModuleDTO makeDTO(ConstraintModule module) {
         if(module == null)
             throw new NullPointerException("Null constraint module in DTO mapping");
-        HashMap<String, ConstraintDTO> constraints = new HashMap<>();
+        List<String> constraints = new LinkedList<>();
         for(ModelConstraint constraint:module.getConstraints().values()){
-            constraints.put(constraint.getIdentifier(), makeDTO(constraint));
+            constraints.add(constraint.getIdentifier());
         }
-        return new ConstraintModuleDTO(module.isActive(), module.getName(), module.getDescription(),
-                constraints,new HashSet<>(makeDTO(module.getInvolvedSets())),new HashSet<>(makeDTO(module.getInvolvedParameters())));
+
+        List<String> sets = new LinkedList<>();
+        for(ModelSet s:module.getInvolvedSets()){
+            sets.add(s.getIdentifier());
+        }
+
+        List<String> param = new LinkedList<>();
+        for(ModelParameter p:module.getInvolvedParameters()){
+            param.add(p.getIdentifier());
+        }
+        return new ConstraintModuleDTO(module.getName(), module.getDescription(),
+                constraints, sets, param);
     }
     public static PreferenceModuleDTO makeDTO(PreferenceModule module) {
         if(module == null)
             throw new NullPointerException("Null preference module in DTO mapping");
-        HashMap<String, PreferenceDTO> preferences = new HashMap<>();
-        for(ModelPreference preference:module.getPreferences().values()){
-            preferences.put(preference.getIdentifier(), makeDTO(preference));
-        }
-        return new PreferenceModuleDTO(module.isActive(), module.getName(), module.getDescription(), preferences,
-                new HashSet<>(makeDTO(module.getInvolvedSets())),new HashSet<>(makeDTO(module.getInvolvedParameters())));
+            List<String> preferences = new LinkedList<>();
+            for(ModelPreference pref:module.getPreferences().values()){
+                preferences.add(pref.getIdentifier());
+            }
+    
+            List<String> sets = new LinkedList<>();
+            for(ModelSet s:module.getInvolvedSets()){
+                sets.add(s.getIdentifier());
+            }
+    
+            List<String> param = new LinkedList<>();
+            for(ModelParameter p:module.getInvolvedParameters()){
+                param.add(p.getIdentifier());
+            }
+            return new PreferenceModuleDTO(module.getName(), module.getDescription(),
+                    preferences, sets, param);
     }
 
     public static SetDefinitionDTO makeDTO(ModelSet set){
@@ -97,6 +121,8 @@ public class RecordFactory {
         return new SetDTO(makeDTO(set), values);
     }
 
+    
+
     /**
      * Inefficient, maps the whole image, including all its contents into DTOs.
      * should only be called when loading a new Image, not when modifying it.
@@ -104,21 +130,34 @@ public class RecordFactory {
     public static ImageDTO makeDTO(Image image){
         if(image == null)
             throw new NullPointerException("Null image in DTO mapping");
-        HashMap<String, ConstraintModuleDTO> constraints = new HashMap<>();
-        HashMap<String, PreferenceModuleDTO> preferences = new HashMap<>();
-        HashMap<String, VariableDTO> variables = new HashMap<>();
-        for(ConstraintModule module: image.getConstraintsModules().values()){
-            constraints.put(module.getName(), makeDTO(module));
+        List< ConstraintModuleDTO> constraints = new LinkedList<>();
+        List<PreferenceModuleDTO> preferences = new LinkedList<>();
+        VariableModuleDTO variables = makeDTO(image.getVariables().values().stream().toList());
+                for(ConstraintModule module: image.getConstraintsModules().values()){
+                    constraints.add(makeDTO(module));
+                }
+                for(PreferenceModule module: image.getPreferenceModules().values()){
+                    preferences.add(makeDTO(module));
+                }
+                
+                return new ImageDTO(image.getId(),variables, constraints, preferences);
+            }
+        private static VariableModuleDTO makeDTO(List<ModelVariable> values) {
+            List<String> intr = new LinkedList<>();
+            Set<String> params = new HashSet<>();
+            Set<String> sets = new HashSet<>();
+            for(ModelVariable mv : values){
+                intr.add(mv.getIdentifier());
+                for(ModelSet set : mv.getSetDependencies()){
+                    sets.add(set.getIdentifier());
+                }
+                for(ModelParameter param : mv.getParamDependencies()){
+                    params.add(param.getIdentifier());
+                }
+            }
+            return new VariableModuleDTO(intr, sets.stream().toList(), params.stream().toList());
         }
-        for(PreferenceModule module: image.getPreferenceModules().values()){
-            preferences.put(module.getName(), makeDTO(module));
-        }
-        for(ModelVariable variable: image.getVariables().values()){
-            variables.put(variable.getIdentifier(),makeDTO(variable));
-        }
-        return new ImageDTO(constraints, preferences,variables);
-    }
-    public static ImageResponseDTO makeDTO(UUID id, Image image){
+            public static ImageResponseDTO makeDTO(UUID id, Image image){
         return new ImageResponseDTO(id.toString(),makeDTO(image));
     }
 

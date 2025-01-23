@@ -6,6 +6,7 @@ import DTO.Records.Requests.Commands.CreateImageFromFileDTO;
 import DTO.Records.Requests.Commands.CreateImageFromPathDTO;
 import DTO.Records.Requests.Commands.ImageConfigDTO;
 import DTO.Records.Requests.Commands.SolveCommandDTO;
+import DTO.Records.Image.ImageDTO;
 import DTO.Records.Image.SolutionDTO;
 import DTO.Records.Requests.Responses.CreateImageResponseDTO;
 import DTO.Records.Requests.Responses.ImageResponseDTO;
@@ -46,7 +47,7 @@ public class Service implements ServiceInterface {
     }
 
     @PatchMapping("/images")
-    public ResponseEntity<Void> configureImage(@RequestBody ImageConfigDTO imgConfig){
+    public ResponseEntity<Void> configureImage(@RequestBody ImageDTO imgConfig){
         return ResponseEntity.badRequest().build();
     }
     

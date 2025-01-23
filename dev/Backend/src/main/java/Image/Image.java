@@ -136,4 +136,8 @@ public class Image {
     public ModelInterface getModel() {
         return this.model;
     }
+    public String getId() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'getId'");
+    }
 }
