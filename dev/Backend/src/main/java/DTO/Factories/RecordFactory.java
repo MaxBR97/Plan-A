@@ -3,6 +3,7 @@ package DTO.Factories;
 import DTO.Records.Image.*;
 import DTO.Records.Model.ModelDefinition.*;
 import DTO.Records.Model.ModelData.*;
+import DTO.Records.Requests.Commands.CreateImageFromFileDTO;
 import DTO.Records.Requests.Responses.CreateImageResponseDTO;
 import DTO.Records.Requests.Responses.ImageResponseDTO;
 import Image.Image;
@@ -197,6 +198,9 @@ public class RecordFactory {
             resP.add(x.getIdentifier());
         }
         return new DependenciesDTO(resS, resP);
+    }
+    public static CreateImageFromFileDTO makeDTO(String code){
+        return new CreateImageFromFileDTO(code);
     }
 
 
