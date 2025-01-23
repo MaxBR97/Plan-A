@@ -2,6 +2,7 @@ param weight := 10;
 param absoluteMinimalSpacing := 8;
 param soldiers := 10;
 
+
 set C := {1 .. soldiers};
 
 #set C := {"Ben","Dan","Ron","Nir","Niv","Avi","Shlomo"};

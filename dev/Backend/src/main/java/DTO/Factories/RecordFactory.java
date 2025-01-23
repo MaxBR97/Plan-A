@@ -23,9 +23,13 @@ public class RecordFactory {
             throw new NullPointerException("Null solution in DTO mapping");
         if(!solution.parsed())
             throw new RuntimeException("Solution must be parsed before attempting to convert to DTO.");
-        return new SolutionDTO(solution.isSolved(),solution.getVariableSolution(),solution.getVariableStructure(),
-                solution.getSolvingTime(), solution.getSolvingTime());
+        Map<String,List<SolutionDetail>> solutionDetails = new HashMap<>();
+        for( Map.Entry<String,List<List<String>>> entry: solution.getVariableSolution().entrySet()){
+            solutionDetails.put(entry.getKey(), makeDTO(entry.getValue()));
+        }
+        return new SolutionDTO(solution.isSolved(),makeDTO(solution.getVariableSolution(),));
     }
+
     public static PreferenceDTO makeDTO(ModelPreference preference) {
         if(preference == null)
             throw new NullPointerException("Null preference in DTO mapping");
@@ -116,6 +120,8 @@ public class RecordFactory {
     public static SetDTO makeDTO(ModelSet set, Collection<String> values){
         return new SetDTO(makeDTO(set), values);
     }
+
+    
 
     /**
      * Inefficient, maps the whole image, including all its contents into DTOs.

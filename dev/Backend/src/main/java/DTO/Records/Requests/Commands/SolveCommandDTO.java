@@ -1,3 +1,3 @@
 package DTO.Records.Requests.Commands;
-
-public record SolveCommandDTO(String id, String timeout) {}
+import DTO.Records.Model.ModelData.*;
+public record SolveCommandDTO(String imageId, InputDTO input) {}
