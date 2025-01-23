@@ -1,5 +1,8 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { DndProvider } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
+
 import MainPage from './pages/MainPage';
 import WorkAssignmentPage from './pages/WorkAssignmentPage';
 import UploadZPLPage from './pages/UploadZPLPage';
@@ -11,15 +14,17 @@ import SolutionPreviewPage from './pages/SolutionPreviewPage';
 function App() {
     return (
         <Router>
-            <Routes>
-                <Route path="/" element={<MainPage />} />
-                <Route path="/work-assignment" element={<WorkAssignmentPage />} />
-                <Route path="/upload-zpl" element={<UploadZPLPage />} />
-                <Route path="/configure-variables" element={<ConfigureVariablesPage />} />
-                <Route path="/configure-constraints" element={<ConfigureConstraintsPage />} />
-                <Route path="/configure-preferences" element={<ConfigurePreferencesPage />} />
-                <Route path="/solution-preview" element={<SolutionPreviewPage />} />
-            </Routes>
+            <DndProvider backend={HTML5Backend}>
+                <Routes>
+                    <Route path="/" element={<MainPage />} />
+                    <Route path="/work-assignment" element={<WorkAssignmentPage />} />
+                    <Route path="/upload-zpl" element={<UploadZPLPage />} />
+                    <Route path="/configure-variables" element={<ConfigureVariablesPage />} />
+                    <Route path="/configure-constraints" element={<ConfigureConstraintsPage />} />
+                    <Route path="/configure-preferences" element={<ConfigurePreferencesPage />} />
+                    <Route path="/solution-preview" element={<SolutionPreviewPage />} />
+                </Routes>
+            </DndProvider>
         </Router>
     );
 }

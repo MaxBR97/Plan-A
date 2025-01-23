@@ -4,155 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="69cd5a63-68fc-437b-8317-2b8096dc636e" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/compiler.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/compiler.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/encodings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/encodings.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/User/Models/003c7797-2931-477b-96cc-54064a293190.zpl" beforeDir="false" afterPath="$PROJECT_DIR$/User/Models/003c7797-2931-477b-96cc-54064a293190.zpl" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/User/Models/145fe27c-d6ef-4831-9580-d16d54bb62dc.zpl" beforeDir="false" afterPath="$PROJECT_DIR$/User/Models/145fe27c-d6ef-4831-9580-d16d54bb62dc.zpl" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/User/Models/197de806-dbbd-43e4-b542-3babd3f06620.zpl" beforeDir="false" afterPath="$PROJECT_DIR$/User/Models/197de806-dbbd-43e4-b542-3babd3f06620.zpl" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/User/Models/23a1ebaa-384d-4ae2-9678-a5194c6c50da.zpl" beforeDir="false" afterPath="$PROJECT_DIR$/User/Models/23a1ebaa-384d-4ae2-9678-a5194c6c50da.zpl" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/User/Models/45b7402a-c88f-437d-a2f3-b4df4fa59bc1.zpl" beforeDir="false" afterPath="$PROJECT_DIR$/User/Models/45b7402a-c88f-437d-a2f3-b4df4fa59bc1.zpl" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/User/Models/4cce7a65-65ad-4b6b-b134-d190d1f40adb.zpl" beforeDir="false" afterPath="$PROJECT_DIR$/User/Models/4cce7a65-65ad-4b6b-b134-d190d1f40adb.zpl" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/User/Models/5b53628b-5276-4e94-9a81-2e81d246ed8c.zpl" beforeDir="false" afterPath="$PROJECT_DIR$/User/Models/5b53628b-5276-4e94-9a81-2e81d246ed8c.zpl" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/User/Models/693d973b-b607-44fc-85e4-acf205870641.zpl" beforeDir="false" afterPath="$PROJECT_DIR$/User/Models/693d973b-b607-44fc-85e4-acf205870641.zpl" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/User/Models/6e2b6445-3ac7-478c-bac3-221ba99b4e32.zpl" beforeDir="false" afterPath="$PROJECT_DIR$/User/Models/6e2b6445-3ac7-478c-bac3-221ba99b4e32.zpl" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/User/Models/7c31b6cd-85db-431f-a3a8-269eec35b818.zpl" beforeDir="false" afterPath="$PROJECT_DIR$/User/Models/7c31b6cd-85db-431f-a3a8-269eec35b818.zpl" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/User/Models/96fac268-6839-4f94-b81b-bb1ed297d67f.zpl" beforeDir="false" afterPath="$PROJECT_DIR$/User/Models/96fac268-6839-4f94-b81b-bb1ed297d67f.zpl" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/User/Models/ExampleZimplProgram.zpl" beforeDir="false" afterPath="$PROJECT_DIR$/User/Models/ExampleZimplProgram.zpl" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/User/Models/b5541ea6-587c-4559-bea5-74c775389bf9.zpl" beforeDir="false" afterPath="$PROJECT_DIR$/User/Models/b5541ea6-587c-4559-bea5-74c775389bf9.zpl" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/User/Models/df07aa25-33b2-4c8a-b0c9-0cf688230eee.zpl" beforeDir="false" afterPath="$PROJECT_DIR$/User/Models/df07aa25-33b2-4c8a-b0c9-0cf688230eee.zpl" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/User/Models/e2e31a62-917b-4927-9509-8532711d07cf.zpl" beforeDir="false" afterPath="$PROJECT_DIR$/User/Models/e2e31a62-917b-4927-9509-8532711d07cf.zpl" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/User/Models/e530b61d-6ffb-42e6-9161-cd5f87de70c5.zpl" beforeDir="false" afterPath="$PROJECT_DIR$/User/Models/e530b61d-6ffb-42e6-9161-cd5f87de70c5.zpl" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/containerEntryScript.sh" beforeDir="false" afterPath="$PROJECT_DIR$/containerEntryScript.sh" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/.gitattributes" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/.gitattributes" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/.mvn/wrapper/maven-wrapper.properties" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/.mvn/wrapper/maven-wrapper.properties" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/User/Models/0992f03d-c404-4e19-bc6d-411de3080b8a.zpl" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/User/Models/0992f03d-c404-4e19-bc6d-411de3080b8a.zpl" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/User/Models/233e53e4-d722-4db9-b073-f2c311521d3c.zpl" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/User/Models/233e53e4-d722-4db9-b073-f2c311521d3c.zpl" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/User/Models/5bfed036-012f-432b-ad4a-7a06f82e351f.zpl" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/User/Models/5bfed036-012f-432b-ad4a-7a06f82e351f.zpl" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/User/Models/5cfe6909-c649-4992-a1f2-87c6a968837d.zpl" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/User/Models/5cfe6909-c649-4992-a1f2-87c6a968837d.zpl" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/User/Models/6703c154-ea0a-4873-93d7-5de48a21886f.zpl" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/User/Models/6703c154-ea0a-4873-93d7-5de48a21886f.zpl" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/User/Models/82f1b1bf-d85e-4c7d-8a17-45a2ab6edabe.zpl" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/User/Models/82f1b1bf-d85e-4c7d-8a17-45a2ab6edabe.zpl" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/User/Models/8e8d202c-fd93-443c-96b5-8364d4255c58.zpl" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/User/Models/8e8d202c-fd93-443c-96b5-8364d4255c58.zpl" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/User/Models/8ed59ddb-1c6c-4f57-9a57-426a31b3a606.zpl" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/User/Models/8ed59ddb-1c6c-4f57-9a57-426a31b3a606.zpl" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/User/Models/a1ec4c18-1743-421c-b9ba-434eb8879b1a.zpl" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/User/Models/a1ec4c18-1743-421c-b9ba-434eb8879b1a.zpl" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/User/Models/a24a8504-fd82-459d-b2af-b782263a7c83.zpl" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/User/Models/a24a8504-fd82-459d-b2af-b782263a7c83.zpl" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/User/Models/af6d75bb-7b04-49db-9662-d6b1de57da55.zpl" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/User/Models/af6d75bb-7b04-49db-9662-d6b1de57da55.zpl" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/User/Models/c19c362b-2117-433c-99ba-6025e5334484.zpl" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/User/Models/c19c362b-2117-433c-99ba-6025e5334484.zpl" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/User/Models/d81546f8-cf28-4809-9f74-7442cd2fb7ea.zpl" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/User/Models/d81546f8-cf28-4809-9f74-7442cd2fb7ea.zpl" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/User/Models/eb7c5c31-bb40-4b43-9f73-0e3dc954dccb.zpl" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/User/Models/eb7c5c31-bb40-4b43-9f73-0e3dc954dccb.zpl" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/User/Models/f3084c13-2287-4d0b-a096-4a7c48e9732d.zpl" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/User/Models/f3084c13-2287-4d0b-a096-4a7c48e9732d.zpl" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/User/Models/f9b57ca1-5e28-45d0-a4bc-ccaa07b799b5.zpl" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/User/Models/f9b57ca1-5e28-45d0-a4bc-ccaa07b799b5.zpl" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/src/main/antlr4/parser/Formulation.g4" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/main/antlr4/parser/Formulation.g4" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Factories/ExceptionRecordFactory.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Factories/ExceptionRecordFactory.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Factories/RecordFactory.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Factories/RecordFactory.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Records/Image/ConstraintModuleDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Records/Image/ConstraintModuleDTO.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Records/Image/ImageDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Records/Image/ImageDTO.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Records/Image/PreferenceModuleDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Records/Image/PreferenceModuleDTO.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Records/Image/SolutionDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Records/Image/SolutionDTO.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Records/Model/ModelData/ParameterDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Records/Model/ModelData/ParameterDTO.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Records/Model/ModelData/ParameterDefinitionDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Records/Model/ModelData/ParameterDefinitionDTO.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Records/Model/ModelData/SetDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Records/Model/ModelData/SetDTO.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Records/Model/ModelData/SetDefinitionDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Records/Model/ModelData/SetDefinitionDTO.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Records/Model/ModelDefinition/ConstraintDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Records/Model/ModelDefinition/ConstraintDTO.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Records/Model/ModelDefinition/DependenciesDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Records/Model/ModelDefinition/DependenciesDTO.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Records/Model/ModelDefinition/ModelDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Records/Model/ModelDefinition/ModelDTO.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Records/Model/ModelDefinition/PreferenceDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Records/Model/ModelDefinition/PreferenceDTO.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Records/Model/ModelDefinition/VariableDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Records/Model/ModelDefinition/VariableDTO.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Records/Requests/Commands/CreateImageFromFileDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Records/Requests/Commands/CreateImageFromFileDTO.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Records/Requests/Commands/CreateImageFromPathDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Records/Requests/Commands/CreateImageFromPathDTO.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Records/Requests/Commands/ImageConfigDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Records/Requests/Commands/ImageConfigDTO.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Records/Requests/Commands/SolveCommandDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Records/Requests/Commands/SolveCommandDTO.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Records/Requests/Responses/CompilationStatusDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Records/Requests/Responses/CompilationStatusDTO.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Records/Requests/Responses/CreateImageResponseDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Records/Requests/Responses/CreateImageResponseDTO.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Records/Requests/Responses/ExceptionDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Records/Requests/Responses/ExceptionDTO.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Records/Requests/Responses/ImageResponseDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Records/Requests/Responses/ImageResponseDTO.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/src/main/java/Exceptions/InternalErrors/BadRequestException.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/main/java/Exceptions/InternalErrors/BadRequestException.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/src/main/java/Exceptions/UserErrors/ZimplCompileError.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/main/java/Exceptions/UserErrors/ZimplCompileError.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/src/main/java/Image/Image.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/main/java/Image/Image.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/src/main/java/Image/Modules/ConstraintModule.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/main/java/Image/Modules/ConstraintModule.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/src/main/java/Image/Modules/Module.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/main/java/Image/Modules/Module.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/src/main/java/Image/Modules/PreferenceModule.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/main/java/Image/Modules/PreferenceModule.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/src/main/java/Model/Model.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/main/java/Model/Model.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/src/main/java/Model/ModelComponent.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/main/java/Model/ModelComponent.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/src/main/java/Model/ModelConstraint.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/main/java/Model/ModelConstraint.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/src/main/java/Model/ModelFunctionality.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/main/java/Model/ModelFunctionality.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/src/main/java/Model/ModelInput.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/main/java/Model/ModelInput.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/src/main/java/Model/ModelInterface.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/main/java/Model/ModelInterface.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/src/main/java/Model/ModelOutput.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/main/java/Model/ModelOutput.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/src/main/java/Model/ModelParameter.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/main/java/Model/ModelParameter.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/src/main/java/Model/ModelPreference.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/main/java/Model/ModelPreference.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/src/main/java/Model/ModelPrimitives.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/main/java/Model/ModelPrimitives.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/src/main/java/Model/ModelSet.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/main/java/Model/ModelSet.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/src/main/java/Model/ModelType.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/main/java/Model/ModelType.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/src/main/java/Model/ModelVariable.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/main/java/Model/ModelVariable.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/src/main/java/Model/Solution.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/main/java/Model/Solution.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/src/main/java/Model/Tuple.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/main/java/Model/Tuple.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/src/main/java/groupId/AdvancedUserController.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/main/java/groupId/AdvancedUserController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/src/main/java/groupId/ExceptionHandlerService.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/main/java/groupId/ExceptionHandlerService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/src/main/java/groupId/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/main/java/groupId/Main.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/src/main/java/groupId/Service.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/main/java/groupId/Service.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/src/main/java/groupId/ServiceInterface.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/main/java/groupId/ServiceInterface.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/src/main/java/groupId/UserController.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/main/java/groupId/UserController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/main/resources/application.properties" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/src/main/resources/static/asset-manifest.json" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/main/resources/static/asset-manifest.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/src/main/resources/static/config.json" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/main/resources/static/config.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/src/main/resources/static/electron.js" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/main/resources/static/electron.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/src/main/resources/static/manifest.json" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/main/resources/static/manifest.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/src/main/resources/static/robots.txt" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/main/resources/static/robots.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/src/main/resources/static/static/css/main.ead47ddb.css" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/main/resources/static/static/css/main.ead47ddb.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/src/main/resources/static/static/js/453.db4034e5.chunk.js" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/main/resources/static/static/js/453.db4034e5.chunk.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/src/main/resources/static/static/js/main.0edb16f8.js" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/main/resources/static/static/js/main.0edb16f8.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/src/main/resources/static/static/js/main.0edb16f8.js.LICENSE.txt" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/main/resources/static/static/js/main.0edb16f8.js.LICENSE.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/src/main/resources/zimpl/checkCompilation.sh" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/main/resources/zimpl/checkCompilation.sh" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/src/main/resources/zimpl/solve.sh" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/main/resources/zimpl/solve.sh" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/src/test/Acceptance/ServiceRequestsTests.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/test/Acceptance/ServiceRequestsTests.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/src/test/Acceptance/ServiceTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/test/Acceptance/ServiceTest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/src/test/Intergration/ImageToModelTests/ConstraintModuleDTOTests.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/test/Intergration/ImageToModelTests/ConstraintModuleDTOTests.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/src/test/Unit/DTO/DTOTests.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/test/Unit/DTO/DTOTests.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/src/test/Unit/Image/ImageTests.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/test/Unit/Image/ImageTests.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/src/test/Unit/ModelTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/test/Unit/ModelTest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/src/test/Unit/TypesAndDependencyTests.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/test/Unit/TypesAndDependencyTests.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/src/test/Utilities/Stubs/ExampleZimplProgram.zplSOLUTION" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/test/Utilities/Stubs/ExampleZimplProgram.zplSOLUTION" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/src/test/Utilities/Stubs/ModelStub.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/test/Utilities/Stubs/ModelStub.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Frontend/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Frontend/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Frontend/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Frontend/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Frontend/electron.js" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Frontend/electron.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Frontend/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Frontend/package-lock.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Frontend/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Frontend/package.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Frontend/public/config.json" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Frontend/public/config.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Frontend/public/electron.js" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Frontend/public/electron.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Frontend/public/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Frontend/public/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Frontend/public/manifest.json" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Frontend/public/manifest.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Frontend/public/robots.txt" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Frontend/public/robots.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Frontend/src/App.css" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Frontend/src/App.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Frontend/src/App.js" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Frontend/src/App.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Frontend/src/App.test.js" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Frontend/src/App.test.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Frontend/src/context/ZPLContext.js" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Frontend/src/context/ZPLContext.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Frontend/src/index.css" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Frontend/src/index.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Frontend/src/index.js" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Frontend/src/index.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Frontend/src/pages/ConfigureConstraintsPage.css" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Frontend/src/pages/ConfigureConstraintsPage.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Frontend/src/pages/ConfigureConstraintsPage.js" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Frontend/src/pages/ConfigureConstraintsPage.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Frontend/src/pages/ConfigurePreferencesPage.css" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Frontend/src/pages/ConfigurePreferencesPage.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Frontend/src/pages/ConfigurePreferencesPage.js" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Frontend/src/pages/ConfigurePreferencesPage.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Frontend/src/pages/ConfigureVariablesPage.css" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Frontend/src/pages/ConfigureVariablesPage.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Frontend/src/pages/ConfigureVariablesPage.js" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Frontend/src/pages/ConfigureVariablesPage.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Frontend/src/pages/MainPage.css" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Frontend/src/pages/MainPage.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Frontend/src/pages/MainPage.js" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Frontend/src/pages/MainPage.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Frontend/src/pages/SolutionPreviewPage.css" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Frontend/src/pages/SolutionPreviewPage.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Frontend/src/pages/SolutionPreviewPage.js" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Frontend/src/pages/SolutionPreviewPage.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Frontend/src/pages/UploadZPLPage.css" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Frontend/src/pages/UploadZPLPage.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Frontend/src/pages/UploadZPLPage.js" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Frontend/src/pages/UploadZPLPage.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Frontend/src/pages/WorkAssignmentPage.css" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Frontend/src/pages/WorkAssignmentPage.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Frontend/src/pages/WorkAssignmentPage.js" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Frontend/src/pages/WorkAssignmentPage.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Frontend/src/reportWebVitals.js" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Frontend/src/reportWebVitals.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Frontend/src/setupTests.js" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Frontend/src/setupTests.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/example.zpl" beforeDir="false" afterPath="$PROJECT_DIR$/example.zpl" afterDir="false" />
-    </list>
+    <list default="true" id="69cd5a63-68fc-437b-8317-2b8096dc636e" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -189,6 +41,7 @@
   </component>
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
+    "JUnit.ConstraintModuleDTOTests.testSolve.executor": "Debug",
     "RequestMappingsPanelOrder0": "0",
     "RequestMappingsPanelOrder1": "1",
     "RequestMappingsPanelWidth0": "75",
@@ -210,8 +63,24 @@
   }
 }]]></component>
   <component name="RunManager" selected="Spring Boot.Main">
+    <configuration name="ConstraintModuleDTOTests.testSolve" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="artifactid" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="Intergration.ImageToModelTests.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="Intergration.ImageToModelTests" />
+      <option name="MAIN_CLASS_NAME" value="Intergration.ImageToModelTests.ConstraintModuleDTOTests" />
+      <option name="METHOD_NAME" value="testSolve" />
+      <option name="TEST_OBJECT" value="method" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
     <configuration name="Main" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
-      <option name="ALTERNATIVE_JRE_PATH" value="openjdk-23 (2)" />
+      <option name="ALTERNATIVE_JRE_PATH" value="openjdk-23" />
       <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
       <module name="artifactid" />
       <option name="SPRING_BOOT_MAIN_CLASS" value="groupId.Main" />
@@ -229,8 +98,14 @@
     </configuration>
     <list>
       <item itemvalue="Docker.Dockerfile" />
+      <item itemvalue="JUnit.ConstraintModuleDTOTests.testSolve" />
       <item itemvalue="Spring Boot.Main" />
     </list>
+    <recent_temporary>
+      <list>
+        <item itemvalue="JUnit.ConstraintModuleDTOTests.testSolve" />
+      </list>
+    </recent_temporary>
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
@@ -248,6 +123,7 @@
       <workItem from="1737609911754" duration="596000" />
       <workItem from="1737610529768" duration="100000" />
       <workItem from="1737610645787" duration="933000" />
+      <workItem from="1737617150346" duration="6011000" />
     </task>
     <servers />
   </component>
@@ -296,6 +172,41 @@
           <url>file://$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Factories/ExceptionRecordFactory.java</url>
           <line>15</line>
           <option name="timeStamp" value="12" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/dev/Backend/src/main/java/groupId/Service.java</url>
+          <line>55</line>
+          <option name="timeStamp" value="13" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/dev/Backend/src/main/java/groupId/ExceptionHandlerService.java</url>
+          <line>21</line>
+          <option name="timeStamp" value="14" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/dev/Backend/src/main/java/groupId/ExceptionHandlerService.java</url>
+          <line>26</line>
+          <option name="timeStamp" value="15" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/dev/Backend/src/main/java/groupId/ExceptionHandlerService.java</url>
+          <line>31</line>
+          <option name="timeStamp" value="16" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/dev/Backend/src/main/java/groupId/ExceptionHandlerService.java</url>
+          <line>36</line>
+          <option name="timeStamp" value="17" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/dev/Backend/src/test/Intergration/ImageToModelTests/ConstraintModuleDTOTests.java</url>
+          <line>111</line>
+          <option name="timeStamp" value="18" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/dev/Backend/src/main/java/Model/Model.java</url>
+          <line>200</line>
+          <option name="timeStamp" value="19" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
