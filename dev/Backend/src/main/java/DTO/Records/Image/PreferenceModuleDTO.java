@@ -5,6 +5,7 @@ import DTO.Records.Model.ModelData.SetDefinitionDTO;
 import DTO.Records.Model.ModelDefinition.ConstraintDTO;
 import DTO.Records.Model.ModelDefinition.PreferenceDTO;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -17,7 +18,6 @@ import java.util.Set;
  * @param setDependencies A set of model Sets of sets which are a part of any preference in this module
  * @param parameterDependencies A set of model parameters of parameters which are a part of any preference in this module
  */
-public record PreferenceModuleDTO(boolean isActive, String name, String description, Map<String, PreferenceDTO> preferences,
-                                  Set<SetDefinitionDTO> setDependencies,
-                                  Set<ParameterDefinitionDTO> parameterDependencies) {
-}
+public record PreferenceModuleDTO(String moduleName, String description, List<String> preferences,
+                                  List<String> inputSets,
+                                  List<String> inputParams) {}
