@@ -4,6 +4,7 @@ import DTO.Factories.RecordFactory;
 import DTO.Records.Image.ConstraintModuleDTO;
 import DTO.Records.Image.PreferenceModuleDTO;
 import DTO.Records.Model.ModelDefinition.VariableDTO;
+import DTO.Records.Requests.Commands.ImageConfigDTO;
 import DTO.Records.Requests.Commands.SolveCommandDTO;
 import DTO.Records.Image.ImageDTO;
 import DTO.Records.Image.SolutionDTO;
@@ -49,24 +50,28 @@ private final Map<UUID,Image> images;
         return images.get(UUID.fromString(command.id())).solve(Integer.parseInt(command.timeout()));
     }
 
-    public void overrideImage(ImageDTO imgConfig) {
-        Image image=images.get(UUID.fromString(imgConfig.imageId()));
+    public void overrideImage(ImageConfigDTO imgConfig) {
+        ImageDTO imageDTO= imgConfig.image();
+        Image image=images.get(UUID.fromString(imgConfig.id()));
         Objects.requireNonNull(image,"Invalid id in image config/override image");
         Map<String, ModelVariable> variables = new HashMap<>();
         ModelInterface model= image.getModel();
-        for(String variable:imgConfig.variablesModule().variablesOfInterest()){
+        for(String variable:imageDTO.variablesModule().variablesOfInterest()){
             ModelVariable modelVariable=model.getVariable(variable);
             Objects.requireNonNull(modelVariable,"Invalid variable name in config/override image");
             variables.put(variable,modelVariable);
         }
-        image.reset(variables, imgConfig.variablesModule().variablesConfigurableSets(),imgConfig.variablesModule().variablesConfigurableParams());
-        for(ConstraintModuleDTO constraintModule:imgConfig.constraintModules()){
+        image.reset(variables, imageDTO.variablesModule().variablesConfigurableSets(),imageDTO.variablesModule().variablesConfigurableParams());
+        for(ConstraintModuleDTO constraintModule:imageDTO.constraintModules()){
             image.addConstraintModule(constraintModule.moduleName(),constraintModule.description(),
                     constraintModule.constraints(),constraintModule.inputSets(),constraintModule.inputParams());
         }
-        for (PreferenceModuleDTO preferenceModule:imgConfig.preferenceModules()){
+        for (PreferenceModuleDTO preferenceModule:imageDTO.preferenceModules()){
             image.addPreferenceModule(preferenceModule.moduleName(), preferenceModule.description(),
                     preferenceModule.preferences(),preferenceModule.inputSets(),preferenceModule.inputParams());
         }
+    }
+    public Image getImage(String id) {
+        return images.get(UUID.fromString(id));
     }
 }

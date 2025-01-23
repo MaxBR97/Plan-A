@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 
-public record ImageDTO(String imageId,
+public record ImageDTO(
                        VariableModuleDTO variablesModule,
                        List<ConstraintModuleDTO> constraintModules,
                        List<PreferenceModuleDTO> preferenceModules
