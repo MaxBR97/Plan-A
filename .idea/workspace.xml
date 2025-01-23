@@ -159,10 +159,38 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="main" />
+      </map>
+    </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
+  <component name="GitHubPullRequestSearchHistory"><![CDATA[{
+  "lastFilter": {
+    "state": "OPEN",
+    "assignee": "DenisPn"
+  }
+}]]></component>
+  <component name="GithubPullRequestsUISettings"><![CDATA[{
+  "selectedUrlAndAccountId": {
+    "url": "https://github.com/MaxBR97/Plan-A.git",
+    "accountId": "32e7754f-54b6-4223-a36a-7efd2338f951"
+  }
+}]]></component>
   <component name="HighlightingSettingsPerFile">
+    <setting file="file://$PROJECT_DIR$/User/Models/145fe27c-d6ef-4831-9580-d16d54bb62dc.zpl" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/User/Models/23a1ebaa-384d-4ae2-9678-a5194c6c50da.zpl" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/User/Models/45b7402a-c88f-437d-a2f3-b4df4fa59bc1.zpl" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/User/Models/5b53628b-5276-4e94-9a81-2e81d246ed8c.zpl" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/User/Models/6e2b6445-3ac7-478c-bac3-221ba99b4e32.zpl" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/User/Models/7c31b6cd-85db-431f-a3a8-269eec35b818.zpl" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/User/Models/96fac268-6839-4f94-b81b-bb1ed297d67f.zpl" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/User/Models/ExampleZimplProgram.zpl" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/User/Models/e530b61d-6ffb-42e6-9161-cd5f87de70c5.zpl" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/User/Models/ee78089d-fa2f-4c71-81ca-6c3a8d058f45.zpl" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/dev/Backend/src/main/java/groupId/Service.java" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/example.zpl" root0="FORCE_HIGHLIGHTING" />
   </component>
   <component name="MarkdownSettingsMigration">
     <option name="stateVersion" value="1" />
@@ -170,7 +198,7 @@
   <component name="MavenImportPreferences">
     <option name="generalSettings">
       <MavenGeneralSettings>
-        <option name="mavenHome" value="Use Maven wrapper" />
+        <option name="mavenHomeTypeForPersistence" value="WRAPPER" />
       </MavenGeneralSettings>
     </option>
     <option name="importingSettings">
@@ -195,7 +223,9 @@
     "RequestMappingsPanelWidth1": "75",
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
     "Spring Boot.Main.executor": "Run",
+    "git-widget-placeholder": "API-Impl",
     "kotlin-language-version-configured": "true",
     "last_opened_file_path": "C:/Users/Nadav/Documents/GitHub/Plan-A",
     "node.js.detected.package.eslint": "true",
@@ -232,6 +262,14 @@
       <item itemvalue="Spring Boot.Main" />
     </list>
   </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-jdk-9823dce3aa75-fdfe4dae3a2d-intellij.indexing.shared.core-IU-243.22562.145" />
+        <option value="bundled-js-predefined-d6986cc7102b-deb605915726-JavaScript-IU-243.22562.145" />
+      </set>
+    </attachedChunks>
+  </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
@@ -248,6 +286,7 @@
       <workItem from="1737609911754" duration="596000" />
       <workItem from="1737610529768" duration="100000" />
       <workItem from="1737610645787" duration="933000" />
+      <workItem from="1737618806797" duration="348000" />
     </task>
     <servers />
   </component>
