@@ -5,15 +5,46 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="69cd5a63-68fc-437b-8317-2b8096dc636e" name="Changes" comment="refactored Image">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/User/Models/033bf013-4ded-4cf8-b417-a341ede4a82d.zpl" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/User/Models/1e036e0d-2e2a-457a-9f14-5406398b937e.zpl" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/User/Models/1ef6b51e-e017-4329-921b-85e5d5aaa9c1.zpl" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/User/Models/2e179dbe-938e-4e61-b9ef-99b939befe18.zpl" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/User/Models/31cacc38-75bd-4411-8e67-6246d4421771.zpl" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/User/Models/3b11fbcc-4956-415d-94fc-8cd95ec460d4.zpl" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/User/Models/42f860a9-4c52-453c-85ed-faf355ef63cf.zpl" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/User/Models/5681a19b-38fb-4542-8c0e-d66e01c9484b.zpl" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/User/Models/58df47c1-30e3-4be3-afc5-9686ed388a09.zpl" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/User/Models/5bed17b9-b673-4172-8498-9d5d5c71e84a.zpl" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/User/Models/670f3979-83f6-44a5-b1a6-e358d89d2d27.zpl" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/User/Models/6ffb1031-ca4a-439e-b7bb-afeefdf9d997.zpl" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/User/Models/7615abd7-f526-406b-92da-acb79252566e.zpl" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/User/Models/7a5622dd-ca29-4c18-a2af-5b4347a0594a.zpl" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/User/Models/88056a32-6e53-458e-b538-bc0682d3a34a.zpl" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/User/Models/bf7fe6a3-26f8-4989-8695-300049d9aea4.zpl" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/User/Models/d27194cc-5a11-42a8-b3ab-4f152db0168c.zpl" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/User/Models/da7dab4f-d6eb-4ef9-b008-4ab52e047222.zpl" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/User/Models/dc957ad9-3b0a-471a-99ae-40097ce447cc.zpl" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/User/Models/e42ca919-92b5-42d8-bdcb-930f6cd5c41c.zpl" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/User/Models/f19910f9-89fd-44f7-b235-f72b7ec80011.zpl" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/User/Models/f5798cd9-eb3a-4977-926a-66d0d86795eb.zpl" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/User/Models/f5c81313-1035-4f1c-9bd1-523bc6ccd708.zpl" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/User/Models/fb08980f-6217-4cc5-ab94-3698cafbcd87.zpl" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Records/Model/ModelData/InputDTO.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Records/Model/ModelData/SolutionDetail.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/User/Models/ExampleZimplProgram.zpl" beforeDir="false" afterPath="$PROJECT_DIR$/User/Models/ExampleZimplProgram.zpl" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Factories/RecordFactory.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Factories/RecordFactory.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Records/Image/ImageDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Records/Image/ImageDTO.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Records/Requests/Commands/ImageConfigDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Records/Requests/Commands/ImageConfigDTO.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/src/main/java/groupId/Service.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/main/java/groupId/Service.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/src/main/java/groupId/ServiceInterface.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/main/java/groupId/ServiceInterface.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Records/Image/SolutionDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Records/Image/SolutionDTO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Records/Requests/Commands/SolveCommandDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Records/Requests/Commands/SolveCommandDTO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dev/Backend/src/main/java/Model/ModelOutput.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/main/java/Model/ModelOutput.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dev/Backend/src/main/java/Model/ModelParameter.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/main/java/Model/ModelParameter.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/dev/Backend/src/main/java/groupId/UserController.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/main/java/groupId/UserController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/src/test/Acceptance/ServiceRequestsTests.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/test/Acceptance/ServiceRequestsTests.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/src/test/Acceptance/ServiceTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/test/Acceptance/ServiceTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dev/Frontend/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Frontend/package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dev/Frontend/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Frontend/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dev/Frontend/src/App.js" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Frontend/src/App.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dev/Frontend/src/pages/ConfigureConstraintsPage.css" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Frontend/src/pages/ConfigureConstraintsPage.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dev/Frontend/src/pages/ConfigureConstraintsPage.js" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Frontend/src/pages/ConfigureConstraintsPage.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dev/Frontend/src/pages/SolutionPreviewPage.js" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Frontend/src/pages/SolutionPreviewPage.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dev/Frontend/src/pages/UploadZPLPage.js" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Frontend/src/pages/UploadZPLPage.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -86,6 +117,9 @@
       </MavenImportingSettings>
     </option>
   </component>
+  <component name="ProblemsViewState">
+    <option name="selectedTabId" value="ProjectErrors" />
+  </component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 5
 }</component>
@@ -112,7 +146,7 @@
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.git.unshallow": "true",
     "Spring Boot.Main.executor": "Run",
-    "git-widget-placeholder": "API-Impl",
+    "git-widget-placeholder": "Merging API-Impl",
     "kotlin-language-version-configured": "true",
     "last_opened_file_path": "C:/Users/Nadav/Documents/GitHub/Plan-A",
     "node.js.detected.package.eslint": "true",
@@ -283,6 +317,17 @@
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
   </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="new branch" />
     <MESSAGE value="refactored Image" />
@@ -291,61 +336,6 @@
   <component name="XDebuggerManager">
     <breakpoint-manager>
       <breakpoints>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Factories/ExceptionRecordFactory.java</url>
-          <line>17</line>
-          <option name="timeStamp" value="11" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Factories/ExceptionRecordFactory.java</url>
-          <line>15</line>
-          <option name="timeStamp" value="12" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/dev/Backend/src/main/java/groupId/ExceptionHandlerService.java</url>
-          <line>21</line>
-          <option name="timeStamp" value="14" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/dev/Backend/src/main/java/groupId/ExceptionHandlerService.java</url>
-          <line>26</line>
-          <option name="timeStamp" value="15" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/dev/Backend/src/main/java/groupId/ExceptionHandlerService.java</url>
-          <line>31</line>
-          <option name="timeStamp" value="16" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/dev/Backend/src/main/java/groupId/ExceptionHandlerService.java</url>
-          <line>36</line>
-          <option name="timeStamp" value="18" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/dev/Backend/src/main/java/Model/Model.java</url>
-          <line>204</line>
-          <option name="timeStamp" value="21" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Factories/ExceptionRecordFactory.java</url>
-          <line>22</line>
-          <option name="timeStamp" value="25" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Factories/ExceptionRecordFactory.java</url>
-          <line>27</line>
-          <option name="timeStamp" value="26" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Factories/ExceptionRecordFactory.java</url>
-          <line>32</line>
-          <option name="timeStamp" value="28" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Factories/ExceptionRecordFactory.java</url>
-          <line>38</line>
-          <option name="timeStamp" value="29" />
-        </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/dev/Backend/src/test/Acceptance/ServiceTest.java</url>
           <line>146</line>

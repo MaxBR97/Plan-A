@@ -46,8 +46,10 @@ private final Map<UUID,Image> images;
         return RecordFactory.makeDTO(id,image.getModel());
     }
 
+    //TODO: after SolutionDTO is fully implemented with its factory, make this method work.
     public SolutionDTO solve(SolveCommandDTO command) {
-        return images.get(UUID.fromString(command.id())).solve(Integer.parseInt(command.timeout()));
+        return null;
+        //return images.get(UUID.fromString(command.id())).solve(Integer.parseInt(command.timeout()));
     }
 
     public void overrideImage(ImageConfigDTO imgConfig) {

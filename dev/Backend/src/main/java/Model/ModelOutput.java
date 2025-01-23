@@ -1,7 +1,10 @@
 package Model;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
+
+import Model.ModelInput.StructureBlock;
 
 public abstract class ModelOutput extends ModelComponent {
     protected List<ModelSet> dependency;
@@ -126,5 +129,14 @@ public abstract class ModelOutput extends ModelComponent {
      */
     public void setComplex(boolean complex) {
         this.isComplex = complex;
+    }
+
+    public StructureBlock[] getStructure(){
+        List<StructureBlock> sb = new LinkedList<>();
+        for(ModelSet s : this.setDependencies){
+            sb.addAll(List.of(s.getStructure()));
+        }
+
+        return ((StructureBlock[])sb.toArray());
     }
 }

@@ -2,6 +2,9 @@ package DTO.Records.Image;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
+import DTO.Records.Model.ModelData.SolutionDetail;
 
 /**
  * @param variableSolution maps variable names to a list of lists with each list holding elements of the solution,
@@ -14,6 +17,8 @@ import java.util.List;
  *              maps may hold trash/incomplete values in case of false.
  * @param objectiveValue   the actual numeric value of the expression that was optimized
  */
-public record SolutionDTO(boolean solved, HashMap<String, List<List<String>>> variableSolution,
-                          HashMap<String, List<String>> variableStructure, double solvingTime, double objectiveValue) {
+public record SolutionDTO(
+    String isSolutionFound,
+    Map<String, List<SolutionDetail>> solution
+) {
 }

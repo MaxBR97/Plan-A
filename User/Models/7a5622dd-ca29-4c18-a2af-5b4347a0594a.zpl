@@ -2,7 +2,6 @@ param weight := 10;
 param absoluteMinimalSpacing := 8;
 param soldiers := 10;
 
-
 set C := {1 .. soldiers};
 
 #set C := {"Ben","Dan","Ron","Nir","Niv","Avi","Shlomo"};
@@ -55,4 +54,3 @@ minimize Spacing:
     ((maxGuards-minGuards)+weight)**3 -
     (minimalSpacing)**2 +
     sum<i,a,b> in Possible_Soldier_Shifts: sum<m,n> in S | m != a or b!=n :(Soldier_Shift[i,a,b] * Soldier_Shift[i,m,n] * (b-n));
-(Soldier_Shift[i,a,b] * Soldier_Shift[i,m,n] * (b-n));
