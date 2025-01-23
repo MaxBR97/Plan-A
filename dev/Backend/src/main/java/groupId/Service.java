@@ -48,7 +48,8 @@ public class Service implements ServiceInterface {
 
     @PatchMapping("/images")
     public ResponseEntity<Void> configureImage(@RequestBody ImageDTO imgConfig){
-        return ResponseEntity.badRequest().build();
+        controller.overrideImage(imgConfig);
+        return ResponseEntity.ok().build();
     }
     
     @PostMapping("/solve")

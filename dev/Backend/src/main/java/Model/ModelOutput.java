@@ -69,7 +69,9 @@ public abstract class ModelOutput extends ModelComponent {
             .findFirst()
             .orElse(null);
     }
-
+    public List<ModelParameter> getParamDependencies() {
+        return List.of();
+    }
     /**
      * Checks if a ModelSet exists in the dependencies
      * @param modelSet the ModelSet to check

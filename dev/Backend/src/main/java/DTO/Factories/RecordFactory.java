@@ -122,7 +122,7 @@ public class RecordFactory {
      * Inefficient, maps the whole image, including all its contents into DTOs.
      * should only be called when loading a new Image, not when modifying it.
      */
-    public static ImageDTO makeDTO(Image image){
+    public static ImageDTO makeDTO(Image image, UUID id){
         if(image == null)
             throw new NullPointerException("Null image in DTO mapping");
         List< ConstraintModuleDTO> constraints = new LinkedList<>();
@@ -135,7 +135,7 @@ public class RecordFactory {
                     preferences.add(makeDTO(module));
                 }
                 
-                return new ImageDTO(image.getId(),variables, constraints, preferences);
+                return new ImageDTO(id.toString(),variables, constraints, preferences);
             }
         private static VariableModuleDTO makeDTO(List<ModelVariable> values) {
             List<String> intr = new LinkedList<>();
@@ -153,7 +153,7 @@ public class RecordFactory {
             return new VariableModuleDTO(intr, sets.stream().toList(), params.stream().toList());
         }
             public static ImageResponseDTO makeDTO(UUID id, Image image){
-        return new ImageResponseDTO(id.toString(),makeDTO(image));
+        return new ImageResponseDTO(id.toString(),makeDTO(image,id));
     }
 
     public static CreateImageResponseDTO makeDTO(UUID id, ModelInterface md){
