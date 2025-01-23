@@ -3,7 +3,7 @@ package Model;
 import java.util.Collection;
 import java.util.List;
 
-import parser.FormulationParser.ParamDeclContext;
+//import parser.FormulationParser.ParamDeclContext;
 
 public class ModelParameter extends ModelInput {
     private String value;

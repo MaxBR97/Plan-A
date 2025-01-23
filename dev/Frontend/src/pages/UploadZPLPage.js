@@ -19,7 +19,6 @@ const UploadZPLPage = () => {
         }
 
         const requestData = {
-            name: fileName,
             code: fileContent,
         };
 
