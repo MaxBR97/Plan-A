@@ -5,29 +5,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="69cd5a63-68fc-437b-8317-2b8096dc636e" name="Changes" comment="git ignore">
-      <change beforePath="$PROJECT_DIR$/.idea/remote-targets.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/remote-targets.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Factories/RecordFactory.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Factories/RecordFactory.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Records/Image/ConstraintModuleDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Records/Image/ConstraintModuleDTO.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Records/Image/ImageDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Records/Image/ImageDTO.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Records/Image/PreferenceModuleDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Records/Image/PreferenceModuleDTO.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Records/Image/SolutionDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Records/Image/SolutionDTO.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Records/Image/SolutionValueDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Records/Image/SolutionValueDTO.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Records/Image/SolutionVariable.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Records/Image/SolutionVariable.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Records/Image/VariableModuleDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Records/Image/VariableModuleDTO.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Records/Model/ModelDefinition/ModelDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Records/Model/ModelDefinition/ModelDTO.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/src/main/java/Model/Model.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/main/java/Model/Model.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/src/main/java/Model/ModelInterface.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/main/java/Model/ModelInterface.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/src/main/java/Model/ModelOutput.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/main/java/Model/ModelOutput.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/src/main/java/Model/Solution.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/main/java/Model/Solution.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/src/test/Acceptance/ServiceRequestsTests.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/test/Acceptance/ServiceRequestsTests.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/src/test/Acceptance/ServiceTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/test/Acceptance/ServiceTest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/src/test/Intergration/ImageToModelTests/ConstraintModuleDTOTests.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/test/Intergration/ImageToModelTests/ConstraintModuleDTOTests.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/src/test/Unit/DTO/DTOTests.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/test/Unit/DTO/DTOTests.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/src/test/Unit/Image/ImageTests.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/test/Unit/Image/ImageTests.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/src/test/Utilities/Stubs/ExampleZimplProgram.zpl" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/test/Utilities/ZimplExamples/ExampleZimplProgram.zpl" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/src/test/Utilities/Stubs/ExampleZimplProgram.zplSOLUTION" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/test/Utilities/ZimplExamples/ExampleZimplSolution.zpl" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/src/test/Utilities/Stubs/ModelStub.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/test/Utilities/Stubs/ModelStub.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Factories/ExceptionRecordFactory.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Factories/ExceptionRecordFactory.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dev/Backend/src/main/java/groupId/ExceptionHandlerService.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/main/java/groupId/ExceptionHandlerService.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -40,13 +20,6 @@
         <option value="Class" />
         <option value="Record" />
       </list>
-    </option>
-  </component>
-  <component name="Git.Pull.Settings">
-    <option name="OPTIONS">
-      <set>
-        <option value="REBASE" />
-      </set>
     </option>
   </component>
   <component name="Git.Settings">
@@ -116,7 +89,7 @@
     "HTTP Request.All in rest-api_2.executor": "Run",
     "HTTP Request.rest-api_3 | #1.executor": "Run",
     "JUnit.Acceptance in artifactid.executor": "Run",
-    "JUnit.DTOTests.GivenSolution_WhenCreatingSolutionDTO_StructureIsCorrect.executor": "Debug",
+    "JUnit.DTOTests.GivenSolution_WhenCreatingSolutionDTO_StructureIsCorrect.executor": "Run",
     "JUnit.ServiceRequestsTests.GivenEmptyZimplFIle_WhenCreatingIMageFrom_CreateEmptyImage.executor": "Debug",
     "JUnit.ServiceRequestsTests.GivenImageDTO_WhenConfigImage_ImageIsCorrect.executor": "Run",
     "JUnit.ServiceRequestsTests.executor": "Run",
@@ -314,21 +287,5 @@
     <MESSAGE value="refactored Image" />
     <MESSAGE value="git ignore" />
     <option name="LAST_COMMIT_MESSAGE" value="git ignore" />
-  </component>
-  <component name="XDebuggerManager">
-    <breakpoint-manager>
-      <breakpoints>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/dev/Backend/src/test/Acceptance/ServiceRequestsTests.java</url>
-          <line>115</line>
-          <option name="timeStamp" value="36" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Factories/RecordFactory.java</url>
-          <line>32</line>
-          <option name="timeStamp" value="46" />
-        </line-breakpoint>
-      </breakpoints>
-    </breakpoint-manager>
   </component>
 </project>
