@@ -4,15 +4,12 @@ import DTO.Records.Model.ModelDefinition.VariableDTO;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
-/**
- *
- * @param constraints A map from module names to their DTO object
- * @param preferences A map from module names to their DTO object
- */
-public record ImageDTO(String imageId,
+
+public record ImageDTO(
                        VariableModuleDTO variablesModule,
-                       List<ConstraintModuleDTO> constraintModules,
-                       List<PreferenceModuleDTO> preferenceModules
+                       Set<ConstraintModuleDTO> constraintModules,
+                       Set<PreferenceModuleDTO> preferenceModules
                        )
 {}

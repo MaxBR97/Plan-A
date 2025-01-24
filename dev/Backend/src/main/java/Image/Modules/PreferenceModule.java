@@ -14,16 +14,21 @@ public class PreferenceModule extends Module{
      */
     private final Map<String, ModelPreference> preferences;
 
+
+
+
     public PreferenceModule(String name, String description) {
         super(name, description);
         preferences = new HashMap<>();
+
     }
-    public PreferenceModule(String name, String description, Collection<ModelPreference> preferences) {
-        super(name, description);
+    public PreferenceModule(String name, String description, Collection<ModelPreference> preferences, Collection<String> inputSets, Collection<String> inputParams) {
+        super(name, description,inputSets,inputParams);
         this.preferences = new HashMap<>();
         for (ModelPreference constraint : preferences) {
             this.preferences.put(constraint.getIdentifier(), constraint);
         }
+
     }
     /**
      * Fetch all ModelSets that are in use in any of the preferences in the module.

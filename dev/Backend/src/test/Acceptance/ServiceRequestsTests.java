@@ -1,20 +1,44 @@
 package Acceptance;
+import DTO.Factories.RecordFactory;
+import DTO.Records.Image.ConstraintModuleDTO;
 import DTO.Records.Image.ImageDTO;
+import DTO.Records.Image.PreferenceModuleDTO;
+import DTO.Records.Image.VariableModuleDTO;
+import DTO.Records.Model.ModelDefinition.*;
 import DTO.Records.Requests.Commands.CreateImageFromFileDTO;
+import DTO.Records.Requests.Commands.ImageConfigDTO;
+import DTO.Records.Requests.Responses.CreateImageResponseDTO;
 import DTO.Records.Requests.Responses.ImageResponseDTO;
+import Image.Image;
 import groupId.Service;
 import groupId.UserController;
 import org.junit.jupiter.api.*;
 
 import java.io.IOException;
 import java.nio.file.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 public class ServiceRequestsTests {
+    static String SimpleCodeExample = """
+                param x := 10;
+                set mySet := {1,2,3};
+
+                var myVar[mySet];
+
+                subto sampleConstraint:
+                    myVar[x] == mySet[1];
+
+                maximize myObjective:
+                    1;
+            """;
     static Path tmpDirPath;
-    static String sourcePath = "src/test/Utilities/Stubs/ExampleZimplProgram.zpl";
+    static String sourcePath = "src/test/Utilities/ZimplExamples/ExampleZimplProgram.zpl";
+    UserController userController;
     Service service;
     @BeforeAll
     public static void setup(){
@@ -28,29 +52,70 @@ public class ServiceRequestsTests {
     }
     @BeforeEach
     public void setUp() {
-        service=new Service(new UserController());
+        userController = new UserController();
+        service=new Service(userController);
     }
 
     @Test
     public void GivenEmptyZimplFIle_WhenCreatingIMageFrom_CreateEmptyImage(){
         try {
-            /*
-            Path emptyZimple = tmpDirPath.resolve("badZimpl.zimpl");
-            Files.copy(Path.of(sourcePath), emptyZimple, StandardCopyOption.REPLACE_EXISTING);
-            emptyZimple.toFile().deleteOnExit();
-            FileWriter writer = new FileWriter(emptyZimple.toString(), false);
-            assertNotNull(response.getBody().image());
-*/
-            String name= "emptyZimplFIle";
             String data="";
-            ResponseEntity<ImageResponseDTO> response= null;//ervice.createImage(new CreateImageFromFileDTO(name,data));
+            ResponseEntity<CreateImageResponseDTO> response= service.createImage(new CreateImageFromFileDTO(data));
 
-            ImageDTO image= response.getBody().image();
-            assertEquals(0, image.constraints().size());
-            assertEquals(0, image.preferences().size());
-            assertEquals(0, image.variables().size());
+            ModelDTO model= response.getBody().model();
+            assertEquals(0, model.constraints().size());
+            assertEquals(0, model.preferences().size());
+            assertEquals(0, model.variables().size());
         }
         catch (Exception e){
+            fail(e.getMessage());
+        }
+    }
+    @Test
+    public void GivenImageDTO_WhenConfigImage_ImageIsCorrect() {
+        /**
+         * SET UP
+         */
+        CreateImageFromFileDTO body = new CreateImageFromFileDTO(SimpleCodeExample);
+        try {
+            ResponseEntity<CreateImageResponseDTO> response= service.createImage(body);
+
+            CreateImageResponseDTO expected = new CreateImageResponseDTO(
+                    "some id", new ModelDTO(
+                    Set.of(new ConstraintDTO("sampleConstraint", new DependenciesDTO(List.of("mySet"), List.of("x")))),
+                    Set.of(new PreferenceDTO("myObjective", new DependenciesDTO(List.of(), List.of()))),
+                    Set.of(new VariableDTO("myVar", new DependenciesDTO(List.of("mySet"), List.of()))),
+                    Map.of(
+                            "mySet", "INT",
+                            "x", "INT"
+                    )
+            ));
+            assertEquals(HttpStatus.OK, response.getStatusCode());
+            assertNotNull(response.getBody().imageId());
+            assertEquals(response.getBody().model().constraints(), expected.model().constraints());
+            assertEquals(response.getBody().model().preferences(), expected.model().preferences());
+            assertEquals(response.getBody().model().variables(), expected.model().variables());
+            assertEquals(response.getBody().model().types(), expected.model().types());
+            /**
+             * TEST
+             */
+            Set<ConstraintModuleDTO> constraintModuleDTOs = Set.of(
+                    new ConstraintModuleDTO("Test module", "PeanutButter",
+                            Set.of("sampleConstraint"), Set.of("mySet"), Set.of("x")));
+            Set<PreferenceModuleDTO> preferenceModuleDTOs = Set.of(
+                    new PreferenceModuleDTO("Test module", "PeanutButter",
+                            Set.of("myObjective"), Set.of(), Set.of()));
+            VariableModuleDTO variableModuleDTO = new VariableModuleDTO(Set.of("myVar"), Set.of("mySet"), Set.of());
+            ImageDTO imageDTO = new ImageDTO(variableModuleDTO, constraintModuleDTOs, preferenceModuleDTOs);
+            ImageConfigDTO configDTO= new ImageConfigDTO(response.getBody().imageId(),imageDTO);
+            ResponseEntity<Void> response2= service.configureImage(configDTO);
+            assertEquals(HttpStatus.OK, response2.getStatusCode());
+            Image image= userController.getImage(response.getBody().imageId());
+            assertNotNull(image);
+            ImageDTO actual= RecordFactory.makeDTO(image);
+            assertEquals(imageDTO, actual);
+
+        } catch (IOException e) {
             fail(e.getMessage());
         }
     }

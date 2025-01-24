@@ -989,7 +989,14 @@ public class Model implements ModelInterface {
     public Collection<ModelParameter> getParameters(){
         return this.params.values();
     }
+    @Override
+    public Collection<ModelVariable> getVariables(Collection<String> identifiers){
+        HashSet<ModelVariable> set = new HashSet<>();
+        for (String identifier : identifiers) {
+            set.add(getVariable(identifier));
+        }
+        return set;
+    }
 
-    
 
 }
