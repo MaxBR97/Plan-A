@@ -1,3 +1,5 @@
 .vscode
 .devcontainer
 ./User/Models
+./.idea/*
+./.idea/

@@ -18,7 +18,7 @@ public class ImageTests {
 
     @Mock
     ModelInterface model;
-    static String sourcePath = "src/test/Utilities/Stubs/ExampleZimplProgram.zpl";
+    static String sourcePath = "src/test/Utilities/ZimplExamples/ExampleZimplProgram.zpl";
     static Path tmpDirPath;
     Image image;
     @BeforeAll

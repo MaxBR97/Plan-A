@@ -86,6 +86,11 @@ public class ModelStub implements ModelInterface {
     }
 
     @Override
+    public Collection<ModelVariable> getVariables(Collection<String> identifiers) {
+        return List.of();
+    }
+
+    @Override
     public Collection<ModelSet> getSets() {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'getSets'");

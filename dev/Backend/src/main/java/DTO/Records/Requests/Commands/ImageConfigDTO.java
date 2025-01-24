@@ -1,5 +1,5 @@
 package DTO.Records.Requests.Commands;
 
-public record ImageConfigDTO() {
-    
-}
+import DTO.Records.Image.ImageDTO;
+
+public record ImageConfigDTO(String id, ImageDTO image) { }
