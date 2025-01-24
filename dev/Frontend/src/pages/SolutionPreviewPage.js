@@ -1,169 +1,99 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useZPL } from '../context/ZPLContext';
 import './SolutionPreviewPage.css';
+import axios from 'axios';
 
 const SolutionPreviewPage = () => {
-    // State for constraints and preferences
-    const [constraints, setConstraints] = useState([
-        { name: 'My Constraint 1', sets: ['set 2'], params: ['param 1'], description: 'Constraint Description 1' },
-        { name: 'My Constraint 2', sets: ['set 4'], params: ['param 2'], description: 'Constraint Description 2' },
-    ]);
+    const { imageId, constraints, preferences, variables } = useZPL();
+    const [status, setStatus] = useState('');
 
-    const [preferences, setPreferences] = useState([
-        { name: 'My Preference 1', sets: ['set 3'], params: ['param 1'], description: 'Preference Description 1' },
-        { name: 'My Preference 2', sets: ['set 5'], params: ['param 3'], description: 'Preference Description 2' },
-    ]);
+    const handleSolve = async () => {
+        setStatus('Solving...');
+        try {
 
-    // State for variables
-    const [people, setPeople] = useState(['Dani', 'Yossi', 'Meni', 'Aharon']);
-    const [dates, setDates] = useState(['21/12/2024', '22/12/2024', '23/12/2024']);
-    const [stations, setStations] = useState(['Station 1', 'Station 2', 'Station 3']);
-    const [baseSalaryRate, setBaseSalaryRate] = useState(30.0);
+            const requestData = {
+                id: imageId,
+                timeout: 10,
+            };
+            
+            const response = await axios.post("/solve", requestData);
 
-    // Sample salary data
-    const salaries = [
-        { person: 'Dani', salary: 30 },
-        { person: 'Yossi', salary: 30 },
-        { person: 'Aharon', salary: 40 },
-    ];
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', 'solution.json');
+            document.body.appendChild(link);
+            link.click();
+            link.parentNode.removeChild(link);
+
+            setStatus('');
+        } catch (error) {
+            setStatus(`Error: ${error.response?.data?.message || error.message}`);
+            console.error('Error solving the problem:', error);
+        }
+    };
 
     return (
         <div className="solution-preview-page">
-            <h1 className="page-title">Preview of Created Image</h1>
+            <h1 className="page-title">Solution Preview</h1>
 
-            <div className="main-section">
-                {/* Left Section: Constraints and Preferences */}
-                <div className="left-section">
-                    <div className="constraints-section">
-                        <h2>Constraints</h2>
-                        {constraints.map((constraint, index) => (
-                            <div key={index} className="constraint-item">
-                                <h3>{constraint.name}</h3>
-                                <p>Sets: {constraint.sets.join(', ')}</p>
-                                <p>Params: {constraint.params.join(', ')}</p>
-                                <p>Description: {constraint.description}</p>
-                            </div>
-                        ))}
-                    </div>
+            {/* Constraints and Preferences Section */}
+            <div className="constraints-preferences-section">
+                <h2>Constraints</h2>
+                {Array.isArray(constraints) && constraints.length > 0 ? (
+                    constraints.map((constraint, index) => (
+                        <div key={index} className="constraint-item">
+                            <h3>{constraint.identifier}</h3>
+                            <p>Set Dependencies: {Array.isArray(constraint.dep?.setDependencies) ? constraint.dep.setDependencies.join(', ') : 'None'}</p>
+                            <p>Param Dependencies: {Array.isArray(constraint.dep?.paramDependencies) ? constraint.dep.paramDependencies.join(', ') : 'None'}</p>
+                        </div>
+                    ))
+                ) : (
+                    <p>No constraints available</p>
+                )}
 
-                    <div className="preferences-section">
-                        <h2>Preferences</h2>
-                        {preferences.map((preference, index) => (
-                            <div key={index} className="preference-item">
-                                <h3>{preference.name}</h3>
-                                <p>Sets: {preference.sets.join(', ')}</p>
-                                <p>Params: {preference.params.join(', ')}</p>
-                                <p>Description: {preference.description}</p>
-                            </div>
-                        ))}
-                    </div>
-                </div>
+                <h2>Preferences</h2>
+                {Array.isArray(preferences) && preferences.length > 0 ? (
+                    preferences.map((preference, index) => (
+                        <div key={index} className="preference-item">
+                            <h3>{preference.identifier}</h3>
+                            <p>Set Dependencies: {Array.isArray(preference.dep?.setDependencies) ? preference.dep.setDependencies.join(', ') : 'None'}</p>
+                            <p>Param Dependencies: {Array.isArray(preference.dep?.paramDependencies) ? preference.dep.paramDependencies.join(', ') : 'None'}</p>
+                        </div>
+                    ))
+                ) : (
+                    <p>No preferences available</p>
+                )}
+            </div>
 
-                {/* Right Section: Variables */}
-                <div className="right-section">
-                    <h2>Variables</h2>
-                    <div className="variables-list">
-                        <div className="variable-item">
-                            <h3>People</h3>
+            {/* Variables Section */}
+            <div className="variables-section">
+                <h2>Variables</h2>
+                {variables && typeof variables === 'object' && Object.entries(variables).length > 0 ? (
+                    Object.entries(variables).map(([key, value]) => (
+                        <div key={key} className="variable-item">
+                            <h3>{key}</h3>
                             <ul>
-                                {people.map((person, index) => (
-                                    <li key={index}>
-                                        <input type="checkbox" checked />
-                                        {person}
-                                    </li>
-                                ))}
+                                {Array.isArray(value) ? (
+                                    value.map((item, index) => <li key={index}>{item}</li>)
+                                ) : (
+                                    <p>No data available</p>
+                                )}
                             </ul>
                             <button className="add-button">+</button>
                         </div>
-
-                        <div className="variable-item">
-                            <h3>Dates</h3>
-                            <ul>
-                                {dates.map((date, index) => (
-                                    <li key={index}>{date}</li>
-                                ))}
-                            </ul>
-                            <button className="add-button">+</button>
-                        </div>
-
-                        <div className="variable-item">
-                            <h3>Stations</h3>
-                            <ul>
-                                {stations.map((station, index) => (
-                                    <li key={index}>{station}</li>
-                                ))}
-                            </ul>
-                            <button className="add-button">+</button>
-                        </div>
-                    </div>
-
-                    <div className="base-salary-rate">
-                        <h3>Base Salary Rate:</h3>
-                        <input
-                            type="number"
-                            value={baseSalaryRate}
-                            onChange={(e) => setBaseSalaryRate(e.target.value)}
-                        />
-                    </div>
-                </div>
+                    ))
+                ) : (
+                    <p>No variables available</p>
+                )}
             </div>
 
-            {/* Shifts Table Section */}
-            <div className="shifts-section">
-                <h2>Shifts</h2>
-                <table className="shifts-table">
-                    <thead>
-                        <tr>
-                            <th>Station / Date</th>
-                            <th>21/12/2024</th>
-                            <th>22/12/2024</th>
-                            <th>23/12/2024</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {['Station 1', 'Station 2', 'Station 3'].map((station) => (
-                            <tr key={station}>
-                                <td>{station}</td>
-                                {[...Array(3)].map((_, index) => (
-                                    <td key={index}>
-                                        <p>8:00 - Dani</p>
-                                        <p>16:00 - Yosi</p>
-                                        <p>00:00 - Aharon</p>
-                                    </td>
-                                ))}
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
+            {/* Solve Button and Status Label */}
+            <button className="solve-button" onClick={handleSolve}>Solve</button>
+            {status && <p className="status-label">{status}</p>}
 
-            {/* Salaries Table Section */}
-            <div className="salaries-section">
-                <h2>Salaries</h2>
-                <table className="salaries-table">
-                    <thead>
-                        <tr>
-                            <th>Person</th>
-                            <th>Salary</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {salaries.map((salary, index) => (
-                            <tr key={index}>
-                                <td>{salary.person}</td>
-                                <td>{salary.salary}</td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="action-buttons">
-                <button className="create-image-button">Create Image</button>
-                <button className="solve-button">Solve</button>
-            </div>
-
+            {/* Navigation Buttons */}
             <Link to="/" className="back-button">Back</Link>
         </div>
     );

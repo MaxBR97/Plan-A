@@ -5,6 +5,7 @@
     flex-direction: column;
     align-items: center;
     padding: 20px;
+    font-family: Arial, sans-serif;
 }
 
 .page-title {
@@ -13,47 +14,60 @@
     margin-bottom: 30px;
 }
 
-.constraints-list,
-.constraint-details {
+.constraints-layout {
+    display: flex;
+    justify-content: space-between;
     width: 100%;
-    max-width: 600px;
+    max-width: 1200px;
+}
+
+.constraint-modules,
+.define-constraint-module,
+.available-constraints {
+    flex: 1;
     padding: 20px;
     border: 1px solid #ccc;
     border-radius: 10px;
     background-color: #f9f9f9;
-    margin-bottom: 20px;
+    margin: 10px;
+    text-align: center;
 }
 
-.checkbox-item {
-    display: flex;
-    align-items: center;
-    margin-bottom: 10px;
+.constraint-modules {
+    background-color: #e3f2fd;
 }
 
-.checkbox-item label {
-    margin-left: 10px;
-    font-size: 16px;
+.define-constraint-module {
+    background-color: #e8f5e9;
+    min-height: 200px;
 }
 
-.dropdown {
-    margin-bottom: 20px;
+.available-constraints {
+    background-color: #ffebee;
 }
 
-.dropdown label {
-    font-size: 16px;
-    margin-right: 10px;
-}
-
-textarea {
-    width: 100%;
-    height: 80px;
+.module-drop-area {
+    min-height: 100px;
     padding: 10px;
-    font-size: 16px;
-    border: 1px solid #ccc;
+    border: 2px dashed #ccc;
+    background-color: #ffffff;
+    margin-top: 10px;
+}
+
+.constraint-item {
+    padding: 10px;
+    margin: 5px;
+    border: 1px solid #aaa;
+    background-color: #fff;
+    cursor: grab;
     border-radius: 5px;
 }
 
-.add-button {
+.constraint-item:hover {
+    background-color: #f1f1f1;
+}
+
+.continue-button, .add-button, .back-button {
     padding: 10px 20px;
     font-size: 16px;
     border: 1px solid #ccc;
@@ -63,23 +77,6 @@ textarea {
     transition: background-color 0.3s;
 }
 
-.add-button:hover {
-    background-color: #e0e0e0;
-}
-
-.back-button {
-    margin-top: 20px;
-    padding: 10px 20px;
-    font-size: 14px;
-    text-decoration: none;
-    color: #000;
-    border: 1px solid #ccc;
-    border-radius: 10px;
-    background-color: #ffffff;
-    cursor: pointer;
-    transition: background-color 0.3s;
-}
-
-.back-button:hover {
+.continue-button:hover, .add-button:hover, .back-button:hover {
     background-color: #e0e0e0;
 }

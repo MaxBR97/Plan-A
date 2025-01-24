@@ -143,30 +143,33 @@ setExpr
 	;
 
 setDesc:'{' '}'						# SetDescEmpty
+	|	'{' condition '}' 			# SetDescStack
 	|	'{' csv '}'					# SetDescStack
 	|	'{' range '}'				# SetDescStack 
-	|	'{' condition '}' 			# SetDescStack
 	;
 
-range	:	lhs=nExpr '..' rhs=nExpr ;
+range	:	lhs=nExpr '..' rhs=nExpr ('by' step=nExpr)?;
 
 tuple	:	'<' csv '>' ;
 
 /* reduce expression */
 // TODO: test non-sum
 //sumExpr :	'sum' condition sep=('do' | ':') nExpr ;
-//redExpr :	op=('min'|'max'|'prod'|'sum') condition sep=('do'|':') nExpr ;
+redExpr :	op=('prod'|'sum') condition sep=('do'|':') nExpr # LongRedExpr
+		|	op=('min'|'max'|'card')	'(' index ')'			 # ShortRedExpr
+		;
 // Defining RED as lexical rule brings token conflict with (functions) 'min', 'max'
-redExpr :	op=ID condition sep=('do'|':') nExpr ;
+//redExpr :	op=ID condition sep=('do'|':') nExpr ;
 
 index	:	condition | setExpr ;
+
 
 // In Section 4.5, [Koch2020] calls this an 'index'.
 condition : tuple 'in' setExpr (sep=('with' | '|') boolExpr)? ;
 // membership? 'condition' seems a synonym of boolExpr, not a subtype of it
 
 /** boolean expression */
-// TODO: add more tests
+// TODO: add more tests   
 boolExpr
 	:	( condition | comparison )		# BoolExprStack
 	|	'not' boolExpr					# BoolExprNot
@@ -180,7 +183,8 @@ boolExpr
 
 // TODO: add 'bound+' & strExpr tests
 comparison
-	:	nExpr bound+					# ComparisonNExpr
+	:   ifExpr							# ComparisonIfExpr
+	|	nExpr bound+					# ComparisonNExpr
 	|	lhs=strExpr cmp rhs=strExpr		# ComparisonStrExpr
 	;
 
@@ -219,7 +223,9 @@ strExpr	:	STRING					# StrExprToken
 		|	ifExpr					# StrExprIf
 		;
 
-ifExpr	:	'if' boolExpr 'then' thenExpr=expr 'else' elseExpr=expr 'end' ;
+ifExpr	:	'vif' boolExpr 'then' thenExpr=expr ('else' elseExpr=expr)? 'end' #VarIfExpr
+		| 	'if' boolExpr 'then' thenExpr=expr ('else' elseExpr=expr)? 'end' #RegIfExpr
+		;
 
 // LEXERRULES:
 

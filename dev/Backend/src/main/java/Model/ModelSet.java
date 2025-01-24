@@ -1,7 +1,8 @@
 package Model;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public class ModelSet extends ModelInput {
     private List<String> elements;
@@ -9,6 +10,11 @@ public class ModelSet extends ModelInput {
     public ModelSet(String identifier, ModelType type) {
         super(identifier,type);
     }
+
+    public ModelSet(String setName, ModelType type, List<ModelSet> basicSets, List<ModelParameter> basicParams) {
+        super(setName, type, basicSets, basicParams);
+    }
+
 
     public List<String> getElements() {
         return Collections.unmodifiableList(elements);
@@ -57,4 +63,6 @@ public class ModelSet extends ModelInput {
     public boolean isEmpty() {
         return elements.isEmpty();
     }
+
+
 }

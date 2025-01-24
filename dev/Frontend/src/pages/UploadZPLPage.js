@@ -1,51 +1,96 @@
-import React, { useState } from 'react';
-import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
-import './UploadZPLPage.css';
+import React, { useState } from "react";
+import axios from "axios";
+import { useZPL } from "../context/ZPLContext";
+import { useNavigate } from "react-router-dom";
+import "./UploadZPLPage.css";
 
 const UploadZPLPage = () => {
-    const [file, setFile] = useState(null);
-    const [message, setMessage] = useState('');
-    const navigate = useNavigate(); // Hook for navigation
+    const { imageId, setImageId, variables, setVariables, types, setTypes, constraints, setConstraints, preferences, setPreferences } = useZPL();
 
-    const handleFileChange = (event) => {
-        setFile(event.target.files[0]);
-        setMessage('');
-    };
+    const [fileName, setFileName] = useState("");
+    const [fileContent, setFileContent] = useState("");
+    const [message, setMessage] = useState("");
+    const navigate = useNavigate();
 
     const handleUpload = async () => {
-        if (!file) {
-            setMessage('Please select a file before uploading.');
+        if (!fileName || !fileContent) {
+            setMessage("Please provide a file name and content before uploading.");
             return;
         }
 
-        const formData = new FormData();
-        formData.append('file', file);
+        const requestData = {
+            code: fileContent,
+        };
 
         try {
-           /* await axios.post('/Images', formData, {
+            const response = await axios.post("/images", requestData, {
                 headers: {
-                    'Content-Type': 'multipart/form-data',
+                    "Content-Type": "application/json",
                 },
             });
-            */
-            setMessage('File uploaded successfully!');
-            navigate('/configure-variables'); // Redirect to Configure Variables Page
-            
+
+            const responseData = response.data;
+
+            // Store response in the ZPL Context correctly
+            setImageId(responseData.imageId);
+            setVariables(responseData.model.variables);
+            setConstraints(responseData.model.constraints);
+            setPreferences(responseData.model.preferences);
+            setTypes(responseData.model.types);
+
+            console.log("Full Response Data:", responseData);
+
+            // Create a JSON file and trigger a download
+            const jsonData = JSON.stringify(responseData, null, 2);
+            const blob = new Blob([jsonData], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "responseZPL.json";
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+
+            setMessage("File uploaded successfully!");
+
+            console.log("Stored Data:", {
+                imageId,
+                variables,
+                types,
+                constraints,
+                preferences
+            });
+
+
+            navigate("/configure-variables"); // Redirect to Configure Variables Page
         } catch (error) {
-            setMessage('Failed to upload file. Please try again.');
+            if (error.response) {
+                const errorMsg = error.response.data?.msg || "Unknown error occurred";
+                setMessage(`Error: ${error.response.status} - ${errorMsg}`);
+            } else if (error.request) {
+                setMessage("Error: No response from server. Check if backend is running.");
+            } else {
+                setMessage(`Error: ${error.message}`);
+            }
         }
     };
 
     return (
         <div className="upload-zpl-page">
             <h1 className="page-title">Upload ZPL File</h1>
-            <div className="file-input-container">
-                
-                <input type="file" onChange={handleFileChange} />
-                <button className="upload-button" onClick={handleUpload}>
-                    Upload
-                </button>
+            <div className="upload-container">
+                <label>File Name:</label>
+                <input
+                    type="text"
+                    value={fileName}
+                    onChange={(e) => setFileName(e.target.value)}
+                />
+                <label>File Content:</label>
+                <textarea
+                    value={fileContent}
+                    onChange={(e) => setFileContent(e.target.value)}
+                />
+                <button className="upload-button" onClick={handleUpload}>Upload</button>
             </div>
             {message && <p className="upload-message">{message}</p>}
         </div>
