@@ -4,15 +4,30 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="69cd5a63-68fc-437b-8317-2b8096dc636e" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Records/Image/SolutionValueDTO.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Records/Image/SolutionVariable.java" afterDir="false" />
+    <list default="true" id="69cd5a63-68fc-437b-8317-2b8096dc636e" name="Changes" comment="git ignore">
+      <change beforePath="$PROJECT_DIR$/.idea/remote-targets.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/remote-targets.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Factories/RecordFactory.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Factories/RecordFactory.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Records/Image/ConstraintModuleDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Records/Image/ConstraintModuleDTO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Records/Image/ImageDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Records/Image/ImageDTO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Records/Image/PreferenceModuleDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Records/Image/PreferenceModuleDTO.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Records/Image/SolutionDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Records/Image/SolutionDTO.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Records/Model/ModelData/SolutionDetail.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Records/Model/ModelData/SolutionDetail.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Records/Image/SolutionValueDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Records/Image/SolutionValueDTO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Records/Image/SolutionVariable.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Records/Image/SolutionVariable.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Records/Image/VariableModuleDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Records/Image/VariableModuleDTO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Records/Model/ModelDefinition/ModelDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Records/Model/ModelDefinition/ModelDTO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dev/Backend/src/main/java/Model/Model.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/main/java/Model/Model.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dev/Backend/src/main/java/Model/ModelInterface.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/main/java/Model/ModelInterface.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dev/Backend/src/main/java/Model/ModelOutput.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/main/java/Model/ModelOutput.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/dev/Backend/src/main/java/Model/Solution.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/main/java/Model/Solution.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/src/test/Utilities/Stubs/ExampleZimplProgram.zplSOLUTION" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/test/Utilities/Stubs/ExampleZimplProgram.zplSOLUTION" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dev/Backend/src/test/Acceptance/ServiceRequestsTests.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/test/Acceptance/ServiceRequestsTests.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dev/Backend/src/test/Acceptance/ServiceTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/test/Acceptance/ServiceTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dev/Backend/src/test/Intergration/ImageToModelTests/ConstraintModuleDTOTests.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/test/Intergration/ImageToModelTests/ConstraintModuleDTOTests.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dev/Backend/src/test/Unit/DTO/DTOTests.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/test/Unit/DTO/DTOTests.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dev/Backend/src/test/Unit/Image/ImageTests.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/test/Unit/Image/ImageTests.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dev/Backend/src/test/Utilities/Stubs/ExampleZimplProgram.zpl" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/test/Utilities/ZimplExamples/ExampleZimplProgram.zpl" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dev/Backend/src/test/Utilities/Stubs/ExampleZimplProgram.zplSOLUTION" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/test/Utilities/ZimplExamples/ExampleZimplSolution.zpl" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dev/Backend/src/test/Utilities/Stubs/ModelStub.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/test/Utilities/Stubs/ModelStub.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -37,7 +52,7 @@
   <component name="Git.Settings">
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
-        <entry key="$PROJECT_DIR$" value="main" />
+        <entry key="$PROJECT_DIR$" value="backend_skeleton-tests_impl" />
       </map>
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -94,75 +109,77 @@
 }</component>
   <component name="ProjectId" id="2rx4w9kzmiHcxB4jYumsEw3zk78" />
   <component name="ProjectViewState">
-    <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;HTTP Request.All in rest-api_2.executor&quot;: &quot;Run&quot;,
-    &quot;HTTP Request.rest-api_3 | #1.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.ServiceRequestsTests.GivenEmptyZimplFIle_WhenCreatingIMageFrom_CreateEmptyImage.executor&quot;: &quot;Debug&quot;,
-    &quot;JUnit.ServiceRequestsTests.GivenImageDTO_WhenConfigImage_ImageIsCorrect.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.ServiceRequestsTests.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.ServiceTest.GivenImageDTO_WhenConfigImage_ImageIsCorrect.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.ServiceTest.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.ServiceTest.testCreateImage.executor&quot;: &quot;Debug&quot;,
-    &quot;RequestMappingsPanelOrder0&quot;: &quot;0&quot;,
-    &quot;RequestMappingsPanelOrder1&quot;: &quot;1&quot;,
-    &quot;RequestMappingsPanelWidth0&quot;: &quot;75&quot;,
-    &quot;RequestMappingsPanelWidth1&quot;: &quot;75&quot;,
-    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;Spring Boot.Main.executor&quot;: &quot;Run&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;API-Impl&quot;,
-    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/Nadav/Documents/GitHub/Plan-A&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;project.structure.last.edited&quot;: &quot;Project&quot;,
-    &quot;project.structure.proportion&quot;: &quot;0.0&quot;,
-    &quot;project.structure.side.proportion&quot;: &quot;0.2&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;reference.settings.project.maven.repository.indices&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "HTTP Request.All in rest-api_2.executor": "Run",
+    "HTTP Request.rest-api_3 | #1.executor": "Run",
+    "JUnit.Acceptance in artifactid.executor": "Run",
+    "JUnit.DTOTests.GivenSolution_WhenCreatingSolutionDTO_StructureIsCorrect.executor": "Debug",
+    "JUnit.ServiceRequestsTests.GivenEmptyZimplFIle_WhenCreatingIMageFrom_CreateEmptyImage.executor": "Debug",
+    "JUnit.ServiceRequestsTests.GivenImageDTO_WhenConfigImage_ImageIsCorrect.executor": "Run",
+    "JUnit.ServiceRequestsTests.executor": "Run",
+    "JUnit.ServiceTest.GivenImageDTO_WhenConfigImage_ImageIsCorrect.executor": "Run",
+    "JUnit.ServiceTest.executor": "Run",
+    "JUnit.ServiceTest.testCreateImage.executor": "Debug",
+    "JUnit.test in artifactid.executor": "Run",
+    "RequestMappingsPanelOrder0": "0",
+    "RequestMappingsPanelOrder1": "1",
+    "RequestMappingsPanelWidth0": "75",
+    "RequestMappingsPanelWidth1": "75",
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "Spring Boot.Main.executor": "Run",
+    "git-widget-placeholder": "API-Impl",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "C:/Users/Nadav/Documents/GitHub/Plan-A",
+    "node.js.detected.package.eslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "project.structure.last.edited": "Project",
+    "project.structure.proportion": "0.0",
+    "project.structure.side.proportion": "0.2",
+    "settings.editor.selected.configurable": "reference.settings.project.maven.repository.indices",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
-  <component name="RunManager" selected="JUnit.ServiceTest.GivenImageDTO_WhenConfigImage_ImageIsCorrect">
-    <configuration name="ServiceRequestsTests" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+}]]></component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/dev/Backend/src/test/Utilities/Stubs/ZimplExamples" />
+    </key>
+  </component>
+  <component name="RunManager" selected="JUnit.DTOTests.GivenSolution_WhenCreatingSolutionDTO_StructureIsCorrect">
+    <configuration name="Acceptance in artifactid" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
       <module name="artifactid" />
-      <extension name="coverage">
-        <pattern>
-          <option name="PATTERN" value="Acceptance.*" />
-          <option name="ENABLED" value="true" />
-        </pattern>
-      </extension>
-      <option name="PACKAGE_NAME" value="Acceptance" />
-      <option name="MAIN_CLASS_NAME" value="Acceptance.ServiceRequestsTests" />
-      <option name="TEST_OBJECT" value="class" />
+      <option name="TEST_OBJECT" value="directory" />
+      <dir value="$PROJECT_DIR$/dev/Backend/src/test/Acceptance" />
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
     </configuration>
-    <configuration name="ServiceRequestsTests.GivenEmptyZimplFIle_WhenCreatingIMageFrom_CreateEmptyImage" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+    <configuration name="DTOTests.GivenSolution_WhenCreatingSolutionDTO_StructureIsCorrect" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
       <module name="artifactid" />
       <extension name="coverage">
         <pattern>
-          <option name="PATTERN" value="Acceptance.*" />
+          <option name="PATTERN" value="Unit.DTO.*" />
           <option name="ENABLED" value="true" />
         </pattern>
       </extension>
-      <option name="PACKAGE_NAME" value="Acceptance" />
-      <option name="MAIN_CLASS_NAME" value="Acceptance.ServiceRequestsTests" />
-      <option name="METHOD_NAME" value="GivenEmptyZimplFIle_WhenCreatingIMageFrom_CreateEmptyImage" />
+      <option name="PACKAGE_NAME" value="Unit.DTO" />
+      <option name="MAIN_CLASS_NAME" value="Unit.DTO.DTOTests" />
+      <option name="METHOD_NAME" value="GivenSolution_WhenCreatingSolutionDTO_StructureIsCorrect" />
       <option name="TEST_OBJECT" value="method" />
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
     </configuration>
-    <configuration name="ServiceRequestsTests.GivenImageDTO_WhenConfigImage_ImageIsCorrect" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+    <configuration name="ServiceTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
       <module name="artifactid" />
+      <projectPathOnTarget name="projectPathOnTarget" value="/app" />
+      <target name="@@@LOCAL@@@" />
       <extension name="coverage">
         <pattern>
           <option name="PATTERN" value="Acceptance.*" />
@@ -170,15 +187,17 @@
         </pattern>
       </extension>
       <option name="PACKAGE_NAME" value="Acceptance" />
-      <option name="MAIN_CLASS_NAME" value="Acceptance.ServiceRequestsTests" />
+      <option name="MAIN_CLASS_NAME" value="Acceptance.ServiceTest" />
       <option name="METHOD_NAME" value="GivenImageDTO_WhenConfigImage_ImageIsCorrect" />
-      <option name="TEST_OBJECT" value="method" />
+      <option name="TEST_OBJECT" value="class" />
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
     </configuration>
     <configuration name="ServiceTest.GivenImageDTO_WhenConfigImage_ImageIsCorrect" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
       <module name="artifactid" />
+      <projectPathOnTarget name="projectPathOnTarget" value="/app" />
+      <target name="@@@LOCAL@@@" />
       <extension name="coverage">
         <pattern>
           <option name="PATTERN" value="Acceptance.*" />
@@ -193,18 +212,10 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
-    <configuration name="ServiceTest.testCreateImage" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+    <configuration name="test in artifactid" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
       <module name="artifactid" />
-      <extension name="coverage">
-        <pattern>
-          <option name="PATTERN" value="Acceptance.*" />
-          <option name="ENABLED" value="true" />
-        </pattern>
-      </extension>
-      <option name="PACKAGE_NAME" value="Acceptance" />
-      <option name="MAIN_CLASS_NAME" value="Acceptance.ServiceTest" />
-      <option name="METHOD_NAME" value="testCreateImage" />
-      <option name="TEST_OBJECT" value="method" />
+      <option name="TEST_OBJECT" value="directory" />
+      <dir value="$PROJECT_DIR$/dev/Backend/src/test" />
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
@@ -220,20 +231,20 @@
       </method>
     </configuration>
     <list>
-      <item itemvalue="JUnit.ServiceRequestsTests.GivenImageDTO_WhenConfigImage_ImageIsCorrect" />
+      <item itemvalue="JUnit.Acceptance in artifactid" />
+      <item itemvalue="JUnit.DTOTests.GivenSolution_WhenCreatingSolutionDTO_StructureIsCorrect" />
+      <item itemvalue="JUnit.ServiceTest" />
+      <item itemvalue="JUnit.test in artifactid" />
       <item itemvalue="JUnit.ServiceTest.GivenImageDTO_WhenConfigImage_ImageIsCorrect" />
-      <item itemvalue="JUnit.ServiceTest.testCreateImage" />
-      <item itemvalue="JUnit.ServiceRequestsTests" />
-      <item itemvalue="JUnit.ServiceRequestsTests.GivenEmptyZimplFIle_WhenCreatingIMageFrom_CreateEmptyImage" />
       <item itemvalue="Spring Boot.Main" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="JUnit.DTOTests.GivenSolution_WhenCreatingSolutionDTO_StructureIsCorrect" />
+        <item itemvalue="JUnit.test in artifactid" />
+        <item itemvalue="JUnit.Acceptance in artifactid" />
+        <item itemvalue="JUnit.ServiceTest" />
         <item itemvalue="JUnit.ServiceTest.GivenImageDTO_WhenConfigImage_ImageIsCorrect" />
-        <item itemvalue="JUnit.ServiceRequestsTests.GivenImageDTO_WhenConfigImage_ImageIsCorrect" />
-        <item itemvalue="JUnit.ServiceRequestsTests.GivenEmptyZimplFIle_WhenCreatingIMageFrom_CreateEmptyImage" />
-        <item itemvalue="JUnit.ServiceTest.testCreateImage" />
-        <item itemvalue="JUnit.ServiceRequestsTests" />
       </list>
     </recent_temporary>
   </component>
@@ -301,20 +312,21 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="new branch" />
     <MESSAGE value="refactored Image" />
-    <option name="LAST_COMMIT_MESSAGE" value="refactored Image" />
+    <MESSAGE value="git ignore" />
+    <option name="LAST_COMMIT_MESSAGE" value="git ignore" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
       <breakpoints>
         <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/dev/Backend/src/test/Acceptance/ServiceTest.java</url>
-          <line>146</line>
-          <option name="timeStamp" value="31" />
+          <url>file://$PROJECT_DIR$/dev/Backend/src/test/Acceptance/ServiceRequestsTests.java</url>
+          <line>115</line>
+          <option name="timeStamp" value="36" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/dev/Backend/src/test/Acceptance/ServiceRequestsTests.java</url>
-          <line>114</line>
-          <option name="timeStamp" value="36" />
+          <url>file://$PROJECT_DIR$/dev/Backend/src/main/java/DTO/Factories/RecordFactory.java</url>
+          <line>32</line>
+          <option name="timeStamp" value="46" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="RemoteTargetsManager">
-    <option name="projectDefaultTargetUuid" value="ebd6022d-ad97-491a-a952-222f93629a7c" />
     <targets>
       <target name="plan-a-docker:plan-a2" type="docker" uuid="ebd6022d-ad97-491a-a952-222f93629a7c">
         <config>

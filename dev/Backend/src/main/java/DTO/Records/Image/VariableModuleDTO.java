@@ -1,12 +1,12 @@
 package DTO.Records.Image;
 
-import java.util.List;
+import java.util.Set;
 
 import DTO.Records.Model.ModelDefinition.VariableDTO;
 
-public record VariableModuleDTO(List<String> variablesOfInterest,
-                                List<String> variablesConfigurableSets,
-                                List<String> variablesConfigurableParams
+public record VariableModuleDTO(Set<String> variablesOfInterest,
+                                Set<String> variablesConfigurableSets,
+                                Set<String> variablesConfigurableParams
                                 ) {
     
 }

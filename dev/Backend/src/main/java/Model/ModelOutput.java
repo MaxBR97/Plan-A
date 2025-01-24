@@ -23,8 +23,9 @@ public abstract class ModelOutput extends ModelComponent {
      * Gets a copy of the dependencies list
      * @return List of ModelSet dependencies
      */
+    //TODO: Fixed temporarily (returned dependency, which was null sometimes- make a more robust fix)
     public List<ModelSet> getDependencies() {
-        return new ArrayList<>(dependency);
+        return new ArrayList<>(super.getSetDependencies());
     }
 
     /**

@@ -2,7 +2,6 @@ package Intergration.ImageToModelTests;
 
 import Model.Model;
 import Model.ModelInterface;
-import Utilities.Stubs.ModelStub;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.*;
 import org.mockito.Mock;
@@ -112,7 +111,7 @@ public class ConstraintModuleDTOTests {
         Solution solution= model.solve(1000);
         Set<String> vars= model.getVariables().stream().map(ModelVariable -> ModelVariable.getIdentifier()).collect(Collectors.toSet());
         try {
-            solution.ParseSolution(model,vars);
+            solution.parseSolution(model,vars);
         }
         catch (IOException e){
             fail(e.getMessage());

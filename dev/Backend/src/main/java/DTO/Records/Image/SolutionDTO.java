@@ -1,6 +1,7 @@
 package DTO.Records.Image;
 
 import java.util.HashMap;
+import java.util.Map;
 
 import DTO.Records.Model.ModelData.SolutionDetail;
 
@@ -17,4 +18,4 @@ import DTO.Records.Model.ModelData.SolutionDetail;
  */
 public record SolutionDTO(boolean solved, double solvingTime,
                           double objectiveValue,
-                          HashMap<String, SolutionVariable> solution) {}
+                          Map<String, SolutionVariable> solution) {}

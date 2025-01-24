@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.nio.file.*;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.springframework.http.*;
 
@@ -36,7 +37,7 @@ public class ServiceRequestsTests {
                     1;
             """;
     static Path tmpDirPath;
-    static String sourcePath = "src/test/Utilities/Stubs/ExampleZimplProgram.zpl";
+    static String sourcePath = "src/test/Utilities/ZimplExamples/ExampleZimplProgram.zpl";
     UserController userController;
     Service service;
     @BeforeAll
@@ -81,9 +82,9 @@ public class ServiceRequestsTests {
 
             CreateImageResponseDTO expected = new CreateImageResponseDTO(
                     "some id", new ModelDTO(
-                    List.of(new ConstraintDTO("sampleConstraint", new DependenciesDTO(List.of("mySet"), List.of("x")))),
-                    List.of(new PreferenceDTO("myObjective", new DependenciesDTO(List.of(), List.of()))),
-                    List.of(new VariableDTO("myVar", new DependenciesDTO(List.of("mySet"), List.of()))),
+                    Set.of(new ConstraintDTO("sampleConstraint", new DependenciesDTO(List.of("mySet"), List.of("x")))),
+                    Set.of(new PreferenceDTO("myObjective", new DependenciesDTO(List.of(), List.of()))),
+                    Set.of(new VariableDTO("myVar", new DependenciesDTO(List.of("mySet"), List.of()))),
                     Map.of(
                             "mySet", "INT",
                             "x", "INT"
@@ -98,13 +99,13 @@ public class ServiceRequestsTests {
             /**
              * TEST
              */
-            List<ConstraintModuleDTO> constraintModuleDTOs = List.of(
+            Set<ConstraintModuleDTO> constraintModuleDTOs = Set.of(
                     new ConstraintModuleDTO("Test module", "PeanutButter",
-                            List.of("sampleConstraint"), List.of("mySet"), List.of("x")));
-            List<PreferenceModuleDTO> preferenceModuleDTOs = List.of(
+                            Set.of("sampleConstraint"), Set.of("mySet"), Set.of("x")));
+            Set<PreferenceModuleDTO> preferenceModuleDTOs = Set.of(
                     new PreferenceModuleDTO("Test module", "PeanutButter",
-                            List.of("myObjective"), List.of(), List.of()));
-            VariableModuleDTO variableModuleDTO = new VariableModuleDTO(List.of("myVar"), List.of("mySet"), List.of());
+                            Set.of("myObjective"), Set.of(), Set.of()));
+            VariableModuleDTO variableModuleDTO = new VariableModuleDTO(Set.of("myVar"), Set.of("mySet"), Set.of());
             ImageDTO imageDTO = new ImageDTO(variableModuleDTO, constraintModuleDTOs, preferenceModuleDTOs);
             ImageConfigDTO configDTO= new ImageConfigDTO(response.getBody().imageId(),imageDTO);
             ResponseEntity<Void> response2= service.configureImage(configDTO);
