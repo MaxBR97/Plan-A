@@ -7,7 +7,7 @@ Dual Bound         : +1.18700000000000e+03
 Gap                : 0.00 %
 objective value:                                 1187
 Soldier_Shift#1$Shin Gimel#0                        1 	(obj:0)
-Soldier_Shift#1$Shin Gimel#12                       1 	(obj:0)
+Soldier_Shift#1$Shin Gimel#12                      1 	(obj:0)
 Soldier_Shift#2$Shin Gimel#8                        1 	(obj:0)
 Soldier_Shift#3$Shin Gimel#4                        1 	(obj:0)
 Soldier_Shift#3$Fillbox#20                          1 	(obj:0)

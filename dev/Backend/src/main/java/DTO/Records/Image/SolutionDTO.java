@@ -1,8 +1,6 @@
 package DTO.Records.Image;
 
 import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 import DTO.Records.Model.ModelData.SolutionDetail;
 
@@ -11,14 +9,12 @@ import DTO.Records.Model.ModelData.SolutionDetail;
  *                         for example for variable V of type set1 * set2 where set1= {1,2} and set2= {"a","b"}
  *                         an example for a solution is: V -> { [1,"a"], [2, "b"] } note: order matters!
  *                         Since from this point on this is only static data to be shown to the user, only Strings are in use
- * @param variableStructure structure of all visible variables, maps their name to a list of set names. note: order matters!
+ * @param variableSetStructure structure of all visible variables, maps their name to a list of set names. note: order matters!
+ * @param variablesTypeStructure
  * @param solvingTime time it took the engine to solve the problem
  * @param solved false if there is no solution for any reason (compilation/infeasibility),
  *              maps may hold trash/incomplete values in case of false.
- * @param objectiveValue   the actual numeric value of the expression that was optimized
  */
-public record SolutionDTO(
-    String isSolutionFound,
-    Map<String, List<SolutionDetail>> solution
-) {
-}
+public record SolutionDTO(boolean solved, double solvingTime,
+                          double objectiveValue,
+                          HashMap<String, SolutionVariable> solution) {}

@@ -20,6 +20,7 @@ public class Solution {
      */
     final HashMap<String, List<List<String>>> variableSolution;
     final HashMap<String, List<String>> variableStructure;
+    final HashMap<String, List<String>> variableTypes;
     double solvingTime;
     double objectiveValue; // the actual numeric value of the expression that was optimized
 
@@ -34,6 +35,7 @@ public class Solution {
         parsed = false;
         engineRunSuccess = true;
         engineMsg = "";
+        variableTypes = new HashMap<>();
     }
     public Solution(String solutionPath,String engineMsg,boolean engineRunSuccess) {
         this.solutionPath = solutionPath;
@@ -42,7 +44,13 @@ public class Solution {
         parsed = false;
         this.engineMsg = engineMsg;
         this.engineRunSuccess = engineRunSuccess;
+        variableTypes = new HashMap<>();
     }
+
+    public List<String> getVariableTypes(String identifier) {
+        return variableTypes.get(identifier);
+    }
+
     //Implement as lazy call or run during initialization?
     public void ParseSolution(ModelInterface model, Set<String> varsToParse) throws IOException {
         variables = model.getVariables();
@@ -50,10 +58,13 @@ public class Solution {
             if (varsToParse.contains(variable.getIdentifier())) {
                 variableSolution.put(variable.getIdentifier(), new ArrayList<>());
                 variableStructure.put(variable.getIdentifier(), new ArrayList<>());
+                variableTypes.put(variable.getIdentifier(), new ArrayList<>());
                 //below lines are not solution dependent but problem dependent, will be more efficient to maintain them inside the image
                 for (ModelSet modelSet : variable.getDependencies()) {
+                    variableTypes.get(variable.getIdentifier()).add(modelSet.getType().toString());
                     for (ModelInput.StructureBlock block : modelSet.getStructure()) {
                         variableStructure.get(variable.getIdentifier()).add(block.dependency.identifier);
+
                     }
                 }
             }

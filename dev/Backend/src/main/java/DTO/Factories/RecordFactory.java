@@ -21,16 +21,14 @@ public class RecordFactory {
 
     //TODO: need to reimplement this DTO according to our API!
     public static SolutionDTO makeDTO(Solution solution) {
-        if(solution == null)
-            throw new NullPointerException("Null solution in DTO mapping");
+        Objects.requireNonNull(solution,"Null Solution in DTO map");
         if(!solution.parsed())
             throw new RuntimeException("Solution must be parsed before attempting to convert to DTO.");
+    /*    HashMap<String, SolutionVariable> variables = new HashMap<>();
+         for(ModelVariable variable: solution.getVariables()){
+
+         }*/
         return null;
-        // Map<String,List<SolutionDetail>> solutionDetails = new HashMap<>();
-        // for( Map.Entry<String,List<List<String>>> entry: solution.getVariableSolution().entrySet()){
-        //     solutionDetails.put(entry.getKey(), makeDTO(entry.getValue()));
-        // }
-        // return new SolutionDTO(solution.isSolved(),null));
     }
 
     public static PreferenceDTO makeDTO(ModelPreference preference) {
