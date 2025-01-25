@@ -121,7 +121,8 @@ nExpr:	sign=('+'|'-')? uExpr ;
 
 /** unsigned (numerical) expression */
 uExpr
-	:	uExpr op=('*'|'/') uExpr
+	:	uExpr op='**' uExpr
+	|	uExpr op=('*'|'/') uExpr
 	|	uExpr op=('+'|'-') uExpr
 	|	basicExpr
 	;
