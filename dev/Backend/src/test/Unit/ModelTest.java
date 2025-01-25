@@ -29,8 +29,8 @@ import java.nio.file.Path;
 public class ModelTest {
     private ModelInterface model;
 
-    private static String source = "/Plan-A/dev/Backend/src/test/Unit/TestFile.zpl";
-    private static String TEST_FILE_PATH = "/Plan-A/dev/Backend/src/test/Unit/TestFileINSTANCE.zpl";
+    private static String source = "src/test/Unit/TestFile.zpl";
+    private static String TEST_FILE_PATH = "src/test/Unit/TestFileINSTANCE.zpl";
 
     private static String[][] expectedParameters = {{"Conditioner","10"}, {"soldiers", "9"}, {"absoluteMinimalRivuah", "8"}};
     @BeforeAll
@@ -164,7 +164,7 @@ public class ModelTest {
 
     @Test
     public void testSolve(){
-        model.solve(6);
+        model.solve(10);
         assertFalse(true); // test is not implemented yet because Solution class is not implemented yet
     }
     
@@ -221,6 +221,7 @@ public class ModelTest {
     public static void cleanUp() throws IOException {
        Path targetPath = Path.of(TEST_FILE_PATH);
        Files.deleteIfExists(targetPath);
+       Files.deleteIfExists(Path.of(targetPath.toString()+"SOLUTION"));
     }
 
 }

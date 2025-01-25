@@ -143,7 +143,7 @@ public class ServiceTest {
         ImageDTO imageDTO= new ImageDTO(variableModuleDTO,constraintModuleDTOs,preferenceModuleDTOs);
         ImageConfigDTO configDTO= new ImageConfigDTO(response.getBody().imageId(),imageDTO);
         HttpEntity<ImageConfigDTO> request2 = new HttpEntity<>(configDTO, headers);
-        // Send POST request with body
+        // Send PATCH request with body
         String url2 = "http://localhost:" + port + "/images";
         ResponseEntity<Void> response2 = restTemplate.exchange(
                 url2,
