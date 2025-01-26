@@ -120,6 +120,9 @@ public interface ModelInterface {
 
     Collection<ModelVariable> getVariables();
 
+    Collection<ModelVariable> getVariables(Collection<String> identifiers);
+
+
     public Collection<ModelSet> getSets();
 
     public Collection<ModelParameter> getParameters() ;

@@ -19,8 +19,8 @@ public class ConstraintModule extends Module{
         super(name, description);
         this.constraints = new HashMap<>();
     }
-    public ConstraintModule(String name, String description, Collection<ModelConstraint> constraints) {
-        super(name, description);
+    public ConstraintModule(String name, String description, Collection<ModelConstraint> constraints, Collection<String> inputSets, Collection<String> inputParams) {
+        super(name, description, inputSets, inputParams);
         this.constraints = new HashMap<>();
         for (ModelConstraint constraint : constraints) {
             this.constraints.put(constraint.getIdentifier(), constraint);

@@ -17,7 +17,6 @@ var edge[CxS] binary;
 var couples[CxSxS] binary;
 var varForTest1[CxS *{"A","a"} * S * {1 .. 5}];
 
-#vif edge[i,a,b] == 1 then sum <j,a1,a2,b1,b2> in CxSxS | i == j and (a==a1 and b==a2) : couples[j,a1,a2,b1,b2] == 1 end;
 
 subto trivial1:
     forall <j,a1,a2,b1,b2> in CxSxS | a1 != b1 or a2 != b2 : vif couples[j,a1,a2,b1,b2] == 1 then edge[j,a1,a2] == 1  end;
@@ -56,4 +55,4 @@ subto minimalRivuahCons:
 minimize rivuah: 
     ((maxShmirot-minShmirot)+conditioner)**3 -
     (minimalRivuah)**2 +
-    sum<i,a,b> in CxS: sum<m,n> in S | m != a or b!=n :(edge[i,a,b] * edge[i,m,n] * (b-n));
+    (sum <i,a,b> in CxS: sum<m,n> in S | m != a or b!=n :(edge[i,a,b] * edge[i,m,n] * (b-n)))*8;

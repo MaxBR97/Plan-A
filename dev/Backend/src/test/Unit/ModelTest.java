@@ -29,8 +29,8 @@ import java.nio.file.Path;
 public class ModelTest {
     private ModelInterface model;
 
-    private static String source = "/Plan-A/dev/Backend/src/test/Unit/TestFile.zpl";
-    private static String TEST_FILE_PATH = "/Plan-A/dev/Backend/src/test/Unit/TestFileINSTANCE.zpl";
+    private static String source = "src/test/Unit/TestFile.zpl";
+    private static String TEST_FILE_PATH = "src/test/Unit/TestFileINSTANCE.zpl";
 
     private static String[][] expectedParameters = {{"Conditioner","10"}, {"soldiers", "9"}, {"absoluteMinimalRivuah", "8"}};
     @BeforeAll
@@ -164,7 +164,7 @@ public class ModelTest {
 
     @Test
     public void testSolve(){
-        model.solve(6);
+        model.solve(10);
         assertFalse(true); // test is not implemented yet because Solution class is not implemented yet
     }
     
@@ -210,17 +210,19 @@ public class ModelTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"C","CxS","Zmanim","conditioner","soldiers","minShmirot","maxShmirot","minimalRivuah"})
+    @ValueSource(strings = {"C","CxS","Zmanim","conditioner","soldiers","minShmirot","maxShmirot","minimalRivuah","((maxShmirot-minShmirot)+conditioner)**3", "(minimalRivuah)**2", "(sum <i,a,b> in CxS: sum<m,n> in S | m != a or b!=n :(edge[i,a,b] * edge[i,m,n] * (b-n)))*8"})
     public void isParsed(String id){
+        id = id.replaceAll(" ", "");
         assertTrue(model.getSet(id) != null || model.getConstraint(id) != null || model.getParameter(id) != null || model.getPreference(id) != null || model.getVariable(id) != null);
     }
-    
+    //TODO:The parsing of preferences must be tested further!
 
 
     @AfterAll
     public static void cleanUp() throws IOException {
        Path targetPath = Path.of(TEST_FILE_PATH);
        Files.deleteIfExists(targetPath);
+       Files.deleteIfExists(Path.of(targetPath.toString()+"SOLUTION"));
     }
 
 }

@@ -1,5 +1,7 @@
 package Model;
 
+import org.yaml.snakeyaml.util.Tuple;
+
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
@@ -18,8 +20,9 @@ public class Solution {
     an example for a solution is: V -> { [1,"a"], [2, "b"] } note: order matters!
     Since from this point on this is only static data to be shown to the user, only Strings are in use
      */
-    final HashMap<String, List<List<String>>> variableSolution;
+    final HashMap<String, List<Tuple<List<String>, Integer>>> variableSolution;
     final HashMap<String, List<String>> variableStructure;
+    final HashMap<String, List<String>> variableTypes;
     double solvingTime;
     double objectiveValue; // the actual numeric value of the expression that was optimized
 
@@ -34,6 +37,7 @@ public class Solution {
         parsed = false;
         engineRunSuccess = true;
         engineMsg = "";
+        variableTypes = new HashMap<>();
     }
     public Solution(String solutionPath,String engineMsg,boolean engineRunSuccess) {
         this.solutionPath = solutionPath;
@@ -42,18 +46,27 @@ public class Solution {
         parsed = false;
         this.engineMsg = engineMsg;
         this.engineRunSuccess = engineRunSuccess;
+        variableTypes = new HashMap<>();
     }
+
+    public List<String> getVariableTypes(String identifier) {
+        return variableTypes.get(identifier);
+    }
+
     //Implement as lazy call or run during initialization?
-    public void ParseSolution(ModelInterface model, Set<String> varsToParse) throws IOException {
-        variables = model.getVariables();
+    public void parseSolution(ModelInterface model, Set<String> varsToParse) throws IOException {
+        variables = model.getVariables(varsToParse);
         for (ModelVariable variable : variables) {
             if (varsToParse.contains(variable.getIdentifier())) {
                 variableSolution.put(variable.getIdentifier(), new ArrayList<>());
                 variableStructure.put(variable.getIdentifier(), new ArrayList<>());
+                variableTypes.put(variable.getIdentifier(), new ArrayList<>());
                 //below lines are not solution dependent but problem dependent, will be more efficient to maintain them inside the image
-                for (ModelSet modelSet : variable.getDependencies()) {
+                for (ModelSet modelSet : variable.getSetDependencies()) {
+                    variableTypes.get(variable.getIdentifier()).add(modelSet.getType().toString());
                     for (ModelInput.StructureBlock block : modelSet.getStructure()) {
                         variableStructure.get(variable.getIdentifier()).add(block.dependency.identifier);
+
                     }
                 }
             }
@@ -103,7 +116,7 @@ public class Solution {
                     //A 0 objective value means the solution part has no effect on the actual max/min expression
                     List<String> variableValues = new ArrayList<>(Arrays.asList(values.split("[#&$]"))); //need a new array to remove dependence
                     variableValues.removeIf(String::isEmpty); // I hate this, but I hate regex even more. removes empty strings
-                    variableSolution.get(variableName).add(variableValues);
+                    variableSolution.get(variableName).add(new Tuple<>(variableValues,objectiveValue));
                 }
             }
         }
@@ -116,8 +129,12 @@ public class Solution {
         return solved;
     }
 
-    public HashMap<String, List<List<String>>> getVariableSolution() {
+    public HashMap<String, List<Tuple<List<String>, Integer>>> getVariableSolution() {
         return variableSolution;
+    }
+
+    public List<Tuple<List<String>, Integer>> getVariableSolution(String identifier) {
+        return variableSolution.get(identifier);
     }
 
     public HashMap<String, List<String>> getVariableStructure() {
@@ -134,5 +151,9 @@ public class Solution {
 
     public Collection<ModelVariable> getVariables() {
         return variables;
+    }
+
+    public List<String> getVariableStructure(String variableName) {
+        return variableStructure.get(variableName);
     }
 }

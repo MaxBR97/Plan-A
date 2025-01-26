@@ -15,6 +15,7 @@ import parser.FormulationParser.SetDefExprContext;
 import parser.FormulationParser.SetDescStackContext;
 import parser.FormulationParser.SetExprContext;
 import parser.FormulationParser.SetExprStackContext;
+import parser.FormulationParser.UExprContext;
 
 import java.io.*;
 import java.nio.file.*;
@@ -263,10 +264,21 @@ public class Model implements ModelInterface {
 
         @Override
         public Void visitObjective(FormulationParser.ObjectiveContext ctx) {
-            String preferenceName = extractName(ctx.name.getText());
-            TypeVisitor visitor = new TypeVisitor();
-            visitor.visit(ctx);
-            preferences.put(preferenceName, new ModelPreference(preferenceName,visitor.getBasicSets(),visitor.getBasicParams()));
+            List<UExprContext> components = findComponentContexts(ctx.nExpr());
+    
+            for (UExprContext expressionComponent : components) {
+                // Create a parse tree for the specific component
+                //ParseTree componentParseTree = parseComponentExpression(expressionComponent);
+                TypeVisitor visitor = new TypeVisitor();
+                visitor.visit(expressionComponent);
+                
+                preferences.put(expressionComponent.getText(), 
+                    new ModelPreference(expressionComponent.getText(), 
+                                        visitor.getBasicSets(), 
+                                        visitor.getBasicParams())
+                );
+            }
+            
             return super.visitObjective(ctx);
         }
         
@@ -282,6 +294,85 @@ public class Model implements ModelInterface {
             // Handle indexed sets by taking the base name
             int bracketIndex = sqRef.indexOf('[');
             return bracketIndex == -1 ? sqRef : sqRef.substring(0, bracketIndex);
+        }
+        
+        private List<FormulationParser.UExprContext> findComponentContexts(FormulationParser.NExprContext ctx) {
+            List<FormulationParser.UExprContext> components = new ArrayList<>();
+            findComponentContextsRecursive(ctx.uExpr(), components);
+            return components;
+        }
+        
+        private void findComponentContextsRecursive(FormulationParser.UExprContext ctx, List<FormulationParser.UExprContext> components) {
+            if(ctx == null)
+                return;
+            // if(ctx.basicExpr() != null){
+            //     components.add(ctx);
+            //     return;
+            // }
+            // findComponentContextsRecursive(ctx.uExpr(0), components);
+            // findComponentContextsRecursive(ctx.uExpr(1), components);
+            if (components.size() == 0 && ctx.uExpr() != null && ctx.uExpr(1) != null) {
+                String a = ctx.uExpr(1).getText();
+                components.add(ctx.uExpr(1));
+            } else if (components.size() == 0){
+                components.add(ctx);
+            }
+            String b = ctx.getText();
+            if (ctx.uExpr(0) != null && ctx.uExpr(0).uExpr(1) != null) {
+                String c = ctx.uExpr(0).uExpr(1).getText();
+                if(ctx.uExpr(0).uExpr(0).basicExpr() != null){
+                    components.add(ctx.uExpr(0));    
+                    return;
+                }
+                else
+                    components.add(ctx.uExpr(0).uExpr(1));
+            } else if(ctx.uExpr(0) != null){
+                components.add(ctx.uExpr(0));
+            } else {
+                components.add(ctx);
+            }
+            
+            findComponentContextsRecursive(ctx.uExpr(0), components);
+        }
+        @Deprecated
+        private ParseTree parseComponentExpression(String component) {
+            
+            CharStream input = CharStreams.fromString(component);
+            FormulationLexer lexer = new FormulationLexer(input);
+            CommonTokenStream tokens = new CommonTokenStream(lexer);
+            FormulationParser parser = new FormulationParser(tokens);
+            
+            // Parse as a numerical expression
+            return parser.nExpr().uExpr();
+        }
+        @Deprecated
+        private List<String> splitExpression(String expr) {
+            List<String> components = new ArrayList<>();
+            int parenthesesLevel = 0;
+            StringBuilder currentComponent = new StringBuilder();
+            
+            for (char c : expr.toCharArray()) {
+                if (c == '(') {
+                    parenthesesLevel++;
+                } else if (c == ')') {
+                    parenthesesLevel--;
+                }
+                
+                if ((c == '+' || c == '-') && parenthesesLevel == 0) {
+                    if (currentComponent.length() > 0) {
+                        components.add(currentComponent.toString().trim());
+                        currentComponent = new StringBuilder();
+                    }
+                }
+                
+                currentComponent.append(c);
+            }
+            
+            if (currentComponent.length() > 0) {
+                components.add(currentComponent.toString().trim());
+            }
+            
+            return components;
         }
         
         private java.util.List<String> parseSetElements(FormulationParser.SetExprContext ctx) {
@@ -989,7 +1080,14 @@ public class Model implements ModelInterface {
     public Collection<ModelParameter> getParameters(){
         return this.params.values();
     }
+    @Override
+    public Collection<ModelVariable> getVariables(Collection<String> identifiers){
+        HashSet<ModelVariable> set = new HashSet<>();
+        for (String identifier : identifiers) {
+            set.add(getVariable(identifier));
+        }
+        return set;
+    }
 
-    
 
 }
