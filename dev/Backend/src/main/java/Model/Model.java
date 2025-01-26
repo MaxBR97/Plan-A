@@ -124,7 +124,7 @@ public class Model implements ModelInterface {
             parseSource();
         }
     }
-   
+    //TODO: make toggling (commenting out) work for preferences too!
     public void toggleFunctionality(ModelFunctionality mf, boolean turnOn) {
         if (!turnOn) {
             toggledOffFunctionalities.add(mf.getIdentifier());
@@ -286,7 +286,8 @@ public class Model implements ModelInterface {
             String varName = extractName(ctx.sqRef().getText());
             TypeVisitor visitor = new TypeVisitor();
             visitor.visit(ctx);
-            variables.put(varName, new ModelVariable(varName, visitor.getBasicSets(), visitor.getBasicParams()));
+            boolean isComplex = true;
+            variables.put(varName, new ModelVariable(varName, visitor.getBasicSets(), visitor.getBasicParams(),isComplex));
             return super.visitVariable(ctx);
         }
 

@@ -131,6 +131,9 @@ public class TypesAndDependencyTests {
         primitives.put("Zmanim",true);
         primitives.put("conditioner",true);
         primitives.put("soldiers",true);
+        primitives.put("setWithRange",false);
+        primitives.put("Emdot",true);
+        primitives.put("S",false);
         
     }
 

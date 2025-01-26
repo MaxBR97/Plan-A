@@ -15,21 +15,15 @@ public abstract class ModelOutput extends ModelComponent {
 
     public ModelOutput(String ident, List<ModelSet> dep, List<ModelParameter> paramDep) {
         super(ident,dep,paramDep);
+        isComplex = false;
     }
+
 
     /**
      * @return true if this ModelOutput is complex, false otherwise
      */
     public boolean isComplex() {
         return isComplex;
-    }
-
-    /**
-     * Sets the complex flag
-     * @param complex the new complex value
-     */
-    public void setComplex(boolean complex) {
-        this.isComplex = complex;
     }
 
     public StructureBlock[] getStructure(){
