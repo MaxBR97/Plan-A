@@ -165,7 +165,7 @@ public class ModelTest {
     @Test
     public void testSolve(){
         model.solve(10);
-        assertFalse(true); // test is not implemented yet because Solution class is not implemented yet
+        assertFalse(true);
     }
     
     // Collection Getter Tests

@@ -287,6 +287,9 @@ public class Model implements ModelInterface {
             TypeVisitor visitor = new TypeVisitor();
             visitor.visit(ctx);
             boolean isComplex = true;
+            if(ctx.sqRef() instanceof FormulationParser.SqRefCsvContext){
+                isComplex = ((FormulationParser.SqRefCsvContext)(ctx.sqRef())).csv() == null ? false : true;
+            }
             variables.put(varName, new ModelVariable(varName, visitor.getBasicSets(), visitor.getBasicParams(),isComplex));
             return super.visitVariable(ctx);
         }

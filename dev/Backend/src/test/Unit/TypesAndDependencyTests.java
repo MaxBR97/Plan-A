@@ -50,6 +50,7 @@ public class TypesAndDependencyTests {
     private static HashMap<String,String[]> secondDegreeSetDependencies =  new HashMap<String,String[]>();
     private static HashMap<String,String[]> secondDegreeParamDependencies =  new HashMap<String,String[]>();
     private static HashMap<String,Boolean> primitives = new HashMap<>();
+    private static HashMap<String,Boolean> isComplexVariable = new HashMap<>();
     
     @BeforeAll
     public static void setUpFile() throws IOException {
@@ -123,8 +124,12 @@ public class TypesAndDependencyTests {
         immidiateSetDependencies.put("Kol_Haemdot_Meshubatsot_Hayal_Ehad", new String[]{"S","CxS"});
         immidiateParamDependencies.put("Kol_Haemdot_Meshubatsot_Hayal_Ehad", new String[]{});
 
-        immidiateSetDependencies.put("rivuah", new String[]{"CxS","S"});
-        immidiateParamDependencies.put("rivuah", new String[]{"conditioner"});
+        immidiateSetDependencies.put("((maxShmirot-minShmirot)+conditioner)**3", new String[]{});
+        immidiateParamDependencies.put("((maxShmirot-minShmirot)+conditioner)**3", new String[]{"conditioner"});
+        immidiateSetDependencies.put("(minimalRivuah)**2", new String[]{});
+        immidiateParamDependencies.put("(minimalRivuah)**2", new String[]{});
+        immidiateSetDependencies.put("(sum <i,a,b> in CxS: sum<m,n> in S | m != a or b!=n :(edge[i,a,b] * edge[i,m,n] * (b-n)))*8", new String[]{"CxS","S"});
+        immidiateParamDependencies.put("(sum <i,a,b> in CxS: sum<m,n> in S | m != a or b!=n :(edge[i,a,b] * edge[i,m,n] * (b-n)))*8", new String[]{});
 
         primitives.put("C",false);
         primitives.put("CxS",false);
@@ -134,13 +139,19 @@ public class TypesAndDependencyTests {
         primitives.put("setWithRange",false);
         primitives.put("Emdot",true);
         primitives.put("S",false);
-        
+
+        isComplexVariable.put("edge",true);
+        isComplexVariable.put("minShmirot",false);
+        isComplexVariable.put("minimalRivuah",false);
+        isComplexVariable.put("varForTest1",true); 
     }
 
     @BeforeEach
     public void setUp() throws IOException {
         model = new Model(TEST_FILE_PATH);
     }
+
+
 
     @ParameterizedTest
     @ValueSource(strings = {"C","CxS","Zmanim","conditioner","soldiers"})
@@ -172,9 +183,17 @@ public class TypesAndDependencyTests {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"rivuah"})
+    @ValueSource(strings = {"edge", "minShmirot","varForTest1","minimalRivuah"})
+    public void testIsComplexVariable(String id) {
+        ModelVariable var = model.getVariable(id);
+        assertNotNull(var);
+        assertEquals(var.isComplex(), isComplexVariable.get(id));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"((maxShmirot-minShmirot)+conditioner)**3" ,"(minimalRivuah)**2","(sum <i,a,b> in CxS: sum<m,n> in S | m != a or b!=n :(edge[i,a,b] * edge[i,m,n] * (b-n)))*8"})
     public void testPreferencesDependencies(String id){
-        ModelPreference mp = model.getPreference(id);
+        ModelPreference mp = model.getPreference(id.replaceAll(" ", ""));
         assertNotNull(mp);
         assertEquals(mp.getSetDependencies().size(), immidiateSetDependencies.get(id).length);
         for(String setId : immidiateSetDependencies.get(id)){
