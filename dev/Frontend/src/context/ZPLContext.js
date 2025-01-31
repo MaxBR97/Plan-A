@@ -8,6 +8,7 @@ export const ZPLProvider = ({ children }) => {
     const [constraints, setConstraints] = useState({});
     const [preferences, setPreferences] = useState({});
     const [types, setTypes] = useState({});
+    const [modules, setModules] = useState([]);
 
     return (
         <ZPLContext.Provider value={{ 
@@ -15,7 +16,8 @@ export const ZPLProvider = ({ children }) => {
             variables, setVariables, 
             constraints, setConstraints, 
             preferences, setPreferences, 
-            types, setTypes 
+            types, setTypes,
+            modules, setModules
         }}>
             {children}
         </ZPLContext.Provider>
