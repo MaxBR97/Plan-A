@@ -1,138 +1,94 @@
 /* SolutionPreviewPage.css */
 
-/* Center the entire page content */
 .solution-preview-page {
     display: flex;
     flex-direction: column;
     align-items: center;
     padding: 20px;
+    background-color: #f4f4f4;
+    min-height: 100vh;
 }
 
 .page-title {
-    font-size: 36px;
+    font-size: 28px;
     font-weight: bold;
-    margin-bottom: 30px;
-    text-align: center;
+    margin-bottom: 20px;
 }
 
-/* Layout for the main section (flexbox) */
-.main-section {
+.modules-container {
     display: flex;
-    justify-content: space-between;
-    width: 100%;
-    max-width: 1200px;
+    flex-wrap: wrap;
+    justify-content: center;
     gap: 20px;
-}
-
-/* Left Section Styling */
-.left-section {
-    flex: 1;
-    border: 1px solid #ccc;
-    border-radius: 10px;
-    padding: 20px;
-    background-color: #f9f9f9;
-}
-
-/* Right Section Styling */
-.right-section {
-    flex: 1;
-    border: 1px solid #ccc;
-    border-radius: 10px;
-    padding: 20px;
-    background-color: #f9f9f9;
-}
-
-/* Shifts Table Section */
-.shifts-section {
     width: 100%;
     max-width: 1200px;
-    margin-top: 20px;
 }
 
-.shifts-table {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-.shifts-table th,
-.shifts-table td {
-    border: 1px solid #ccc;
-    padding: 10px;
-    text-align: center;
-}
-
-.shifts-table th {
-    background-color: #f0f0f0;
-    font-weight: bold;
-}
-
-/* Salaries Table Section */
-.salaries-section {
-    width: 100%;
-    max-width: 600px;
-    margin-top: 20px;
-    border: 1px solid #ccc;
-    border-radius: 10px;
+.module-section {
+    width: 45%;
+    background: white;
     padding: 20px;
-    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-.salaries-table {
-    width: 100%;
-    border-collapse: collapse;
+.module-box {
+    background: #C4F4C7; /* Updated to the requested color */
+    padding: 15px;
+    border: 2px solid #007BFF;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    transition: transform 0.2s ease-in-out;
 }
 
-.salaries-table th,
-.salaries-table td {
-    border: 1px solid #ccc;
-    padding: 10px;
-    text-align: center;
+.module-box:hover {
+    transform: scale(1.02);
 }
 
-.salaries-table th {
-    background-color: #f0f0f0;
+.module-title {
+    font-size: 20px;
+    font-weight: bold;
+    color: #007BFF;
+    margin-bottom: 8px;
+}
+
+.module-subtitle {
+    font-size: 16px;
+    font-weight: bold;
+    margin-top: 10px;
+}
+
+.module-list {
+    list-style: none;
+    padding-left: 0;
+}
+
+.module-item {
+    background: #C4F4C7; /* Updated constraints & preferences color */
+    padding: 8px;
+    margin: 5px 0;
+    border-radius: 5px;
     font-weight: bold;
 }
 
-/* Action Buttons */
-.action-buttons {
-    display: flex;
-    justify-content: space-between;
-    width: 100%;
-    max-width: 600px;
-    margin-top: 20px;
+.empty-message {
+    font-style: italic;
+    color: #777;
 }
 
-.create-image-button,
-.solve-button {
-    padding: 10px 20px;
-    font-size: 16px;
-    border: 1px solid #ccc;
-    border-radius: 10px;
-    background-color: #ffffff;
-    cursor: pointer;
-    transition: background-color 0.3s;
-}
-
-.create-image-button:hover,
-.solve-button:hover {
-    background-color: #e0e0e0;
-}
-
-/* Back Button Styling */
 .back-button {
     margin-top: 20px;
     padding: 10px 20px;
-    font-size: 14px;
+    font-size: 16px;
+    background-color: #007BFF;
+    color: white;
+    border: none;
+    border-radius: 5px;
     text-decoration: none;
-    color: #000;
-    border: 1px solid #ccc;
-    border-radius: 10px;
-    background-color: #ffffff;
     cursor: pointer;
     transition: background-color 0.3s;
 }
 
 .back-button:hover {
-    background-color: #e0e0e0;
+    background-color: #0056b3;
 }
