@@ -80,7 +80,7 @@ public class ServiceTest {
         CreateImageResponseDTO expected = new CreateImageResponseDTO(
             "some id", new ModelDTO(
               Set.of(new ConstraintDTO("sampleConstraint", new DependenciesDTO(List.of("mySet"),List.of("x")))),
-                Set.of(new PreferenceDTO("myObjective", new DependenciesDTO(List.of(),List.of()))),
+                Set.of(new PreferenceDTO("1", new DependenciesDTO(List.of(),List.of()))),
                 Set.of(new VariableDTO("myVar", new DependenciesDTO(List.of("mySet"),List.of()))),
               Map.of(
                 "mySet","INT",
@@ -117,7 +117,7 @@ public class ServiceTest {
         CreateImageResponseDTO expected = new CreateImageResponseDTO(
                 "some id", new ModelDTO(
                 Set.of(new ConstraintDTO("sampleConstraint", new DependenciesDTO(List.of("mySet"),List.of("x")))),
-                Set.of(new PreferenceDTO("myObjective", new DependenciesDTO(List.of(),List.of()))),
+                Set.of(new PreferenceDTO("1", new DependenciesDTO(List.of(),List.of()))),
                 Set.of(new VariableDTO("myVar", new DependenciesDTO(List.of("mySet"),List.of()))),
                 Map.of(
                         "mySet","INT",
@@ -138,7 +138,7 @@ public class ServiceTest {
                         Set.of("sampleConstraint"),Set.of("mySet"),Set.of("x")));
         Set<PreferenceModuleDTO> preferenceModuleDTOs=Set.of(
                 new PreferenceModuleDTO("Test module","PeanutButter",
-                        Set.of("myObjective"),Set.of(),Set.of()));
+                        Set.of("1"),Set.of(),Set.of()));
         VariableModuleDTO variableModuleDTO= new VariableModuleDTO(Set.of("myVar"),Set.of("mySet"),Set.of());
         ImageDTO imageDTO= new ImageDTO(variableModuleDTO,constraintModuleDTOs,preferenceModuleDTOs);
         ImageConfigDTO configDTO= new ImageConfigDTO(response.getBody().imageId(),imageDTO);
