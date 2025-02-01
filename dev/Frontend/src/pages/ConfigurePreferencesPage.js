@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useZPL } from '../context/ZPLContext';
-import './ConfigurePreferencesPage.css';
+import './ConfigureConstraintsPage.css';
 
 const ConfigurePreferencesPage = () => {
     const navigate = useNavigate();
@@ -19,7 +19,7 @@ const ConfigurePreferencesPage = () => {
         setAvailablePreferences(jsonPreferences);
     }, [jsonPreferences]);
 
-    // Add a new module with involvedSets & involvedParams fields
+    // Add a new module
     const addPreferenceModule = () => {
         if (moduleName.trim() !== '') {
             setPreferenceModules((prevModules) => [
@@ -30,7 +30,7 @@ const ConfigurePreferencesPage = () => {
         }
     };
 
-    // Add preference to selected module and update involvedSets & involvedParams
+    // Add preference to selected module
     const addPreferenceToModule = (preference) => {
         if (selectedModuleIndex === null) {
             alert('Please select a module first!');
@@ -41,13 +41,12 @@ const ConfigurePreferencesPage = () => {
             if (!prevModules) return [];
             return prevModules.map((module, idx) => {
                 if (idx === selectedModuleIndex) {
-                    // Avoid duplicates
                     if (!module.preferences.some(p => p.identifier === preference.identifier)) {
                         return {
                             ...module,
                             preferences: [...module.preferences, preference],
-                            involvedSets: Array.from(new Set([...module.involvedSets, ...preference.setDependencies])),
-                            involvedParams: Array.from(new Set([...module.involvedParams, ...preference.paramDependencies]))
+                            involvedSets: [...new Set([...module.involvedSets, ...(preference.dep?.setDependencies || [])])],
+                            involvedParams: [...new Set([...module.involvedParams, ...(preference.dep?.paramDependencies || [])])]
                         };
                     }
                 }
@@ -62,12 +61,12 @@ const ConfigurePreferencesPage = () => {
     };
 
     return (
-        <div className="configure-preferences-page">
+        <div className="configure-constraints-page">
             <h1 className="page-title">Configure High-Level Preferences</h1>
 
-            <div className="preferences-layout">
+            <div className="constraints-layout">
                 {/* Preference Modules Section */}
-                <div className="preference-modules">
+                <div className="constraint-modules">
                     <h2>Preference Modules</h2>
                     <input
                         type="text"
@@ -89,7 +88,7 @@ const ConfigurePreferencesPage = () => {
                 </div>
 
                 {/* Define Preference Module Section */}
-                <div className="define-preference-module">
+                <div className="define-constraint-module">
                     <h2>Define Preference Module</h2>
                     {selectedModuleIndex === null ? (
                         <p>Select a module</p>
@@ -100,7 +99,7 @@ const ConfigurePreferencesPage = () => {
                             <div className="module-drop-area">
                                 {preferenceModules[selectedModuleIndex]?.preferences?.length > 0 ? (
                                     preferenceModules[selectedModuleIndex].preferences.map((p, i) => (
-                                        <div key={i} className="dropped-preference">
+                                        <div key={i} className="dropped-constraint">
                                             {p.identifier}
                                         </div>
                                     ))
@@ -108,15 +107,15 @@ const ConfigurePreferencesPage = () => {
                                     <p>No preferences added</p>
                                 )}
                             </div>
-                            <h4>Involved Sets:</h4>
+                            <h3>Involved Sets</h3>
                             <ul>
-                                {preferenceModules[selectedModuleIndex]?.involvedSets?.map((set, i) => (
+                                {preferenceModules[selectedModuleIndex]?.involvedSets.map((set, i) => (
                                     <li key={i}>{set}</li>
                                 ))}
                             </ul>
-                            <h4>Involved Params:</h4>
+                            <h3>Involved Parameters</h3>
                             <ul>
-                                {preferenceModules[selectedModuleIndex]?.involvedParams?.map((param, i) => (
+                                {preferenceModules[selectedModuleIndex]?.involvedParams.map((param, i) => (
                                     <li key={i}>{param}</li>
                                 ))}
                             </ul>
@@ -125,11 +124,11 @@ const ConfigurePreferencesPage = () => {
                 </div>
 
                 {/* Available Preferences Section */}
-                <div className="available-preferences">
+                <div className="available-constraints">
                     <h2>Available Preferences</h2>
                     {availablePreferences.length > 0 ? (
                         availablePreferences.map((preference, idx) => (
-                            <div key={idx} className="preference-item">
+                            <div key={idx} className="constraint-item">
                                 <span>{preference.identifier}</span>
                                 <button onClick={() => addPreferenceToModule(preference)}>
                                     Add
