@@ -167,7 +167,7 @@ const ConfigurePreferencesPage = () => {
                 Continue
             </button>
 
-            <Link to="/configure-constraints" className="back-button">
+            <Link to="/" className="back-button">
                 Back
             </Link>
         </div>
