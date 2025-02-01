@@ -24,10 +24,19 @@ const ConfigureConstraintsPage = () => {
         if (moduleName.trim() !== '') {
             setModules((prevModules) => [
                 ...prevModules,
-                { name: moduleName, constraints: [], involvedSets: [], involvedParams: [] }
+                { name: moduleName, description: "", constraints: [], involvedSets: [], involvedParams: [] }
             ]);
             setModuleName('');
         }
+    };
+
+    // Update module description
+    const updateModuleDescription = (newDescription) => {
+        setModules((prevModules) =>
+            prevModules.map((module, idx) =>
+                idx === selectedModuleIndex ? { ...module, description: newDescription } : module
+            )
+        );
     };
 
     // Add constraint to selected module
@@ -75,16 +84,18 @@ const ConfigureConstraintsPage = () => {
                         onChange={(e) => setModuleName(e.target.value)}
                     />
                     <button onClick={addConstraintModule}>Add Constraint Module</button>
-                    <ul>
+                    <div className="module-list">
                         {modules.map((module, index) => (
-                            <li key={index}>
-                                {module.name}
-                                <button onClick={() => setSelectedModuleIndex(index)}>
-                                    Select
+                            <div key={index} className="module-item-container">
+                                <button 
+                                    className={`module-item ${selectedModuleIndex === index ? 'selected' : ''}`} 
+                                    onClick={() => setSelectedModuleIndex(index)}
+                                >
+                                    {module.name}
                                 </button>
-                            </li>
+                            </div>
                         ))}
-                    </ul>
+                    </div>
                 </div>
 
                 {/* Define Constraint Module Section */}
@@ -95,7 +106,16 @@ const ConfigureConstraintsPage = () => {
                     ) : (
                         <>
                             <h3>{modules[selectedModuleIndex]?.name || 'Unnamed Module'}</h3>
+                            <label>Description:</label>
+                            <hr />
+                            <textarea
+                                value={modules[selectedModuleIndex]?.description || ""}
+                                onChange={(e) => updateModuleDescription(e.target.value)}
+                                placeholder="Enter module description..."
+                                style={{ resize: "none", width: "100%", height: "80px" }}
+                            />
                             <p>This module's constraints:</p>
+                            <hr />
                             <div className="module-drop-area">
                                 {modules[selectedModuleIndex]?.constraints?.length > 0 ? (
                                     modules[selectedModuleIndex].constraints.map((c, i) => (
@@ -128,10 +148,9 @@ const ConfigureConstraintsPage = () => {
                     <h2>Available Constraints</h2>
                     {availableConstraints.length > 0 ? (
                         availableConstraints.map((constraint, idx) => (
-                            <div key={idx} className="constraint-item">
-                                <span>{constraint.identifier}</span>
-                                <button onClick={() => addConstraintToModule(constraint)}>
-                                    Add
+                            <div key={idx} className="constraint-item-container">
+                                <button className="constraint-item" onClick={() => addConstraintToModule(constraint)}>
+                                    {constraint.identifier}
                                 </button>
                             </div>
                         ))
