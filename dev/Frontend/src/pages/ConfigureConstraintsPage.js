@@ -7,8 +7,7 @@ const ConfigureConstraintsPage = () => {
     const navigate = useNavigate();
 
     // Fetch constraints & modules from ZPL context
-    const { constraints: jsonConstraints, modules, setModules } = useZPL();
-
+    const { constraints: jsonConstraints = [], modules = [], setModules = () => {} } = useZPL();
 
     // Local states
     const [availableConstraints, setAvailableConstraints] = useState([]);
@@ -25,7 +24,7 @@ const ConfigureConstraintsPage = () => {
         if (moduleName.trim() !== '') {
             setModules((prevModules) => [
                 ...prevModules,
-                { name: moduleName, constraints: [] }
+                { name: moduleName, constraints: [], involvedSets: [], involvedParams: [] }
             ]);
             setModuleName('');
         }
@@ -39,13 +38,15 @@ const ConfigureConstraintsPage = () => {
         }
 
         setModules((prevModules) => {
+            if (!prevModules) return [];
             return prevModules.map((module, idx) => {
                 if (idx === selectedModuleIndex) {
-                    // Avoid duplicates
                     if (!module.constraints.some(c => c.identifier === constraint.identifier)) {
                         return {
                             ...module,
-                            constraints: [...module.constraints, constraint]
+                            constraints: [...module.constraints, constraint],
+                            involvedSets: [...new Set([...module.involvedSets, ...(constraint.dep?.setDependencies || [])])],
+                            involvedParams: [...new Set([...module.involvedParams, ...(constraint.dep?.paramDependencies || [])])]
                         };
                     }
                 }
@@ -93,10 +94,10 @@ const ConfigureConstraintsPage = () => {
                         <p>Select a module</p>
                     ) : (
                         <>
-                            <h3>{modules[selectedModuleIndex].name}</h3>
+                            <h3>{modules[selectedModuleIndex]?.name || 'Unnamed Module'}</h3>
                             <p>This module's constraints:</p>
                             <div className="module-drop-area">
-                                {modules[selectedModuleIndex].constraints.length > 0 ? (
+                                {modules[selectedModuleIndex]?.constraints?.length > 0 ? (
                                     modules[selectedModuleIndex].constraints.map((c, i) => (
                                         <div key={i} className="dropped-constraint">
                                             {c.identifier}
@@ -106,6 +107,18 @@ const ConfigureConstraintsPage = () => {
                                     <p>No constraints added</p>
                                 )}
                             </div>
+                            <h3>Involved Sets</h3>
+                            <ul>
+                                {modules[selectedModuleIndex]?.involvedSets.map((set, i) => (
+                                    <li key={i}>{set}</li>
+                                ))}
+                            </ul>
+                            <h3>Involved Parameters</h3>
+                            <ul>
+                                {modules[selectedModuleIndex]?.involvedParams.map((param, i) => (
+                                    <li key={i}>{param}</li>
+                                ))}
+                            </ul>
                         </>
                     )}
                 </div>
@@ -130,7 +143,7 @@ const ConfigureConstraintsPage = () => {
 
             <button
                 className="continue-button"
-                onClick={() => navigate('/configure-preferences')}
+                onClick={() => navigate('/solution-preview')}
             >
                 Continue
             </button>
