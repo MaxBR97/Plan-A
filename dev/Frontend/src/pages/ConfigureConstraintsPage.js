@@ -162,7 +162,7 @@ const ConfigureConstraintsPage = () => {
 
             <button
                 className="continue-button"
-                onClick={() => navigate('/solution-preview')}
+                onClick={() => navigate('/configure-preferences')}
             >
                 Continue
             </button>

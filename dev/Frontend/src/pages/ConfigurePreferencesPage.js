@@ -24,10 +24,19 @@ const ConfigurePreferencesPage = () => {
         if (moduleName.trim() !== '') {
             setPreferenceModules((prevModules) => [
                 ...prevModules,
-                { name: moduleName, preferences: [], involvedSets: [], involvedParams: [] }
+                { name: moduleName, description: "", preferences: [], involvedSets: [], involvedParams: [] }
             ]);
             setModuleName('');
         }
+    };
+
+    // Update module description
+    const updateModuleDescription = (newDescription) => {
+        setPreferenceModules((prevModules) =>
+            prevModules.map((module, idx) =>
+                idx === selectedModuleIndex ? { ...module, description: newDescription } : module
+            )
+        );
     };
 
     // Add preference to selected module
@@ -75,16 +84,18 @@ const ConfigurePreferencesPage = () => {
                         onChange={(e) => setModuleName(e.target.value)}
                     />
                     <button onClick={addPreferenceModule}>Add Preference Module</button>
-                    <ul>
+                    <div className="module-list">
                         {preferenceModules.map((module, index) => (
-                            <li key={index}>
-                                {module.name}
-                                <button onClick={() => setSelectedModuleIndex(index)}>
-                                    Select
+                            <div key={index} className="module-item-container">
+                                <button 
+                                    className={`module-item ${selectedModuleIndex === index ? 'selected' : ''}`} 
+                                    onClick={() => setSelectedModuleIndex(index)}
+                                >
+                                    {module.name}
                                 </button>
-                            </li>
+                            </div>
                         ))}
-                    </ul>
+                    </div>
                 </div>
 
                 {/* Define Preference Module Section */}
@@ -95,7 +106,16 @@ const ConfigurePreferencesPage = () => {
                     ) : (
                         <>
                             <h3>{preferenceModules[selectedModuleIndex]?.name || 'Unnamed Module'}</h3>
+                            <label>Description:</label>
+                            <hr />
+                            <textarea
+                                value={preferenceModules[selectedModuleIndex]?.description || ""}
+                                onChange={(e) => updateModuleDescription(e.target.value)}
+                                placeholder="Enter module description..."
+                                style={{ resize: "none", width: "100%", height: "80px" }}
+                            />
                             <p>This module's preferences:</p>
+                            <hr />
                             <div className="module-drop-area">
                                 {preferenceModules[selectedModuleIndex]?.preferences?.length > 0 ? (
                                     preferenceModules[selectedModuleIndex].preferences.map((p, i) => (
@@ -128,10 +148,9 @@ const ConfigurePreferencesPage = () => {
                     <h2>Available Preferences</h2>
                     {availablePreferences.length > 0 ? (
                         availablePreferences.map((preference, idx) => (
-                            <div key={idx} className="constraint-item">
-                                <span>{preference.identifier}</span>
-                                <button onClick={() => addPreferenceToModule(preference)}>
-                                    Add
+                            <div key={idx} className="constraint-item-container">
+                                <button className="constraint-item" onClick={() => addPreferenceToModule(preference)}>
+                                    {preference.identifier}
                                 </button>
                             </div>
                         ))
@@ -148,7 +167,7 @@ const ConfigurePreferencesPage = () => {
                 Continue
             </button>
 
-            <Link to="/" className="back-button">
+            <Link to="/configure-constraints" className="back-button">
                 Back
             </Link>
         </div>
