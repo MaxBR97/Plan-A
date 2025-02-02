@@ -1,5 +1,3 @@
-/* SolutionPreviewPage.css */
-
 .solution-preview-page {
     display: flex;
     flex-direction: column;
@@ -13,82 +11,112 @@
     font-size: 28px;
     font-weight: bold;
     margin-bottom: 20px;
+    text-align: center;
 }
 
-.modules-container {
+.section-container {
     display: flex;
     flex-wrap: wrap;
-    justify-content: center;
+    justify-content: space-between;
     gap: 20px;
     width: 100%;
     max-width: 1200px;
 }
 
+.section-box {
+    flex: 1 1 calc(50% - 20px); /* Two boxes per row */
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    min-width: 300px;
+}
+
+.section-title {
+    font-size: 22px;
+    font-weight: bold;
+    color: #007BFF;
+    margin-bottom: 15px;
+    text-align: center;
+    border-bottom: 2px solid #007BFF;
+    padding-bottom: 5px;
+}
+
+.section-content {
+    padding: 10px;
+    background: #f8f9fa;
+    border-radius: 5px;
+}
+
+.module-item {
+    width: 100%;  /* Ensure full width inside the module-box */
+    box-sizing: border-box;  /* Include padding & border in the width */
+    padding: 10px;
+    margin: 5px 0; /* Add consistent spacing */
+    background: #FFFFFF;
+    text-align: center;
+    border-radius: 5px;
+    border: 1px solid #007BFF;
+}
+
+.empty-message {
+    font-style: italic;
+    color: #777;
+    text-align: center;
+}
+
+.modules-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+    width: 100%;
+    max-width: 1600px; /* Increased for better spacing */
+}
+
+/* Expanding the section size to allow more modules inside */
 .module-section {
-    width: 45%;
+    flex: 1;
+    min-width: 100%; /* Make the section wider */
+    max-width: 100%; /* Ensures it takes full width */
     background: white;
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
+/* Ensuring modules inside each section align properly */
 .module-box {
-    background: #C4F4C7; /* Updated to the requested color */
-    padding: 15px;
+    background: #C4F4C7;
+    padding: 20px;
     border: 2px solid #007BFF;
-    border-radius: 8px;
-    margin-bottom: 15px;
+    border-radius: 10px;
+    width: calc(33.33% - 20px);
+    min-width: 250px;
     transition: transform 0.2s ease-in-out;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch; /* Ensure everything inside expands properly */
 }
 
-.module-box:hover {
-    transform: scale(1.02);
+/* Aligning modules inside each section */
+.module-section .module-box-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-start; /* Aligns from left */
+    gap: 20px;
 }
 
-.module-title {
-    font-size: 20px;
-    font-weight: bold;
-    color: #007BFF;
-    margin-bottom: 8px;
+/* Responsive Fix */
+@media (max-width: 1200px) {
+    .module-box {
+        width: calc(50% - 20px); /* Allows 2 per row on medium screens */
+    }
 }
 
-.module-subtitle {
-    font-size: 16px;
-    font-weight: bold;
-    margin-top: 10px;
-}
-
-.module-list {
-    list-style: none;
-    padding-left: 0;
-}
-
-.module-item {
-    background: #FFFFFF;
-    padding: 8px;
-    margin: 5px 0;
-    border-radius: 5px;
-    font-weight: bold;
-}
-
-.empty-message {
-    font-style: italic;
-    color: #777;
-}
-
-.back-button {
-    margin-top: 20px;
-    padding: 10px 20px;
-    font-size: 16px;
-    background-color: #007BFF;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    text-decoration: none;
-    cursor: pointer;
-    transition: background-color 0.3s;
-}
-
-.back-button:hover {
-    background-color: #0056b3;
+@media (max-width: 800px) {
+    .module-box {
+        width: 100%; /* Stacks them fully on small screens */
+    }
 }

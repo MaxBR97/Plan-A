@@ -1,97 +1,62 @@
-import React, { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { useZPL } from "../context/ZPLContext";
-import "./ConfigureVariablesPage.css";
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { useZPL } from '../context/ZPLContext';
+import './ConfigureVariablesPage.css';
 
 const ConfigureVariablesPage = () => {
-    const { types, variables } = useZPL();
+    const { variables } = useZPL();
     
-    const [involvedSetsAndParams, setInvolvedSetsAndParams] = useState({});
-    const [parsedVariables, setParsedVariables] = useState({});
-    
-    useEffect(() => {
-        if (types) {
-            setInvolvedSetsAndParams(
-                Object.keys(types).reduce((acc, key) => {
-                    acc[key] = false;
-                    return acc;
-                }, {})
-            );
-        }
+    console.log("Variables in Context:", variables);
 
-        if (variables) {
-            setParsedVariables(
-                variables.reduce((acc, variable) => {
-                    acc[variable.identifier] = false;
-                    return acc;
-                }, {})
-            );
-        }
-    }, [types, variables]);
-
-    const navigate = useNavigate();
-
-    const handleCheckboxChange = (category, key) => {
-        if (category === "setsAndParams") {
-            setInvolvedSetsAndParams((prev) => ({
-                ...prev,
-                [key]: !prev[key],
-            }));
-        } else if (category === "variables") {
-            setParsedVariables((prev) => ({
-                ...prev,
-                [key]: !prev[key],
-            }));
-        }
-    };
-
-    const handleContinue = () => {
-        navigate("/configure-constraints");
-    };
+    const allSets = variables.flatMap(variable => variable.dep?.setDependencies ?? []);
+    const allParams = variables.flatMap(variable => variable.dep?.paramDependencies ?? []);
 
     return (
         <div className="configure-variables-page">
-            <h1 className="page-title">Configure Variables of Interest</h1>
-
-            <div className="config-section">
-                <h2>Involved Sets and Params</h2>
-                {Object.keys(involvedSetsAndParams).map((key) => (
-                    <div key={key} className="checkbox-item">
-                        <input
-                            type="checkbox"
-                            checked={involvedSetsAndParams[key]}
-                            onChange={() => handleCheckboxChange("setsAndParams", key)}
-                        />
-                        <label>
-                            {key.charAt(0).toUpperCase() + key.slice(1).replace("_", " ")}
-                        </label>
-                    </div>
-                ))}
+            <h1 className="page-title">Configure Variables</h1>
+            <div className="variables-layout">
+                
+                {/* Variables Section */}
+                <div className="available-variables">
+                    <h2>Available Variables</h2>
+                    {variables && Array.isArray(variables) && variables.length > 0 ? (
+                        variables.map((variable, index) => (
+                            <div key={index} className="variable-box">
+                                {variable.identifier}
+                            </div>
+                        ))
+                    ) : (
+                        <p>No variables available.</p>
+                    )}
+                </div>
+                
+                {/* Sets & Parameters Section */}
+                <div className="involved-section">
+                    <h2>All Sets</h2>
+                    {allSets.length > 0 ? (
+                        allSets.map((set, index) => (
+                            <div key={index} className="set-box">
+                                {set}
+                            </div>
+                        ))
+                    ) : (
+                        <p>No sets available.</p>
+                    )}
+                    
+                    <h2>All Parameters</h2>
+                    {allParams.length > 0 ? (
+                        allParams.map((param, index) => (
+                            <div key={index} className="param-box">
+                                {param}
+                            </div>
+                        ))
+                    ) : (
+                        <p>No parameters available.</p>
+                    )}
+                </div>
             </div>
-
-            <div className="config-section">
-                <h2>Parsed Variables</h2>
-                {Object.keys(parsedVariables).map((key) => (
-                    <div key={key} className="checkbox-item">
-                        <input
-                            type="checkbox"
-                            checked={parsedVariables[key]}
-                            onChange={() => handleCheckboxChange("variables", key)}
-                        />
-                        <label>
-                            {key.charAt(0).toUpperCase() + key.slice(1).replace("_", " ")}
-                        </label>
-                    </div>
-                ))}
-            </div>
-
-            <button className="continue-button" onClick={handleContinue}>
-                Continue
-            </button>
-
-            <Link to="/" className="back-button">
-                Back
-            </Link>
+            
+            <Link to="/configure-constraints" className="continue-button">Continue</Link>
         </div>
     );
 };
