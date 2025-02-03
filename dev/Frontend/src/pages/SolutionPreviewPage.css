@@ -1,138 +1,172 @@
-/* SolutionPreviewPage.css */
-
-/* Center the entire page content */
 .solution-preview-page {
     display: flex;
     flex-direction: column;
     align-items: center;
     padding: 20px;
+    background-color: #f4f4f4;
+    min-height: 100vh;
 }
 
 .page-title {
-    font-size: 36px;
+    font-size: 28px;
     font-weight: bold;
-    margin-bottom: 30px;
+    margin-bottom: 20px;
     text-align: center;
 }
 
-/* Layout for the main section (flexbox) */
-.main-section {
+.section-container {
     display: flex;
+    flex-wrap: wrap;
     justify-content: space-between;
+    gap: 20px;
     width: 100%;
     max-width: 1200px;
+}
+
+.section-box {
+    flex: 1 1 calc(50% - 20px); /* Two boxes per row */
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    min-width: 300px;
+}
+
+.section-title {
+    font-size: 22px;
+    font-weight: bold;
+    color: #007BFF;
+    margin-bottom: 15px;
+    text-align: center;
+    border-bottom: 2px solid #007BFF;
+    padding-bottom: 5px;
+}
+
+.section-content {
+    padding: 10px;
+    background: #f8f9fa;
+    border-radius: 5px;
+}
+
+.module-item {
+    width: 100%;  /* Ensure full width inside the module-box */
+    box-sizing: border-box;  /* Include padding & border in the width */
+    padding: 10px;
+    margin: 5px 0; /* Add consistent spacing */
+    background: #FFFFFF;
+    text-align: center;
+    border-radius: 5px;
+    border: 1px solid #007BFF;
+}
+
+.empty-message {
+    font-style: italic;
+    color: #777;
+    text-align: center;
+}
+
+.modules-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between; /* Ensures even spacing */
+    gap: 20px; /* Adds space between boxes */
+}
+
+/* Expanding the section size to allow more modules inside */
+.module-section {
+    flex: 1;
+    min-width: 100%; /* Make the section wider */
+    max-width: 100%; /* Ensures it takes full width */
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Ensuring modules inside each section align properly */
+.module-box {
+    background: #C4F4C7;
+    padding: 20px;
+    border: 2px solid #007BFF;
+    border-radius: 10px;
+    width: calc(33.33% - 20px); /* Ensures three items per row */
+    min-width: 250px;
+    transition: transform 0.2s ease-in-out;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+}
+
+/* Aligning modules inside each section */
+.module-section .module-box-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-start; /* Aligns from left */
     gap: 20px;
 }
 
-/* Left Section Styling */
-.left-section {
-    flex: 1;
-    border: 1px solid #ccc;
-    border-radius: 10px;
-    padding: 20px;
-    background-color: #f9f9f9;
+/* Responsive Fix */
+@media (max-width: 1200px) {
+    .module-box {
+        width: calc(50% - 20px); /* Allows 2 per row on medium screens */
+    }
 }
 
-/* Right Section Styling */
-.right-section {
-    flex: 1;
-    border: 1px solid #ccc;
-    border-radius: 10px;
-    padding: 20px;
-    background-color: #f9f9f9;
+@media (max-width: 800px) {
+    .module-box {
+        width: 100%; /* Stacks them fully on small screens */
+    }
 }
 
-/* Shifts Table Section */
-.shifts-section {
-    width: 100%;
-    max-width: 1200px;
-    margin-top: 20px;
-}
-
-.shifts-table {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-.shifts-table th,
-.shifts-table td {
-    border: 1px solid #ccc;
-    padding: 10px;
-    text-align: center;
-}
-
-.shifts-table th {
-    background-color: #f0f0f0;
-    font-weight: bold;
-}
-
-/* Salaries Table Section */
-.salaries-section {
-    width: 100%;
-    max-width: 600px;
-    margin-top: 20px;
-    border: 1px solid #ccc;
-    border-radius: 10px;
-    padding: 20px;
-    background-color: #ffffff;
-}
-
-.salaries-table {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-.salaries-table th,
-.salaries-table td {
-    border: 1px solid #ccc;
-    padding: 10px;
-    text-align: center;
-}
-
-.salaries-table th {
-    background-color: #f0f0f0;
-    font-weight: bold;
-}
-
-/* Action Buttons */
-.action-buttons {
+.add-button {
     display: flex;
-    justify-content: space-between;
-    width: 100%;
-    max-width: 600px;
-    margin-top: 20px;
-}
-
-.create-image-button,
-.solve-button {
-    padding: 10px 20px;
-    font-size: 16px;
-    border: 1px solid #ccc;
-    border-radius: 10px;
-    background-color: #ffffff;
+    justify-content: center;
+    align-items: center;
+    width: 40px; /* Keep button size */
+    height: 40px;
+    font-size: 24px;
+    background-color: #4DCFE0; /* Matches your button color */
+    border: 2px solid #333;
+    border-radius: 50%;
     cursor: pointer;
-    transition: background-color 0.3s;
+    margin: 10px auto; /* Centers horizontally */
+    display: flex; /* Ensures the plus sign is centered */
+    text-align: center;
+    font-weight: bold;
+    line-height: 40px; /* Centers text vertically */
 }
 
-.create-image-button:hover,
-.solve-button:hover {
-    background-color: #e0e0e0;
+
+.add-button:hover {
+    transform: scale(1.1);
 }
 
-/* Back Button Styling */
-.back-button {
-    margin-top: 20px;
-    padding: 10px 20px;
+.add-button::before {
+    content: "+";
+    font-size: 24px;
+    font-weight: bold;
+    color: white;
+}
+
+.variable-input {
+    width: 90%;  /* Slightly wider for a cleaner layout */
+    padding: 8px 12px;
     font-size: 14px;
-    text-decoration: none;
-    color: #000;
-    border: 1px solid #ccc;
-    border-radius: 10px;
-    background-color: #ffffff;
-    cursor: pointer;
-    transition: background-color 0.3s;
+    border: 1.5px solid #B0BEC5;  /* Subtle, neutral border */
+    border-radius: 6px;  /* Soft rounded corners */
+    background-color: #F8F9FA;  /* Light gray background */
+    outline: none;  
+    transition: border 0.2s ease-in-out;
 }
 
-.back-button:hover {
-    background-color: #e0e0e0;
+.variable-input:focus {
+    border-color: #007BFF;  /* Highlights input on focus */
+    background-color: white; /* Gives a slight contrast when typing */
 }
+
+.variable-input:hover {
+    border-color: #78909C; /* Slight hover effect for interactivity */
+}
+
+
+
