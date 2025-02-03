@@ -19,6 +19,8 @@
     justify-content: space-between;
     width: 100%;
     max-width: 1200px;
+    min-height: 500px; /* Ensures the sections have a fixed height */
+    align-items: stretch;
 }
 
 .constraint-modules,
@@ -31,6 +33,9 @@
     background-color: #f9f9f9;
     margin: 10px;
     text-align: center;
+    min-height: 450px; /* Ensuring each section stays at a fixed height */
+    max-height: 500px;
+    overflow-y: auto; /* Allows scrolling if content exceeds max height */
 }
 
 .constraint-modules {
@@ -79,4 +84,33 @@
 
 .continue-button:hover, .add-button:hover, .back-button:hover {
     background-color: #e0e0e0;
+}
+
+.module-item-container {
+    margin: 5px 0;
+    display: flex;
+    justify-content: center;
+}
+
+.module-item {
+    background-color: white;
+    width: 100%;
+    padding: 10px;
+    border: 2px solid #20C4A4;
+    color: #20C4A4;
+    font-weight: bold;
+    font-size: 16px;
+    text-align: center;
+    cursor: pointer;
+    border-radius: 20px;
+    transition: all 0.3s ease;
+}
+
+.module-item:hover {
+    background-color: rgba(32, 196, 164, 0.2);
+}
+
+.module-item.selected {
+    background-color: #20C4A4;
+    color: white;
 }

@@ -75,6 +75,8 @@ const UploadZPLPage = () => {
         }
     };
 
+    console.log("🚀 Upload Success - Parsed Variables:", variables);
+
     return (
         <div className="upload-zpl-page">
             <h1 className="page-title">Upload ZPL File</h1>

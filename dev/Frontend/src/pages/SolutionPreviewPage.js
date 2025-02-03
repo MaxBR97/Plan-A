@@ -2,99 +2,145 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useZPL } from '../context/ZPLContext';
 import './SolutionPreviewPage.css';
-import axios from 'axios';
 
 const SolutionPreviewPage = () => {
-    const { imageId, constraints, preferences, variables } = useZPL();
-    const [status, setStatus] = useState('');
+    const { constraints, preferences, modules, preferenceModules, variables } = useZPL();
+    const [variableValues, setVariableValues] = useState({});
+    const [paramValues, setParamValues] = useState({});
 
-    const handleSolve = async () => {
-        setStatus('Solving...');
-        try {
+    const handleAddValue = (setName) => {
+        setVariableValues(prev => ({
+            ...prev,
+            [setName]: [...(prev[setName] || []), '']
+        }));
+    };
 
-            const requestData = {
-                id: imageId,
-                timeout: 10,
-            };
-            
-            const response = await axios.post("/solve", requestData);
+    const handleValueChange = (setName, index, value) => {
+        setVariableValues(prev => {
+            const newValues = [...prev[setName]];
+            newValues[index] = value;
+            return { ...prev, [setName]: newValues };
+        });
+    };
 
-            const url = window.URL.createObjectURL(new Blob([response.data]));
-            const link = document.createElement('a');
-            link.href = url;
-            link.setAttribute('download', 'solution.json');
-            document.body.appendChild(link);
-            link.click();
-            link.parentNode.removeChild(link);
-
-            setStatus('');
-        } catch (error) {
-            setStatus(`Error: ${error.response?.data?.message || error.message}`);
-            console.error('Error solving the problem:', error);
-        }
+    const handleParamChange = (paramName, value) => {
+        setParamValues(prev => ({
+            ...prev,
+            [paramName]: value
+        }));
     };
 
     return (
         <div className="solution-preview-page">
             <h1 className="page-title">Solution Preview</h1>
-
-            {/* Constraints and Preferences Section */}
-            <div className="constraints-preferences-section">
-                <h2>Constraints</h2>
-                {Array.isArray(constraints) && constraints.length > 0 ? (
-                    constraints.map((constraint, index) => (
-                        <div key={index} className="constraint-item">
-                            <h3>{constraint.identifier}</h3>
-                            <p>Set Dependencies: {Array.isArray(constraint.dep?.setDependencies) ? constraint.dep.setDependencies.join(', ') : 'None'}</p>
-                            <p>Param Dependencies: {Array.isArray(constraint.dep?.paramDependencies) ? constraint.dep.paramDependencies.join(', ') : 'None'}</p>
-                        </div>
-                    ))
-                ) : (
-                    <p>No constraints available</p>
-                )}
-
-                <h2>Preferences</h2>
-                {Array.isArray(preferences) && preferences.length > 0 ? (
-                    preferences.map((preference, index) => (
-                        <div key={index} className="preference-item">
-                            <h3>{preference.identifier}</h3>
-                            <p>Set Dependencies: {Array.isArray(preference.dep?.setDependencies) ? preference.dep.setDependencies.join(', ') : 'None'}</p>
-                            <p>Param Dependencies: {Array.isArray(preference.dep?.paramDependencies) ? preference.dep.paramDependencies.join(', ') : 'None'}</p>
-                        </div>
-                    ))
-                ) : (
-                    <p>No preferences available</p>
-                )}
-            </div>
-
-            {/* Variables Section */}
-            <div className="variables-section">
-                <h2>Variables</h2>
-                {variables && typeof variables === 'object' && Object.entries(variables).length > 0 ? (
-                    Object.entries(variables).map(([key, value]) => (
-                        <div key={key} className="variable-item">
-                            <h3>{key}</h3>
-                            <ul>
-                                {Array.isArray(value) ? (
-                                    value.map((item, index) => <li key={index}>{item}</li>)
+            <div className="modules-container">
+                
+                {/* Constraints Section */}
+                <div className="module-section">
+                    <h2 className="section-title">Constraints</h2>
+                    {modules.length > 0 ? (
+                        modules.map((module, index) => (
+                            <div key={index} className="module-box">
+                                <h3 className="module-title">{module.name}</h3>
+                                <p className="module-description"><strong>Module Description:</strong> {module.description}</p>
+                                <h4 className="module-subtitle">Constraints</h4>
+                                {module.constraints.length > 0 ? (
+                                    module.constraints.map((constraint, cIndex) => (
+                                        <div key={cIndex} className="module-item">
+                                            <p><strong>Identifier:</strong> {constraint.identifier}</p>
+                                        </div>
+                                    ))
                                 ) : (
-                                    <p>No data available</p>
+                                    <p className="empty-message">No constraints in this module.</p>
                                 )}
-                            </ul>
-                            <button className="add-button">+</button>
-                        </div>
-                    ))
-                ) : (
-                    <p>No variables available</p>
-                )}
+                                <h4 className="module-subtitle">Involved Sets</h4>
+                                {module.involvedSets.length > 0 ? (
+                                    module.involvedSets.map((set, sIndex) => (
+                                        <div key={sIndex} className="module-item">{set}</div>
+                                    ))
+                                ) : (
+                                    <p className="empty-message">No involved sets.</p>
+                                )}
+                                <h4 className="module-subtitle">Involved Parameters</h4>
+                                {module.involvedParams.length > 0 ? (
+                                    module.involvedParams.map((param, pIndex) => (
+                                        <div key={pIndex} className="module-item">{param}</div>
+                                    ))
+                                ) : (
+                                    <p className="empty-message">No involved parameters.</p>
+                                )}
+                            </div>
+                        ))
+                    ) : (
+                        <p className="empty-message">No constraint modules available.</p>
+                    )}
+                </div>
+
+                {/* Preferences Section */}
+                <div className="module-section">
+                    <h2 className="section-title">Preferences</h2>
+                    {preferenceModules.length > 0 ? (
+                        preferenceModules.map((module, index) => (
+                            <div key={index} className="module-box">
+                                <h3 className="module-title">{module.name}</h3>
+                                <p className="module-description"><strong>Module Description:</strong> {module.description}</p>
+                                <h4 className="module-subtitle">Preferences</h4>
+                                {module.preferences.length > 0 ? (
+                                    module.preferences.map((preference, pIndex) => (
+                                        <div key={pIndex} className="module-item">
+                                            <p><strong>Identifier:</strong> {preference.identifier}</p>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <p className="empty-message">No preferences in this module.</p>
+                                )}
+                                <h4 className="module-subtitle">Involved Sets</h4>
+                                {module.involvedSets.length > 0 ? (
+                                    module.involvedSets.map((set, sIndex) => (
+                                        <div key={sIndex} className="module-item">{set}</div>
+                                    ))
+                                ) : (
+                                    <p className="empty-message">No involved sets.</p>
+                                )}
+                                <h4 className="module-subtitle">Involved Parameters</h4>
+                                {module.involvedParams.length > 0 ? (
+                                    module.involvedParams.map((param, pIndex) => (
+                                        <div key={pIndex} className="module-item">{param}</div>
+                                    ))
+                                ) : (
+                                    <p className="empty-message">No involved parameters.</p>
+                                )}
+                            </div>
+                        ))
+                    ) : (
+                        <p className="empty-message">No preference modules available.</p>
+                    )}
+                </div>
+
+                {/* Variable Sets Section */}
+                <div className="module-section">
+                    <h2 className="section-title">Variable Sets</h2>
+                    {variables.map((variable, index) => (
+                        variable.dep?.setDependencies?.map((set, sIndex) => (
+                            <div key={`${index}-${sIndex}`} className="module-box">
+                                <h3 className="module-title">{set}</h3>
+                                <button className="add-button" onClick={() => handleAddValue(set)}></button>
+                                {variableValues[set]?.map((value, vIndex) => (
+                                    <input
+                                        key={vIndex}
+                                        type="text"
+                                        value={value}
+                                        onChange={(e) => handleValueChange(set, vIndex, e.target.value)}
+                                        className="variable-input"
+                                    />
+                                ))}
+                            </div>
+                        ))
+                    ))}
+                </div>
             </div>
-
-            {/* Solve Button and Status Label */}
-            <button className="solve-button" onClick={handleSolve}>Solve</button>
-            {status && <p className="status-label">{status}</p>}
-
-            {/* Navigation Buttons */}
-            <Link to="/" className="back-button">Back</Link>
+            
+            <Link to="/configure-constraints" className="back-button">Back</Link>
         </div>
     );
 };

@@ -22,14 +22,22 @@ const ConfigurePreferencesPage = () => {
     // Add a new module
     const addPreferenceModule = () => {
         if (moduleName.trim() !== '') {
-            setPreferenceModules(prevModules => {
-                if (!prevModules) return [];
-                return [...prevModules, { name: moduleName, preferences: [] }];
-            });
+            setPreferenceModules((prevModules) => [
+                ...prevModules,
+                { name: moduleName, description: "", preferences: [], involvedSets: [], involvedParams: [] }
+            ]);
             setModuleName('');
         }
     };
-    
+
+    // Update module description
+    const updateModuleDescription = (newDescription) => {
+        setPreferenceModules((prevModules) =>
+            prevModules.map((module, idx) =>
+                idx === selectedModuleIndex ? { ...module, description: newDescription } : module
+            )
+        );
+    };
 
     // Add preference to selected module
     const addPreferenceToModule = (preference) => {
@@ -42,11 +50,12 @@ const ConfigurePreferencesPage = () => {
             if (!prevModules) return [];
             return prevModules.map((module, idx) => {
                 if (idx === selectedModuleIndex) {
-                    // Avoid duplicates
                     if (!module.preferences.some(p => p.identifier === preference.identifier)) {
                         return {
                             ...module,
-                            preferences: [...module.preferences, preference]
+                            preferences: [...module.preferences, preference],
+                            involvedSets: [...new Set([...module.involvedSets, ...(preference.dep?.setDependencies || [])])],
+                            involvedParams: [...new Set([...module.involvedParams, ...(preference.dep?.paramDependencies || [])])]
                         };
                     }
                 }
@@ -75,16 +84,18 @@ const ConfigurePreferencesPage = () => {
                         onChange={(e) => setModuleName(e.target.value)}
                     />
                     <button onClick={addPreferenceModule}>Add Preference Module</button>
-                    <ul>
+                    <div className="module-list">
                         {preferenceModules.map((module, index) => (
-                            <li key={index}>
-                                {module.name}
-                                <button onClick={() => setSelectedModuleIndex(index)}>
-                                    Select
+                            <div key={index} className="module-item-container">
+                                <button 
+                                    className={`module-item ${selectedModuleIndex === index ? 'selected' : ''}`} 
+                                    onClick={() => setSelectedModuleIndex(index)}
+                                >
+                                    {module.name}
                                 </button>
-                            </li>
+                            </div>
                         ))}
-                    </ul>
+                    </div>
                 </div>
 
                 {/* Define Preference Module Section */}
@@ -95,7 +106,16 @@ const ConfigurePreferencesPage = () => {
                     ) : (
                         <>
                             <h3>{preferenceModules[selectedModuleIndex]?.name || 'Unnamed Module'}</h3>
+                            <label>Description:</label>
+                            <hr />
+                            <textarea
+                                value={preferenceModules[selectedModuleIndex]?.description || ""}
+                                onChange={(e) => updateModuleDescription(e.target.value)}
+                                placeholder="Enter module description..."
+                                style={{ resize: "none", width: "100%", height: "80px" }}
+                            />
                             <p>This module's preferences:</p>
+                            <hr />
                             <div className="module-drop-area">
                                 {preferenceModules[selectedModuleIndex]?.preferences?.length > 0 ? (
                                     preferenceModules[selectedModuleIndex].preferences.map((p, i) => (
@@ -107,6 +127,18 @@ const ConfigurePreferencesPage = () => {
                                     <p>No preferences added</p>
                                 )}
                             </div>
+                            <h3>Involved Sets</h3>
+                            <ul>
+                                {preferenceModules[selectedModuleIndex]?.involvedSets.map((set, i) => (
+                                    <li key={i}>{set}</li>
+                                ))}
+                            </ul>
+                            <h3>Involved Parameters</h3>
+                            <ul>
+                                {preferenceModules[selectedModuleIndex]?.involvedParams.map((param, i) => (
+                                    <li key={i}>{param}</li>
+                                ))}
+                            </ul>
                         </>
                     )}
                 </div>
@@ -116,10 +148,9 @@ const ConfigurePreferencesPage = () => {
                     <h2>Available Preferences</h2>
                     {availablePreferences.length > 0 ? (
                         availablePreferences.map((preference, idx) => (
-                            <div key={idx} className="constraint-item">
-                                <span>{preference.identifier}</span>
-                                <button onClick={() => addPreferenceToModule(preference)}>
-                                    Add
+                            <div key={idx} className="constraint-item-container">
+                                <button className="constraint-item" onClick={() => addPreferenceToModule(preference)}>
+                                    {preference.identifier}
                                 </button>
                             </div>
                         ))

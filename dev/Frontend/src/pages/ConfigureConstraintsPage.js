@@ -7,8 +7,7 @@ const ConfigureConstraintsPage = () => {
     const navigate = useNavigate();
 
     // Fetch constraints & modules from ZPL context
-    const { constraints: jsonConstraints, modules, setModules } = useZPL();
-
+    const { constraints: jsonConstraints = [], modules = [], setModules = () => {} } = useZPL();
 
     // Local states
     const [availableConstraints, setAvailableConstraints] = useState([]);
@@ -25,10 +24,19 @@ const ConfigureConstraintsPage = () => {
         if (moduleName.trim() !== '') {
             setModules((prevModules) => [
                 ...prevModules,
-                { name: moduleName, constraints: [] }
+                { name: moduleName, description: "", constraints: [], involvedSets: [], involvedParams: [] }
             ]);
             setModuleName('');
         }
+    };
+
+    // Update module description
+    const updateModuleDescription = (newDescription) => {
+        setModules((prevModules) =>
+            prevModules.map((module, idx) =>
+                idx === selectedModuleIndex ? { ...module, description: newDescription } : module
+            )
+        );
     };
 
     // Add constraint to selected module
@@ -39,13 +47,15 @@ const ConfigureConstraintsPage = () => {
         }
 
         setModules((prevModules) => {
+            if (!prevModules) return [];
             return prevModules.map((module, idx) => {
                 if (idx === selectedModuleIndex) {
-                    // Avoid duplicates
                     if (!module.constraints.some(c => c.identifier === constraint.identifier)) {
                         return {
                             ...module,
-                            constraints: [...module.constraints, constraint]
+                            constraints: [...module.constraints, constraint],
+                            involvedSets: [...new Set([...module.involvedSets, ...(constraint.dep?.setDependencies || [])])],
+                            involvedParams: [...new Set([...module.involvedParams, ...(constraint.dep?.paramDependencies || [])])]
                         };
                     }
                 }
@@ -74,16 +84,18 @@ const ConfigureConstraintsPage = () => {
                         onChange={(e) => setModuleName(e.target.value)}
                     />
                     <button onClick={addConstraintModule}>Add Constraint Module</button>
-                    <ul>
+                    <div className="module-list">
                         {modules.map((module, index) => (
-                            <li key={index}>
-                                {module.name}
-                                <button onClick={() => setSelectedModuleIndex(index)}>
-                                    Select
+                            <div key={index} className="module-item-container">
+                                <button 
+                                    className={`module-item ${selectedModuleIndex === index ? 'selected' : ''}`} 
+                                    onClick={() => setSelectedModuleIndex(index)}
+                                >
+                                    {module.name}
                                 </button>
-                            </li>
+                            </div>
                         ))}
-                    </ul>
+                    </div>
                 </div>
 
                 {/* Define Constraint Module Section */}
@@ -93,10 +105,19 @@ const ConfigureConstraintsPage = () => {
                         <p>Select a module</p>
                     ) : (
                         <>
-                            <h3>{modules[selectedModuleIndex].name}</h3>
+                            <h3>{modules[selectedModuleIndex]?.name || 'Unnamed Module'}</h3>
+                            <label>Description:</label>
+                            <hr />
+                            <textarea
+                                value={modules[selectedModuleIndex]?.description || ""}
+                                onChange={(e) => updateModuleDescription(e.target.value)}
+                                placeholder="Enter module description..."
+                                style={{ resize: "none", width: "100%", height: "80px" }}
+                            />
                             <p>This module's constraints:</p>
+                            <hr />
                             <div className="module-drop-area">
-                                {modules[selectedModuleIndex].constraints.length > 0 ? (
+                                {modules[selectedModuleIndex]?.constraints?.length > 0 ? (
                                     modules[selectedModuleIndex].constraints.map((c, i) => (
                                         <div key={i} className="dropped-constraint">
                                             {c.identifier}
@@ -106,6 +127,18 @@ const ConfigureConstraintsPage = () => {
                                     <p>No constraints added</p>
                                 )}
                             </div>
+                            <h3>Involved Sets</h3>
+                            <ul>
+                                {modules[selectedModuleIndex]?.involvedSets.map((set, i) => (
+                                    <li key={i}>{set}</li>
+                                ))}
+                            </ul>
+                            <h3>Involved Parameters</h3>
+                            <ul>
+                                {modules[selectedModuleIndex]?.involvedParams.map((param, i) => (
+                                    <li key={i}>{param}</li>
+                                ))}
+                            </ul>
                         </>
                     )}
                 </div>
@@ -115,10 +148,9 @@ const ConfigureConstraintsPage = () => {
                     <h2>Available Constraints</h2>
                     {availableConstraints.length > 0 ? (
                         availableConstraints.map((constraint, idx) => (
-                            <div key={idx} className="constraint-item">
-                                <span>{constraint.identifier}</span>
-                                <button onClick={() => addConstraintToModule(constraint)}>
-                                    Add
+                            <div key={idx} className="constraint-item-container">
+                                <button className="constraint-item" onClick={() => addConstraintToModule(constraint)}>
+                                    {constraint.identifier}
                                 </button>
                             </div>
                         ))
