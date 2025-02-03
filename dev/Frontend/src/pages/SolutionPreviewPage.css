@@ -117,3 +117,56 @@
         width: 100%; /* Stacks them fully on small screens */
     }
 }
+
+.add-button {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 40px; /* Keep button size */
+    height: 40px;
+    font-size: 24px;
+    background-color: #4DCFE0; /* Matches your button color */
+    border: 2px solid #333;
+    border-radius: 50%;
+    cursor: pointer;
+    margin: 10px auto; /* Centers horizontally */
+    display: flex; /* Ensures the plus sign is centered */
+    text-align: center;
+    font-weight: bold;
+    line-height: 40px; /* Centers text vertically */
+}
+
+
+.add-button:hover {
+    transform: scale(1.1);
+}
+
+.add-button::before {
+    content: "+";
+    font-size: 24px;
+    font-weight: bold;
+    color: white;
+}
+
+.variable-input {
+    width: 90%;  /* Slightly wider for a cleaner layout */
+    padding: 8px 12px;
+    font-size: 14px;
+    border: 1.5px solid #B0BEC5;  /* Subtle, neutral border */
+    border-radius: 6px;  /* Soft rounded corners */
+    background-color: #F8F9FA;  /* Light gray background */
+    outline: none;  
+    transition: border 0.2s ease-in-out;
+}
+
+.variable-input:focus {
+    border-color: #007BFF;  /* Highlights input on focus */
+    background-color: white; /* Gives a slight contrast when typing */
+}
+
+.variable-input:hover {
+    border-color: #78909C; /* Slight hover effect for interactivity */
+}
+
+
+
