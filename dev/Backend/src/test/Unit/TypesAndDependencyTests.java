@@ -229,13 +229,13 @@ public class TypesAndDependencyTests {
         ModelSet set = model.getSet("forTest2");
         ModelInput.StructureBlock[] struct = set.getStructure();
         assertTrue(struct.length == 7);
-        assertTrue(struct[0].dependency.getIdentifier().equals("anonymous_set") && struct[0].position == 0);
-        assertTrue(struct[1].dependency.getIdentifier().equals("S") && struct[1].position == 0);
-        assertTrue(struct[2].dependency.getIdentifier().equals("S") && struct[2].position == 1);
-        assertTrue(struct[3].dependency.getIdentifier().equals("anonymous_set") && struct[3].position == 0);
-        assertTrue(struct[4].dependency.getIdentifier().equals("C") && struct[4].position == 0);
-        assertTrue(struct[5].dependency.getIdentifier().equals("anonymous_set") && struct[5].position == 0);
-        assertTrue(struct[6].dependency.getIdentifier().equals("anonymous_set") && struct[6].position == 1);
+        assertTrue(struct[0].dependency.getIdentifier().equals("anonymous_set") && struct[0].position == 1);
+        assertTrue(struct[1].dependency.getIdentifier().equals("S") && struct[1].position == 1);
+        assertTrue(struct[2].dependency.getIdentifier().equals("S") && struct[2].position == 2);
+        assertTrue(struct[3].dependency.getIdentifier().equals("anonymous_set") && struct[3].position == 1);
+        assertTrue(struct[4].dependency.getIdentifier().equals("C") && struct[4].position == 1);
+        assertTrue(struct[5].dependency.getIdentifier().equals("anonymous_set") && struct[5].position == 1);
+        assertTrue(struct[6].dependency.getIdentifier().equals("anonymous_set") && struct[6].position == 2);
     }
 
     @Test
@@ -243,9 +243,9 @@ public class TypesAndDependencyTests {
         ModelSet set = model.getSet("forTest3");
         ModelInput.StructureBlock[] struct = set.getStructure();
         assertTrue(struct.length == 3);
-        assertTrue(struct[0].dependency.getIdentifier().equals("anonymous_set") && struct[0].position == 0);
-        assertTrue(struct[1].dependency.getIdentifier().equals("anonymous_set") && struct[1].position == 1);
-        assertTrue(struct[2].dependency.getIdentifier().equals("anonymous_set") && struct[2].position == 2);
+        assertTrue(struct[0].dependency.getIdentifier().equals("anonymous_set") && struct[0].position == 1);
+        assertTrue(struct[1].dependency.getIdentifier().equals("anonymous_set") && struct[1].position == 2);
+        assertTrue(struct[2].dependency.getIdentifier().equals("anonymous_set") && struct[2].position == 3);
     }
 
     
@@ -390,6 +390,36 @@ public class TypesAndDependencyTests {
         assertEquals(ModelPrimitives.INT,((Tuple)set.getType()).getTypes().get(4));
         assertEquals(ModelPrimitives.TEXT,((Tuple)set.getType()).getTypes().get(5));
         assertEquals(ModelPrimitives.FLOAT,((Tuple)set.getType()).getTypes().get(6));
+    }
+
+    @Test
+    public void testProjFunc(){
+        ModelSet set = model.getSet("forTest4");
+        assertEquals("anonymous_set",set.getSetDependencies().get(0).getIdentifier());
+        assertEquals(2,set.getSetDependencies().get(0).getStructure().length);
+        int[] depPointers = {2,1};
+        int i = 0;
+        for ( ModelSet.StructureBlock sb :set.getSetDependencies().get(0).getStructure()){
+            assertEquals(sb.dependency.getIdentifier(),"forTest3");
+            assertEquals(sb.position,depPointers[i++]);
+        }
+        assertEquals("<TEXT,INT>",set.getSetDependencies().get(0).getType().toString());
+    }
+
+    // forTest5 point to [forTest4,2] , [anonymous_set,2]
+    @Test
+    public void testProjFunc2(){
+        ModelSet set = model.getSet("forTest5");
+        assertEquals("anonymous_set",set.getSetDependencies().get(0).getIdentifier());
+        assertEquals(2,set.getSetDependencies().get(0).getStructure().length);
+
+        assertEquals("forTest4",set.getSetDependencies().get(0).getStructure()[0].dependency.getIdentifier());
+        assertEquals(2,set.getSetDependencies().get(0).getStructure()[0].position);
+
+        assertEquals("anonymous_set",set.getSetDependencies().get(0).getStructure()[1].dependency.getIdentifier());
+        assertEquals(2,set.getSetDependencies().get(0).getStructure()[1].position);
+
+        assertEquals("<INT,TEXT>",set.getSetDependencies().get(0).getType().toString());
     }
 
     @AfterAll

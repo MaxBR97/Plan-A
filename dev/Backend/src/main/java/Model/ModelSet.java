@@ -16,6 +16,25 @@ public class ModelSet extends ModelInput {
     }
 
 
+    public ModelSet(String setName, List<ModelSet> basicSets, List<ModelParameter> basicParams,StructureBlock[] resultingStructure) {
+        super(setName,null, basicSets, basicParams);
+            //infer type
+            Tuple type = new Tuple();
+            int i = 0;
+            for(StructureBlock sb : resultingStructure){
+                ModelType mt = sb.dependency.getType();
+                ModelPrimitives prim = null;
+                if (mt instanceof ModelPrimitives)
+                    prim = ((ModelPrimitives)mt);
+                else if (mt instanceof Tuple)
+                    prim = ((Tuple)mt).getTypes().get(sb == null && setName.equals("anonymous_set") ? i : sb.position-1);
+                type.append(prim);
+                i++;
+            }
+            super.myType = type;
+            super.myStruct = resultingStructure;
+    }
+
     public List<String> getElements() {
         return Collections.unmodifiableList(elements);
     }

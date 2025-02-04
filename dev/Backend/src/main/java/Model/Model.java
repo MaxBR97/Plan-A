@@ -3,7 +3,7 @@ package Model;
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.*;
 
-
+import Model.ModelInput.StructureBlock;
 import parser.*;
 import parser.FormulationBaseVisitor;
 import parser.FormulationLexer;
@@ -15,6 +15,7 @@ import parser.FormulationParser.SetDefExprContext;
 import parser.FormulationParser.SetDescStackContext;
 import parser.FormulationParser.SetExprContext;
 import parser.FormulationParser.SetExprStackContext;
+import parser.FormulationParser.TupleContext;
 import parser.FormulationParser.UExprContext;
 
 import java.io.*;
@@ -822,7 +823,7 @@ public class Model implements ModelInterface {
             visit(ctx.sqRef());
             return null;
         }
-
+        
         @Override
         public Void visitConstraint(FormulationParser.ConstraintContext ctx){
             
@@ -956,6 +957,48 @@ public class Model implements ModelInterface {
             else if(ctx.csv() != null){
                 visit(ctx.csv());
             }
+            return null;
+        }
+
+        @Override
+        public Void visitProjFunc(FormulationParser.ProjFuncContext ctx) {
+            TypeVisitor visitor = new TypeVisitor();
+            visitor.visit(ctx.setExpr());
+            ModelType customType = new Tuple();
+            List<Integer> pointersToSetComp = new LinkedList<>();
+            String structureTuple = ctx.tuple().csv().getText();
+            String[] d = structureTuple.split(",");
+            for(String tctx : structureTuple.split(",")){
+                pointersToSetComp.add(Integer.parseInt(tctx));
+            }
+            
+            int count = 0;
+            for(ModelSet s : visitor.basicSets){
+                count += s.getStructure().length;
+            }
+            StructureBlock[] totalStructure = new StructureBlock[count];
+            count = 0;
+            for(ModelSet s : visitor.basicSets){
+                int i = 1;
+                for(StructureBlock sb : s.getStructure()){
+                    totalStructure[count] = new StructureBlock(s, sb == null && s.identifier.equals("anonymous_set") ? i : sb.position);
+                    count++;
+                    i++;
+                }   
+            }
+
+            StructureBlock[] resultingStructure = new StructureBlock[pointersToSetComp.size()];
+            count = 0;
+            for(Integer p : pointersToSetComp){
+                resultingStructure[count++] = totalStructure[p-1];
+            }
+            ModelSet newSet = new ModelSet("anonymous_set",visitor.getBasicSets(),visitor.getBasicParams(),resultingStructure);
+            basicSets.add(newSet);
+            if(type == null || type == ModelPrimitives.UNKNOWN)
+                type = newSet.getType();
+            else if(type instanceof Tuple)
+                ((Tuple)type).append(newSet.getType());
+
             return null;
         }
         
