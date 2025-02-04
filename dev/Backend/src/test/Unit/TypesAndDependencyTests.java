@@ -130,6 +130,8 @@ public class TypesAndDependencyTests {
         immidiateParamDependencies.put("(minimalRivuah)**2", new String[]{});
         immidiateSetDependencies.put("(sum <i,a,b> in CxS: sum<m,n> in S | m != a or b!=n :(edge[i,a,b] * edge[i,m,n] * (b-n)))*8", new String[]{"CxS","S"});
         immidiateParamDependencies.put("(sum <i,a,b> in CxS: sum<m,n> in S | m != a or b!=n :(edge[i,a,b] * edge[i,m,n] * (b-n)))*8", new String[]{});
+        immidiateSetDependencies.put("sum <person> in People : (TotalMishmarot[person]**2)", new String[]{"People"});
+        immidiateParamDependencies.put("sum <person> in People : (TotalMishmarot[person]**2)", new String[]{});
 
         primitives.put("C",false);
         primitives.put("CxS",false);
@@ -191,7 +193,9 @@ public class TypesAndDependencyTests {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"((maxShmirot-minShmirot)+conditioner)**3" ,"(minimalRivuah)**2","(sum <i,a,b> in CxS: sum<m,n> in S | m != a or b!=n :(edge[i,a,b] * edge[i,m,n] * (b-n)))*8"})
+    @ValueSource(strings = {"((maxShmirot-minShmirot)+conditioner)**3" ,"(minimalRivuah)**2",
+                            "(sum <i,a,b> in CxS: sum<m,n> in S | m != a or b!=n :(edge[i,a,b] * edge[i,m,n] * (b-n)))*8",
+                            "sum <person> in People : (TotalMishmarot[person]**2)"})
     public void testPreferencesDependencies(String id){
         ModelPreference mp = model.getPreference(id.replaceAll(" ", ""));
         assertNotNull(mp);
@@ -391,6 +395,37 @@ public class TypesAndDependencyTests {
         assertEquals(ModelPrimitives.TEXT,((Tuple)set.getType()).getTypes().get(5));
         assertEquals(ModelPrimitives.FLOAT,((Tuple)set.getType()).getTypes().get(6));
     }
+
+    @Test
+    public void testProjFunc(){
+        ModelSet set = model.getSet("forTest4");
+        assertEquals("anonymous_set",set.getSetDependencies().get(0).getIdentifier());
+        assertEquals(2,set.getSetDependencies().get(0).getStructure().length);
+        int[] depPointers = {2,1};
+        int i = 0;
+        for ( ModelSet.StructureBlock sb :set.getSetDependencies().get(0).getStructure()){
+            assertEquals(sb.dependency.getIdentifier(),"forTest3");
+            assertEquals(sb.position,depPointers[i++]);
+        }
+        assertEquals("<TEXT,INT>",set.getSetDependencies().get(0).getType().toString());
+    }
+
+    // forTest5 point to [forTest4,2] , [anonymous_set,2]
+    @Test
+    public void testProjFunc2(){
+        ModelSet set = model.getSet("forTest5");
+        assertEquals("anonymous_set",set.getSetDependencies().get(0).getIdentifier());
+        assertEquals(2,set.getSetDependencies().get(0).getStructure().length);
+
+        assertEquals("forTest4",set.getSetDependencies().get(0).getStructure()[0].dependency.getIdentifier());
+        assertEquals(2,set.getSetDependencies().get(0).getStructure()[0].position);
+
+        assertEquals("anonymous_set",set.getSetDependencies().get(0).getStructure()[1].dependency.getIdentifier());
+        assertEquals(2,set.getSetDependencies().get(0).getStructure()[1].position);
+
+        assertEquals("<INT,TEXT>",set.getSetDependencies().get(0).getType().toString());
+    }
+
 
     @AfterAll
     public static void cleanUp() throws IOException {
