@@ -12,6 +12,8 @@ set CxSxS := {<i,a,b,c,d> in C * S * S | b < d };
 set forTest1 := {<a> in {"a","b","c"} : <soldiers, a>};
 set forTest2 := {"a", "b"} * S * {1..soldiers} * C * {<"h",2.2> , <"a",-3.14>}; 
 set forTest3 := {<2,"a",3>,<6,"2",3>};
+set forTest4 := proj(forTest3,<2,1>);
+set forTest5 := proj(forTest4 * {<2,"a">,<1,"f">},<2,4>); # -> <INT,TEXT>
 
 var edge[CxS] binary;
 var couples[CxSxS] binary;

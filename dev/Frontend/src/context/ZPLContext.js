@@ -4,10 +4,16 @@ const ZPLContext = createContext();
 
 export const ZPLProvider = ({ children }) => {
     const [imageId, setImageId] = useState(null);
-    const [variables, setVariables] = useState({});
+    const [variables, setVariables] = useState([]);
     const [constraints, setConstraints] = useState({});
     const [preferences, setPreferences] = useState({});
     const [types, setTypes] = useState({});
+    const [modules, setModules] = useState([]);
+    const [preferenceModules, setPreferenceModules] = useState([]);
+    
+    
+    console.log("ZPLContext Loaded - Variables:", variables);
+
 
     return (
         <ZPLContext.Provider value={{ 
@@ -15,7 +21,9 @@ export const ZPLProvider = ({ children }) => {
             variables, setVariables, 
             constraints, setConstraints, 
             preferences, setPreferences, 
-            types, setTypes 
+            types, setTypes,
+            modules, setModules,
+            preferenceModules, setPreferenceModules
         }}>
             {children}
         </ZPLContext.Provider>

@@ -1,117 +1,176 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useZPL } from '../context/ZPLContext';
-import { useDrag, useDrop, DndProvider } from 'react-dnd';
-import { HTML5Backend } from 'react-dnd-html5-backend';
 import './ConfigureConstraintsPage.css';
 
-const ITEM_TYPE = 'CONSTRAINT';
-
-const ConstraintItem = ({ constraint, onDrop }) => {
-    const [{ isDragging }, drag] = useDrag(() => ({
-        type: ITEM_TYPE,
-        item: { constraint },
-        collect: (monitor) => ({
-            isDragging: monitor.isDragging(),
-        }),
-    }));
-
-    return (
-        <div ref={drag} className="constraint-item" style={{ opacity: isDragging ? 0.5 : 1 }}>
-            {constraint.identifier}
-        </div>
-    );
-};
-
 const ConfigureConstraintsPage = () => {
-    const { constraints } = useZPL(); // Retrieve constraints from context
     const navigate = useNavigate();
 
-    const [constraintModules, setConstraintModules] = useState([]);
-    const [moduleName, setModuleName] = useState('');
+    // Fetch constraints & modules from ZPL context
+    const { constraints: jsonConstraints = [], modules = [], setModules = () => {} } = useZPL();
 
+    // Local states
+    const [availableConstraints, setAvailableConstraints] = useState([]);
+    const [moduleName, setModuleName] = useState('');
+    const [selectedModuleIndex, setSelectedModuleIndex] = useState(null);
+
+    // Initialize available constraints dynamically from JSON
+    useEffect(() => {
+        setAvailableConstraints(jsonConstraints);
+    }, [jsonConstraints]);
+
+    // Add a new module
     const addConstraintModule = () => {
         if (moduleName.trim() !== '') {
-            setConstraintModules([...constraintModules, { name: moduleName, constraints: [] }]);
+            setModules((prevModules) => [
+                ...prevModules,
+                { name: moduleName, description: "", constraints: [], involvedSets: [], involvedParams: [] }
+            ]);
             setModuleName('');
         }
     };
 
-    const [{ isOver }, drop] = useDrop(() => ({
-        accept: ITEM_TYPE,
-        drop: (item) => {
-            setConstraintModules((prevModules) => {
-                if (prevModules.length > 0) {
-                    const newModules = [...prevModules];
-                    newModules[newModules.length - 1].constraints.push(item.constraint);
-                    return newModules;
+    // Update module description
+    const updateModuleDescription = (newDescription) => {
+        setModules((prevModules) =>
+            prevModules.map((module, idx) =>
+                idx === selectedModuleIndex ? { ...module, description: newDescription } : module
+            )
+        );
+    };
+
+    // Add constraint to selected module
+    const addConstraintToModule = (constraint) => {
+        if (selectedModuleIndex === null) {
+            alert('Please select a module first!');
+            return;
+        }
+
+        setModules((prevModules) => {
+            if (!prevModules) return [];
+            return prevModules.map((module, idx) => {
+                if (idx === selectedModuleIndex) {
+                    if (!module.constraints.some(c => c.identifier === constraint.identifier)) {
+                        return {
+                            ...module,
+                            constraints: [...module.constraints, constraint],
+                            involvedSets: [...new Set([...module.involvedSets, ...(constraint.dep?.setDependencies || [])])],
+                            involvedParams: [...new Set([...module.involvedParams, ...(constraint.dep?.paramDependencies || [])])]
+                        };
+                    }
                 }
-                return prevModules;
+                return module;
             });
-        },
-        collect: (monitor) => ({
-            isOver: monitor.isOver(),
-        }),
-    }));
+        });
+
+        // Remove constraint from the available list
+        setAvailableConstraints((prev) =>
+            prev.filter((c) => c.identifier !== constraint.identifier)
+        );
+    };
 
     return (
-        <DndProvider backend={HTML5Backend}>
-            <div className="configure-constraints-page">
-                <h1 className="page-title">Configure High-Level Constraints</h1>
-                
-                <div className="constraints-layout">
-                    {/* Constraint Modules Menu */}
-                    <div className="constraint-modules">
-                        <h2>Constraint Modules</h2>
-                        <input
-                            type="text"
-                            placeholder="Module Name"
-                            value={moduleName}
-                            onChange={(e) => setModuleName(e.target.value)}
-                        />
-                        <button onClick={addConstraintModule}>Add Constraint Module</button>
-                        <ul>
-                            {constraintModules.map((module, index) => (
-                                <li key={index}>{module.name}</li>
-                            ))}
-                        </ul>
-                    </div>
+        <div className="configure-constraints-page">
+            <h1 className="page-title">Configure High-Level Constraints</h1>
 
-                    {/* Define Constraint Module */}
-                    <div className="define-constraint-module" ref={drop} style={{ backgroundColor: isOver ? '#f0f0f0' : 'white' }}>
-                        <h2>Define Constraint Module</h2>
-                        <p>Drag constraints here to define a module</p>
-                        <div className="module-drop-area">
-                            {constraintModules.length > 0 && constraintModules[constraintModules.length - 1].constraints.length > 0 ? (
-                                constraintModules[constraintModules.length - 1].constraints.map((c, i) => (
-                                    <div key={i} className="dropped-constraint">{c.identifier}</div>
-                                ))
-                            ) : (
-                                <p>No constraints added</p>
-                            )}
-                        </div>
-                    </div>
-
-                    {/* Available Constraints */}
-                    <div className="available-constraints">
-                        <h2>Available Constraints</h2>
-                        {constraints && constraints.length > 0 ? (
-                            constraints.map((constraint, index) => (
-                                <ConstraintItem key={index} constraint={constraint} />
-                            ))
-                        ) : (
-                            <p>No constraints available</p>
-                        )}
+            <div className="constraints-layout">
+                {/* Constraint Modules Section */}
+                <div className="constraint-modules">
+                    <h2>Constraint Modules</h2>
+                    <input
+                        type="text"
+                        placeholder="Module Name"
+                        value={moduleName}
+                        onChange={(e) => setModuleName(e.target.value)}
+                    />
+                    <button onClick={addConstraintModule}>Add Constraint Module</button>
+                    <div className="module-list">
+                        {modules.map((module, index) => (
+                            <div key={index} className="module-item-container">
+                                <button 
+                                    className={`module-item ${selectedModuleIndex === index ? 'selected' : ''}`} 
+                                    onClick={() => setSelectedModuleIndex(index)}
+                                >
+                                    {module.name}
+                                </button>
+                            </div>
+                        ))}
                     </div>
                 </div>
-                
-                <button className="continue-button" onClick={() => navigate('/configure-preferences')}>
-                    Continue
-                </button>
-                
-                <Link to="/" className="back-button">Back</Link>
+
+                {/* Define Constraint Module Section */}
+                <div className="define-constraint-module">
+                    <h2>Define Constraint Module</h2>
+                    {selectedModuleIndex === null ? (
+                        <p>Select a module</p>
+                    ) : (
+                        <>
+                            <h3>{modules[selectedModuleIndex]?.name || 'Unnamed Module'}</h3>
+                            <label>Description:</label>
+                            <hr />
+                            <textarea
+                                value={modules[selectedModuleIndex]?.description || ""}
+                                onChange={(e) => updateModuleDescription(e.target.value)}
+                                placeholder="Enter module description..."
+                                style={{ resize: "none", width: "100%", height: "80px" }}
+                            />
+                            <p>This module's constraints:</p>
+                            <hr />
+                            <div className="module-drop-area">
+                                {modules[selectedModuleIndex]?.constraints?.length > 0 ? (
+                                    modules[selectedModuleIndex].constraints.map((c, i) => (
+                                        <div key={i} className="dropped-constraint">
+                                            {c.identifier}
+                                        </div>
+                                    ))
+                                ) : (
+                                    <p>No constraints added</p>
+                                )}
+                            </div>
+                            <h3>Involved Sets</h3>
+                            <ul>
+                                {modules[selectedModuleIndex]?.involvedSets.map((set, i) => (
+                                    <li key={i}>{set}</li>
+                                ))}
+                            </ul>
+                            <h3>Involved Parameters</h3>
+                            <ul>
+                                {modules[selectedModuleIndex]?.involvedParams.map((param, i) => (
+                                    <li key={i}>{param}</li>
+                                ))}
+                            </ul>
+                        </>
+                    )}
+                </div>
+
+                {/* Available Constraints Section */}
+                <div className="available-constraints">
+                    <h2>Available Constraints</h2>
+                    {availableConstraints.length > 0 ? (
+                        availableConstraints.map((constraint, idx) => (
+                            <div key={idx} className="constraint-item-container">
+                                <button className="constraint-item" onClick={() => addConstraintToModule(constraint)}>
+                                    {constraint.identifier}
+                                </button>
+                            </div>
+                        ))
+                    ) : (
+                        <p>No constraints available</p>
+                    )}
+                </div>
             </div>
-        </DndProvider>
+
+            <button
+                className="continue-button"
+                onClick={() => navigate('/configure-preferences')}
+            >
+                Continue
+            </button>
+
+            <Link to="/" className="back-button">
+                Back
+            </Link>
+        </div>
     );
 };
 
