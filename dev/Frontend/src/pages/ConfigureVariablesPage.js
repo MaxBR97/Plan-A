@@ -62,7 +62,7 @@ const ConfigureVariablesPage = () => {
       };
 
     const handleParamsCheckboxChange = (itemId) => {
-        setSelectedParams(prevSelected => {
+        setSelectedParams(prevSelected => { 
           if (prevSelected.includes(itemId)) {
             return prevSelected.filter(id => id !== itemId);
           } else {

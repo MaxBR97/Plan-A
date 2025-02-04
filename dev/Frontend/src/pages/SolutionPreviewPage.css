@@ -168,5 +168,41 @@
     border-color: #78909C; /* Slight hover effect for interactivity */
 }
 
+.solve-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 20px auto; /* Centers the button horizontally */
+    padding: 12px 24px;
+    font-size: 16px;
+    font-weight: bold;
+    color: #5A2E98; /* Purple text color */
+    background-color: white; /* White background */
+    border: 2px solid #999; /* Light gray border */
+    border-radius: 25px; /* Makes the button oval */
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+}
+
+.solve-button:hover {
+    background-color: #f4f4f4; /* Light gray on hover */
+}
+
+.solve-button:active {
+    background-color: #ddd; /* Darker gray on click */
+}
 
 
+.error-message {
+    color: red;
+    background-color: #ffe6e6; /* Light red background */
+    border: 2px solid red;
+    padding: 10px;
+    text-align: center;
+    font-weight: bold;
+    width: 60%;
+    margin: 20px auto; /* Centers the error box */
+    border-radius: 8px;
+    box-shadow: 2px 2px 10px rgba(255, 0, 0, 0.2);
+    margin-bottom: 20px; /* Adds spacing below the error message */
+}
