@@ -248,7 +248,7 @@ const SolutionPreviewPage = () => {
                 {variableValues[set]?.map((row, rowIndex) => (
                   <div key={rowIndex} className="input-row">
                     {row.map((value, typeIndex) => {
-                      // Ensure we extract and format types correctly
+                      // Extract and format types correctly
                       const typeList = types[set]
                         ? types[set].replace(/[<>]/g, "").split(",")
                         : ["value"];
@@ -268,16 +268,51 @@ const SolutionPreviewPage = () => {
                           className="variable-input"
                           placeholder={`Enter ${
                             typeList[typeIndex]?.trim() || "value"
-                          }:`} // Fix placeholder formatting
+                          }:`}
                         />
                       );
                     })}
+
+                    {/* ✅ Add a divider after each row */}
+                    <hr className="input-divider" />
                   </div>
                 ))}
               </div>
             );
           })}
         </div>
+
+        {/* Variable Parameters Section */}
+<div className="module-section">
+    <h2 className="section-title">Variable Parameters</h2>
+    {Object.keys(types).map((param, index) => {
+        // Ensure the parameter is not a variable set (i.e., it's a standalone parameter)
+        if (!allSets.includes(param)) {
+            return (
+                <div key={index} className="module-box">
+                    {/* Display Parameter Name */}
+                    <h3 className="module-title">{param}</h3>
+
+                    {/* Display Parameter Type */}
+                    <p className="variable-type">
+                        <strong>Type:</strong> {types[param] || "Unknown"}
+                    </p>
+
+                    {/* Input Field */}
+                    <input 
+                        type="text" 
+                        value={paramValues[param] || ''} 
+                        onChange={(e) => handleParamChange(param, e.target.value)} 
+                        className="variable-input" 
+                        placeholder={`Enter ${types[param] || "value"}...`}
+                    />
+                </div>
+            );
+        }
+        return null; // Skip variables, only show params
+    })}
+</div>
+
 
         {/* Error Message */}
         {errorMessage && (
