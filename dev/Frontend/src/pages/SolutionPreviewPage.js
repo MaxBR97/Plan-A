@@ -4,8 +4,19 @@ import { useZPL } from "../context/ZPLContext";
 import "./SolutionPreviewPage.css";
 
 const SolutionPreviewPage = () => {
-  const {imageId, constraints, preferences, modules, preferenceModules, variables } =
-    useZPL();
+  const {
+    constraints,
+    preferences,
+    modules,
+    preferenceModules,
+    variables,
+    types,
+    imageId,
+  } = useZPL();
+
+  const allSets = variables.flatMap(
+    (variable) => variable.dep?.setDependencies ?? []
+  );
   const [variableValues, setVariableValues] = useState({});
   const [paramValues, setParamValues] = useState({});
 
@@ -29,6 +40,37 @@ const SolutionPreviewPage = () => {
       ...prev,
       [paramName]: value,
     }));
+  };
+
+  const getNumTypes = (setName) => {
+    const typeValue = types[setName]; // Get the type(s) for the given set
+
+    if (!typeValue) return 1; // Default to 1 if type is missing
+
+    if (typeof typeValue === "string") {
+      const typeList = typeValue.replace(/[<>]/g, "").split(","); // Remove <> and split by comma
+      return typeList.length; // Return the number of types
+    }
+
+    return Array.isArray(typeValue) ? typeValue.length : 1; // Handle already-parsed arrays
+  };
+
+  const handleAddVariable = (setName) => {
+    const numTypes = getNumTypes(setName); // Get the correct number of types
+
+    setVariableValues((prev) => ({
+      ...prev,
+      [setName]: [...(prev[setName] || []), Array(numTypes).fill("")], // Add N empty inputs per row
+    }));
+  };
+
+  const handleVariableChange = (setName, rowIndex, typeIndex, value) => {
+    setVariableValues((prev) => {
+      const updatedValues = [...(prev[setName] || [])];
+      updatedValues[rowIndex] = [...updatedValues[rowIndex]]; // Copy row to avoid mutation
+      updatedValues[rowIndex][typeIndex] = value; // Update only the correct type input
+      return { ...prev, [setName]: updatedValues };
+    });
   };
 
   const handleSolve = async () => {
@@ -177,65 +219,75 @@ const SolutionPreviewPage = () => {
           )}
         </div>
 
-        {/* Variable Parameters Section */}
-        <div className="module-section">
-          <h2 className="section-title">Variable Parameters</h2>
-          {variables.length > 0 ? (
-            variables
-              .flatMap((variable) => variable.dep?.paramDependencies || [])
-              .map((param, index) => (
-                <div key={index} className="module-box">
-                  <h3 className="module-title">{param}</h3>
-                  <input
-                    type="text"
-                    value={paramValues[param] || ""}
-                    onChange={(e) => handleParamChange(param, e.target.value)}
-                    className="variable-input"
-                    placeholder="Enter value..."
-                  />
-                </div>
-              ))
-          ) : (
-            <p className="empty-message">No parameters available.</p>
-          )}
-        </div>
-
         {/* Variable Sets Section */}
         <div className="module-section">
           <h2 className="section-title">Variable Sets</h2>
-          {variables.map((variable, index) =>
-            variable.dep?.setDependencies?.map((set, sIndex) => (
-              <div key={`${index}-${sIndex}`} className="module-box">
+          {Array.from(new Set(allSets)).map((set, index) => {
+            // Remove duplicates
+            const typeList = Array.isArray(types[set])
+              ? types[set]
+              : [types[set]]; // Ensure it's an array
+
+            return (
+              <div key={index} className="module-box">
+                {/* Display Variable Name */}
                 <h3 className="module-title">{set}</h3>
+
+                {/* Display Type */}
+                <p className="variable-type">
+                  <strong>Type:</strong> {typeList.join(", ")}
+                </p>
+
+                {/* Add Button */}
                 <button
                   className="add-button"
-                  onClick={() => handleAddValue(set)}
+                  onClick={() => handleAddVariable(set, typeList)}
                 ></button>
-                {variableValues[set]?.map((value, vIndex) => (
-                  <input
-                    key={vIndex}
-                    type="text"
-                    value={value}
-                    onChange={(e) =>
-                      handleValueChange(set, vIndex, e.target.value)
-                    }
-                    className="variable-input"
-                  />
+
+                {/* Input Fields - Each type gets its own separate textbox */}
+                {variableValues[set]?.map((row, rowIndex) => (
+                  <div key={rowIndex} className="input-row">
+                    {row.map((value, typeIndex) => {
+                      // Ensure we extract and format types correctly
+                      const typeList = types[set]
+                        ? types[set].replace(/[<>]/g, "").split(",")
+                        : ["value"];
+                      return (
+                        <input
+                          key={typeIndex}
+                          type="text"
+                          value={value}
+                          onChange={(e) =>
+                            handleVariableChange(
+                              set,
+                              rowIndex,
+                              typeIndex,
+                              e.target.value
+                            )
+                          }
+                          className="variable-input"
+                          placeholder={`Enter ${
+                            typeList[typeIndex]?.trim() || "value"
+                          }:`} // Fix placeholder formatting
+                        />
+                      );
+                    })}
+                  </div>
                 ))}
               </div>
-            ))
-          )}
+            );
+          })}
         </div>
 
         {/* Error Message */}
         {errorMessage && (
-    <div className="error-container">
-        <p className="error-message">{errorMessage}</p>
-    </div>
-)}
+          <div className="error-container">
+            <p className="error-message">{errorMessage}</p>
+          </div>
+        )}
 
         {/* Solve Button */}
-   
+
         <button className="solve-button" onClick={handleSolve}>
           Solve
         </button>
