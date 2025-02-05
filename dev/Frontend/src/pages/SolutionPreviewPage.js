@@ -81,7 +81,16 @@ const SolutionPreviewPage = () => {
         : [...prev, moduleName]
     );
   };
+  const [preferencesToggledOff, setPreferencesToggledOff] = useState([]);
 
+  const handleTogglePreference = (preferenceName) => {
+    setPreferencesToggledOff(prev =>
+      prev.includes(preferenceName)
+        ? prev.filter(name => name !== preferenceName) // Remove if exists
+        : [...prev, preferenceName] // Add if not exists
+    );
+  };
+  
   const handleSolve = async () => {
     setErrorMessage(null); // Reset any previous error messages
     setResponseData(null); // Clear previous response data
@@ -197,55 +206,64 @@ const SolutionPreviewPage = () => {
         </div>
 
         {/* Preferences Section */}
-        <div className="module-section">
-          <h2 className="section-title">Preferences</h2>
-          {preferenceModules.length > 0 ? (
-            preferenceModules.map((module, index) => (
-              <div key={index} className="module-box">
-                <h3 className="module-title">{module.name}</h3>
-                <p className="module-description">
-                  <strong>Module Description:</strong> {module.description}
-                </p>
-                <h4 className="module-subtitle">Preferences</h4>
-                {module.preferences.length > 0 ? (
-                  module.preferences.map((preference, pIndex) => (
-                    <div key={pIndex} className="module-item">
-                      <p>
-                        <strong>Identifier:</strong> {preference.identifier}
-                      </p>
-                    </div>
-                  ))
-                ) : (
-                  <p className="empty-message">
-                    No preferences in this module.
-                  </p>
-                )}
-                <h4 className="module-subtitle">Involved Sets</h4>
-                {module.involvedSets.length > 0 ? (
-                  module.involvedSets.map((set, sIndex) => (
-                    <div key={sIndex} className="module-item">
-                      {set}
-                    </div>
-                  ))
-                ) : (
-                  <p className="empty-message">No involved sets.</p>
-                )}
-                <h4 className="module-subtitle">Involved Parameters</h4>
-                {module.involvedParams.length > 0 ? (
-                  module.involvedParams.map((param, pIndex) => (
-                    <div key={pIndex} className="module-item">
-                      {param}
-                    </div>
-                  ))
-                ) : (
-                  <p className="empty-message">No involved parameters.</p>
-                )}
-              </div>
-            ))
-          ) : (
-            <p className="empty-message">No preference modules available.</p>
-          )}
+<div className="module-section">
+  <h2 className="section-title">Preferences</h2>
+  {preferenceModules.length > 0 ? (
+    preferenceModules.map((module, index) => (
+      <div key={index} className="module-box">
+        
+        {/* Toggle Button Positioned Correctly */}
+        <div className="toggle-container">
+          <label className="switch">
+            <input 
+              type="checkbox" 
+              checked={!preferencesToggledOff.includes(module.name)} 
+              onChange={() => handleTogglePreference(module.name)} 
+            />
+            <span className="slider round"></span>
+          </label>
         </div>
+
+        <h3 className="module-title">{module.name}</h3>
+        <p className="module-description">
+          <strong>Module Description:</strong> {module.description}
+        </p>
+
+        <h4 className="module-subtitle">Preferences</h4>
+        {module.preferences.length > 0 ? (
+          module.preferences.map((preference, pIndex) => (
+            <div key={pIndex} className="module-item">
+              <p>{preference.identifier}</p> {/* Removed "Identifier:" */}
+            </div>
+          ))
+        ) : (
+          <p className="empty-message">No preferences in this module.</p>
+        )}
+
+        <h4 className="module-subtitle">Involved Sets</h4>
+        {module.involvedSets.length > 0 ? (
+          module.involvedSets.map((set, sIndex) => (
+            <div key={sIndex} className="module-item">{set}</div>
+          ))
+        ) : (
+          <p className="empty-message">No involved sets.</p>
+        )}
+
+        <h4 className="module-subtitle">Involved Parameters</h4>
+        {module.involvedParams.length > 0 ? (
+          module.involvedParams.map((param, pIndex) => (
+            <div key={pIndex} className="module-item">{param}</div>
+          ))
+        ) : (
+          <p className="empty-message">No involved parameters.</p>
+        )}
+      </div>
+    ))
+  ) : (
+    <p className="empty-message">No preference modules available.</p>
+  )}
+</div>
+
 
         {/* Variable Sets Section */}
         <div className="module-section">
