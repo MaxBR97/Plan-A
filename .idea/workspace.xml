@@ -4,10 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="3057c127-864d-4028-bf48-8c39040ca4eb" name="Changes" comment="fixed bugs in tests">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/Backend/src/test/Acceptance/ServiceTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/test/Acceptance/ServiceTest.java" afterDir="false" />
-    </list>
+    <list default="true" id="3057c127-864d-4028-bf48-8c39040ca4eb" name="Changes" comment="fixed bugs in tests" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -33,11 +30,12 @@
     "JUnit.ServiceTest.testCreateImage.executor": "Run",
     "JUnit.Unit in artifactid.executor": "Run",
     "JUnit.test in artifactid.executor": "Run",
+    "Spring Boot.Main.executor": "Run",
     "git-widget-placeholder": "API-Impl",
     "node.js.selected.package.tslint": "(autodetect)"
   }
 }]]></component>
-  <component name="RunManager" selected="JUnit.ServiceTest">
+  <component name="RunManager" selected="Spring Boot.Main">
     <configuration name="ConstraintModuleDTOTests" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
       <module name="artifactid" />
       <extension name="coverage">
@@ -49,22 +47,6 @@
       <option name="PACKAGE_NAME" value="Intergration.ImageToModelTests" />
       <option name="MAIN_CLASS_NAME" value="Intergration.ImageToModelTests.ConstraintModuleDTOTests" />
       <option name="TEST_OBJECT" value="class" />
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
-    <configuration name="ServiceRequestsTests.GivenImageDTO_WhenConfigImage_ImageIsCorrect" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
-      <module name="artifactid" />
-      <extension name="coverage">
-        <pattern>
-          <option name="PATTERN" value="Acceptance.*" />
-          <option name="ENABLED" value="true" />
-        </pattern>
-      </extension>
-      <option name="PACKAGE_NAME" value="Acceptance" />
-      <option name="MAIN_CLASS_NAME" value="Acceptance.ServiceRequestsTests" />
-      <option name="METHOD_NAME" value="GivenImageDTO_WhenConfigImage_ImageIsCorrect" />
-      <option name="TEST_OBJECT" value="method" />
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
@@ -100,20 +82,35 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
+    <configuration name="Main" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" temporary="true" nameIsGenerated="true">
+      <module name="artifactid" />
+      <projectPathOnTarget name="projectPathOnTarget" value="/app" />
+      <target name="@@@LOCAL@@@" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="groupId.Main" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="groupId.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
     <list>
-      <item itemvalue="JUnit.ServiceRequestsTests.GivenImageDTO_WhenConfigImage_ImageIsCorrect" />
       <item itemvalue="JUnit.Unit in artifactid" />
       <item itemvalue="JUnit.test in artifactid" />
       <item itemvalue="JUnit.ConstraintModuleDTOTests" />
       <item itemvalue="JUnit.ServiceTest" />
+      <item itemvalue="Spring Boot.Main" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Spring Boot.Main" />
         <item itemvalue="JUnit.ServiceTest" />
         <item itemvalue="JUnit.ConstraintModuleDTOTests" />
         <item itemvalue="JUnit.Unit in artifactid" />
         <item itemvalue="JUnit.test in artifactid" />
-        <item itemvalue="JUnit.ServiceRequestsTests.GivenImageDTO_WhenConfigImage_ImageIsCorrect" />
       </list>
     </recent_temporary>
   </component>
