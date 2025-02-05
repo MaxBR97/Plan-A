@@ -42,8 +42,8 @@ public class TypesAndDependencyTests {
    
     private Model model;
 
-    private static String source = "/Plan-A/dev/Backend/src/test/Unit/TestFile.zpl";
-    private static String TEST_FILE_PATH = "/Plan-A/dev/Backend/src/test/Unit/TestFileINSTANCE.zpl";
+    private static String source = "./src/test/Unit/TestFile.zpl";
+    private static String TEST_FILE_PATH = "./src/test/Unit/TestFileINSTANCE.zpl";
 
     private static HashMap<String,String[]> immidiateSetDependencies =  new HashMap<String,String[]>();
     private static HashMap<String,String[]> immidiateParamDependencies =  new HashMap<String,String[]>();

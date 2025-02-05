@@ -36,8 +36,8 @@ public class Model implements ModelInterface {
     private final Map<String,ModelVariable> variables = new HashMap<>();
     private final Set<String> toggledOffFunctionalities = new HashSet<>();
     private boolean loadElementsToRam = true;
-    private final String zimplCompilationScript = "/Plan-A/dev/Backend/src/main/resources/zimpl/checkCompilation.sh";
-    private final String zimplSolveScript = "/Plan-A/dev/Backend/src/main/resources/zimpl/solve.sh" ;
+    private final String zimplCompilationScript = "./src/main/resources/zimpl/checkCompilation.sh";
+    private final String zimplSolveScript = "./src/main/resources/zimpl/solve.sh" ;
     private String originalSource;
     
     public Model(String sourceFilePath) throws IOException {
