@@ -11,6 +11,7 @@ import DTO.Records.Image.SolutionDTO;
 import DTO.Records.Requests.Responses.CreateImageResponseDTO;
 import DTO.Records.Requests.Responses.ImageResponseDTO;
 import Image.Image;
+import Model.Model;
 import Model.ModelConstraint;
 import Model.ModelInterface;
 import Model.ModelVariable;
@@ -46,10 +47,26 @@ private final Map<UUID,Image> images;
         return RecordFactory.makeDTO(id,image.getModel());
     }
 
-    //TODO: after SolutionDTO is fully implemented with its factory, make this method work.
-    public SolutionDTO solve(SolveCommandDTO command) {
-        return null;
-        //return images.get(UUID.fromString(command.id())).solve(Integer.parseInt(command.timeout()));
+    public SolutionDTO solve(SolveCommandDTO command) throws Exception {
+        Image image = images.get(UUID.fromString(command.imageId()));
+        ModelInterface model = image.getModel();
+        for (Map.Entry<String,List<String>> set : command.input().setsToValues().entrySet()){
+            model.setInput(model.getSet(set.getKey()), (String[])set.getValue().toArray());
+        }
+
+        for (Map.Entry<String,String> parameter : command.input().paramsToValues().entrySet()){
+            model.setInput(model.getParameter(parameter.getKey()), parameter.getValue());
+        }
+
+        for (String constraint : command.input().constraintsToggledOff()){
+            model.toggleFunctionality(model.getConstraint(constraint), false);
+        }
+
+        for (String preference : command.input().preferencesToggledOff()){
+            model.toggleFunctionality(model.getPreference(preference), false);
+        }
+
+        return image.solve(command.timeout());
     }
 
     public void overrideImage(ImageConfigDTO imgConfig) {

@@ -128,6 +128,22 @@ public class ModelTest {
         assertTrue(model.isCompiling(2));
 
     }
+
+    @Test
+    public void testSetSetInput() throws Exception {
+        String set = "forTest3";
+        String[] valueToSet = {"<1,\"gsd\",3>", "<54,\"g5h\",3>"};
+
+        ModelSet mySet = getSet(model, set);
+        assertNotNull(mySet);
+        Assertions.assertTrue(mySet.getType().isCompatible(new Tuple(new ModelPrimitives[]{ModelPrimitives.INT,ModelPrimitives.TEXT,ModelPrimitives.INT})));
+        model.setInput(mySet, valueToSet);
+        mySet = getSet(model, set);
+        Assertions.assertArrayEquals( mySet.getElements().toArray(), valueToSet);
+
+        assertTrue(model.isCompiling(2));
+
+    }
     
     // Functionality Toggle Tests
     @Test
@@ -218,11 +234,11 @@ public class ModelTest {
     //TODO:The parsing of preferences must be tested further!
 
 
-    @AfterAll
-    public static void cleanUp() throws IOException {
-       Path targetPath = Path.of(TEST_FILE_PATH);
-       Files.deleteIfExists(targetPath);
-       Files.deleteIfExists(Path.of(targetPath.toString()+"SOLUTION"));
-    }
+    // @AfterAll
+    // public static void cleanUp() throws IOException {
+    //    Path targetPath = Path.of(TEST_FILE_PATH);
+    //    Files.deleteIfExists(targetPath);
+    //    Files.deleteIfExists(Path.of(targetPath.toString()+"SOLUTION"));
+    // }
 
 }
