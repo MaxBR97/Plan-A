@@ -4,8 +4,8 @@ import java.util.List;
 import java.util.Map;
 
 public record InputDTO(
-        Map<String, List<String>> setsToValues,
-        Map<String, String> paramsToValues,
+        Map<String, List<List<String>>> setsToValues,
+        Map<String, List<String>> paramsToValues,
         List<String> constraintsToggledOff,
         List<String> preferencesToggledOff
     ) {}

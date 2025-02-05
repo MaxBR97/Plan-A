@@ -382,7 +382,6 @@ public class Model implements ModelInterface {
         
         private java.util.List<String> parseSetElements(FormulationParser.SetExprContext ctx) {
             java.util.List<String> elements = new ArrayList<>();
-            // Parse set elements based on the context type
             
             if (ctx instanceof FormulationParser.SetExprStackContext) {
                 FormulationParser.SetExprStackContext stackCtx = (FormulationParser.SetExprStackContext) ctx;
@@ -391,12 +390,39 @@ public class Model implements ModelInterface {
                     if (stackCtx.setDesc() instanceof FormulationParser.SetDescStackContext) {
                         FormulationParser.SetDescStackContext descCtx = (FormulationParser.SetDescStackContext) stackCtx.setDesc();
                         if (descCtx.csv() != null) {
-                            String[] values = descCtx.csv().getText().split(",");
-                            elements.addAll(Arrays.asList(values));
+                            String csvText = descCtx.csv().getText();
+                            
+                            // Split the CSV text by commas, but not within angle brackets
+                            StringBuilder currentElement = new StringBuilder();
+                            boolean inAngleBrackets = false;
+                            
+                            for (int i = 0; i < csvText.length(); i++) {
+                                char c = csvText.charAt(i);
+                                
+                                if (c == '<') {
+                                    inAngleBrackets = true;
+                                    currentElement.append(c);
+                                } else if (c == '>') {
+                                    inAngleBrackets = false;
+                                    currentElement.append(c);
+                                } else if (c == ',' && !inAngleBrackets) {
+                                    // When encountering a comma outside of angle brackets, add the current element to the list
+                                    elements.add(currentElement.toString().trim());
+                                    currentElement.setLength(0); // Reset the current element
+                                } else {
+                                    currentElement.append(c);
+                                }
+                            }
+                            
+                            // Add the last element if it exists
+                            if (currentElement.length() > 0) {
+                                elements.add(currentElement.toString().trim());
+                            }
                         }
                     }
                 }
             }
+            
             return elements;
         }
     }

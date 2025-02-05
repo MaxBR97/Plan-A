@@ -130,6 +130,8 @@ public class TypesAndDependencyTests {
         immidiateParamDependencies.put("(minimalRivuah)**2", new String[]{});
         immidiateSetDependencies.put("(sum <i,a,b> in CxS: sum<m,n> in S | m != a or b!=n :(edge[i,a,b] * edge[i,m,n] * (b-n)))*8", new String[]{"CxS","S"});
         immidiateParamDependencies.put("(sum <i,a,b> in CxS: sum<m,n> in S | m != a or b!=n :(edge[i,a,b] * edge[i,m,n] * (b-n)))*8", new String[]{});
+        immidiateSetDependencies.put("sum <person> in People : (TotalMishmarot[person]**2)", new String[]{"People"});
+        immidiateParamDependencies.put("sum <person> in People : (TotalMishmarot[person]**2)", new String[]{});
 
         primitives.put("C",false);
         primitives.put("CxS",false);
@@ -163,7 +165,6 @@ public class TypesAndDependencyTests {
             inp = model.getSet(id);
             assertEquals(primitives.get(id), inp.isPrimitive());
         }
-        
     }
 
     @ParameterizedTest
@@ -191,7 +192,9 @@ public class TypesAndDependencyTests {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"((maxShmirot-minShmirot)+conditioner)**3" ,"(minimalRivuah)**2","(sum <i,a,b> in CxS: sum<m,n> in S | m != a or b!=n :(edge[i,a,b] * edge[i,m,n] * (b-n)))*8"})
+    @ValueSource(strings = {"((maxShmirot-minShmirot)+conditioner)**3" ,"(minimalRivuah)**2",
+                            "(sum <i,a,b> in CxS: sum<m,n> in S | m != a or b!=n :(edge[i,a,b] * edge[i,m,n] * (b-n)))*8",
+                            "sum <person> in People : (TotalMishmarot[person]**2)"})
     public void testPreferencesDependencies(String id){
         ModelPreference mp = model.getPreference(id.replaceAll(" ", ""));
         assertNotNull(mp);

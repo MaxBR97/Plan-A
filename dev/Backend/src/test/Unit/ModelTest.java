@@ -128,6 +128,22 @@ public class ModelTest {
         assertTrue(model.isCompiling(2));
 
     }
+
+    @Test
+    public void testSetSetInput() throws Exception {
+        String set = "forTest3";
+        String[] valueToSet = {"<1,\"gsd\",3>", "<54,\"g5h\",3>"};
+
+        ModelSet mySet = getSet(model, set);
+        assertNotNull(mySet);
+        Assertions.assertTrue(mySet.getType().isCompatible(new Tuple(new ModelPrimitives[]{ModelPrimitives.INT,ModelPrimitives.TEXT,ModelPrimitives.INT})));
+        model.setInput(mySet, valueToSet);
+        mySet = getSet(model, set);
+        Assertions.assertArrayEquals( mySet.getElements().toArray(), valueToSet);
+
+        assertTrue(model.isCompiling(2));
+
+    }
     
     // Functionality Toggle Tests
     @Test
@@ -160,6 +176,12 @@ public class ModelTest {
         } catch (Exception e){
             assertFalse(true);
         }
+    }
+
+    @Test
+    public void testConvertingAtomsToTuple(){
+        String res = ModelInput.convertArrayOfAtomsToTuple(new String[]{"\"fdas\"", "32", "321"});
+        assertTrue(res.equals("<\"fdas\",32,321>"));
     }
 
     @Test
