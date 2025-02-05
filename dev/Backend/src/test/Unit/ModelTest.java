@@ -147,7 +147,7 @@ public class ModelTest {
     
     // Functionality Toggle Tests
     @Test
-    public void testToggleFunctionality() throws Exception {
+    public void testToggleFunctionalityConstraint() throws Exception {
         String testConstraint = "trivial1";
 
         ModelFunctionality mf = getConstraint(model, testConstraint);
@@ -160,6 +160,23 @@ public class ModelTest {
         assertNotNull(getConstraint(model, testConstraint));
         assertTrue(model.isCompiling(2));
     }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"sum<person>inPeople:(TotalMishmarot[person]**2)","((maxShmirot-minShmirot)+conditioner)**3", "(minimalRivuah)**2", "(sum <i,a,b> in CxS: sum<m,n> in S | m != a or b!=n :(edge[i,a,b] * edge[i,m,n] * (b-n)))*8"})
+    public void testToggleFunctionalityPreference(String id) throws Exception {
+        String testPreference = id.replaceAll(" ","");
+
+        ModelFunctionality mf = getPreference(model, testPreference);
+        assertNotNull(mf);
+        model.toggleFunctionality(mf, false);
+
+        assertTrue(model.isCompiling(2));
+
+        model.toggleFunctionality(mf, true);
+        assertNotNull(getPreference(model, testPreference));
+        assertTrue(model.isCompiling(2));
+    }
+
 
     @Test
     public void testBasicCompilation(){

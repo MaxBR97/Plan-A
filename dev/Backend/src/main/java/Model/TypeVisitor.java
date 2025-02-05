@@ -174,7 +174,7 @@ public class Model implements ModelInterface {
             int exitCode = process.waitFor();
             boolean result = exitCode == 0 && output.toString().contains("Compilation Successful");
             
-            restoreToggledFunctionalities();
+            //restoreToggledFunctionalities();
             return result;
         } catch (Exception e) {
             try {
@@ -608,8 +608,9 @@ public class Model implements ModelInterface {
         public Void visitObjective(FormulationParser.ObjectiveContext ctx) {
             List<UExprContext> components = findComponentContexts(ctx.nExpr());
             for( UExprContext subCtx : components){
-                
-                    String objectiveName = subCtx.getText();
+                TypeVisitor visitor = new TypeVisitor();
+                visitor.visit(expressionComponent);
+                    String objectiveName = extractName(subCtx.getText());
                     if ((targetFunctionalities != null && targetFunctionalities.contains(objectiveName)) ||
                         (targetIdentifier != null && objectiveName.equals(targetIdentifier))) {
                         if (act == Action.COMMENT_OUT)
@@ -708,7 +709,7 @@ public class Model implements ModelInterface {
             }
             
             modifiedSource.replace(startIndex, stopIndex + 1, 
-                  "((" + originalLine + ")*0)");
+                "((" + originalLine + ")*0)");
             modified = true;
         }
 
