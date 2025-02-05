@@ -17,6 +17,10 @@ public class ModelParameter extends ModelInput {
             List<ModelParameter> basicParams) {
         super(paramName, type, basicSets, basicParams);
     }
+    @Override
+    public boolean isPrimitive(){
+        return this.setDependencies.isEmpty() && this.paramDependencies.isEmpty();
+    }
 
 
     public String getValue() {
@@ -38,11 +42,7 @@ public class ModelParameter extends ModelInput {
         this.value = null;
     }
 
-    public boolean isPrimitive(){
-        if(this.setDependencies.size() == 0 && this.paramDependencies.size() == 0)
-            return true;
-        return false;
-    }
+
 
     
 }

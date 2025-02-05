@@ -95,10 +95,12 @@ public class Solution {
                     if (objectiveMatcher.find()) {
                         objectiveValue = Double.parseDouble(objectiveMatcher.group(1));
                         solutionSection = true; // Objective value is defined right before the solution values section
+                        parseSolutionValues(reader, varsToParse);
                     }
-                } else {
-                    parseSolutionValues(reader,varsToParse);
                 }
+//              else {
+//                    parseSolutionValues(reader,varsToParse);
+//                }
             }
         }
         parsed=true;

@@ -54,14 +54,14 @@ private final Map<UUID,Image> images;
         for (Map.Entry<String,List<List<String>>> set : command.input().setsToValues().entrySet()){
             List<String> setElements = new LinkedList<>();
             for(List<String> element : set.getValue()){
-                String tuple = ModelInput.convertArrayOfAtomsToTuple((String[])element.toArray());
+                String tuple = ModelInput.convertArrayOfAtomsToTuple((element.toArray(new String[0])));
                 setElements.add(tuple);
             }
-            model.setInput(model.getSet(set.getKey()), (String[])setElements.toArray());
+            model.setInput(model.getSet(set.getKey()), setElements.toArray(new String[0]));
         }
 
         for (Map.Entry<String,List<String>> parameter : command.input().paramsToValues().entrySet()){
-            model.setInput(model.getParameter(parameter.getKey()), ModelInput.convertArrayOfAtomsToTuple((String[])parameter.getValue().toArray()));
+            model.setInput(model.getParameter(parameter.getKey()), ModelInput.convertArrayOfAtomsToTuple(parameter.getValue().toArray(new String[0])));
         }
 
         for (String constraint : command.input().constraintsToggledOff()){

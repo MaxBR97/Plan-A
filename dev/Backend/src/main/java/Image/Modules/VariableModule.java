@@ -36,6 +36,14 @@ public class VariableModule {
         this.inputSets = new HashSet<>(inputSets);
         this.inputParams = new HashSet<>(inputParams);
     }
+    public VariableModule(Set<ModelVariable> variables, Collection<String> inputSets, Collection<String> inputParams) {
+        this.variables = new HashMap<>();
+        for(ModelVariable variable: variables) {
+            this.variables.put(variable.getIdentifier(),variable);
+        }
+        this.inputSets = new HashSet<>(inputSets);
+        this.inputParams = new HashSet<>(inputParams);
+    }
 
     public void clear() {
         variables.clear();
@@ -51,9 +59,15 @@ public class VariableModule {
         this.inputSets.addAll(inputSets);
         this.inputParams.addAll(inputParams);
     }
-
+    public Set<String> getIdentifiers() {
+        return variables.keySet();
+    }
     public ModelVariable get(String name) {
         return variables.get(name);
+    }
+
+    public void addVariable(ModelVariable variable) {
+        variables.put(variable.getIdentifier(),variable);
     }
     /*
     public void addParam(String name){

@@ -38,7 +38,7 @@ public class PreferenceModule extends Module{
     public Set<ModelSet> getInvolvedSets(){
         HashSet<ModelSet> involvedSets = new HashSet<>();
         for(ModelPreference constraint : preferences.values()){
-            involvedSets.addAll(constraint.getSetDependencies());
+            constraint.getPrimitiveSets(involvedSets);
         }
         return involvedSets;
     }
@@ -47,7 +47,7 @@ public class PreferenceModule extends Module{
     public Set<ModelParameter> getInvolvedParameters() {
         HashSet<ModelParameter> involvedParameters = new HashSet<>();
         for(ModelPreference preference : preferences.values()){
-            involvedParameters.addAll(preference.getParamDependencies());
+          preference.getPrimitiveParameters(involvedParameters);
         }
         return involvedParameters;
     }

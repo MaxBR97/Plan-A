@@ -1,15 +1,15 @@
 package Acceptance;
 import DTO.Factories.RecordFactory;
-import DTO.Records.Image.ConstraintModuleDTO;
-import DTO.Records.Image.ImageDTO;
-import DTO.Records.Image.PreferenceModuleDTO;
-import DTO.Records.Image.VariableModuleDTO;
+import DTO.Records.Image.*;
+import DTO.Records.Model.ModelData.InputDTO;
 import DTO.Records.Model.ModelDefinition.*;
 import DTO.Records.Requests.Commands.CreateImageFromFileDTO;
 import DTO.Records.Requests.Commands.ImageConfigDTO;
+import DTO.Records.Requests.Commands.SolveCommandDTO;
 import DTO.Records.Requests.Responses.CreateImageResponseDTO;
 import DTO.Records.Requests.Responses.ImageResponseDTO;
 import Image.Image;
+import Model.Solution;
 import groupId.Service;
 import groupId.UserController;
 import org.junit.jupiter.api.*;
@@ -19,22 +19,24 @@ import java.nio.file.*;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.springframework.http.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 public class ServiceRequestsTests {
     static String SimpleCodeExample = """
-                param x := 10;
-                set mySet := {1,2,3};
+          set mySet := {7,6,4};
+          param x := 10;
+         
+          var myVar[mySet] >= 0;
+        
+          subto sampleConstraint:
+              myVar[1] + myVar[2] + myVar[3] == x;
 
-                var myVar[mySet];
-
-                subto sampleConstraint:
-                    myVar[x] == mySet[1];
-
-                maximize myObjective:
-                    1;
+          maximize myObjective:
+              myVar[3];
+            
             """;
     static Path tmpDirPath;
     static String sourcePath = "src/test/Utilities/ZimplExamples/ExampleZimplProgram.zpl";
@@ -42,13 +44,15 @@ public class ServiceRequestsTests {
     Service service;
     @BeforeAll
     public static void setup(){
-        try {
+        //try {
             //System default tmp folder, for now I delete it at end of run, not 100% sure if should
-            tmpDirPath= Files.createDirectories(Paths.get(System.getProperty("java.io.tmpdir")));
-        }
-        catch (IOException e){
-            fail(e.getMessage());
-        }
+           // tmpDirPath= Files.createDirectories(Paths.get(System.getProperty("java.io.tmpdir")));
+            //changed to debug
+            tmpDirPath= Paths.get("User/Solutions");
+        //}
+//        catch (IOException e){
+//            fail(e.getMessage());
+//        }
     }
     @BeforeEach
     public void setUp() {
@@ -82,29 +86,32 @@ public class ServiceRequestsTests {
 
             CreateImageResponseDTO expected = new CreateImageResponseDTO(
                     "some id", new ModelDTO(
-                    Set.of(new ConstraintDTO("sampleConstraint", new DependenciesDTO(List.of("mySet"), List.of("x")))),
-                    Set.of(new PreferenceDTO("myObjective", new DependenciesDTO(List.of(), List.of()))),
-                    Set.of(new VariableDTO("myVar", new DependenciesDTO(List.of("mySet"), List.of()))),
-                    Map.of(
-                            "mySet", "INT",
-                            "x", "INT"
-                    )
+                    Set.of(new ConstraintDTO("sampleConstraint", new DependenciesDTO(Set.of(), Set.of("x")))),
+                    Set.of(new PreferenceDTO("myVar[3]", new DependenciesDTO(Set.of(), Set.of()))),
+                    Set.of(new VariableDTO("myVar", new DependenciesDTO(Set.of("mySet"), Set.of()))),
+                    Map.of("mySet", List.of("INT")),
+                    Map.of("x", "INT"),
+                    Map.of()
             ));
             assertEquals(HttpStatus.OK, response.getStatusCode());
+            assertNotNull(response.getBody());
             assertNotNull(response.getBody().imageId());
             assertEquals(response.getBody().model().constraints(), expected.model().constraints());
             assertEquals(response.getBody().model().preferences(), expected.model().preferences());
             assertEquals(response.getBody().model().variables(), expected.model().variables());
-            assertEquals(response.getBody().model().types(), expected.model().types());
+            assertEquals(response.getBody().model().setTypes(), expected.model().setTypes());
+            assertEquals(response.getBody().model().paramTypes(), expected.model().paramTypes());
+            assertEquals(response.getBody().model().varTypes(), expected.model().varTypes());
+
             /**
              * TEST
              */
             Set<ConstraintModuleDTO> constraintModuleDTOs = Set.of(
                     new ConstraintModuleDTO("Test module", "PeanutButter",
-                            Set.of("sampleConstraint"), Set.of("mySet"), Set.of("x")));
+                            Set.of("sampleConstraint"), Set.of(), Set.of("x")));
             Set<PreferenceModuleDTO> preferenceModuleDTOs = Set.of(
                     new PreferenceModuleDTO("Test module", "PeanutButter",
-                            Set.of("myObjective"), Set.of(), Set.of()));
+                            Set.of("myVar[3]"), Set.of(), Set.of()));
             VariableModuleDTO variableModuleDTO = new VariableModuleDTO(Set.of("myVar"), Set.of("mySet"), Set.of());
             ImageDTO imageDTO = new ImageDTO(variableModuleDTO, constraintModuleDTOs, preferenceModuleDTOs);
             ImageConfigDTO configDTO= new ImageConfigDTO(response.getBody().imageId(),imageDTO);
@@ -118,5 +125,29 @@ public class ServiceRequestsTests {
         } catch (IOException e) {
             fail(e.getMessage());
         }
+
     }
+    @Test
+    public void testSolve_Simple() {
+        try {
+            CreateImageResponseDTO responseDTO=userController.createImageFromFile(SimpleCodeExample);
+            InputDTO input=new InputDTO(Map.of("mySet",List.of(List.of("1"),List.of("2"),List.of("3"))),
+                    Map.of("x",List.of("10")),
+                    List.of(),List.of());
+            SolveCommandDTO solveCommandDTO=new SolveCommandDTO(responseDTO.imageId(),input,60);
+            ImageDTO imageDTO=new ImageDTO(new VariableModuleDTO(Set.of("myVar"),Set.of(),Set.of()),Set.of(),Set.of());
+            ImageConfigDTO config= new ImageConfigDTO(responseDTO.imageId(),imageDTO);
+            userController.overrideImage(config);
+            SolutionDTO solution=userController.solve(solveCommandDTO);
+            assertEquals(Set.of(new SolutionValueDTO(List.of("3"),10)),solution.solution().get("myVar").solutions());
+           /* try {
+                solution.parseSolution(model, vars);
+            } catch (IOException e) {
+                fail(e.getMessage());
+            }*/
+        } catch (Exception e) {
+            fail(e.getMessage());
+        }
+    }
+
 }
