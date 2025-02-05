@@ -19,6 +19,7 @@ const SolutionPreviewPage = () => {
   );
   const [variableValues, setVariableValues] = useState({});
   const [paramValues, setParamValues] = useState({});
+  const [constraintsToggledOff, setConstraintsToggledOff] = useState([]);
 
   const handleAddValue = (setName) => {
     setVariableValues((prev) => ({
@@ -73,6 +74,15 @@ const SolutionPreviewPage = () => {
     });
   };
 
+  const handleToggleConstraint = (moduleName) => {
+    setConstraintsToggledOff((prev) =>
+      prev.includes(moduleName)
+        ? prev.filter((name) => name !== moduleName)
+        : [...prev, moduleName]
+    );
+  };
+  
+
   const handleSolve = async () => {
     setErrorMessage(null); // Reset any previous error messages
     setResponseData(null); // Clear previous response data
@@ -96,11 +106,16 @@ const SolutionPreviewPage = () => {
         body: JSON.stringify(requestBody),
       });
 
+      const responseText = await response.text(); // Read response as text (for better error handling)
+
       if (!response.ok) {
-        throw new Error(`HTTP Error! Status: ${response.status}`);
+        console.error("Server returned an error:", responseText);
+        throw new Error(
+          `HTTP Error! Status: ${response.status} - ${responseText}`
+        );
       }
 
-      const data = await response.json();
+      const data = JSON.parse(responseText); // Parse only if valid JSON
       setResponseData(data);
       setShowModal(true);
     } catch (error) {
@@ -118,55 +133,59 @@ const SolutionPreviewPage = () => {
       <h1 className="page-title">Solution Preview</h1>
       <div className="modules-container">
         {/* Constraints Section */}
-        <div className="module-section">
-          <h2 className="section-title">Constraints</h2>
-          {modules.length > 0 ? (
-            modules.map((module, index) => (
-              <div key={index} className="module-box">
-                <h3 className="module-title">{module.name}</h3>
-                <p className="module-description">
-                  <strong>Module Description:</strong> {module.description}
-                </p>
-                <h4 className="module-subtitle">Constraints</h4>
-                {module.constraints.length > 0 ? (
-                  module.constraints.map((constraint, cIndex) => (
-                    <div key={cIndex} className="module-item">
-                      <p>
-                        <strong>Identifier:</strong> {constraint.identifier}
-                      </p>
-                    </div>
-                  ))
-                ) : (
-                  <p className="empty-message">
-                    No constraints in this module.
-                  </p>
-                )}
-                <h4 className="module-subtitle">Involved Sets</h4>
-                {module.involvedSets.length > 0 ? (
-                  module.involvedSets.map((set, sIndex) => (
-                    <div key={sIndex} className="module-item">
-                      {set}
-                    </div>
-                  ))
-                ) : (
-                  <p className="empty-message">No involved sets.</p>
-                )}
-                <h4 className="module-subtitle">Involved Parameters</h4>
-                {module.involvedParams.length > 0 ? (
-                  module.involvedParams.map((param, pIndex) => (
-                    <div key={pIndex} className="module-item">
-                      {param}
-                    </div>
-                  ))
-                ) : (
-                  <p className="empty-message">No involved parameters.</p>
-                )}
-              </div>
-            ))
-          ) : (
-            <p className="empty-message">No constraint modules available.</p>
-          )}
+<div className="module-section">
+  <h2 className="section-title">Constraints</h2>
+  {modules.length > 0 ? (
+    modules.map((module, index) => (
+      <div key={index} className="module-box">
+        <div className="module-header">
+          <h3 className="module-title">{module.name}</h3>
+          {/* Toggle Switch */}
+          <label className="switch">
+            <input 
+              type="checkbox" 
+              checked={!constraintsToggledOff.includes(module.name)}
+              onChange={() => handleToggleConstraint(module.name)}
+            />
+            <span className="slider round"></span>
+          </label>
         </div>
+        <p className="module-description">
+          <strong>Module Description:</strong> {module.description}
+        </p>
+        <h4 className="module-subtitle">Constraints</h4>
+        {module.constraints.length > 0 ? (
+          module.constraints.map((constraint, cIndex) => (
+            <div key={cIndex} className="module-item">
+              <p><strong>Identifier:</strong> {constraint.identifier}</p>
+            </div>
+          ))
+        ) : (
+          <p className="empty-message">No constraints in this module.</p>
+        )}
+        <h4 className="module-subtitle">Involved Sets</h4>
+        {module.involvedSets.length > 0 ? (
+          module.involvedSets.map((set, sIndex) => (
+            <div key={sIndex} className="module-item">{set}</div>
+          ))
+        ) : (
+          <p className="empty-message">No involved sets.</p>
+        )}
+        <h4 className="module-subtitle">Involved Parameters</h4>
+        {module.involvedParams.length > 0 ? (
+          module.involvedParams.map((param, pIndex) => (
+            <div key={pIndex} className="module-item">{param}</div>
+          ))
+        ) : (
+          <p className="empty-message">No involved parameters.</p>
+        )}
+      </div>
+    ))
+  ) : (
+    <p className="empty-message">No constraint modules available.</p>
+  )}
+</div>
+
 
         {/* Preferences Section */}
         <div className="module-section">
@@ -283,36 +302,35 @@ const SolutionPreviewPage = () => {
         </div>
 
         {/* Variable Parameters Section */}
-<div className="module-section">
-    <h2 className="section-title">Variable Parameters</h2>
-    {Object.keys(types).map((param, index) => {
-        // Ensure the parameter is not a variable set (i.e., it's a standalone parameter)
-        if (!allSets.includes(param)) {
-            return (
+        <div className="module-section">
+          <h2 className="section-title">Variable Parameters</h2>
+          {Object.keys(types).map((param, index) => {
+            // Ensure the parameter is not a variable set (i.e., it's a standalone parameter)
+            if (!allSets.includes(param)) {
+              return (
                 <div key={index} className="module-box">
-                    {/* Display Parameter Name */}
-                    <h3 className="module-title">{param}</h3>
+                  {/* Display Parameter Name */}
+                  <h3 className="module-title">{param}</h3>
 
-                    {/* Display Parameter Type */}
-                    <p className="variable-type">
-                        <strong>Type:</strong> {types[param] || "Unknown"}
-                    </p>
+                  {/* Display Parameter Type */}
+                  <p className="variable-type">
+                    <strong>Type:</strong> {types[param] || "Unknown"}
+                  </p>
 
-                    {/* Input Field */}
-                    <input 
-                        type="text" 
-                        value={paramValues[param] || ''} 
-                        onChange={(e) => handleParamChange(param, e.target.value)} 
-                        className="variable-input" 
-                        placeholder={`Enter ${types[param] || "value"}...`}
-                    />
+                  {/* Input Field */}
+                  <input
+                    type="text"
+                    value={paramValues[param] || ""}
+                    onChange={(e) => handleParamChange(param, e.target.value)}
+                    className="variable-input"
+                    placeholder={`Enter ${types[param] || "value"}...`}
+                  />
                 </div>
-            );
-        }
-        return null; // Skip variables, only show params
-    })}
-</div>
-
+              );
+            }
+            return null; // Skip variables, only show params
+          })}
+        </div>
 
         {/* Error Message */}
         {errorMessage && (
