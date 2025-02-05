@@ -161,6 +161,8 @@ public class ModelTest {
         assertTrue(model.isCompiling(2));
     }
 
+    //TODO: Toggling Preferences doesnt work perfectly, but somewhat works 
+    //      on common cases. Better dive in to figure it out later.
     @ParameterizedTest
     @ValueSource(strings = {"sum<person>inPeople:(TotalMishmarot[person]**2)","((maxShmirot-minShmirot)+conditioner)**3", "(minimalRivuah)**2", "(sum <i,a,b> in CxS: sum<m,n> in S | m != a or b!=n :(edge[i,a,b] * edge[i,m,n] * (b-n)))*8"})
     public void testToggleFunctionalityPreference(String id) throws Exception {
