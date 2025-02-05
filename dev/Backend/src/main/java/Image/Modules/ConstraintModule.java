@@ -1,9 +1,6 @@
 package Image.Modules;
 
-import Model.ModelConstraint;
-import Model.ModelFunctionality;
-import Model.ModelParameter;
-import Model.ModelSet;
+import Model.*;
 
 import java.util.*;
 
@@ -34,15 +31,16 @@ public class ConstraintModule extends Module{
     public Set<ModelSet> getInvolvedSets(){
         HashSet<ModelSet> involvedSets = new HashSet<>();
         for(ModelConstraint constraint : constraints.values()){
-            involvedSets.addAll(constraint.getSetDependencies());
+            constraint.getPrimitiveSets(involvedSets);
         }
         return involvedSets;
     }
+
     @Override
-    public Set<ModelParameter> getInvolvedParameters(){
+    public Set<ModelParameter> getInvolvedParameters() {
         HashSet<ModelParameter> involvedParameters = new HashSet<>();
-        for(ModelConstraint constraint : constraints.values()){
-            involvedParameters.addAll(constraint.getParamDependencies());
+        for(ModelConstraint preference : constraints.values()){
+            preference.getPrimitiveParameters(involvedParameters);
         }
         return involvedParameters;
     }

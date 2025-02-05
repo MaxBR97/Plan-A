@@ -60,6 +60,10 @@ public enum ModelPrimitives implements ModelType{
           return "UNKNOWN";
       }
     }
+    @Override
+    public List<String> typeList(){
+        return List.of(this.toString());
+    }
 
 
 }

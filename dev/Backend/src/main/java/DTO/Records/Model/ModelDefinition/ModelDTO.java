@@ -8,5 +8,8 @@ public record ModelDTO(
     Set<ConstraintDTO> constraints,
     Set<PreferenceDTO> preferences,
     Set<VariableDTO> variables,
-    Map<String, String> types
+    Map<String, List<String>> setTypes,
+    Map<String, String> paramTypes,
+    Map<String,String> varTypes
+
 ) {}

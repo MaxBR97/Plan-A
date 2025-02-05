@@ -97,7 +97,14 @@ public class Tuple implements ModelType {
         sb.append('>');
         return sb.toString();
     }
-
+    @Override
+    public List<String> typeList(){
+        List<String> types = new LinkedList<>();
+        for(ModelPrimitives primitives:val){
+            types.add(primitives.toString());
+        }
+        return types;
+    }
     public int size() {
         return this.val.size();
     }

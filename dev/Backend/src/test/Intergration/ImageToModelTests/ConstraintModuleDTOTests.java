@@ -1,5 +1,6 @@
 package Intergration.ImageToModelTests;
 
+import Image.Image;
 import Model.Model;
 import Model.ModelInterface;
 import org.junit.jupiter.api.*;
@@ -18,10 +19,21 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(MockitoExtension.class)
 public class ConstraintModuleDTOTests {
+    static String SimpleCodeExample = """
+                param x := 2;
+                set mySet := {1,2,3};
 
+                var myVar[mySet];
+
+                subto sampleConstraint:
+                    myVar[x] == mySet[1];
+
+                maximize myObjective:
+                    1;
+            """;
     @Mock
     ModelInterface model;
-    static String sourcePath = "src/test/Utilities/Stubs/ExampleZimplProgram.zpl";
+    static String sourcePath = "src/test/Utilities/ZimplExamples/ExampleZimplProgram.zpl";
     static Path tmpDirPath;
     @BeforeAll
     public static void setup(){
@@ -106,6 +118,7 @@ public class ConstraintModuleDTOTests {
             fail("IO error in GivenInvalidZimplCode_WhenCompiling_ReturnsFalse: "+ e.getMessage());
         }
     }
+
     @Test
     public void testSolve(){
         Solution solution= model.solve(1000);
