@@ -179,6 +179,12 @@ public class ModelTest {
     }
 
     @Test
+    public void testConvertingAtomsToTuple(){
+        String res = ModelInput.convertArrayOfAtomsToTuple(new String[]{"\"fdas\"", "32", "321"});
+        assertTrue(res.equals("<\"fdas\",32,321>"));
+    }
+
+    @Test
     public void testSolve(){
         model.solve(10);
         assertFalse(true);
@@ -234,11 +240,11 @@ public class ModelTest {
     //TODO:The parsing of preferences must be tested further!
 
 
-    // @AfterAll
-    // public static void cleanUp() throws IOException {
-    //    Path targetPath = Path.of(TEST_FILE_PATH);
-    //    Files.deleteIfExists(targetPath);
-    //    Files.deleteIfExists(Path.of(targetPath.toString()+"SOLUTION"));
-    // }
+    @AfterAll
+    public static void cleanUp() throws IOException {
+       Path targetPath = Path.of(TEST_FILE_PATH);
+       Files.deleteIfExists(targetPath);
+       Files.deleteIfExists(Path.of(targetPath.toString()+"SOLUTION"));
+    }
 
 }

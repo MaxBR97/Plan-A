@@ -72,6 +72,10 @@ public abstract class ModelInput extends ModelComponent {
         return false;
     }
 
+    public static String convertArrayOfAtomsToTuple(String[] atoms) {
+        String joinedElements = String.join(",", atoms);
+        return "<" + joinedElements + ">";
+    }
     // param w := 20;
     // param  x := 10;
     // set A := {1,2};
@@ -134,4 +138,5 @@ public abstract class ModelInput extends ModelComponent {
         myStruct = ans;
         return ans;
     }
+
 }

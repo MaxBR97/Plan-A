@@ -165,7 +165,6 @@ public class TypesAndDependencyTests {
             inp = model.getSet(id);
             assertEquals(primitives.get(id), inp.isPrimitive());
         }
-        
     }
 
     @ParameterizedTest

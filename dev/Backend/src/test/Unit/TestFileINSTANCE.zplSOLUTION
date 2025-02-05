@@ -1,8 +1,0 @@
-
-SCIP Status        : problem is solved [infeasible or unbounded]
-Solving Time (sec) : 0.26
-Solving Nodes      : 0
-Primal Bound       : -1.00000000000000e+20 (objective limit, 0 solutions)
-Dual Bound         : +1.00000000000000e+20
-Gap                : infinite
-no solution available
