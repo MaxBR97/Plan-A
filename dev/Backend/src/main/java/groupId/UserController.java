@@ -13,6 +13,7 @@ import DTO.Records.Requests.Responses.ImageResponseDTO;
 import Image.Image;
 import Model.Model;
 import Model.ModelConstraint;
+import Model.ModelInput;
 import Model.ModelInterface;
 import Model.ModelVariable;
 import org.springframework.stereotype.Service;
@@ -50,12 +51,17 @@ private final Map<UUID,Image> images;
     public SolutionDTO solve(SolveCommandDTO command) throws Exception {
         Image image = images.get(UUID.fromString(command.imageId()));
         ModelInterface model = image.getModel();
-        for (Map.Entry<String,List<String>> set : command.input().setsToValues().entrySet()){
-            model.setInput(model.getSet(set.getKey()), (String[])set.getValue().toArray());
+        for (Map.Entry<String,List<List<String>>> set : command.input().setsToValues().entrySet()){
+            List<String> setElements = new LinkedList<>();
+            for(List<String> element : set.getValue()){
+                String tuple = ModelInput.convertArrayOfAtomsToTuple((String[])element.toArray());
+                setElements.add(tuple);
+            }
+            model.setInput(model.getSet(set.getKey()), (String[])setElements.toArray());
         }
 
-        for (Map.Entry<String,String> parameter : command.input().paramsToValues().entrySet()){
-            model.setInput(model.getParameter(parameter.getKey()), parameter.getValue());
+        for (Map.Entry<String,List<String>> parameter : command.input().paramsToValues().entrySet()){
+            model.setInput(model.getParameter(parameter.getKey()), ModelInput.convertArrayOfAtomsToTuple((String[])parameter.getValue().toArray()));
         }
 
         for (String constraint : command.input().constraintsToggledOff()){
