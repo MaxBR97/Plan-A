@@ -53,7 +53,7 @@ public class Service implements ServiceInterface {
     }
     
     @PostMapping("/solve")
-    public ResponseEntity<SolutionDTO> solve(@RequestBody SolveCommandDTO input) {
+    public ResponseEntity<SolutionDTO> solve(@RequestBody SolveCommandDTO input) throws Exception {
         SolutionDTO res = controller.solve(input);
         return ResponseEntity.ok(res);
     }

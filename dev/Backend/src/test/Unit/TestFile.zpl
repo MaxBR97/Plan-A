@@ -58,3 +58,9 @@ minimize rivuah:
     ((maxShmirot-minShmirot)+conditioner)**3 -
     (minimalRivuah)**2 +
     (sum <i,a,b> in CxS: sum<m,n> in S | m != a or b!=n :(edge[i,a,b] * edge[i,m,n] * (b-n)))*8;
+
+set People := {};
+var TotalMishmarot[People] integer;
+
+maximize distributeShiftsEqually:
+    sum <person> in People : (TotalMishmarot[person]**2);

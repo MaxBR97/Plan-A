@@ -15,12 +15,13 @@ import org.springframework.http.*;
 //import org.springframework.*;
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import org.springframework.http.ResponseEntity;
 
 import DTO.Records.Model.ModelDefinition.ConstraintDTO;
 import DTO.Records.Model.ModelDefinition.DependenciesDTO;
@@ -95,6 +96,7 @@ public class ServiceTest {
         assertEquals(response.getBody().model().variables(), expected.model().variables());
         assertEquals(response.getBody().model().types(), expected.model().types());
     }
+    
     @Test
     public void GivenImageDTO_WhenConfigImage_ImageIsCorrect(){
         /**
@@ -153,4 +155,64 @@ public class ServiceTest {
         );
         assertEquals(HttpStatus.OK, response2.getStatusCode());
     }
+
+    @Test
+    public void GivenFile_WhenCreateImage_ImageIsCorrect() {
+        // sample Zimpl code
+        String SimpleCodeExample = "";
+        try {
+        SimpleCodeExample = Files.readString(Paths.get("./src/test/Acceptance/example.zpl"));
+        
+        } catch (IOException e) {
+            e.printStackTrace();
+            assertTrue(false);
+        }
+
+        CreateImageFromFileDTO body = new CreateImageFromFileDTO(SimpleCodeExample);
+
+        
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        
+        // Create http request with body and headers
+        HttpEntity<CreateImageFromFileDTO> request = new HttpEntity<>(body, headers);
+
+        // Send POST request with body
+        String url = "http://localhost:" + port + "/images";
+        ResponseEntity<CreateImageResponseDTO> response = restTemplate.exchange(
+            url,
+            HttpMethod.POST,
+            request,
+            CreateImageResponseDTO.class
+        );
+
+        //Expected response
+        CreateImageResponseDTO expected = new CreateImageResponseDTO(
+            "some id", new ModelDTO(
+              Set.of(new ConstraintDTO("drisha1", new DependenciesDTO(List.of("People","Emdot"),List.of("shiftTime"))),
+              new ConstraintDTO("drisha2", new DependenciesDTO(List.of("Emdot","People"),List.of("shiftTime"))),
+              new ConstraintDTO("drisha3", new DependenciesDTO(List.of("People","Emdot"),List.of("shiftTime","restHours"))),
+              new ConstraintDTO("drisha4", new DependenciesDTO(List.of("Emdot","People"),List.of("shiftTime")))),
+                Set.of(new PreferenceDTO("sum<person>inPeople:(TotalMishmarot[person]**2)", new DependenciesDTO(List.of("People"),List.of()))),
+                Set.of(new VariableDTO("Shibutsim", new DependenciesDTO(List.of("People","Emdot"),List.of("shiftTime"))),
+                        new VariableDTO("TotalMishmarot", new DependenciesDTO(List.of("People"),List.of()))),
+              Map.of(
+                "People","TEXT",
+                "Emdot","TEXT",
+                "shiftTime","INT",
+                "restHours","INT",
+                // adding the type of variables is a new concept! we didnt use to do it before
+                "Shibutsim", "<TEXT,TEXT,INT>",
+                "TotalMishmarot", "TEXT"
+                )
+            ));
+        
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody().imageId());
+        assertEquals(response.getBody().model().constraints(), expected.model().constraints());
+        assertEquals(response.getBody().model().preferences(), expected.model().preferences());
+        assertEquals(response.getBody().model().variables(), expected.model().variables());
+        assertEquals(response.getBody().model().types(), expected.model().types());
+    }
+    
 }
