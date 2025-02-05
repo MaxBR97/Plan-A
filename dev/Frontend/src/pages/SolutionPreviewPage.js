@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { useZPL } from "../context/ZPLContext";
 import "./SolutionPreviewPage.css";
+import { useNavigate } from "react-router-dom"; // Import useNavigate
+
 
 const SolutionPreviewPage = () => {
   const {
@@ -12,6 +14,7 @@ const SolutionPreviewPage = () => {
     variables,
     types,
     imageId,
+    setSolutionResponse,
   } = useZPL();
 
   const allSets = variables.flatMap(
@@ -20,7 +23,7 @@ const SolutionPreviewPage = () => {
   const [variableValues, setVariableValues] = useState({});
   const [paramValues, setParamValues] = useState({});
   const [constraintsToggledOff, setConstraintsToggledOff] = useState([]);
-
+  const navigate = useNavigate(); // Initialize navigation
   const handleAddValue = (setName) => {
     setVariableValues((prev) => ({
       ...prev,
@@ -92,45 +95,46 @@ const SolutionPreviewPage = () => {
   };
   
   const handleSolve = async () => {
-    setErrorMessage(null); // Reset any previous error messages
-    setResponseData(null); // Clear previous response data
+    setErrorMessage(null); // Reset previous error
+    setResponseData(null); // Clear local response
 
     const requestBody = {
-      imageId,
-      input: {
-        setsToValues: variableValues, // User inputted set values
-        paramsToValues: paramValues, // User inputted param values
-        constraintsToggledOff: [], // For now, empty array
-        preferencesToggledOff: [], // For now, empty array
-      },
+        imageId,
+        input: {
+            setsToValues: variableValues,
+            paramsToValues: paramValues,
+            constraintsToggledOff: [],
+            preferencesToggledOff: [],
+        },
     };
 
     console.log("Sending request:", JSON.stringify(requestBody, null, 2));
 
     try {
-      const response = await fetch("/solve", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(requestBody),
-      });
+        const response = await fetch("/solve", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(requestBody),
+        });
 
-      const responseText = await response.text(); // Read response as text (for better error handling)
+        const responseText = await response.text(); // Read response as text (for error handling)
 
-      if (!response.ok) {
-        console.error("Server returned an error:", responseText);
-        throw new Error(
-          `HTTP Error! Status: ${response.status} - ${responseText}`
-        );
-      }
+        if (!response.ok) {
+            console.error("Server returned an error:", responseText);
+            throw new Error(
+                `HTTP Error! Status: ${response.status} - ${responseText}`
+            );
+        }
 
-      const data = JSON.parse(responseText); // Parse only if valid JSON
-      setResponseData(data);
-      setShowModal(true);
+        const data = JSON.parse(responseText); // Parse response if it's valid JSON
+        setSolutionResponse(data); // Store response in context
+        
+        navigate("/solution-results"); // Redirect user to the results page
     } catch (error) {
-      console.error("Error solving problem:", error);
-      setErrorMessage(`Failed to solve. ${error.message}`);
+        console.error("Error solving problem:", error);
+        setErrorMessage(`Failed to solve. ${error.message}`);
     }
-  };
+};
 
   const [responseData, setResponseData] = useState(null);
   const [showModal, setShowModal] = useState(false);

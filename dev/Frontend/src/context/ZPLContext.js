@@ -3,27 +3,25 @@ import React, { createContext, useContext, useState } from "react";
 const ZPLContext = createContext();
 
 export const ZPLProvider = ({ children }) => {
-    const [imageId, setImageId] = useState(null);
-    const [variables, setVariables] = useState([]);
-    const [constraints, setConstraints] = useState({});
-    const [preferences, setPreferences] = useState({});
-    const [types, setTypes] = useState({});
+    const [constraints, setConstraints] = useState([]);
+    const [preferences, setPreferences] = useState([]);
     const [modules, setModules] = useState([]);
     const [preferenceModules, setPreferenceModules] = useState([]);
-    
-    
-    console.log("ZPLContext Loaded - Variables:", variables);
-
+    const [variables, setVariables] = useState([]);
+    const [types, setTypes] = useState({});
+    const [imageId, setImageId] = useState(null);
+    const [solutionResponse, setSolutionResponse] = useState(null); // <-- Store response here
 
     return (
-        <ZPLContext.Provider value={{ 
-            imageId, setImageId, 
-            variables, setVariables, 
-            constraints, setConstraints, 
-            preferences, setPreferences, 
-            types, setTypes,
+        <ZPLContext.Provider value={{
+            constraints, setConstraints,
+            preferences, setPreferences,
             modules, setModules,
-            preferenceModules, setPreferenceModules
+            preferenceModules, setPreferenceModules,
+            variables, setVariables,
+            types, setTypes,
+            imageId, setImageId,
+            solutionResponse, setSolutionResponse // Provide to context
         }}>
             {children}
         </ZPLContext.Provider>
