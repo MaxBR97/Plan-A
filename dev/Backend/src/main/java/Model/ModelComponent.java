@@ -73,7 +73,47 @@ public ModelComponent(String identifier, List<ModelSet> setDep, List<ModelParame
             paramDependencies.add(dependency);
         }
     }
+    public boolean isPrimitive(){
+        return this.setDependencies.isEmpty() && this.paramDependencies.isEmpty();
+    }
 
+    /**
+     * Iterates recursively over parameter and set dependencies and collects primitive parameters
+     *
+     * @param parameters list given to the function and passed down the recursion
+     */
+    public void getPrimitiveParameters(Set<ModelParameter> parameters) {
+        for(ModelSet set : setDependencies){
+            if(!set.isPrimitive())
+             set.getPrimitiveParameters(parameters);
+        }
+        for(ModelParameter parameter : paramDependencies){
+            if(!parameters.contains(parameter)) {
+                if (parameter.isPrimitive())
+                    parameters.add(parameter);
+                else parameter.getPrimitiveParameters(parameters);
+            }
+        }
+    }
+
+    /**
+     * Iterates recursively over parameter and set dependencies and collects primitive sets
+     *
+     * @param sets list given to the function and passed down the recursion
+     */
+    public void getPrimitiveSets(Set<ModelSet> sets) {
+        for(ModelSet set : setDependencies){
+            if(!sets.contains(set)) {
+                if (set.isPrimitive())
+                    sets.add(set);
+                else set.getPrimitiveSets(sets);
+            }
+        }
+        for(ModelParameter parameter : paramDependencies){
+            if(!parameter.isPrimitive())
+                parameter.getPrimitiveSets(sets);
+        }
+    }
     void removeParamDependency(ModelParameter dependency) {
         paramDependencies.remove(dependency);
     }

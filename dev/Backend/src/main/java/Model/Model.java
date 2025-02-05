@@ -36,8 +36,8 @@ public class Model implements ModelInterface {
     private final Map<String,ModelVariable> variables = new HashMap<>();
     private final Set<String> toggledOffFunctionalities = new HashSet<>();
     private boolean loadElementsToRam = true;
-    private final String zimplCompilationScript = "/Plan-A/dev/Backend/src/main/resources/zimpl/checkCompilation.sh";
-    private final String zimplSolveScript = "/Plan-A/dev/Backend/src/main/resources/zimpl/solve.sh" ;
+    private final String zimplCompilationScript = "./src/main/resources/zimpl/checkCompilation.sh";
+    private final String zimplSolveScript = "./src/main/resources/zimpl/solve.sh" ;
     private String originalSource;
     
     public Model(String sourceFilePath) throws IOException {
@@ -216,6 +216,46 @@ public class Model implements ModelInterface {
         }
     }
 
+    List<FormulationParser.UExprContext> findComponentContexts(FormulationParser.NExprContext ctx) {
+        List<FormulationParser.UExprContext> components = new ArrayList<>();
+        findComponentContextsRecursive(ctx.uExpr(), components);
+        return components;
+    }
+
+    private void findComponentContextsRecursive(FormulationParser.UExprContext ctx, List<FormulationParser.UExprContext> components) {
+        String all = ctx == null ? null : ctx.getText();
+        if(ctx == null)
+            return;
+        // if(ctx.basicExpr() != null){
+        //     components.add(ctx);
+        //     return;
+        // }
+        // findComponentContextsRecursive(ctx.uExpr(0), components);
+        // findComponentContextsRecursive(ctx.uExpr(1), components);
+        if (components.size() == 0 && ctx.uExpr() != null && ctx.uExpr(1) != null) {
+            String a = ctx.uExpr(1).getText();
+            components.add(ctx.uExpr(1));
+        } else if (components.size() == 0){
+            components.add(ctx);
+        }
+        String b = ctx.getText();
+        if (ctx.uExpr(0) != null && ctx.uExpr(0).uExpr(1) != null) {
+            String c = ctx.uExpr(0).uExpr(1).getText();
+            if(ctx.uExpr(0).uExpr(0).basicExpr() != null){
+                components.add(ctx.uExpr(0));    
+                return;
+            }
+            else
+                components.add(ctx.uExpr(0).uExpr(1));
+        } else if(ctx.uExpr(0) != null){
+            components.add(ctx.uExpr(0));
+        } else {
+            components.add(ctx);
+        }
+        
+        findComponentContextsRecursive(ctx.uExpr(0), components);
+    }
+
     private class CollectorVisitor extends FormulationBaseVisitor<Void> {
 
 
@@ -268,6 +308,7 @@ public class Model implements ModelInterface {
             List<UExprContext> components = findComponentContexts(ctx.nExpr());
     
             for (UExprContext expressionComponent : components) {
+                String name = expressionComponent.getText();
                 // Create a parse tree for the specific component
                 //ParseTree componentParseTree = parseComponentExpression(expressionComponent);
                 TypeVisitor visitor = new TypeVisitor();
@@ -301,44 +342,8 @@ public class Model implements ModelInterface {
             return bracketIndex == -1 ? sqRef : sqRef.substring(0, bracketIndex);
         }
         
-        private List<FormulationParser.UExprContext> findComponentContexts(FormulationParser.NExprContext ctx) {
-            List<FormulationParser.UExprContext> components = new ArrayList<>();
-            findComponentContextsRecursive(ctx.uExpr(), components);
-            return components;
-        }
         
-        private void findComponentContextsRecursive(FormulationParser.UExprContext ctx, List<FormulationParser.UExprContext> components) {
-            if(ctx == null)
-                return;
-            // if(ctx.basicExpr() != null){
-            //     components.add(ctx);
-            //     return;
-            // }
-            // findComponentContextsRecursive(ctx.uExpr(0), components);
-            // findComponentContextsRecursive(ctx.uExpr(1), components);
-            if (components.size() == 0 && ctx.uExpr() != null && ctx.uExpr(1) != null) {
-                String a = ctx.uExpr(1).getText();
-                components.add(ctx.uExpr(1));
-            } else if (components.size() == 0){
-                components.add(ctx);
-            }
-            String b = ctx.getText();
-            if (ctx.uExpr(0) != null && ctx.uExpr(0).uExpr(1) != null) {
-                String c = ctx.uExpr(0).uExpr(1).getText();
-                if(ctx.uExpr(0).uExpr(0).basicExpr() != null){
-                    components.add(ctx.uExpr(0));    
-                    return;
-                }
-                else
-                    components.add(ctx.uExpr(0).uExpr(1));
-            } else if(ctx.uExpr(0) != null){
-                components.add(ctx.uExpr(0));
-            } else {
-                components.add(ctx);
-            }
-            
-            findComponentContextsRecursive(ctx.uExpr(0), components);
-        }
+        
         @Deprecated
         private ParseTree parseComponentExpression(String component) {
             
@@ -601,13 +606,16 @@ public class Model implements ModelInterface {
 
         @Override
         public Void visitObjective(FormulationParser.ObjectiveContext ctx) {
-            if (ctx.name != null) {
-                String objectiveName = extractName(ctx.name.getText());
-                if ((targetFunctionalities != null && targetFunctionalities.contains(objectiveName)) ||
-                    (targetIdentifier != null && objectiveName.equals(targetIdentifier))) {
-                    if (act == Action.COMMENT_OUT)
-                        commentOutPreference(ctx);
-                }
+            List<UExprContext> components = findComponentContexts(ctx.nExpr());
+            for( UExprContext subCtx : components){
+                
+                    String objectiveName = subCtx.getText();
+                    if ((targetFunctionalities != null && targetFunctionalities.contains(objectiveName)) ||
+                        (targetIdentifier != null && objectiveName.equals(targetIdentifier))) {
+                        if (act == Action.COMMENT_OUT)
+                            zeroOutPreference(subCtx);
+                    }
+                
             }
             return super.visitObjective(ctx);
         }
@@ -672,7 +680,7 @@ public class Model implements ModelInterface {
             modified = true;
         }
 
-        private void commentOutPreference(FormulationParser.ObjectiveContext ctx) {
+        private void commentOutPreference(FormulationParser.UExprContext ctx) {
             int startIndex = ctx.start.getStartIndex();
             int stopIndex = ctx.stop.getStopIndex();
             String originalLine = originalSource.substring(startIndex, stopIndex + 1);
@@ -685,6 +693,22 @@ public class Model implements ModelInterface {
             
             modifiedSource.replace(startIndex, stopIndex + 1, 
                 indentation + "# " + originalLine.substring(indentation.length()));
+            modified = true;
+        }
+
+        private void zeroOutPreference(FormulationParser.UExprContext ctx) {
+            int startIndex = ctx.start.getStartIndex();
+            int stopIndex = ctx.stop.getStopIndex();
+            String originalLine = originalSource.substring(startIndex, stopIndex + 1);
+            
+            String indentation = "";
+            int lineStart = originalSource.lastIndexOf('\n', startIndex);
+            if (lineStart != -1) {
+                indentation = originalSource.substring(lineStart + 1, startIndex);
+            }
+            
+            modifiedSource.replace(startIndex, stopIndex + 1, 
+                  "((" + originalLine + ")*0)");
             modified = true;
         }
 

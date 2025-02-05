@@ -63,4 +63,4 @@ set People := {};
 var TotalMishmarot[People] integer;
 
 maximize distributeShiftsEqually:
-    sum <person> in People : (TotalMishmarot[person]**2);
+    sum<person> in People:          (TotalMishmarot[person]**2);
