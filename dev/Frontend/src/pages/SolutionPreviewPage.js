@@ -4,7 +4,6 @@ import { useZPL } from "../context/ZPLContext";
 import "./SolutionPreviewPage.css";
 import { useNavigate } from "react-router-dom"; // Import useNavigate
 
-
 const SolutionPreviewPage = () => {
   const {
     constraints,
@@ -15,6 +14,8 @@ const SolutionPreviewPage = () => {
     types,
     imageId,
     setSolutionResponse,
+    setTypes,
+    paramTypes,
   } = useZPL();
 
   const allSets = variables.flatMap(
@@ -46,27 +47,33 @@ const SolutionPreviewPage = () => {
     }));
   };
 
-  const getNumTypes = (setName) => {
-    const typeValue = types[setName]; // Get the type(s) for the given set
-
-    if (!typeValue) return 1; // Default to 1 if type is missing
-
-    if (typeof typeValue === "string") {
-      const typeList = typeValue.replace(/[<>]/g, "").split(","); // Remove <> and split by comma
-      return typeList.length; // Return the number of types
+  const getNumTypes = (typeInfo) => {
+    if (!typeInfo) {
+        console.warn("⚠️ Warning: getNumTypes received undefined typeInfo.");
+        return 1; // Default to 1 to prevent errors
     }
 
-    return Array.isArray(typeValue) ? typeValue.length : 1; // Handle already-parsed arrays
-  };
+    return Array.isArray(typeInfo) ? typeInfo.length : 1;
+};
+
 
   const handleAddVariable = (setName) => {
-    const numTypes = getNumTypes(setName); // Get the correct number of types
+    console.log("Adding Variable for:", setName);
+    console.log("Available setTypes:", setTypes);
+  
+    if (!setTypes[setName]) {
+        console.error(`❌ Error: setTypes does not contain ${setName}`);
+        return; // Prevent further execution
+    }
 
+    const numTypes = getNumTypes(setTypes[setName]); // Function to extract type count
+  
     setVariableValues((prev) => ({
-      ...prev,
-      [setName]: [...(prev[setName] || []), Array(numTypes).fill("")], // Add N empty inputs per row
+        ...prev,
+        [setName]: [...(prev[setName] || []), new Array(numTypes).fill("")], 
     }));
-  };
+};
+
 
   const handleVariableChange = (setName, rowIndex, typeIndex, value) => {
     setVariableValues((prev) => {
@@ -87,54 +94,55 @@ const SolutionPreviewPage = () => {
   const [preferencesToggledOff, setPreferencesToggledOff] = useState([]);
 
   const handleTogglePreference = (preferenceName) => {
-    setPreferencesToggledOff(prev =>
-      prev.includes(preferenceName)
-        ? prev.filter(name => name !== preferenceName) // Remove if exists
-        : [...prev, preferenceName] // Add if not exists
+    setPreferencesToggledOff(
+      (prev) =>
+        prev.includes(preferenceName)
+          ? prev.filter((name) => name !== preferenceName) // Remove if exists
+          : [...prev, preferenceName] // Add if not exists
     );
   };
-  
+
   const handleSolve = async () => {
     setErrorMessage(null); // Reset previous error
     setResponseData(null); // Clear local response
 
     const requestBody = {
-        imageId,
-        input: {
-            setsToValues: variableValues,
-            paramsToValues: paramValues,
-            constraintsToggledOff: [],
-            preferencesToggledOff: [],
-        },
+      imageId,
+      input: {
+        setsToValues: variableValues,
+        paramsToValues: paramValues,
+        constraintsToggledOff: [],
+        preferencesToggledOff: [],
+      },
     };
 
     console.log("Sending request:", JSON.stringify(requestBody, null, 2));
 
     try {
-        const response = await fetch("/solve", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(requestBody),
-        });
+      const response = await fetch("/solve", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(requestBody),
+      });
 
-        const responseText = await response.text(); // Read response as text (for error handling)
+      const responseText = await response.text(); // Read response as text (for error handling)
 
-        if (!response.ok) {
-            console.error("Server returned an error:", responseText);
-            throw new Error(
-                `HTTP Error! Status: ${response.status} - ${responseText}`
-            );
-        }
+      if (!response.ok) {
+        console.error("Server returned an error:", responseText);
+        throw new Error(
+          `HTTP Error! Status: ${response.status} - ${responseText}`
+        );
+      }
 
-        const data = JSON.parse(responseText); // Parse response if it's valid JSON
-        setSolutionResponse(data); // Store response in context
-        
-        navigate("/solution-results"); // Redirect user to the results page
+      const data = JSON.parse(responseText); // Parse response if it's valid JSON
+      setSolutionResponse(data); // Store response in context
+
+      navigate("/solution-results"); // Redirect user to the results page
     } catch (error) {
-        console.error("Error solving problem:", error);
-        setErrorMessage(`Failed to solve. ${error.message}`);
+      console.error("Error solving problem:", error);
+      setErrorMessage(`Failed to solve. ${error.message}`);
     }
-};
+  };
 
   const [responseData, setResponseData] = useState(null);
   const [showModal, setShowModal] = useState(false);
@@ -210,80 +218,87 @@ const SolutionPreviewPage = () => {
         </div>
 
         {/* Preferences Section */}
-<div className="module-section">
-  <h2 className="section-title">Preferences</h2>
-  {preferenceModules.length > 0 ? (
-    preferenceModules.map((module, index) => (
-      <div key={index} className="module-box">
-        
-        {/* Toggle Button Positioned Correctly */}
-        <div className="toggle-container">
-          <label className="switch">
-            <input 
-              type="checkbox" 
-              checked={!preferencesToggledOff.includes(module.name)} 
-              onChange={() => handleTogglePreference(module.name)} 
-            />
-            <span className="slider round"></span>
-          </label>
+        <div className="module-section">
+          <h2 className="section-title">Preferences</h2>
+          {preferenceModules.length > 0 ? (
+            preferenceModules.map((module, index) => (
+              <div key={index} className="module-box">
+                {/* Toggle Button Positioned Correctly */}
+                <div className="toggle-container">
+                  <label className="switch">
+                    <input
+                      type="checkbox"
+                      checked={!preferencesToggledOff.includes(module.name)}
+                      onChange={() => handleTogglePreference(module.name)}
+                    />
+                    <span className="slider round"></span>
+                  </label>
+                </div>
+
+                <h3 className="module-title">{module.name}</h3>
+                <p className="module-description">
+                  <strong>Module Description:</strong> {module.description}
+                </p>
+
+                <h4 className="module-subtitle">Preferences</h4>
+                {module.preferences.length > 0 ? (
+                  module.preferences.map((preference, pIndex) => (
+                    <div key={pIndex} className="module-item">
+                      <p>{preference.identifier}</p>{" "}
+                      {/* Removed "Identifier:" */}
+                    </div>
+                  ))
+                ) : (
+                  <p className="empty-message">
+                    No preferences in this module.
+                  </p>
+                )}
+
+                <h4 className="module-subtitle">Involved Sets</h4>
+                {module.involvedSets.length > 0 ? (
+                  module.involvedSets.map((set, sIndex) => (
+                    <div key={sIndex} className="module-item">
+                      {set}
+                    </div>
+                  ))
+                ) : (
+                  <p className="empty-message">No involved sets.</p>
+                )}
+
+                <h4 className="module-subtitle">Involved Parameters</h4>
+                {module.involvedParams.length > 0 ? (
+                  module.involvedParams.map((param, pIndex) => (
+                    <div key={pIndex} className="module-item">
+                      {param}
+                    </div>
+                  ))
+                ) : (
+                  <p className="empty-message">No involved parameters.</p>
+                )}
+              </div>
+            ))
+          ) : (
+            <p className="empty-message">No preference modules available.</p>
+          )}
         </div>
-
-        <h3 className="module-title">{module.name}</h3>
-        <p className="module-description">
-          <strong>Module Description:</strong> {module.description}
-        </p>
-
-        <h4 className="module-subtitle">Preferences</h4>
-        {module.preferences.length > 0 ? (
-          module.preferences.map((preference, pIndex) => (
-            <div key={pIndex} className="module-item">
-              <p>{preference.identifier}</p> {/* Removed "Identifier:" */}
-            </div>
-          ))
-        ) : (
-          <p className="empty-message">No preferences in this module.</p>
-        )}
-
-        <h4 className="module-subtitle">Involved Sets</h4>
-        {module.involvedSets.length > 0 ? (
-          module.involvedSets.map((set, sIndex) => (
-            <div key={sIndex} className="module-item">{set}</div>
-          ))
-        ) : (
-          <p className="empty-message">No involved sets.</p>
-        )}
-
-        <h4 className="module-subtitle">Involved Parameters</h4>
-        {module.involvedParams.length > 0 ? (
-          module.involvedParams.map((param, pIndex) => (
-            <div key={pIndex} className="module-item">{param}</div>
-          ))
-        ) : (
-          <p className="empty-message">No involved parameters.</p>
-        )}
-      </div>
-    ))
-  ) : (
-    <p className="empty-message">No preference modules available.</p>
-  )}
-</div>
-
 
         {/* Variable Sets Section */}
         <div className="module-section">
           <h2 className="section-title">Variable Sets</h2>
           {Array.from(new Set(allSets)).map((set, index) => {
-            // Remove duplicates
-            const typeList = Array.isArray(types[set])
-              ? types[set]
-              : [types[set]]; // Ensure it's an array
+            // ✅ Fetch type from new source: setTypes
+            const typeList = setTypes[set]
+              ? Array.isArray(setTypes[set])
+                ? setTypes[set]
+                : [setTypes[set]]
+              : ["Unknown"];
 
             return (
               <div key={index} className="module-box">
                 {/* Display Variable Name */}
                 <h3 className="module-title">{set}</h3>
 
-                {/* Display Type */}
+                {/* Display Type from setTypes */}
                 <p className="variable-type">
                   <strong>Type:</strong> {typeList.join(", ")}
                 </p>
@@ -298,10 +313,6 @@ const SolutionPreviewPage = () => {
                 {variableValues[set]?.map((row, rowIndex) => (
                   <div key={rowIndex} className="input-row">
                     {row.map((value, typeIndex) => {
-                      // Extract and format types correctly
-                      const typeList = types[set]
-                        ? types[set].replace(/[<>]/g, "").split(",")
-                        : ["value"];
                       return (
                         <input
                           key={typeIndex}
@@ -317,7 +328,7 @@ const SolutionPreviewPage = () => {
                           }
                           className="variable-input"
                           placeholder={`Enter ${
-                            typeList[typeIndex]?.trim() || "value"
+                            typeList[typeIndex] || "value"
                           }:`}
                         />
                       );
@@ -335,32 +346,26 @@ const SolutionPreviewPage = () => {
         {/* Variable Parameters Section */}
         <div className="module-section">
           <h2 className="section-title">Variable Parameters</h2>
-          {Object.keys(types).map((param, index) => {
-            // Ensure the parameter is not a variable set (i.e., it's a standalone parameter)
-            if (!allSets.includes(param)) {
-              return (
-                <div key={index} className="module-box">
-                  {/* Display Parameter Name */}
-                  <h3 className="module-title">{param}</h3>
+          {Object.keys(paramTypes).map((param, index) => (
+            <div key={index} className="module-box">
+              {/* Display Parameter Name */}
+              <h3 className="module-title">{param}</h3>
 
-                  {/* Display Parameter Type */}
-                  <p className="variable-type">
-                    <strong>Type:</strong> {types[param] || "Unknown"}
-                  </p>
+              {/* Display Parameter Type from paramTypes */}
+              <p className="variable-type">
+                <strong>Type:</strong> {paramTypes[param] || "Unknown"}
+              </p>
 
-                  {/* Input Field */}
-                  <input
-                    type="text"
-                    value={paramValues[param] || ""}
-                    onChange={(e) => handleParamChange(param, e.target.value)}
-                    className="variable-input"
-                    placeholder={`Enter ${types[param] || "value"}...`}
-                  />
-                </div>
-              );
-            }
-            return null; // Skip variables, only show params
-          })}
+              {/* Input Field */}
+              <input
+                type="text"
+                value={paramValues[param] || ""}
+                onChange={(e) => handleParamChange(param, e.target.value)}
+                className="variable-input"
+                placeholder={`Enter ${paramTypes[param] || "value"}...`}
+              />
+            </div>
+          ))}
         </div>
 
         {/* Error Message */}
