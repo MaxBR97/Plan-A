@@ -36,6 +36,11 @@
 		<maven.compiler.testRelease>${maven.compiler.testTarget}</maven.compiler.testRelease>
 	</properties>
 	<dependencies>
+		<dependency>
+			<groupId>software.amazon.awssdk</groupId>
+			<artifactId>s3</artifactId>
+			<version>2.20.0</version>
+		</dependency>
 		<dependency> 
 			<groupId>org.antlr</groupId> 
 			<artifactId>antlr4</artifactId> 
