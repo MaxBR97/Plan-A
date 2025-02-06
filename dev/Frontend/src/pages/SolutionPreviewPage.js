@@ -51,31 +51,29 @@ const SolutionPreviewPage = () => {
 
   const getNumTypes = (typeInfo) => {
     if (!typeInfo) {
-        console.warn("⚠️ Warning: getNumTypes received undefined typeInfo.");
-        return 1; // Default to 1 to prevent errors
+      console.warn("⚠️ Warning: getNumTypes received undefined typeInfo.");
+      return 1; // Default to 1 to prevent errors
     }
 
     return Array.isArray(typeInfo) ? typeInfo.length : 1;
-};
-
+  };
 
   const handleAddVariable = (setName) => {
     console.log("Adding Variable for:", setName);
     console.log("Available setTypes:", setTypes);
-  
+
     if (!setTypes[setName]) {
-        console.error(`❌ Error: setTypes does not contain ${setName}`);
-        return; // Prevent further execution
+      console.error(`❌ Error: setTypes does not contain ${setName}`);
+      return; // Prevent further execution
     }
 
     const numTypes = getNumTypes(setTypes[setName]); // Function to extract type count
-  
-    setVariableValues((prev) => ({
-        ...prev,
-        [setName]: [...(prev[setName] || []), new Array(numTypes).fill("")], 
-    }));
-};
 
+    setVariableValues((prev) => ({
+      ...prev,
+      [setName]: [...(prev[setName] || []), new Array(numTypes).fill("")],
+    }));
+  };
 
   const handleVariableChange = (setName, rowIndex, typeIndex, value) => {
     setVariableValues((prev) => {
@@ -109,9 +107,11 @@ const SolutionPreviewPage = () => {
     setResponseData(null); // Clear local response
 
     const transformedParamValues = Object.fromEntries(
-      Object.entries(paramValues).map(([key, value]) => [key, [parseFloat(value) || 0]]) // Ensures values are arrays of numbers
-  );
-
+      Object.entries(paramValues).map(([key, value]) => [
+        key,
+        [parseFloat(value) || 0],
+      ]) // Ensures values are arrays of numbers
+    );
 
     const requestBody = {
       imageId,
@@ -150,8 +150,7 @@ const SolutionPreviewPage = () => {
       console.error("Error solving problem:", error);
       setErrorMessage(`Failed to solve. ${error.message}`);
     }
-};
-
+  };
 
   const [responseData, setResponseData] = useState(null);
   const [showModal, setShowModal] = useState(false);
@@ -162,39 +161,48 @@ const SolutionPreviewPage = () => {
     solvingTime: 12.5,
     objectiveValue: 100.23,
     solution: {
-      Variable1Name: {
-        setStructure: ["A", "B", "C"],
-        typeStructure: ["A-type", "B-type","C-type"],
+      Soldier_shift: {
+        setStructure: ["C", "Stations", "Times"],
+        typeStructure: ["INT", "TEXT", "INT"],
         solutions: [
           {
-            values: ["A val", "B val","C val"],
-            objectiveValue: 50
+            values: ["1", "Fillbox", "8"],
+            objectiveValue: 1,
           },
           {
-            values: ["A val2","B val2","C val2"],
-            objectiveValue: 75
-          }
-        ]
+            values: ["2", "Fillbox", "16"],
+            objectiveValue: 1,
+          },
+          {
+            values: ["3", "Fillbox", "0"],
+            objectiveValue: 1,
+          },
+          {
+            values: ["4", "Fillbox", "20"],
+            objectiveValue: 1,
+          },
+          {
+            values: ["2", "Shin Gimel", "16"],
+            objectiveValue: 1,
+          },
+        ],
       },
-      Variable2Name: {
+      minGuards: {
         setStructure: ["X", "Y"],
-        typeStructure: ["X-type","Y-type"],
+        typeStructure: ["INT"],
         solutions: [
           {
             values: ["X val", "Y val"],
-            objectiveValue: 30
-          }
-        ]
-      }
-    }
+            objectiveValue: 30,
+          },
+        ],
+      },
+    },
   };
-  
   const handleFakeResponse = () => {
-      setSolutionData(fakeResponse); // ✅ Store the fake response in context
-      navigate("/solution-results"); // ✅ Redirect to the next screen
+    setSolutionResponse(fakeResponse); // ✅ Store the fake response in context
+    navigate("/solution-results"); // ✅ Redirect to the next screen
   };
-  
-
 
   return (
     <div className="solution-preview-page">
@@ -429,11 +437,10 @@ const SolutionPreviewPage = () => {
           Solve
         </button>
 
-{/* Fake Response Button */}
-<button className="fake-response-button" onClick={handleFakeResponse}>
-    Fake Solve Response
-</button>
-
+        {/* Fake Response Button */}
+        <button className="fake-response-button" onClick={handleFakeResponse}>
+          Fake Solve Response
+        </button>
 
         {/* Modal for Response */}
         {showModal && (
