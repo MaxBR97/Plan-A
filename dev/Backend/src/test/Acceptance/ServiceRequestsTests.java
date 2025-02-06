@@ -122,7 +122,7 @@ public class ServiceRequestsTests {
             ImageDTO actual= RecordFactory.makeDTO(image);
             assertEquals(imageDTO, actual);
 
-        } catch (IOException e) {
+        } catch (Exception e) {
             fail(e.getMessage());
         }
 

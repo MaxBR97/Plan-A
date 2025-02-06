@@ -16,6 +16,8 @@ import Model.ModelConstraint;
 import Model.ModelInput;
 import Model.ModelInterface;
 import Model.ModelVariable;
+
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -31,16 +33,21 @@ import java.util.stream.Collectors;
 public class UserController {
 private final Map<UUID,Image> images;
 
+@Value("${app.file.storage-dir}")
+private String storageDir;
+
 
     public UserController(){
         images = new HashMap<>();
     }
 
 
-    public CreateImageResponseDTO createImageFromFile(String code) throws IOException {
+    public CreateImageResponseDTO createImageFromFile(String code) throws Exception {
         UUID id= UUID.randomUUID();
         String name = id.toString();
-        Path path= Paths.get("User/Models"+ File.separator+name+".zpl");
+        String jarDir = new File(Main.class.getProtectionDomain()
+             .getCodeSource().getLocation().toURI()).getParent();
+        Path path = Paths.get(jarDir,storageDir, File.separator+name+".zpl");
         Files.createDirectories(path.getParent());
         Files.writeString(path,code, StandardOpenOption.CREATE);
         Image image=new Image(path.toAbsolutePath().toString());

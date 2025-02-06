@@ -41,7 +41,7 @@ public class Service implements ServiceInterface {
     }
     
     @PostMapping("/images")
-    public ResponseEntity<CreateImageResponseDTO> createImage(@RequestBody CreateImageFromFileDTO data) throws IOException {
+    public ResponseEntity<CreateImageResponseDTO> createImage(@RequestBody CreateImageFromFileDTO data) throws Exception {
         CreateImageResponseDTO response = controller.createImageFromFile(data.code());
         return ResponseEntity.ok(response);
     }
