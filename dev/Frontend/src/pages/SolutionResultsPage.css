@@ -1,0 +1,223 @@
+/* SolutionResultsPage.css */
+
+/* Page container */
+.solution-results-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px;
+    background-color: #f4f4f4;
+    min-height: 100vh;
+}
+
+/* Page title */
+.page-title {
+    font-size: 32px;
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+
+/* Dropdown container */
+.variable-selector {
+    margin-bottom: 20px;
+    font-size: 18px;
+}
+
+/* Dropdown styling */
+.variable-dropdown {
+    font-size: 18px;
+    padding: 8px;
+    border-radius: 5px;
+    border: 2px solid #007BFF;
+    background-color: white;
+    cursor: pointer;
+}
+
+/* Main table container */
+.results-table {
+    border-collapse: collapse;
+    width: 80%;
+    max-width: 1000px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    margin-top: 20px;
+}
+
+/* Table header styling */
+.results-table th {
+    background-color: #00AFB9;
+    color: white;
+    padding: 12px;
+    text-align: center;
+    border: 3px solid black;
+    font-size: 18px;
+}
+
+/* Table cell styling */
+.results-table td {
+    border: 3px solid black;  /* Ensure black grid lines */
+    padding: 10px;
+    text-align: center;
+    font-size: 18px;
+}
+
+/* Mini table container */
+.mini-table-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Mini table styling */
+.mini-table {
+    border-collapse: collapse;
+    width: 100%;
+    margin-top: 10px;
+}
+
+.mini-table th, .mini-table td {
+    border: 3px solid black; /* Make sure mini tables also follow the grid */
+    padding: 6px;
+    text-align: center;
+    font-size: 16px;
+}
+
+/* Mini table header styling */
+.mini-table th {
+    background-color: #FFD166;
+    font-weight: bold;
+}
+
+/* Objective value highlighting */
+.objective-value {
+    font-weight: bold;
+    color: #FF006E;
+    font-size: 18px;
+}
+
+/* Back button styling */
+.back-button {
+    margin-top: 30px;
+    padding: 12px 25px;
+    font-size: 18px;
+    background-color: #007BFF;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.back-button:hover {
+    background-color: #0056b3;
+}
+
+/* Styling for binary values (V and X) */
+.binary-value {
+    font-size: 1.2rem;
+    font-weight: bold;
+    text-align: center;
+    display: inline-block;
+    width: 25px;
+    height: 25px;
+    line-height: 25px;
+    border-radius: 5px;
+    border: 2px solid black;
+}
+
+/* Green for V */
+.binary-value.v {
+    background-color: #4CAF50; /* Green */
+    color: white;
+}
+
+/* Red for X */
+.binary-value.x {
+    background-color: #F44336; /* Red */
+    color: white;
+}
+
+/* Dropdown Container */
+.solution-dropdown {
+    position: relative;
+    display: inline-block;
+    font-family: Arial, sans-serif;
+    width: 220px;
+}
+
+/* Styled Dropdown */
+.solution-dropdown select {
+    appearance: none;
+    background-color: #ffffff;
+    border: 2px solid #00AFB9;
+    border-radius: 25px;
+    padding: 10px 15px;
+    font-size: 16px;
+    cursor: pointer;
+    color: #333;
+    font-weight: bold;
+    outline: none;
+    transition: all 0.3s ease;
+    width: 100%;
+}
+
+/* Add Dropdown Arrow */
+.solution-dropdown::after {
+    content: '▼';
+    font-size: 14px;
+    color: #00AFB9;
+    position: absolute;
+    top: 50%;
+    right: 15px;
+    transform: translateY(-50%);
+    pointer-events: none;
+}
+
+/* Hover and Focus Effects */
+.solution-dropdown select:hover,
+.solution-dropdown select:focus {
+    background-color: #e6f7f9;
+    border-color: #007a82;
+}
+
+/* Options Styling */
+.solution-dropdown select option {
+    background-color: #ffffff;
+    padding: 10px;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+/* When Option is Selected */
+.solution-dropdown select option:checked {
+    background-color: #00AFB9;
+    color: white;
+}
+
+/* Center the dropdown container */
+.solution-dropdown-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 20px;
+    width: 100%;
+}
+
+/* Center the table container */
+.solution-table-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    margin-top: 30px; /* Adjust spacing as needed */
+}
+
+/* Ensure table has a defined max-width and is centered */
+.solution-table {
+    border-collapse: collapse;
+    width: auto; /* Adjusts to content */
+    max-width: 80%; /* Prevents the table from being too wide */
+    text-align: center;
+}

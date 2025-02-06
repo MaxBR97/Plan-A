@@ -13,6 +13,7 @@ export const ZPLProvider = ({ children }) => {
     const [varTypes, setVarTypes] = useState({}); // ✅ NEW: Store variable types
     const [imageId, setImageId] = useState(null);
     const [solutionResponse, setSolutionResponse] = useState(null); // Store response
+    const [solutionData, setSolutionData] = useState(null);
 
     return (
         <ZPLContext.Provider value={{
@@ -25,7 +26,8 @@ export const ZPLProvider = ({ children }) => {
             paramTypes, setParamTypes, // ✅ Provide paramTypes
             varTypes, setVarTypes, // ✅ Provide varTypes
             imageId, setImageId,
-            solutionResponse, setSolutionResponse
+            solutionResponse, setSolutionResponse,
+            solutionData, setSolutionData
         }}>
             {children}
         </ZPLContext.Provider>

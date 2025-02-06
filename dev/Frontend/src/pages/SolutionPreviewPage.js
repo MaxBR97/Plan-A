@@ -16,6 +16,7 @@ const SolutionPreviewPage = () => {
     setSolutionResponse,
     setTypes,
     paramTypes,
+    setSolutionData,
   } = useZPL();
 
   const allSets = variables.flatMap(
@@ -24,6 +25,7 @@ const SolutionPreviewPage = () => {
   const [variableValues, setVariableValues] = useState({});
   const [paramValues, setParamValues] = useState({});
   const [constraintsToggledOff, setConstraintsToggledOff] = useState([]);
+
   const navigate = useNavigate(); // Initialize navigation
   const handleAddValue = (setName) => {
     setVariableValues((prev) => ({
@@ -49,31 +51,29 @@ const SolutionPreviewPage = () => {
 
   const getNumTypes = (typeInfo) => {
     if (!typeInfo) {
-        console.warn("⚠️ Warning: getNumTypes received undefined typeInfo.");
-        return 1; // Default to 1 to prevent errors
+      console.warn("⚠️ Warning: getNumTypes received undefined typeInfo.");
+      return 1; // Default to 1 to prevent errors
     }
 
     return Array.isArray(typeInfo) ? typeInfo.length : 1;
-};
-
+  };
 
   const handleAddVariable = (setName) => {
     console.log("Adding Variable for:", setName);
     console.log("Available setTypes:", setTypes);
-  
+
     if (!setTypes[setName]) {
-        console.error(`❌ Error: setTypes does not contain ${setName}`);
-        return; // Prevent further execution
+      console.error(`❌ Error: setTypes does not contain ${setName}`);
+      return; // Prevent further execution
     }
 
     const numTypes = getNumTypes(setTypes[setName]); // Function to extract type count
-  
-    setVariableValues((prev) => ({
-        ...prev,
-        [setName]: [...(prev[setName] || []), new Array(numTypes).fill("")], 
-    }));
-};
 
+    setVariableValues((prev) => ({
+      ...prev,
+      [setName]: [...(prev[setName] || []), new Array(numTypes).fill("")],
+    }));
+  };
 
   const handleVariableChange = (setName, rowIndex, typeIndex, value) => {
     setVariableValues((prev) => {
@@ -106,14 +106,22 @@ const SolutionPreviewPage = () => {
     setErrorMessage(null); // Reset previous error
     setResponseData(null); // Clear local response
 
+    const transformedParamValues = Object.fromEntries(
+      Object.entries(paramValues).map(([key, value]) => [
+        key,
+        [parseFloat(value) || 0],
+      ]) // Ensures values are arrays of numbers
+    );
+
     const requestBody = {
       imageId,
       input: {
         setsToValues: variableValues,
-        paramsToValues: paramValues,
+        paramsToValues: transformedParamValues,
         constraintsToggledOff: [],
         preferencesToggledOff: [],
       },
+      timeout: 30,
     };
 
     console.log("Sending request:", JSON.stringify(requestBody, null, 2));
@@ -147,6 +155,54 @@ const SolutionPreviewPage = () => {
   const [responseData, setResponseData] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState(null);
+
+  const fakeResponse = {
+    solved: true,
+    solvingTime: 12.5,
+    objectiveValue: 100.23,
+    solution: {
+      Soldier_shift: {
+        setStructure: ["C", "Stations", "Times"],
+        typeStructure: ["INT", "TEXT", "INT"],
+        solutions: [
+          {
+            values: ["1", "Fillbox", "8"],
+            objectiveValue: 1,
+          },
+          {
+            values: ["2", "Fillbox", "16"],
+            objectiveValue: 1,
+          },
+          {
+            values: ["3", "Fillbox", "0"],
+            objectiveValue: 1,
+          },
+          {
+            values: ["4", "Fillbox", "20"],
+            objectiveValue: 1,
+          },
+          {
+            values: ["2", "Shin Gimel", "16"],
+            objectiveValue: 1,
+          },
+        ],
+      },
+      minGuards: {
+        setStructure: ["X", "Y"],
+        typeStructure: ["INT"],
+        solutions: [
+          {
+            values: ["X val", "Y val"],
+            objectiveValue: 30,
+          },
+        ],
+      },
+    },
+  };
+  const handleFakeResponse = () => {
+    setSolutionResponse(fakeResponse); // ✅ Store the fake response in context
+    navigate("/solution-results"); // ✅ Redirect to the next screen
+  };
 
   return (
     <div className="solution-preview-page">
@@ -380,6 +436,12 @@ const SolutionPreviewPage = () => {
         <button className="solve-button" onClick={handleSolve}>
           Solve
         </button>
+
+        {/* Fake Response Button */}
+        <button className="fake-response-button" onClick={handleFakeResponse}>
+          Fake Solve Response
+        </button>
+
         {/* Modal for Response */}
         {showModal && (
           <div className="response-modal">
