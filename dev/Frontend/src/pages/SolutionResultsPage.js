@@ -29,7 +29,10 @@ const SolutionResultsPage = () => {
       <h1 className="page-title">Solution Results</h1>
 
       {/* Dropdown to Select Variable */}
+      <div className="solution-dropdown-container">
+      <div className="solution-dropdown">
       <label>Select Variable: </label>
+      
       <select onChange={handleVariableChange} value={selectedVariable}>
         {Object.keys(solutionResponse.solution).map((variable) => (
           <option key={variable} value={variable}>
@@ -37,8 +40,10 @@ const SolutionResultsPage = () => {
           </option>
         ))}
       </select>
-
+      </div>
+      </div>
       {/* Render Table Based on setStructure.length */}
+      <div className="solution-table-container">
       {setStructure.length === 2 && (
         <table className="solution-table">
           <thead>
@@ -160,6 +165,7 @@ const SolutionResultsPage = () => {
           </tbody>
         </table>
       )}
+    </div>
     </div>
   );
 };
