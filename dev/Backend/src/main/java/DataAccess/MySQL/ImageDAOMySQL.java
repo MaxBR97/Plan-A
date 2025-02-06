@@ -42,10 +42,11 @@ public class ImageDAOMySQL implements ImageDAO {
                 String variables = resultSet.getString("variables");
                 String model = resultSet.getString("model");
                 return new Image(deserializeModel(model)) {{
-                    // Assuming you have setters or a way to set these fields
-                    setConstraintsModules(deserializeConstraintsModules(constraintsModules));
-                    setPreferenceModules(deserializePreferenceModules(preferenceModules));
-                    setVariables(deserializeVariables(variables));
+                    
+                    //TODO: implement!
+                    // setConstraintsModules(deserializeConstraintsModules(constraintsModules));
+                    // setPreferenceModules(deserializePreferenceModules(preferenceModules));
+                    // setVariables(deserializeVariables(variables));
                 }};
             }
         } catch (SQLException e) {
@@ -67,9 +68,10 @@ public class ImageDAOMySQL implements ImageDAO {
                 String variables = resultSet.getString("variables");
                 String model = resultSet.getString("model");
                 Image image = new Image(deserializeModel(model)) {{
-                    setConstraintsModules(deserializeConstraintsModules(constraintsModules));
-                    setPreferenceModules(deserializePreferenceModules(preferenceModules));
-                    setVariables(deserializeVariables(variables));
+                    //TODO: implement!
+                    // setConstraintsModules(deserializeConstraintsModules(constraintsModules));
+                    // setPreferenceModules(deserializePreferenceModules(preferenceModules));
+                    // setVariables(deserializeVariables(variables));
                 }};
                 images.add(image);
             }
@@ -142,6 +144,6 @@ public class ImageDAOMySQL implements ImageDAO {
 
     private ModelInterface deserializeModel(String serialized) {
         // Implement deserialization logic here
-        return new Model("") {}; // Placeholder
+        return null; // Placeholder
     }
 }

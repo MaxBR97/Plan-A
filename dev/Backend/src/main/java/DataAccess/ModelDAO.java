@@ -1,10 +1,11 @@
 package DataAccess;
 
 import java.io.InputStream;
+import java.nio.file.Path;
 
 public interface ModelDAO {
-    void uploadDocument(String documentId, InputStream documentStream);
-    InputStream downloadDocument(String documentId);
-    void deleteDocument(String documentId);
-    boolean documentExists(String documentId);
+    public abstract void uploadDocument(String documentId, InputStream documentStream);
+    public abstract InputStream downloadDocument(String documentId);
+    public abstract void deleteDocument(String documentId);
+    public abstract boolean documentExists(String documentId);
 }

@@ -33,6 +33,15 @@ public class Image {
         this.model = new Model(path);
         //fetchVariables();
     }
+
+    //TODO: implement deep copy!
+    public Image(Image image) {
+        this.constraintsModules = null;
+        this.preferenceModules = null;
+        this.variables = null;
+        this.model = null;
+    }
+
     //will probably have to use an adapter layer, or change types to DTOs
     public void addConstraintModule(ConstraintModule module) {
         constraintsModules.put(module.getName(), module);

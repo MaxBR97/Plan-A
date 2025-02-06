@@ -5,9 +5,9 @@ import java.util.Map;
 import Image.*;
 
 public interface ImageDAO {
-    void insertImage(Image image);
-    Image getImageById(String id);
-    List<Image> getAllImages();
-    void updateImage(Image image);
-    void deleteImage(String id);
+    public void insertImage(Image image);
+    public Image getImageById(String id);
+    public List<Image> getAllImages();
+    public void updateImage(Image image);
+    public void deleteImage(String id);
 }
