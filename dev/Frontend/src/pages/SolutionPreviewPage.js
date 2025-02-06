@@ -108,11 +108,16 @@ const SolutionPreviewPage = () => {
     setErrorMessage(null); // Reset previous error
     setResponseData(null); // Clear local response
 
+    const transformedParamValues = Object.fromEntries(
+      Object.entries(paramValues).map(([key, value]) => [key, [parseFloat(value) || 0]]) // Ensures values are arrays of numbers
+  );
+
+
     const requestBody = {
       imageId,
       input: {
         setsToValues: variableValues,
-        paramsToValues: paramValues,
+        paramsToValues: transformedParamValues,
         constraintsToggledOff: [],
         preferencesToggledOff: [],
       },
