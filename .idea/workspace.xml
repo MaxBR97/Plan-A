@@ -19,22 +19,26 @@
   <component name="ProblemsViewState">
     <option name="selectedTabId" value="Security Analysis" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "JUnit.ConstraintModuleDTOTests.executor": "Run",
-    "JUnit.ServiceRequestsTests.GivenImageDTO_WhenConfigImage_ImageIsCorrect.executor": "Run",
-    "JUnit.ServiceRequestsTests.executor": "Debug",
-    "JUnit.ServiceRequestsTests.testSolve_Simple.executor": "Run",
-    "JUnit.ServiceTest.GivenFile_WhenCreateImage_ImageIsCorrect.executor": "Run",
-    "JUnit.ServiceTest.executor": "Debug",
-    "JUnit.ServiceTest.testCreateImage.executor": "Run",
-    "JUnit.Unit in artifactid.executor": "Run",
-    "JUnit.test in artifactid.executor": "Run",
-    "Spring Boot.Main.executor": "Run",
-    "git-widget-placeholder": "API-Impl",
-    "node.js.selected.package.tslint": "(autodetect)"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;JUnit.ConstraintModuleDTOTests.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.ServiceRequestsTests.GivenImageDTO_WhenConfigImage_ImageIsCorrect.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.ServiceRequestsTests.executor&quot;: &quot;Debug&quot;,
+    &quot;JUnit.ServiceRequestsTests.testSolve_Simple.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.ServiceTest.GivenFile_WhenCreateImage_ImageIsCorrect.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.ServiceTest.executor&quot;: &quot;Debug&quot;,
+    &quot;JUnit.ServiceTest.testCreateImage.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.Unit in artifactid.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.test in artifactid.executor&quot;: &quot;Run&quot;,
+    &quot;RequestMappingsPanelOrder0&quot;: &quot;0&quot;,
+    &quot;RequestMappingsPanelOrder1&quot;: &quot;1&quot;,
+    &quot;RequestMappingsPanelWidth0&quot;: &quot;75&quot;,
+    &quot;RequestMappingsPanelWidth1&quot;: &quot;75&quot;,
+    &quot;Spring Boot.Main.executor&quot;: &quot;Run&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;API-Impl&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;
   }
-}]]></component>
+}</component>
   <component name="RunManager" selected="Spring Boot.Main">
     <configuration name="ConstraintModuleDTOTests" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
       <module name="artifactid" />

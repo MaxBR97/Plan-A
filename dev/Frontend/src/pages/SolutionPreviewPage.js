@@ -16,6 +16,7 @@ const SolutionPreviewPage = () => {
     setSolutionResponse,
     setTypes,
     paramTypes,
+    setSolutionData,
   } = useZPL();
 
   const allSets = variables.flatMap(
@@ -24,6 +25,7 @@ const SolutionPreviewPage = () => {
   const [variableValues, setVariableValues] = useState({});
   const [paramValues, setParamValues] = useState({});
   const [constraintsToggledOff, setConstraintsToggledOff] = useState([]);
+
   const navigate = useNavigate(); // Initialize navigation
   const handleAddValue = (setName) => {
     setVariableValues((prev) => ({
@@ -114,6 +116,7 @@ const SolutionPreviewPage = () => {
         constraintsToggledOff: [],
         preferencesToggledOff: [],
       },
+      timeout: 30,
     };
 
     console.log("Sending request:", JSON.stringify(requestBody, null, 2));
@@ -142,11 +145,51 @@ const SolutionPreviewPage = () => {
       console.error("Error solving problem:", error);
       setErrorMessage(`Failed to solve. ${error.message}`);
     }
-  };
+};
+
 
   const [responseData, setResponseData] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState(null);
+
+  const fakeResponse = {
+    solved: true,
+    solvingTime: 12.5,
+    objectiveValue: 100.23,
+    solution: {
+      Variable1Name: {
+        setStructure: ["A", "B", "C"],
+        typeStructure: ["A-type", "B-type","C-type"],
+        solutions: [
+          {
+            values: ["A val", "B val","C val"],
+            objectiveValue: 50
+          },
+          {
+            values: ["A val2","B val2","C val2"],
+            objectiveValue: 75
+          }
+        ]
+      },
+      Variable2Name: {
+        setStructure: ["X", "Y"],
+        typeStructure: ["X-type","Y-type"],
+        solutions: [
+          {
+            values: ["X val", "Y val"],
+            objectiveValue: 30
+          }
+        ]
+      }
+    }
+  };
+  
+  const handleFakeResponse = () => {
+      setSolutionData(fakeResponse); // ✅ Store the fake response in context
+      navigate("/solution-results"); // ✅ Redirect to the next screen
+  };
+  
+
 
   return (
     <div className="solution-preview-page">
@@ -380,6 +423,13 @@ const SolutionPreviewPage = () => {
         <button className="solve-button" onClick={handleSolve}>
           Solve
         </button>
+
+{/* Fake Response Button */}
+<button className="fake-response-button" onClick={handleFakeResponse}>
+    Fake Solve Response
+</button>
+
+
         {/* Modal for Response */}
         {showModal && (
           <div className="response-modal">
