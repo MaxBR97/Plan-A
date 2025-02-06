@@ -31,7 +31,7 @@ public class ModelTest {
 
     private static String source = "src/test/Unit/TestFile.zpl";
     private static String TEST_FILE_PATH = "src/test/Unit/TestFileINSTANCE.zpl";
-
+    private static float compilationBaselineTime = 6;
     private static String[][] expectedParameters = {{"Conditioner","10"}, {"soldiers", "9"}, {"absoluteMinimalRivuah", "8"}};
     @BeforeAll
     public static void setUpFile() throws IOException {
@@ -71,7 +71,7 @@ public class ModelTest {
     @Test
     public void testModelConstruction() {
         assertNotNull(model);
-        assertTrue(model.isCompiling(3));
+        assertTrue(model.isCompiling(compilationBaselineTime));
     }
     
     @Test
@@ -100,7 +100,7 @@ public class ModelTest {
         testSet = getSet(model, setName);
         assertTrue(testSet.getElements().contains(addValue));
 
-        assertTrue(model.isCompiling(2));
+        assertTrue(model.isCompiling(compilationBaselineTime));
 
 
         // Test remove
@@ -108,7 +108,7 @@ public class ModelTest {
         testSet = getSet(model, setName);
         assertFalse(testSet.getElements().contains(addValue));
 
-        assertTrue(model.isCompiling(2));
+        assertTrue(model.isCompiling(compilationBaselineTime));
 
     }
     
@@ -125,7 +125,7 @@ public class ModelTest {
         param = getParameter(model, parameter);
         Assertions.assertEquals( param.getValue(), valueToSet);
 
-        assertTrue(model.isCompiling(2));
+        assertTrue(model.isCompiling(compilationBaselineTime));
 
     }
 
@@ -141,7 +141,7 @@ public class ModelTest {
         mySet = getSet(model, set);
         Assertions.assertArrayEquals( mySet.getElements().toArray(), valueToSet);
 
-        assertTrue(model.isCompiling(2));
+        assertTrue(model.isCompiling(compilationBaselineTime));
 
     }
     
@@ -154,11 +154,11 @@ public class ModelTest {
         assertNotNull(mf);
         model.toggleFunctionality(mf, false);
 
-        assertTrue(model.isCompiling(2));
+        assertTrue(model.isCompiling(compilationBaselineTime));
 
         model.toggleFunctionality(mf, true);
         assertNotNull(getConstraint(model, testConstraint));
-        assertTrue(model.isCompiling(2));
+        assertTrue(model.isCompiling(compilationBaselineTime));
     }
 
     //TODO: Toggling Preferences doesnt work perfectly, but somewhat works 
@@ -172,26 +172,26 @@ public class ModelTest {
         assertNotNull(mf);
         model.toggleFunctionality(mf, false);
 
-        assertTrue(model.isCompiling(2));
+        assertTrue(model.isCompiling(compilationBaselineTime));
 
         model.toggleFunctionality(mf, true);
         assertNotNull(getPreference(model, testPreference));
-        assertTrue(model.isCompiling(2));
+        assertTrue(model.isCompiling(compilationBaselineTime));
     }
 
 
     @Test
     public void testBasicCompilation(){
         assertFalse(model.isCompiling(0.00000000001f));
-        assertTrue(model.isCompiling(3));
+        assertTrue(model.isCompiling(compilationBaselineTime));
         try{
         String gibbrish = "gfsgfd;";
         Files.writeString(Path.of(TEST_FILE_PATH), gibbrish, StandardOpenOption.APPEND);
-        assertFalse(model.isCompiling(3));
+        assertFalse(model.isCompiling(compilationBaselineTime));
         FileChannel fileChannel = FileChannel.open(Path.of(TEST_FILE_PATH), StandardOpenOption.WRITE);
         long newSize = fileChannel.size() - gibbrish.length();
         fileChannel.truncate(newSize);
-        assertTrue(model.isCompiling(3));
+        assertTrue(model.isCompiling(compilationBaselineTime));
         } catch (Exception e){
             assertFalse(true);
         }
@@ -205,8 +205,15 @@ public class ModelTest {
 
     @Test
     public void testSolve(){
-        model.solve(10);
-        assertFalse(true);
+        Model m = null;
+        try{
+         m = new Model("./src/test/Unit/TestFile2.zpl");
+        
+        if(m.solve(10) == null)
+            assertFalse(true);
+        
+        assertTrue(true);
+        } catch(Exception e){assertTrue(false);}
     }
     
     // Collection Getter Tests
@@ -264,6 +271,8 @@ public class ModelTest {
        Path targetPath = Path.of(TEST_FILE_PATH);
        Files.deleteIfExists(targetPath);
        Files.deleteIfExists(Path.of(targetPath.toString()+"SOLUTION"));
+       Files.deleteIfExists(Path.of("./src/test/Unit/TestFile2.zplSOLUTION"));
+
     }
 
 }

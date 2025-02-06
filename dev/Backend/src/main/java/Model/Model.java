@@ -21,6 +21,11 @@ import parser.FormulationParser.UExprContext;
 import java.io.*;
 import java.nio.file.*;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
 import org.antlr.runtime.tree.TreeWizard;
@@ -159,52 +164,123 @@ public class Model implements ModelInterface {
         Files.write(Paths.get(sourceFilePath), originalSource.getBytes());
         parseSource();
     }
-    public boolean isCompiling(float timeout) {
-        try {
-            commentOutToggledFunctionalities();
-            
-            String[] command = {"/bin/bash", zimplCompilationScript, sourceFilePath, String.valueOf(timeout)};
-            Process process = Runtime.getRuntime().exec(command);
+    
+
+public boolean isCompiling(float timeout) {
+    boolean ans = false;
+    try {
+        commentOutToggledFunctionalities();
+
+        ProcessBuilder processBuilder = new ProcessBuilder(
+            "scip", "-c", "read " + sourceFilePath + " q"
+        );
+        processBuilder.redirectErrorStream(true);
+        Process process = processBuilder.start();
+
+        // Executor service to handle timeouts
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        Future<Boolean> future = executor.submit(() -> {
             BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
             StringBuilder output = new StringBuilder();
             String line;
             while ((line = reader.readLine()) != null) {
                 output.append(line).append("\n");
+                
+                if (line.contains("original problem has")) {
+                    return true;
+                } else if (line.contains("error reading file")) {
+                    return false;
+                }
             }
-            int exitCode = process.waitFor();
-            boolean result = exitCode == 0 && output.toString().contains("Compilation Successful");
-            
-            restoreToggledFunctionalities();
-            return result;
-        } catch (Exception e) {
-            try {
-                restoreToggledFunctionalities();
-            } catch (IOException ex) {
-                ex.printStackTrace();
-            }
-            e.printStackTrace();
             return false;
+        });
+
+        try {
+            ans = future.get((long) timeout, TimeUnit.SECONDS);
+        } catch (TimeoutException e) {
+            process.destroy(); // Kill the process if timeout occurs
+            ans = false;
+        } finally {
+            executor.shutdown();
         }
+
+        restoreToggledFunctionalities();
+        return ans;
+    } catch (Exception e) {
+        try {
+            restoreToggledFunctionalities();
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+        e.printStackTrace();
+        return false;
     }
+}
     
     public Solution solve(float timeout) {
+        Solution ans = null;
         try {
             commentOutToggledFunctionalities();
-            
-            String[] command = {"/bin/bash", zimplSolveScript, sourceFilePath, String.valueOf(timeout)};
-            Process process = Runtime.getRuntime().exec(command);
-            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-            StringBuilder output = new StringBuilder();
-            String line;
-            while ((line = reader.readLine()) != null) {
-                output.append(line).append("\n");
+
+            ProcessBuilder processBuilder = new ProcessBuilder(
+                "scip", "-c", "read " + sourceFilePath + " optimize display solution q"
+            );
+            processBuilder.redirectErrorStream(true);
+            Process process = processBuilder.start();
+
+            // Executor service to handle timeouts
+            ExecutorService executor = Executors.newSingleThreadExecutor();
+            Future<Solution> future = executor.submit(() -> {
+                BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+                StringBuilder output = new StringBuilder();
+                String line;
+                boolean capture = false;
+                StringBuilder buffer = new StringBuilder();
+                int count = 0;
+                while ((line = reader.readLine()) != null) {
+                    // Remove lines starting with '@'
+                    
+                    if (line.startsWith("@@")) continue;
+    
+                    // Remove excessive newlines
+                    if (line.trim().isEmpty() && (output.length() == 0 || output.toString().endsWith("\n"))) {
+                        continue;
+                    }
+    
+                    // Capture lines after "SCIP Status" until the end
+                    if (line.contains("SCIP Status")) {
+                        buffer.setLength(0); // Clear buffer
+                        capture = true;
+                    }
+                    if (capture) {
+                        buffer.append(line).append("\n");
+                    }
+                    
+                }
+    
+                // Remove last line (head -n -1 equivalent)
+                String filteredOutput = buffer.toString().lines()
+                    .collect(Collectors.collectingAndThen(Collectors.toList(), list -> {
+                        if (!list.isEmpty()) list.remove(list.size() - 1);
+                        return String.join("\n", list);
+                    }));
+    
+                Files.write(Paths.get(sourceFilePath + "SOLUTION"), filteredOutput.getBytes());
+                return new Solution(filteredOutput);
+            });
+
+            try {
+                ans = future.get((long) timeout, TimeUnit.SECONDS);
+                
+            } catch (TimeoutException e) {
+                process.destroy(); // Kill the process if timeout occurs
+                ans = null;
+            } finally {
+                executor.shutdown();
             }
 
-            int exitCode = process.waitFor();
-            Solution result = exitCode == 0 ? new Solution(sourceFilePath+"SOLUTION",output.toString(),true) : null;
-            
             restoreToggledFunctionalities();
-            return result;
+            return ans;
         } catch (Exception e) {
             try {
                 restoreToggledFunctionalities();
