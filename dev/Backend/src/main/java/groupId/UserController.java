@@ -15,6 +15,7 @@ import Model.Model;
 import Model.ModelConstraint;
 import Model.ModelInput;
 import Model.ModelInterface;
+import Model.ModelType;
 import Model.ModelVariable;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -41,6 +42,12 @@ private String storageDir;
         images = new HashMap<>();
     }
 
+    //Dependency injection - for TESTS only!
+    public UserController(String path){
+        images = new HashMap<>();
+        this.storageDir = path;
+    }
+
 
     public CreateImageResponseDTO createImageFromFile(String code) throws Exception {
         UUID id= UUID.randomUUID();
@@ -61,14 +68,14 @@ private String storageDir;
         for (Map.Entry<String,List<List<String>>> set : command.input().setsToValues().entrySet()){
             List<String> setElements = new LinkedList<>();
             for(List<String> element : set.getValue()){
-                String tuple = ModelInput.convertArrayOfAtomsToTuple((element.toArray(new String[0])));
+                String tuple = ModelType.convertArrayOfAtoms((element.toArray(new String[0])),model.getSet(set.getKey()).getType());
                 setElements.add(tuple);
             }
             model.setInput(model.getSet(set.getKey()), setElements.toArray(new String[0]));
         }
 
         for (Map.Entry<String,List<String>> parameter : command.input().paramsToValues().entrySet()){
-            model.setInput(model.getParameter(parameter.getKey()), ModelInput.convertArrayOfAtomsToTuple(parameter.getValue().toArray(new String[0])));
+            model.setInput(model.getParameter(parameter.getKey()), ModelType.convertArrayOfAtoms(parameter.getValue().toArray(new String[0]), model.getParameter(parameter.getKey()).getType()));
         }
 
         for (String constraint : command.input().constraintsToggledOff()){

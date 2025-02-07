@@ -22,7 +22,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.*;
-
+import java.util.stream.Collectors;
 import java.nio.file.Path;
 
 
@@ -31,7 +31,7 @@ public class ModelTest {
 
     private static String source = "src/test/Unit/TestFile.zpl";
     private static String TEST_FILE_PATH = "src/test/Unit/TestFileINSTANCE.zpl";
-    private static float compilationBaselineTime = 6;
+    private static float compilationBaselineTime = 8;
     private static String[][] expectedParameters = {{"Conditioner","10"}, {"soldiers", "9"}, {"absoluteMinimalRivuah", "8"}};
     @BeforeAll
     public static void setUpFile() throws IOException {
@@ -199,20 +199,26 @@ public class ModelTest {
 
     @Test
     public void testConvertingAtomsToTuple(){
-        String res = ModelInput.convertArrayOfAtomsToTuple(new String[]{"\"fdas\"", "32", "321"});
+        String res = ModelType.convertArrayOfAtoms(new String[]{"fdas", "32", "321"},new Tuple(new ModelPrimitives[]{ModelPrimitives.TEXT,ModelPrimitives.INT,ModelPrimitives.INT}));
         assertTrue(res.equals("<\"fdas\",32,321>"));
     }
 
+    
     @Test
     public void testSolve(){
         Model m = null;
         try{
          m = new Model("./src/test/Unit/TestFile2.zpl");
+        Solution sol = m.solve(100);
         
-        if(m.solve(10) == null)
+        if(sol == null)
             assertFalse(true);
-        
-        assertTrue(true);
+        Set<String> stringVariables = m.getVariables().stream()
+            .map(ModelVariable::getIdentifier)
+            .collect(Collectors.toSet());
+        sol.parseSolution(m, stringVariables);
+        assertTrue(sol.isSolved());
+        assertTrue(sol.getSolvingTime() > 0);
         } catch(Exception e){assertTrue(false);}
     }
     

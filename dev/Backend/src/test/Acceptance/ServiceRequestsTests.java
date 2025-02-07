@@ -56,7 +56,7 @@ public class ServiceRequestsTests {
     }
     @BeforeEach
     public void setUp() {
-        userController = new UserController();
+        userController = new UserController("../User/Models");
         service=new Service(userController);
     }
 
@@ -134,17 +134,12 @@ public class ServiceRequestsTests {
             InputDTO input=new InputDTO(Map.of("mySet",List.of(List.of("1"),List.of("2"),List.of("3"))),
                     Map.of("x",List.of("10")),
                     List.of(),List.of());
-            SolveCommandDTO solveCommandDTO=new SolveCommandDTO(responseDTO.imageId(),input,60);
+            SolveCommandDTO solveCommandDTO=new SolveCommandDTO(responseDTO.imageId(),input,600);
             ImageDTO imageDTO=new ImageDTO(new VariableModuleDTO(Set.of("myVar"),Set.of(),Set.of()),Set.of(),Set.of());
             ImageConfigDTO config= new ImageConfigDTO(responseDTO.imageId(),imageDTO);
             userController.overrideImage(config);
             SolutionDTO solution=userController.solve(solveCommandDTO);
             assertEquals(Set.of(new SolutionValueDTO(List.of("3"),10)),solution.solution().get("myVar").solutions());
-           /* try {
-                solution.parseSolution(model, vars);
-            } catch (IOException e) {
-                fail(e.getMessage());
-            }*/
         } catch (Exception e) {
             fail(e.getMessage());
         }

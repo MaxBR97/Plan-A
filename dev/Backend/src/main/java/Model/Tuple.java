@@ -108,6 +108,19 @@ public class Tuple implements ModelType {
     public int size() {
         return this.val.size();
     }
+
+    
+    public static String convertArrayOfAtoms(String[] atoms, ModelType type) {
+        Tuple tup = ((Tuple)type);
+        String ans = "";
+        for(int i = 0; i < atoms.length ; i++){
+            ans += ModelPrimitives.convertArrayOfAtoms(new String[] {atoms[i]},tup.getTypes().get(i)) + ",";
+        }
+        ans = ans.substring(0, ans.length()-1);
+        if(atoms.length == 1)
+            return ans;
+        return "<" + ans + ">";
+    }
     
 }
 

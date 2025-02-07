@@ -18,7 +18,7 @@ public abstract class ModelInput extends ModelComponent {
     public ModelInput(String identifier, ModelType type, List<ModelSet> a, List<ModelParameter> b) {
         super(identifier);
         myType = type;
-        setDependencies = a;
+    setDependencies = a;
         paramDependencies = b;
     }
 
@@ -71,15 +71,7 @@ public abstract class ModelInput extends ModelComponent {
         }
         return false;
     }
-    // Denis: changed under assumption that an tuple has at least 2 elements, this was causing problems.
-    public static String convertArrayOfAtomsToTuple(String[] atoms) {
-        if(atoms.length==1)
-            return atoms[0];
-        else {
-            String joinedElements = String.join(",", atoms);
-            return "<" + joinedElements + ">";
-        }
-    }
+    
     // param w := 20;
     // param  x := 10;
     // set A := {1,2};
@@ -142,5 +134,6 @@ public abstract class ModelInput extends ModelComponent {
         myStruct = ans;
         return ans;
     }
+
 
 }

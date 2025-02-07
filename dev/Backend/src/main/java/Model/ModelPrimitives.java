@@ -65,5 +65,23 @@ public enum ModelPrimitives implements ModelType{
         return List.of(this.toString());
     }
 
+    
+    public static String convertArrayOfAtoms(String[] atoms, ModelType type) {
+      switch(type) {
+        case BINARY:
+            return atoms[0];
+        case TEXT:
+            return "\""+atoms[0]+"\"";
+        case INT:
+          return atoms[0];
+        case INFINITY:
+          return atoms[0];
+        case FLOAT:
+          return atoms[0]; 
+        default:
+          return atoms[0];
+      }
+    }
+
 
 }
