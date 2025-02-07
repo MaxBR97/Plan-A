@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="RemoteTargetsManager">
-    <option name="projectDefaultTargetUuid" value="ebd6022d-ad97-491a-a952-222f93629a7c" />
+    <option name="projectDefaultTargetUuid" value="a7a29343-03f7-4dd5-8409-f190f799c920" />
     <targets>
-      <target name="plan-a-docker:plan-a2" type="docker" uuid="ebd6022d-ad97-491a-a952-222f93629a7c">
+      <target name="plan-a-image:latest" type="docker" uuid="a7a29343-03f7-4dd5-8409-f190f799c920">
         <config>
           <option name="targetPlatform">
             <TargetPlatform />
@@ -16,7 +16,7 @@
           <option name="buildNotPull" value="false" />
           <option name="pullImageConfig">
             <PullImageConfig>
-              <option name="tagToPull" value="plan-a-docker:plan-a" />
+              <option name="tagToPull" value="plan-a-image:latest" />
             </PullImageConfig>
           </option>
         </config>
@@ -40,7 +40,7 @@
                 </option>
               </VolumeState>
             </option>
-            <option name="javaVersionString" value="21.0.5" />
+            <option name="javaVersionString" value="21.0.6" />
           </config>
         </ContributedStateBase>
       </target>

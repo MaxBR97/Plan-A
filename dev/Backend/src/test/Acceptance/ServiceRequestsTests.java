@@ -140,11 +140,6 @@ public class ServiceRequestsTests {
             userController.overrideImage(config);
             SolutionDTO solution=userController.solve(solveCommandDTO);
             assertEquals(Set.of(new SolutionValueDTO(List.of("3"),10)),solution.solution().get("myVar").solutions());
-           /* try {
-                solution.parseSolution(model, vars);
-            } catch (IOException e) {
-                fail(e.getMessage());
-            }*/
         } catch (Exception e) {
             fail(e.getMessage());
         }

@@ -266,7 +266,7 @@ public boolean isCompiling(float timeout) {
                     }));
     
                 Files.write(Paths.get(sourceFilePath + "SOLUTION"), filteredOutput.getBytes());
-                return new Solution(filteredOutput);
+                return new Solution(sourceFilePath + "SOLUTION");
             });
 
             try {
