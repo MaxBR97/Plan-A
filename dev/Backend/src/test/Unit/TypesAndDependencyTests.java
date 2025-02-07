@@ -42,14 +42,15 @@ public class TypesAndDependencyTests {
    
     private Model model;
 
-    private static String source = "/Plan-A/dev/Backend/src/test/Unit/TestFile.zpl";
-    private static String TEST_FILE_PATH = "/Plan-A/dev/Backend/src/test/Unit/TestFileINSTANCE.zpl";
+    private static String source = "./src/test/Unit/TestFile.zpl";
+    private static String TEST_FILE_PATH = "./src/test/Unit/TestFileINSTANCE.zpl";
 
     private static HashMap<String,String[]> immidiateSetDependencies =  new HashMap<String,String[]>();
     private static HashMap<String,String[]> immidiateParamDependencies =  new HashMap<String,String[]>();
     private static HashMap<String,String[]> secondDegreeSetDependencies =  new HashMap<String,String[]>();
     private static HashMap<String,String[]> secondDegreeParamDependencies =  new HashMap<String,String[]>();
     private static HashMap<String,Boolean> primitives = new HashMap<>();
+    private static HashMap<String,Boolean> isComplexVariable = new HashMap<>();
     
     @BeforeAll
     public static void setUpFile() throws IOException {
@@ -123,21 +124,36 @@ public class TypesAndDependencyTests {
         immidiateSetDependencies.put("Kol_Haemdot_Meshubatsot_Hayal_Ehad", new String[]{"S","CxS"});
         immidiateParamDependencies.put("Kol_Haemdot_Meshubatsot_Hayal_Ehad", new String[]{});
 
-        immidiateSetDependencies.put("rivuah", new String[]{"CxS","S"});
-        immidiateParamDependencies.put("rivuah", new String[]{"conditioner"});
+        immidiateSetDependencies.put("((maxShmirot-minShmirot)+conditioner)**3", new String[]{});
+        immidiateParamDependencies.put("((maxShmirot-minShmirot)+conditioner)**3", new String[]{"conditioner"});
+        immidiateSetDependencies.put("(minimalRivuah)**2", new String[]{});
+        immidiateParamDependencies.put("(minimalRivuah)**2", new String[]{});
+        immidiateSetDependencies.put("(sum <i,a,b> in CxS: sum<m,n> in S | m != a or b!=n :(edge[i,a,b] * edge[i,m,n] * (b-n)))*8", new String[]{"CxS","S"});
+        immidiateParamDependencies.put("(sum <i,a,b> in CxS: sum<m,n> in S | m != a or b!=n :(edge[i,a,b] * edge[i,m,n] * (b-n)))*8", new String[]{});
+        immidiateSetDependencies.put("sum <person> in People : (TotalMishmarot[person]**2)", new String[]{"People"});
+        immidiateParamDependencies.put("sum <person> in People : (TotalMishmarot[person]**2)", new String[]{});
 
         primitives.put("C",false);
         primitives.put("CxS",false);
         primitives.put("Zmanim",true);
         primitives.put("conditioner",true);
         primitives.put("soldiers",true);
-        
+        primitives.put("setWithRange",false);
+        primitives.put("Emdot",true);
+        primitives.put("S",false);
+
+        isComplexVariable.put("edge",true);
+        isComplexVariable.put("minShmirot",false);
+        isComplexVariable.put("minimalRivuah",false);
+        isComplexVariable.put("varForTest1",true); 
     }
 
     @BeforeEach
     public void setUp() throws IOException {
         model = new Model(TEST_FILE_PATH);
     }
+
+
 
     @ParameterizedTest
     @ValueSource(strings = {"C","CxS","Zmanim","conditioner","soldiers"})
@@ -149,7 +165,6 @@ public class TypesAndDependencyTests {
             inp = model.getSet(id);
             assertEquals(primitives.get(id), inp.isPrimitive());
         }
-        
     }
 
     @ParameterizedTest
@@ -169,9 +184,19 @@ public class TypesAndDependencyTests {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"rivuah"})
+    @ValueSource(strings = {"edge", "minShmirot","varForTest1","minimalRivuah"})
+    public void testIsComplexVariable(String id) {
+        ModelVariable var = model.getVariable(id);
+        assertNotNull(var);
+        assertEquals(var.isComplex(), isComplexVariable.get(id));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"((maxShmirot-minShmirot)+conditioner)**3" ,"(minimalRivuah)**2",
+                            "(sum <i,a,b> in CxS: sum<m,n> in S | m != a or b!=n :(edge[i,a,b] * edge[i,m,n] * (b-n)))*8",
+                            "sum <person> in People : (TotalMishmarot[person]**2)"})
     public void testPreferencesDependencies(String id){
-        ModelPreference mp = model.getPreference(id);
+        ModelPreference mp = model.getPreference(id.replaceAll(" ", ""));
         assertNotNull(mp);
         assertEquals(mp.getSetDependencies().size(), immidiateSetDependencies.get(id).length);
         for(String setId : immidiateSetDependencies.get(id)){
@@ -207,13 +232,13 @@ public class TypesAndDependencyTests {
         ModelSet set = model.getSet("forTest2");
         ModelInput.StructureBlock[] struct = set.getStructure();
         assertTrue(struct.length == 7);
-        assertTrue(struct[0].dependency.getIdentifier().equals("anonymous_set") && struct[0].position == 0);
-        assertTrue(struct[1].dependency.getIdentifier().equals("S") && struct[1].position == 0);
-        assertTrue(struct[2].dependency.getIdentifier().equals("S") && struct[2].position == 1);
-        assertTrue(struct[3].dependency.getIdentifier().equals("anonymous_set") && struct[3].position == 0);
-        assertTrue(struct[4].dependency.getIdentifier().equals("C") && struct[4].position == 0);
-        assertTrue(struct[5].dependency.getIdentifier().equals("anonymous_set") && struct[5].position == 0);
-        assertTrue(struct[6].dependency.getIdentifier().equals("anonymous_set") && struct[6].position == 1);
+        assertTrue(struct[0].dependency.getIdentifier().equals("anonymous_set") && struct[0].position == 1);
+        assertTrue(struct[1].dependency.getIdentifier().equals("S") && struct[1].position == 1);
+        assertTrue(struct[2].dependency.getIdentifier().equals("S") && struct[2].position == 2);
+        assertTrue(struct[3].dependency.getIdentifier().equals("anonymous_set") && struct[3].position == 1);
+        assertTrue(struct[4].dependency.getIdentifier().equals("C") && struct[4].position == 1);
+        assertTrue(struct[5].dependency.getIdentifier().equals("anonymous_set") && struct[5].position == 1);
+        assertTrue(struct[6].dependency.getIdentifier().equals("anonymous_set") && struct[6].position == 2);
     }
 
     @Test
@@ -221,9 +246,9 @@ public class TypesAndDependencyTests {
         ModelSet set = model.getSet("forTest3");
         ModelInput.StructureBlock[] struct = set.getStructure();
         assertTrue(struct.length == 3);
-        assertTrue(struct[0].dependency.getIdentifier().equals("anonymous_set") && struct[0].position == 0);
-        assertTrue(struct[1].dependency.getIdentifier().equals("anonymous_set") && struct[1].position == 1);
-        assertTrue(struct[2].dependency.getIdentifier().equals("anonymous_set") && struct[2].position == 2);
+        assertTrue(struct[0].dependency.getIdentifier().equals("anonymous_set") && struct[0].position == 1);
+        assertTrue(struct[1].dependency.getIdentifier().equals("anonymous_set") && struct[1].position == 2);
+        assertTrue(struct[2].dependency.getIdentifier().equals("anonymous_set") && struct[2].position == 3);
     }
 
     
@@ -368,6 +393,36 @@ public class TypesAndDependencyTests {
         assertEquals(ModelPrimitives.INT,((Tuple)set.getType()).getTypes().get(4));
         assertEquals(ModelPrimitives.TEXT,((Tuple)set.getType()).getTypes().get(5));
         assertEquals(ModelPrimitives.FLOAT,((Tuple)set.getType()).getTypes().get(6));
+    }
+
+    @Test
+    public void testProjFunc(){
+        ModelSet set = model.getSet("forTest4");
+        assertEquals("anonymous_set",set.getSetDependencies().get(0).getIdentifier());
+        assertEquals(2,set.getSetDependencies().get(0).getStructure().length);
+        int[] depPointers = {2,1};
+        int i = 0;
+        for ( ModelSet.StructureBlock sb :set.getSetDependencies().get(0).getStructure()){
+            assertEquals(sb.dependency.getIdentifier(),"forTest3");
+            assertEquals(sb.position,depPointers[i++]);
+        }
+        assertEquals("<TEXT,INT>",set.getSetDependencies().get(0).getType().toString());
+    }
+
+    // forTest5 point to [forTest4,2] , [anonymous_set,2]
+    @Test
+    public void testProjFunc2(){
+        ModelSet set = model.getSet("forTest5");
+        assertEquals("anonymous_set",set.getSetDependencies().get(0).getIdentifier());
+        assertEquals(2,set.getSetDependencies().get(0).getStructure().length);
+
+        assertEquals("forTest4",set.getSetDependencies().get(0).getStructure()[0].dependency.getIdentifier());
+        assertEquals(2,set.getSetDependencies().get(0).getStructure()[0].position);
+
+        assertEquals("anonymous_set",set.getSetDependencies().get(0).getStructure()[1].dependency.getIdentifier());
+        assertEquals(2,set.getSetDependencies().get(0).getStructure()[1].position);
+
+        assertEquals("<INT,TEXT>",set.getSetDependencies().get(0).getType().toString());
     }
 
     @AfterAll

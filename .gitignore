@@ -1,5 +1,6 @@
 .vscode
 .devcontainer
-./User/Models
+User/Models
 ./.idea/*
 ./.idea/
+Distribution

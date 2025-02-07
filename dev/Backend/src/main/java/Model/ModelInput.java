@@ -5,7 +5,7 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 public abstract class ModelInput extends ModelComponent {
-    private ModelType myType;
+    protected ModelType myType;
     protected StructureBlock[] myStruct;
 
     public ModelInput(String identifier, ModelType type) {
@@ -60,8 +60,6 @@ public abstract class ModelInput extends ModelComponent {
         paramDependencies.clear();
     }
 
-    // set C := {<3,2>, <1,3>};  # set C is primitive
-    // set D := {<3,2>} union {<1,3>};  # set D is not primitive
     public boolean isPrimitive(){
         boolean identified_set = !this.identifier.equals("anonymous_set");
         boolean exactlyOneSetDescendant = this.setDependencies.size() == 1;
@@ -73,7 +71,15 @@ public abstract class ModelInput extends ModelComponent {
         }
         return false;
     }
-
+    // Denis: changed under assumption that an tuple has at least 2 elements, this was causing problems.
+    public static String convertArrayOfAtomsToTuple(String[] atoms) {
+        if(atoms.length==1)
+            return atoms[0];
+        else {
+            String joinedElements = String.join(",", atoms);
+            return "<" + joinedElements + ">";
+        }
+    }
     // param w := 20;
     // param  x := 10;
     // set A := {1,2};
@@ -85,14 +91,14 @@ public abstract class ModelInput extends ModelComponent {
     // set Range2 := {1..5}; 
 
     // x.getStructure() -> [null]
-    // A.getStructure() -> [(anonymous_set,0)] ; anonymous_set.getStructure() -> [null]
-    // B.getStructure() -> [(anonymous_set, 0), (anonymous_set,1)] ; anonymous_set.getStructure() -> [null,null]
-    // Range.getStructure() -> [(anonymous_set,0)] ; anonymous_set.getStructure() -> [null]
-    // C.getStructure() -> [(B,0), (B,1) , (anonymous_set, 0), (anonymous_set,1), (A,0), (Range,0)] ; anonymous_set.getStructure() -> [null,null]
-    // D.getStructure() -> [(anonymous_set, 0), (anonymous_set, 1),(anonymous_set, 2), (anonymous_set, 3)] ; anonymous_set.getStrucutre() -> [(anonymous_set2,0), null, (anonymous_set2,1), (x,0)]
-    // Range2.getStructure() -> [(anonymous_set,0)] ; anonymous_set.getStructure() -> [null]
+    // A.getStructure() -> [(anonymous_set,1)] ; anonymous_set.getStructure() -> [null]
+    // B.getStructure() -> [(anonymous_set, 1), (anonymous_set,2)] ; anonymous_set.getStructure() -> [null,null]
+    // Range.getStructure() -> [(anonymous_set,1)] ; anonymous_set.getStructure() -> [null]
+    // C.getStructure() -> [(B,1), (B,2) , (anonymous_set, 1), (anonymous_set,2), (A,1), (Range,2)] ; anonymous_set.getStructure() -> [null,null]
+    // D.getStructure() -> [(anonymous_set, 1), (anonymous_set, 2),(anonymous_set, 3), (anonymous_set, 4)] ; anonymous_set.getStrucutre() -> [(anonymous_set2,1), null, (anonymous_set2,2), (x,1)]
+    // Range2.getStructure() -> [(anonymous_set,1)] ; anonymous_set.getStructure() -> [null]
 
-    public class StructureBlock {
+    public static class StructureBlock {
         final public ModelInput dependency;
         final public int position;
 
@@ -109,7 +115,15 @@ public abstract class ModelInput extends ModelComponent {
         }
 
         StructureBlock[] ans;
-        if(this.myType instanceof ModelPrimitives){
+        if(this.myType == ModelPrimitives.UNKNOWN){
+            //infer
+            int count = 0;
+            for (ModelSet set : setDependencies){
+                count += set.getStructure().length;
+            }
+            ans = new StructureBlock[count];
+        }
+        else if(this.myType instanceof ModelPrimitives){
             ans = new StructureBlock[1];
         } else {
             ans = new StructureBlock[((Tuple)this.myType).size()];
@@ -117,7 +131,7 @@ public abstract class ModelInput extends ModelComponent {
 
         int i = 0;
         for (ModelSet set : setDependencies){
-            int j =0;
+            int j =1;
             for (StructureBlock sb : set.getStructure()){
                 ans[i] = new StructureBlock(set, j);
                 i++;
@@ -128,4 +142,5 @@ public abstract class ModelInput extends ModelComponent {
         myStruct = ans;
         return ans;
     }
+
 }

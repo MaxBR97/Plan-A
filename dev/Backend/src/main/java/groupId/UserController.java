@@ -11,9 +11,13 @@ import DTO.Records.Image.SolutionDTO;
 import DTO.Records.Requests.Responses.CreateImageResponseDTO;
 import DTO.Records.Requests.Responses.ImageResponseDTO;
 import Image.Image;
+import Model.Model;
 import Model.ModelConstraint;
+import Model.ModelInput;
 import Model.ModelInterface;
 import Model.ModelVariable;
+
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -29,16 +33,21 @@ import java.util.stream.Collectors;
 public class UserController {
 private final Map<UUID,Image> images;
 
+@Value("${app.file.storage-dir}")
+private String storageDir;
+
 
     public UserController(){
         images = new HashMap<>();
     }
 
 
-    public CreateImageResponseDTO createImageFromFile(String code) throws IOException {
+    public CreateImageResponseDTO createImageFromFile(String code) throws Exception {
         UUID id= UUID.randomUUID();
         String name = id.toString();
-        Path path= Paths.get("User/Models"+ File.separator+name+".zpl");
+        String jarDir = new File(Main.class.getProtectionDomain()
+             .getCodeSource().getLocation().toURI()).getParent();
+        Path path = Paths.get(jarDir,storageDir, File.separator+name+".zpl");
         Files.createDirectories(path.getParent());
         Files.writeString(path,code, StandardOpenOption.CREATE);
         Image image=new Image(path.toAbsolutePath().toString());
@@ -46,10 +55,31 @@ private final Map<UUID,Image> images;
         return RecordFactory.makeDTO(id,image.getModel());
     }
 
-    //TODO: after SolutionDTO is fully implemented with its factory, make this method work.
-    public SolutionDTO solve(SolveCommandDTO command) {
-        return null;
-        //return images.get(UUID.fromString(command.id())).solve(Integer.parseInt(command.timeout()));
+    public SolutionDTO solve(SolveCommandDTO command) throws Exception {
+        Image image = images.get(UUID.fromString(command.imageId()));
+        ModelInterface model = image.getModel();
+        for (Map.Entry<String,List<List<String>>> set : command.input().setsToValues().entrySet()){
+            List<String> setElements = new LinkedList<>();
+            for(List<String> element : set.getValue()){
+                String tuple = ModelInput.convertArrayOfAtomsToTuple((element.toArray(new String[0])));
+                setElements.add(tuple);
+            }
+            model.setInput(model.getSet(set.getKey()), setElements.toArray(new String[0]));
+        }
+
+        for (Map.Entry<String,List<String>> parameter : command.input().paramsToValues().entrySet()){
+            model.setInput(model.getParameter(parameter.getKey()), ModelInput.convertArrayOfAtomsToTuple(parameter.getValue().toArray(new String[0])));
+        }
+
+        for (String constraint : command.input().constraintsToggledOff()){
+            model.toggleFunctionality(model.getConstraint(constraint), false);
+        }
+
+        for (String preference : command.input().preferencesToggledOff()){
+            model.toggleFunctionality(model.getPreference(preference), false);
+        }
+
+        return image.solve(command.timeout());
     }
 
     public void overrideImage(ImageConfigDTO imgConfig) {

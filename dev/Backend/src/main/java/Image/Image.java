@@ -2,6 +2,7 @@ package Image;
 
 import DTO.Factories.RecordFactory;
 import DTO.Records.Image.SolutionDTO;
+import DTO.Records.Model.ModelData.InputDTO;
 import DTO.Records.Model.ModelDefinition.ConstraintDTO;
 import DTO.Records.Model.ModelDefinition.PreferenceDTO;
 import Image.Modules.*;
@@ -18,21 +19,28 @@ public class Image {
     private final HashMap<String,PreferenceModule> preferenceModules;
     private final VariableModule variables;
     private final ModelInterface model;
-
+    private final int defaultTimeout = 60;
     public Image(ModelInterface model) {
         constraintsModules = new HashMap<>();
         preferenceModules = new HashMap<>();
         variables = new VariableModule();
         this.model = model;
-        //fetchVariables();
     }
     public Image(String path) throws IOException {
         constraintsModules = new HashMap<>();
         preferenceModules = new HashMap<>();
         variables = new VariableModule();
         this.model = new Model(path);
-        //fetchVariables();
     }
+
+    //TODO: implement deep copy!
+    public Image(Image image) {
+        this.constraintsModules = null;
+        this.preferenceModules = null;
+        this.variables = null;
+        this.model = null;
+    }
+
     //will probably have to use an adapter layer, or change types to DTOs
     public void addConstraintModule(ConstraintModule module) {
         constraintsModules.put(module.getName(), module);
@@ -112,27 +120,56 @@ public class Image {
     public void removeVariable(String name) {
         variables.remove(name);
     }
+    /*
+     */
     public void fetchVariables(){
-        for(ModelVariable variable: model.getVariables()){
-            addVariable(variable);
-        }
-    }*/
-    /*public void TogglePreference(String name){
+    }
+    /*
+    public void TogglePreference(String name){
             Objects.requireNonNull(name,"Null value during Toggle Preference in Image");
-            preferenceModules.get(name).ToggleModule();
+            model.toggleFunctionality();
     }
     public void ToggleConstraint(String name){
             Objects.requireNonNull(name,"Null value during Toggle Constraint in Image");
             constraintsModules.get(name).ToggleModule();
     }*/
     public SolutionDTO solve(int timeout){
-            return RecordFactory.makeDTO(model.solve(timeout));
+        Solution solution=model.solve(timeout);
+        try {
+            solution.parseSolution(model, variables.getIdentifiers());
+        } catch (IOException e) {
+            throw new RuntimeException("IO exception while parsing solution file, message: "+ e);
+        }
+        return RecordFactory.makeDTO(solution);
+        /*Objects.requireNonNull(input,"Input is null in solve method in image");
+        for(String constraint:input.constraintsToggledOff()){
+            toggleOffConstraint(constraint);
+        }
+        for(String preference:input.preferencesToggledOff()){
+            toggleOffPreference(preference);
+        }
+        return RecordFactory.makeDTO(model.solve(defaultTimeout));*/
     }
+
+    private void toggleOffConstraint(String name){
+        Objects.requireNonNull(name,"Null value during Toggle Preference in Image");
+        ModelConstraint constraint=model.getConstraint(name);
+        Objects.requireNonNull(constraint,"Invalid constraint name in Toggle Constraint in Image");
+        model.toggleFunctionality(constraint, false);
+    }
+    private void toggleOffPreference(String name){
+        Objects.requireNonNull(name,"Null value during Toggle Preference in Image");
+        ModelPreference preference=model.getPreference(name);
+        Objects.requireNonNull(preference,"Invalid preference name in Toggle Preference in Image");
+        model.toggleFunctionality(preference, false);
+    }
+
     public ModelInterface getModel() {
         return this.model;
     }
+    @Deprecated
     public String getId() {
-        // TODO Auto-generated method stub
+        // Do not use this! ID stored in controller, image not aware of its own ID.
         throw new UnsupportedOperationException("Unimplemented method 'getId'");
     }
     public void reset(Map<String,ModelVariable> variables, Collection<String> sets, Collection<String> params) {

@@ -3,7 +3,8 @@
   "version": "0.1.0",
   "description": "A React and Electron application",
   "author": "Your Name <your-email@example.com>",
-  "main": "electron.js",
+  "main": "public/electron.js",
+  "homepage": "./",
   "private": true,
   "dependencies": {
     "@testing-library/jest-dom": "^5.17.0",
@@ -21,8 +22,8 @@
   "scripts": {
     "start": "react-scripts start",
     "electron-start": "electron --no-sandbox .",
-    "build": "react-scripts build && cp electron.js ./build/electron.js && rm -rf ../Backend/src/main/resources/static/* && cp -r ./build/* ../Backend/src/main/resources/static && ( cd ../Backend/src/main/resources && port=$( grep -ioP \"(?<=server\\.port\\s=\\s)\\d+\" application.properties ) && sed -i \"s/\\(\\\"API_PORT\\\"[[:space:]]*:[[:space:]]*\\)\\\"[0-9]\\+\\\"/\\1\\\"$port\\\"/g\" ./static/config.json )",
-    "electron-build": "electron-builder",
+    "build": "react-scripts build && cp electron.js ./build/ && rm -rf ../Backend/src/main/resources/static/* && cp -r ./build/* ../Backend/src/main/resources/static && ( cd ../Backend/src/main/resources && port=$( grep -ioP \"(?<=server\\.port\\s=\\s)\\d+\" application.properties ) && sed -i \"s/\\(\\\"API_PORT\\\"[[:space:]]*:[[:space:]]*\\)\\\"[0-9]\\+\\\"/\\1\\\"$port\\\"/g\" ./static/config.json )",
+    "electron-build": "npm run build && electron-builder",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
@@ -46,19 +47,67 @@
   },
   "build": {
     "appId": "com.example.reactelectron",
+    "productName": "Plan-A",
     "files": [
       "build/**/*",
-      "electron.js"
+      "electron.js",
+      "node_modules/**/*",
+      "resources/artifactid-0.0.1-SNAPSHOT.jar",
+      "resources/**/*"
     ],
-    "mac": {
-      "target": "dmg"
+    "extraResources": [
+      {
+        "from": "resources",
+        "to": "resources",
+        "filter": ["**/*"]
+      },
+      {
+        "from": "installers",
+        "to": "installers",
+        "filter": ["**/*"]
+      }
+    ],
+    "directories": {
+      "buildResources": "assets",
+      "output": "Distribution"
     },
+    "asar": true,
+    "asarUnpack": [
+      "resources/**/*"
+    ],
     "win": {
-      "target": "nsis"
+      "target": ["nsis"],
+      "extraFiles": [
+        {
+          "from": "installers/windows",
+          "to": "installers",
+          "filter": ["**/*"]
+        }
+      ]
     },
     "linux": {
-      "target": "AppImage"
+      "target": ["AppImage", "deb"],
+      "extraFiles": [
+        {
+          "from": "installers/linux",
+          "to": "installers",
+          "filter": ["**/*"]
+        }
+      ],
+      "category": "Development"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "include": "installer.nsh",
+      "perMachine": true,
+      "installerIcon": "assets/icon.ico",
+      "uninstallerIcon": "assets/icon.ico"
+    },
+    "deb": {
+      "depends": ["default-jre | java8-runtime"]
     }
+    
   },
   "proxy": "http://localhost:4000",
   "devDependencies": {

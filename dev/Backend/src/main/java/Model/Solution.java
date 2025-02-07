@@ -62,7 +62,7 @@ public class Solution {
                 variableStructure.put(variable.getIdentifier(), new ArrayList<>());
                 variableTypes.put(variable.getIdentifier(), new ArrayList<>());
                 //below lines are not solution dependent but problem dependent, will be more efficient to maintain them inside the image
-                for (ModelSet modelSet : variable.getDependencies()) {
+                for (ModelSet modelSet : variable.getSetDependencies()) {
                     variableTypes.get(variable.getIdentifier()).add(modelSet.getType().toString());
                     for (ModelInput.StructureBlock block : modelSet.getStructure()) {
                         variableStructure.get(variable.getIdentifier()).add(block.dependency.identifier);
@@ -95,10 +95,12 @@ public class Solution {
                     if (objectiveMatcher.find()) {
                         objectiveValue = Double.parseDouble(objectiveMatcher.group(1));
                         solutionSection = true; // Objective value is defined right before the solution values section
+                        parseSolutionValues(reader, varsToParse);
                     }
-                } else {
-                    parseSolutionValues(reader,varsToParse);
                 }
+//              else {
+//                    parseSolutionValues(reader,varsToParse);
+//                }
             }
         }
         parsed=true;

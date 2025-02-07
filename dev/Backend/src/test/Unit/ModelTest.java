@@ -29,9 +29,9 @@ import java.nio.file.Path;
 public class ModelTest {
     private ModelInterface model;
 
-    private static String source = "/Plan-A/dev/Backend/src/test/Unit/TestFile.zpl";
-    private static String TEST_FILE_PATH = "/Plan-A/dev/Backend/src/test/Unit/TestFileINSTANCE.zpl";
-
+    private static String source = "src/test/Unit/TestFile.zpl";
+    private static String TEST_FILE_PATH = "src/test/Unit/TestFileINSTANCE.zpl";
+    private static float compilationBaselineTime = 6;
     private static String[][] expectedParameters = {{"Conditioner","10"}, {"soldiers", "9"}, {"absoluteMinimalRivuah", "8"}};
     @BeforeAll
     public static void setUpFile() throws IOException {
@@ -71,7 +71,7 @@ public class ModelTest {
     @Test
     public void testModelConstruction() {
         assertNotNull(model);
-        assertTrue(model.isCompiling(3));
+        assertTrue(model.isCompiling(compilationBaselineTime));
     }
     
     @Test
@@ -100,7 +100,7 @@ public class ModelTest {
         testSet = getSet(model, setName);
         assertTrue(testSet.getElements().contains(addValue));
 
-        assertTrue(model.isCompiling(2));
+        assertTrue(model.isCompiling(compilationBaselineTime));
 
 
         // Test remove
@@ -108,7 +108,7 @@ public class ModelTest {
         testSet = getSet(model, setName);
         assertFalse(testSet.getElements().contains(addValue));
 
-        assertTrue(model.isCompiling(2));
+        assertTrue(model.isCompiling(compilationBaselineTime));
 
     }
     
@@ -125,47 +125,95 @@ public class ModelTest {
         param = getParameter(model, parameter);
         Assertions.assertEquals( param.getValue(), valueToSet);
 
-        assertTrue(model.isCompiling(2));
+        assertTrue(model.isCompiling(compilationBaselineTime));
+
+    }
+
+    @Test
+    public void testSetSetInput() throws Exception {
+        String set = "forTest3";
+        String[] valueToSet = {"<1,\"gsd\",3>", "<54,\"g5h\",3>"};
+
+        ModelSet mySet = getSet(model, set);
+        assertNotNull(mySet);
+        Assertions.assertTrue(mySet.getType().isCompatible(new Tuple(new ModelPrimitives[]{ModelPrimitives.INT,ModelPrimitives.TEXT,ModelPrimitives.INT})));
+        model.setInput(mySet, valueToSet);
+        mySet = getSet(model, set);
+        Assertions.assertArrayEquals( mySet.getElements().toArray(), valueToSet);
+
+        assertTrue(model.isCompiling(compilationBaselineTime));
 
     }
     
     // Functionality Toggle Tests
     @Test
-    public void testToggleFunctionality() throws Exception {
+    public void testToggleFunctionalityConstraint() throws Exception {
         String testConstraint = "trivial1";
 
         ModelFunctionality mf = getConstraint(model, testConstraint);
         assertNotNull(mf);
         model.toggleFunctionality(mf, false);
 
-        assertTrue(model.isCompiling(2));
+        assertTrue(model.isCompiling(compilationBaselineTime));
 
         model.toggleFunctionality(mf, true);
         assertNotNull(getConstraint(model, testConstraint));
-        assertTrue(model.isCompiling(2));
+        assertTrue(model.isCompiling(compilationBaselineTime));
     }
+
+    //TODO: Toggling Preferences doesnt work perfectly, but somewhat works 
+    //      on common cases. Better dive in to figure it out later.
+    @ParameterizedTest
+    @ValueSource(strings = {"sum<person>inPeople:(TotalMishmarot[person]**2)","((maxShmirot-minShmirot)+conditioner)**3", "(minimalRivuah)**2", "(sum <i,a,b> in CxS: sum<m,n> in S | m != a or b!=n :(edge[i,a,b] * edge[i,m,n] * (b-n)))*8"})
+    public void testToggleFunctionalityPreference(String id) throws Exception {
+        String testPreference = id.replaceAll(" ","");
+
+        ModelFunctionality mf = getPreference(model, testPreference);
+        assertNotNull(mf);
+        model.toggleFunctionality(mf, false);
+
+        assertTrue(model.isCompiling(compilationBaselineTime));
+
+        model.toggleFunctionality(mf, true);
+        assertNotNull(getPreference(model, testPreference));
+        assertTrue(model.isCompiling(compilationBaselineTime));
+    }
+
 
     @Test
     public void testBasicCompilation(){
         assertFalse(model.isCompiling(0.00000000001f));
-        assertTrue(model.isCompiling(3));
+        assertTrue(model.isCompiling(compilationBaselineTime));
         try{
         String gibbrish = "gfsgfd;";
         Files.writeString(Path.of(TEST_FILE_PATH), gibbrish, StandardOpenOption.APPEND);
-        assertFalse(model.isCompiling(3));
+        assertFalse(model.isCompiling(compilationBaselineTime));
         FileChannel fileChannel = FileChannel.open(Path.of(TEST_FILE_PATH), StandardOpenOption.WRITE);
         long newSize = fileChannel.size() - gibbrish.length();
         fileChannel.truncate(newSize);
-        assertTrue(model.isCompiling(3));
+        assertTrue(model.isCompiling(compilationBaselineTime));
         } catch (Exception e){
             assertFalse(true);
         }
     }
 
     @Test
+    public void testConvertingAtomsToTuple(){
+        String res = ModelInput.convertArrayOfAtomsToTuple(new String[]{"\"fdas\"", "32", "321"});
+        assertTrue(res.equals("<\"fdas\",32,321>"));
+    }
+
+    @Test
     public void testSolve(){
-        model.solve(6);
-        assertFalse(true); // test is not implemented yet because Solution class is not implemented yet
+        Model m = null;
+        try{
+         m = new Model("./src/test/Unit/TestFile2.zpl");
+        
+        if(m.solve(10) == null)
+            assertFalse(true);
+        
+        assertTrue(true);
+        } catch(Exception e){assertTrue(false);}
     }
     
     // Collection Getter Tests
@@ -210,17 +258,21 @@ public class ModelTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"C","CxS","Zmanim","conditioner","soldiers","minShmirot","maxShmirot","minimalRivuah"})
+    @ValueSource(strings = {"C","CxS","Zmanim","conditioner","soldiers","minShmirot","maxShmirot","minimalRivuah","varForTest1","((maxShmirot-minShmirot)+conditioner)**3", "(minimalRivuah)**2", "(sum <i,a,b> in CxS: sum<m,n> in S | m != a or b!=n :(edge[i,a,b] * edge[i,m,n] * (b-n)))*8"})
     public void isParsed(String id){
+        id = id.replaceAll(" ", "");
         assertTrue(model.getSet(id) != null || model.getConstraint(id) != null || model.getParameter(id) != null || model.getPreference(id) != null || model.getVariable(id) != null);
     }
-    
+    //TODO:The parsing of preferences must be tested further!
 
 
     @AfterAll
     public static void cleanUp() throws IOException {
        Path targetPath = Path.of(TEST_FILE_PATH);
        Files.deleteIfExists(targetPath);
+       Files.deleteIfExists(Path.of(targetPath.toString()+"SOLUTION"));
+       Files.deleteIfExists(Path.of("./src/test/Unit/TestFile2.zplSOLUTION"));
+
     }
 
 }

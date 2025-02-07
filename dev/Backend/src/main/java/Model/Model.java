@@ -3,7 +3,7 @@ package Model;
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.*;
 
-
+import Model.ModelInput.StructureBlock;
 import parser.*;
 import parser.FormulationBaseVisitor;
 import parser.FormulationLexer;
@@ -15,10 +15,17 @@ import parser.FormulationParser.SetDefExprContext;
 import parser.FormulationParser.SetDescStackContext;
 import parser.FormulationParser.SetExprContext;
 import parser.FormulationParser.SetExprStackContext;
+import parser.FormulationParser.TupleContext;
+import parser.FormulationParser.UExprContext;
 
 import java.io.*;
 import java.nio.file.*;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
 import org.antlr.runtime.tree.TreeWizard;
@@ -34,8 +41,8 @@ public class Model implements ModelInterface {
     private final Map<String,ModelVariable> variables = new HashMap<>();
     private final Set<String> toggledOffFunctionalities = new HashSet<>();
     private boolean loadElementsToRam = true;
-    private final String zimplCompilationScript = "/Plan-A/dev/Backend/src/main/resources/zimpl/checkCompilation.sh";
-    private final String zimplSolveScript = "/Plan-A/dev/Backend/src/main/resources/zimpl/solve.sh" ;
+    private final String zimplCompilationScript = "./src/main/resources/zimpl/checkCompilation.sh";
+    private final String zimplSolveScript = "./src/main/resources/zimpl/solve.sh" ;
     private String originalSource;
     
     public Model(String sourceFilePath) throws IOException {
@@ -123,7 +130,7 @@ public class Model implements ModelInterface {
             parseSource();
         }
     }
-   
+    //TODO: make toggling (commenting out) work for preferences too!
     public void toggleFunctionality(ModelFunctionality mf, boolean turnOn) {
         if (!turnOn) {
             toggledOffFunctionalities.add(mf.getIdentifier());
@@ -157,52 +164,123 @@ public class Model implements ModelInterface {
         Files.write(Paths.get(sourceFilePath), originalSource.getBytes());
         parseSource();
     }
-    public boolean isCompiling(float timeout) {
-        try {
-            commentOutToggledFunctionalities();
-            
-            String[] command = {"/bin/bash", zimplCompilationScript, sourceFilePath, String.valueOf(timeout)};
-            Process process = Runtime.getRuntime().exec(command);
+    
+
+public boolean isCompiling(float timeout) {
+    boolean ans = false;
+    try {
+        commentOutToggledFunctionalities();
+
+        ProcessBuilder processBuilder = new ProcessBuilder(
+            "scip", "-c", "read " + sourceFilePath + " q"
+        );
+        processBuilder.redirectErrorStream(true);
+        Process process = processBuilder.start();
+
+        // Executor service to handle timeouts
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        Future<Boolean> future = executor.submit(() -> {
             BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
             StringBuilder output = new StringBuilder();
             String line;
             while ((line = reader.readLine()) != null) {
                 output.append(line).append("\n");
+                
+                if (line.contains("original problem has")) {
+                    return true;
+                } else if (line.contains("error reading file")) {
+                    return false;
+                }
             }
-            int exitCode = process.waitFor();
-            boolean result = exitCode == 0 && output.toString().contains("Compilation Successful");
-            
-            restoreToggledFunctionalities();
-            return result;
-        } catch (Exception e) {
-            try {
-                restoreToggledFunctionalities();
-            } catch (IOException ex) {
-                ex.printStackTrace();
-            }
-            e.printStackTrace();
             return false;
+        });
+
+        try {
+            ans = future.get((long) timeout, TimeUnit.SECONDS);
+        } catch (TimeoutException e) {
+            process.destroy(); // Kill the process if timeout occurs
+            ans = false;
+        } finally {
+            executor.shutdown();
         }
+
+        restoreToggledFunctionalities();
+        return ans;
+    } catch (Exception e) {
+        try {
+            restoreToggledFunctionalities();
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+        e.printStackTrace();
+        return false;
     }
+}
     
     public Solution solve(float timeout) {
+        Solution ans = null;
         try {
             commentOutToggledFunctionalities();
-            
-            String[] command = {"/bin/bash", zimplSolveScript, sourceFilePath, String.valueOf(timeout)};
-            Process process = Runtime.getRuntime().exec(command);
-            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-            StringBuilder output = new StringBuilder();
-            String line;
-            while ((line = reader.readLine()) != null) {
-                output.append(line).append("\n");
+
+            ProcessBuilder processBuilder = new ProcessBuilder(
+                "scip", "-c", "read " + sourceFilePath + " optimize display solution q"
+            );
+            processBuilder.redirectErrorStream(true);
+            Process process = processBuilder.start();
+
+            // Executor service to handle timeouts
+            ExecutorService executor = Executors.newSingleThreadExecutor();
+            Future<Solution> future = executor.submit(() -> {
+                BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+                StringBuilder output = new StringBuilder();
+                String line;
+                boolean capture = false;
+                StringBuilder buffer = new StringBuilder();
+                int count = 0;
+                while ((line = reader.readLine()) != null) {
+                    // Remove lines starting with '@'
+                    
+                    if (line.startsWith("@@")) continue;
+    
+                    // Remove excessive newlines
+                    if (line.trim().isEmpty() && (output.length() == 0 || output.toString().endsWith("\n"))) {
+                        continue;
+                    }
+    
+                    // Capture lines after "SCIP Status" until the end
+                    if (line.contains("SCIP Status")) {
+                        buffer.setLength(0); // Clear buffer
+                        capture = true;
+                    }
+                    if (capture) {
+                        buffer.append(line).append("\n");
+                    }
+                    
+                }
+    
+                // Remove last line (head -n -1 equivalent)
+                String filteredOutput = buffer.toString().lines()
+                    .collect(Collectors.collectingAndThen(Collectors.toList(), list -> {
+                        if (!list.isEmpty()) list.remove(list.size() - 1);
+                        return String.join("\n", list);
+                    }));
+    
+                Files.write(Paths.get(sourceFilePath + "SOLUTION"), filteredOutput.getBytes());
+                return new Solution(filteredOutput);
+            });
+
+            try {
+                ans = future.get((long) timeout, TimeUnit.SECONDS);
+                
+            } catch (TimeoutException e) {
+                process.destroy(); // Kill the process if timeout occurs
+                ans = null;
+            } finally {
+                executor.shutdown();
             }
 
-            int exitCode = process.waitFor();
-            Solution result = exitCode == 0 ? new Solution(sourceFilePath+"SOLUTION",output.toString(),true) : null;
-            
             restoreToggledFunctionalities();
-            return result;
+            return ans;
         } catch (Exception e) {
             try {
                 restoreToggledFunctionalities();
@@ -212,6 +290,46 @@ public class Model implements ModelInterface {
             e.printStackTrace();
             return null;
         }
+    }
+
+    List<FormulationParser.UExprContext> findComponentContexts(FormulationParser.NExprContext ctx) {
+        List<FormulationParser.UExprContext> components = new ArrayList<>();
+        findComponentContextsRecursive(ctx.uExpr(), components);
+        return components;
+    }
+
+    private void findComponentContextsRecursive(FormulationParser.UExprContext ctx, List<FormulationParser.UExprContext> components) {
+        String all = ctx == null ? null : ctx.getText();
+        if(ctx == null)
+            return;
+        // if(ctx.basicExpr() != null){
+        //     components.add(ctx);
+        //     return;
+        // }
+        // findComponentContextsRecursive(ctx.uExpr(0), components);
+        // findComponentContextsRecursive(ctx.uExpr(1), components);
+        if (components.size() == 0 && ctx.uExpr() != null && ctx.uExpr(1) != null) {
+            String a = ctx.uExpr(1).getText();
+            components.add(ctx.uExpr(1));
+        } else if (components.size() == 0){
+            components.add(ctx);
+        }
+        String b = ctx.getText();
+        if (ctx.uExpr(0) != null && ctx.uExpr(0).uExpr(1) != null) {
+            String c = ctx.uExpr(0).uExpr(1).getText();
+            if(ctx.uExpr(0).uExpr(0).basicExpr() != null){
+                components.add(ctx.uExpr(0));    
+                return;
+            }
+            else
+                components.add(ctx.uExpr(0).uExpr(1));
+        } else if(ctx.uExpr(0) != null){
+            components.add(ctx.uExpr(0));
+        } else {
+            components.add(ctx);
+        }
+        
+        findComponentContextsRecursive(ctx.uExpr(0), components);
     }
 
     private class CollectorVisitor extends FormulationBaseVisitor<Void> {
@@ -263,10 +381,22 @@ public class Model implements ModelInterface {
 
         @Override
         public Void visitObjective(FormulationParser.ObjectiveContext ctx) {
-            String preferenceName = extractName(ctx.name.getText());
-            TypeVisitor visitor = new TypeVisitor();
-            visitor.visit(ctx);
-            preferences.put(preferenceName, new ModelPreference(preferenceName,visitor.getBasicSets(),visitor.getBasicParams()));
+            List<UExprContext> components = findComponentContexts(ctx.nExpr());
+    
+            for (UExprContext expressionComponent : components) {
+                String name = expressionComponent.getText();
+                // Create a parse tree for the specific component
+                //ParseTree componentParseTree = parseComponentExpression(expressionComponent);
+                TypeVisitor visitor = new TypeVisitor();
+                visitor.visit(expressionComponent);
+                
+                preferences.put(expressionComponent.getText(), 
+                    new ModelPreference(expressionComponent.getText(), 
+                                        visitor.getBasicSets(), 
+                                        visitor.getBasicParams())
+                );
+            }
+            
             return super.visitObjective(ctx);
         }
         
@@ -274,7 +404,11 @@ public class Model implements ModelInterface {
             String varName = extractName(ctx.sqRef().getText());
             TypeVisitor visitor = new TypeVisitor();
             visitor.visit(ctx);
-            variables.put(varName, new ModelVariable(varName, visitor.getBasicSets(), visitor.getBasicParams()));
+            boolean isComplex = true;
+            if(ctx.sqRef() instanceof FormulationParser.SqRefCsvContext){
+                isComplex = ((FormulationParser.SqRefCsvContext)(ctx.sqRef())).csv() == null ? false : true;
+            }
+            variables.put(varName, new ModelVariable(varName, visitor.getBasicSets(), visitor.getBasicParams(),isComplex));
             return super.visitVariable(ctx);
         }
 
@@ -284,9 +418,51 @@ public class Model implements ModelInterface {
             return bracketIndex == -1 ? sqRef : sqRef.substring(0, bracketIndex);
         }
         
+        
+        
+        @Deprecated
+        private ParseTree parseComponentExpression(String component) {
+            
+            CharStream input = CharStreams.fromString(component);
+            FormulationLexer lexer = new FormulationLexer(input);
+            CommonTokenStream tokens = new CommonTokenStream(lexer);
+            FormulationParser parser = new FormulationParser(tokens);
+            
+            // Parse as a numerical expression
+            return parser.nExpr().uExpr();
+        }
+        @Deprecated
+        private List<String> splitExpression(String expr) {
+            List<String> components = new ArrayList<>();
+            int parenthesesLevel = 0;
+            StringBuilder currentComponent = new StringBuilder();
+            
+            for (char c : expr.toCharArray()) {
+                if (c == '(') {
+                    parenthesesLevel++;
+                } else if (c == ')') {
+                    parenthesesLevel--;
+                }
+                
+                if ((c == '+' || c == '-') && parenthesesLevel == 0) {
+                    if (currentComponent.length() > 0) {
+                        components.add(currentComponent.toString().trim());
+                        currentComponent = new StringBuilder();
+                    }
+                }
+                
+                currentComponent.append(c);
+            }
+            
+            if (currentComponent.length() > 0) {
+                components.add(currentComponent.toString().trim());
+            }
+            
+            return components;
+        }
+        
         private java.util.List<String> parseSetElements(FormulationParser.SetExprContext ctx) {
             java.util.List<String> elements = new ArrayList<>();
-            // Parse set elements based on the context type
             
             if (ctx instanceof FormulationParser.SetExprStackContext) {
                 FormulationParser.SetExprStackContext stackCtx = (FormulationParser.SetExprStackContext) ctx;
@@ -295,12 +471,39 @@ public class Model implements ModelInterface {
                     if (stackCtx.setDesc() instanceof FormulationParser.SetDescStackContext) {
                         FormulationParser.SetDescStackContext descCtx = (FormulationParser.SetDescStackContext) stackCtx.setDesc();
                         if (descCtx.csv() != null) {
-                            String[] values = descCtx.csv().getText().split(",");
-                            elements.addAll(Arrays.asList(values));
+                            String csvText = descCtx.csv().getText();
+                            
+                            // Split the CSV text by commas, but not within angle brackets
+                            StringBuilder currentElement = new StringBuilder();
+                            boolean inAngleBrackets = false;
+                            
+                            for (int i = 0; i < csvText.length(); i++) {
+                                char c = csvText.charAt(i);
+                                
+                                if (c == '<') {
+                                    inAngleBrackets = true;
+                                    currentElement.append(c);
+                                } else if (c == '>') {
+                                    inAngleBrackets = false;
+                                    currentElement.append(c);
+                                } else if (c == ',' && !inAngleBrackets) {
+                                    // When encountering a comma outside of angle brackets, add the current element to the list
+                                    elements.add(currentElement.toString().trim());
+                                    currentElement.setLength(0); // Reset the current element
+                                } else {
+                                    currentElement.append(c);
+                                }
+                            }
+                            
+                            // Add the last element if it exists
+                            if (currentElement.length() > 0) {
+                                elements.add(currentElement.toString().trim());
+                            }
                         }
                     }
                 }
             }
+            
             return elements;
         }
     }
@@ -479,13 +682,16 @@ public class Model implements ModelInterface {
 
         @Override
         public Void visitObjective(FormulationParser.ObjectiveContext ctx) {
-            if (ctx.name != null) {
-                String objectiveName = extractName(ctx.name.getText());
-                if ((targetFunctionalities != null && targetFunctionalities.contains(objectiveName)) ||
-                    (targetIdentifier != null && objectiveName.equals(targetIdentifier))) {
-                    if (act == Action.COMMENT_OUT)
-                        commentOutPreference(ctx);
-                }
+            List<UExprContext> components = findComponentContexts(ctx.nExpr());
+            for( UExprContext subCtx : components){
+                
+                    String objectiveName = subCtx.getText();
+                    if ((targetFunctionalities != null && targetFunctionalities.contains(objectiveName)) ||
+                        (targetIdentifier != null && objectiveName.equals(targetIdentifier))) {
+                        if (act == Action.COMMENT_OUT)
+                            zeroOutPreference(subCtx);
+                    }
+                
             }
             return super.visitObjective(ctx);
         }
@@ -550,7 +756,7 @@ public class Model implements ModelInterface {
             modified = true;
         }
 
-        private void commentOutPreference(FormulationParser.ObjectiveContext ctx) {
+        private void commentOutPreference(FormulationParser.UExprContext ctx) {
             int startIndex = ctx.start.getStartIndex();
             int stopIndex = ctx.stop.getStopIndex();
             String originalLine = originalSource.substring(startIndex, stopIndex + 1);
@@ -563,6 +769,22 @@ public class Model implements ModelInterface {
             
             modifiedSource.replace(startIndex, stopIndex + 1, 
                 indentation + "# " + originalLine.substring(indentation.length()));
+            modified = true;
+        }
+
+        private void zeroOutPreference(FormulationParser.UExprContext ctx) {
+            int startIndex = ctx.start.getStartIndex();
+            int stopIndex = ctx.stop.getStopIndex();
+            String originalLine = originalSource.substring(startIndex, stopIndex + 1);
+            
+            String indentation = "";
+            int lineStart = originalSource.lastIndexOf('\n', startIndex);
+            if (lineStart != -1) {
+                indentation = originalSource.substring(lineStart + 1, startIndex);
+            }
+            
+            modifiedSource.replace(startIndex, stopIndex + 1, 
+                  "((" + originalLine + ")*0)");
             modified = true;
         }
 
@@ -727,7 +949,7 @@ public class Model implements ModelInterface {
             visit(ctx.sqRef());
             return null;
         }
-
+        
         @Override
         public Void visitConstraint(FormulationParser.ConstraintContext ctx){
             
@@ -861,6 +1083,48 @@ public class Model implements ModelInterface {
             else if(ctx.csv() != null){
                 visit(ctx.csv());
             }
+            return null;
+        }
+
+        @Override
+        public Void visitProjFunc(FormulationParser.ProjFuncContext ctx) {
+            TypeVisitor visitor = new TypeVisitor();
+            visitor.visit(ctx.setExpr());
+            ModelType customType = new Tuple();
+            List<Integer> pointersToSetComp = new LinkedList<>();
+            String structureTuple = ctx.tuple().csv().getText();
+            String[] d = structureTuple.split(",");
+            for(String tctx : structureTuple.split(",")){
+                pointersToSetComp.add(Integer.parseInt(tctx));
+            }
+            
+            int count = 0;
+            for(ModelSet s : visitor.basicSets){
+                count += s.getStructure().length;
+            }
+            StructureBlock[] totalStructure = new StructureBlock[count];
+            count = 0;
+            for(ModelSet s : visitor.basicSets){
+                int i = 1;
+                for(StructureBlock sb : s.getStructure()){
+                    totalStructure[count] = new StructureBlock(s, sb == null && s.identifier.equals("anonymous_set") ? i : sb.position);
+                    count++;
+                    i++;
+                }   
+            }
+
+            StructureBlock[] resultingStructure = new StructureBlock[pointersToSetComp.size()];
+            count = 0;
+            for(Integer p : pointersToSetComp){
+                resultingStructure[count++] = totalStructure[p-1];
+            }
+            ModelSet newSet = new ModelSet("anonymous_set",visitor.getBasicSets(),visitor.getBasicParams(),resultingStructure);
+            basicSets.add(newSet);
+            if(type == null || type == ModelPrimitives.UNKNOWN)
+                type = newSet.getType();
+            else if(type instanceof Tuple)
+                ((Tuple)type).append(newSet.getType());
+
             return null;
         }
         

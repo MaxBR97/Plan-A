@@ -41,7 +41,7 @@ public class Service implements ServiceInterface {
     }
     
     @PostMapping("/images")
-    public ResponseEntity<CreateImageResponseDTO> createImage(@RequestBody CreateImageFromFileDTO data) throws IOException {
+    public ResponseEntity<CreateImageResponseDTO> createImage(@RequestBody CreateImageFromFileDTO data) throws Exception {
         CreateImageResponseDTO response = controller.createImageFromFile(data.code());
         return ResponseEntity.ok(response);
     }
@@ -53,7 +53,7 @@ public class Service implements ServiceInterface {
     }
     
     @PostMapping("/solve")
-    public ResponseEntity<SolutionDTO> solve(@RequestBody SolveCommandDTO input) {
+    public ResponseEntity<SolutionDTO> solve(@RequestBody SolveCommandDTO input) throws Exception {
         SolutionDTO res = controller.solve(input);
         return ResponseEntity.ok(res);
     }

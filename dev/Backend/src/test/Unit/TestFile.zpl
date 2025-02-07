@@ -12,12 +12,13 @@ set CxSxS := {<i,a,b,c,d> in C * S * S | b < d };
 set forTest1 := {<a> in {"a","b","c"} : <soldiers, a>};
 set forTest2 := {"a", "b"} * S * {1..soldiers} * C * {<"h",2.2> , <"a",-3.14>}; 
 set forTest3 := {<2,"a",3>,<6,"2",3>};
+set forTest4 := proj(forTest3,<2,1>);
+set forTest5 := proj(forTest4 * {<2,"a">,<1,"f">},<2,4>); # -> <INT,TEXT>
 
 var edge[CxS] binary;
 var couples[CxSxS] binary;
 var varForTest1[CxS *{"A","a"} * S * {1 .. 5}];
 
-#vif edge[i,a,b] == 1 then sum <j,a1,a2,b1,b2> in CxSxS | i == j and (a==a1 and b==a2) : couples[j,a1,a2,b1,b2] == 1 end;
 
 subto trivial1:
     forall <j,a1,a2,b1,b2> in CxSxS | a1 != b1 or a2 != b2 : vif couples[j,a1,a2,b1,b2] == 1 then edge[j,a1,a2] == 1  end;
@@ -56,4 +57,10 @@ subto minimalRivuahCons:
 minimize rivuah: 
     ((maxShmirot-minShmirot)+conditioner)**3 -
     (minimalRivuah)**2 +
-    sum<i,a,b> in CxS: sum<m,n> in S | m != a or b!=n :(edge[i,a,b] * edge[i,m,n] * (b-n));
+    (sum <i,a,b> in CxS: sum<m,n> in S | m != a or b!=n :(edge[i,a,b] * edge[i,m,n] * (b-n)))*8;
+
+set People := {"fdas","re"};
+var TotalMishmarot[People] binary;
+
+maximize distributeShiftsEqually:
+    sum<person> in People:          (TotalMishmarot[person]**2);

@@ -121,7 +121,8 @@ nExpr:	sign=('+'|'-')? uExpr ;
 
 /** unsigned (numerical) expression */
 uExpr
-	:	uExpr op=('*'|'/') uExpr
+	:	uExpr op='**' uExpr
+	|	uExpr op=('*'|'/') uExpr
 	|	uExpr op=('+'|'-') uExpr
 	|	basicExpr
 	;
@@ -199,7 +200,9 @@ sqRef	:	name=ID ('[' csv ']')?	# SqRefCsv		// accepts 'id[]'
 		|	name=ID '[' index ']'		# SqRefIndex
 		;
 
-fnRef	:	name=ID '(' csv ')' ;
+fnRef	:	'proj' '(' setExpr ',' tuple ')' 		#ProjFunc
+		|	name=ID '(' csv ')' 	#GeneralFunc
+		;	
 
 // TODO: try using 'csv' for any comma separated list: indices, chains...
 // Then, delegate to a future type checker visitor the enforcement of
