@@ -213,11 +213,12 @@ public class ModelTest {
         
         if(sol == null)
             assertFalse(true);
-        Set<String> stringVariables = model.getVariables().stream()
+        Set<String> stringVariables = m.getVariables().stream()
             .map(ModelVariable::getIdentifier)
             .collect(Collectors.toSet());
-        sol.parseSolution(model, stringVariables);
+        sol.parseSolution(m, stringVariables);
         assertTrue(sol.isSolved());
+        assertTrue(sol.getSolvingTime() > 0);
         } catch(Exception e){assertTrue(false);}
     }
     
