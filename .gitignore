@@ -3,4 +3,7 @@
 User/Models
 ./.idea/*
 ./.idea/
+.idea/*
+idea/
 Distribution
+/dev/Backend/src/test/Utilities/ZimplExamples/ExampleZimplProgram.zplSOLUTION

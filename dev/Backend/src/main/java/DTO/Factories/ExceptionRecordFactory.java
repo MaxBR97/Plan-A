@@ -21,19 +21,24 @@ public class ExceptionRecordFactory {
     public static ExceptionDTO makeDTO(Exception exception) {
         Objects.requireNonNull(exception,ohNo);
         //TODO: LOG
-        return new ExceptionDTO("An unknown error occurred, see log for details, or contract the developer");
+        //return new ExceptionDTO("An unknown error occurred, see log for details, or contract the developer");
+        return new ExceptionDTO("Full error ahead, this is temporary and should not be shown to end users: "+ exception.getMessage());
     }
     public static ExceptionDTO makeDTO(RuntimeException exception) {
         Objects.requireNonNull(exception,ohNo);
         //TODO: LOG
-        return new ExceptionDTO("An unexpected fatal error occurred. See log for details, or contract the developer");
+//        return new ExceptionDTO("An unexpected fatal error occurred. See log for details, or contract the developer");
+        return new ExceptionDTO("Full error ahead, this is temporary and should not be shown to end users: "+ exception.getMessage());
+
     }
-    public static ExceptionDTO makeException(BadRequestException exception) {
+    public static ExceptionDTO makeDTO(BadRequestException exception) {
         Objects.requireNonNull(exception,ohNo);
         //TODO: LOG
-        return new ExceptionDTO("Bad HTTP request. See log for details, or contract the developer");
+//        return new ExceptionDTO("Bad HTTP request. See log for details, or contract the developer");
+        return new ExceptionDTO("Full error ahead, this is temporary and should not be shown to end users: "+ exception.getMessage());
+
     }
-    public static ExceptionDTO makeException(IOException exception) {
+    public static ExceptionDTO makeDTO(IOException exception) {
         Objects.requireNonNull(exception,ohNo);
         //TODO: LOG
         return new ExceptionDTO("An error occurred while trying to access the file system.\n" +
@@ -71,7 +76,4 @@ public class ExceptionRecordFactory {
         //TODO: LOG
         return new ExceptionDTO("An unhandled server communication occurred.");
     }
-
-
-
 }
