@@ -17,6 +17,7 @@ const SolutionPreviewPage = () => {
     setTypes,
     paramTypes,
     setSolutionData,
+    variablesModule,
   } = useZPL();
 
   const allSets = variables.flatMap(
@@ -101,7 +102,7 @@ const SolutionPreviewPage = () => {
           : [...prev, preferenceName] // Add if not exists
     );
   };
-
+/*
   const handleSolve = async () => {
     setErrorMessage(null); // Reset previous error
     setResponseData(null); // Clear local response
@@ -151,6 +152,97 @@ const SolutionPreviewPage = () => {
       setErrorMessage(`Failed to solve. ${error.message}`);
     }
   };
+*/
+
+const handleSolve = async () => {
+  setErrorMessage(null);
+  setResponseData(null);
+
+  // Construct the PATCH request body
+  const patchRequestBody = {
+      imageId,
+      variablesModule, // Assumed to be available in context
+      constraintModules: modules.map(module => ({
+          moduleName: module.name,
+          constraints: module.constraints.map(c => c.identifier),
+          inputSets: module.involvedSets,
+          inputParams: module.involvedParams,
+          moduleDescription: module.description
+      })),
+      preferenceModules: preferenceModules.map(module => ({
+          moduleName: module.name,
+          preferences: module.preferences.map(p => p.identifier),
+          inputSets: module.involvedSets,
+          inputParams: module.involvedParams,
+          moduleDescription: module.description
+      }))
+  };
+
+  console.log("Sending PATCH request:", JSON.stringify(patchRequestBody, null, 2));
+
+  try {
+      // PATCH request to /Images
+      const patchResponse = await fetch("/Images", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(patchRequestBody)
+      });
+
+      if (!patchResponse.ok) {
+          throw new Error(`PATCH request failed! Status: ${patchResponse.status}`);
+      }
+
+      console.log("✅ PATCH request successful!");
+
+  } catch (error) {
+      console.error("Error sending PATCH request:", error);
+      setErrorMessage(`Failed to update image metadata: ${error.message}`);
+      return; // Stop execution if PATCH fails
+  }
+
+  // Construct the POST request body for solving
+  const transformedParamValues = Object.fromEntries(
+      Object.entries(paramValues).map(([key, value]) => [
+          key,
+          [parseFloat(value) || 0]
+      ])
+  );
+
+  const requestBody = {
+      imageId,
+      input: {
+          setsToValues: variableValues,
+          paramsToValues: transformedParamValues,
+          constraintsToggledOff: constraintsToggledOff,
+          preferencesToggledOff: preferencesToggledOff
+      },
+      timeout: 30
+  };
+
+  console.log("Sending POST request:", JSON.stringify(requestBody, null, 2));
+
+  try {
+      const response = await fetch("/solve", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(requestBody)
+      });
+
+      const responseText = await response.text();
+
+      if (!response.ok) {
+          console.error("Server returned an error:", responseText);
+          throw new Error(`HTTP Error! Status: ${response.status} - ${responseText}`);
+      }
+
+      const data = JSON.parse(responseText);
+      setSolutionResponse(data);
+      navigate("/solution-results");
+  } catch (error) {
+      console.error("Error solving problem:", error);
+      setErrorMessage(`Failed to solve. ${error.message}`);
+  }
+};
 
   const [responseData, setResponseData] = useState(null);
   const [showModal, setShowModal] = useState(false);
