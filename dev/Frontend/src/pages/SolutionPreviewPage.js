@@ -185,6 +185,18 @@ const SolutionPreviewPage = () => {
             values: ["2", "Shin Gimel", "16"],
             objectiveValue: 1,
           },
+          {
+            values: ["3", "Shin Gimel", "16"],
+            objectiveValue: 1,
+          },
+          {
+            values: ["4", "Shin Gimel", "16"],
+            objectiveValue: 1,
+          },
+          {
+            values: ["5", "Shin Gimel", "16"],
+            objectiveValue: 1,
+          },
         ],
       },
       minGuards: {

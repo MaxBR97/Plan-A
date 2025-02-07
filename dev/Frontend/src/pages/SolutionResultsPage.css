@@ -224,23 +224,38 @@
 
 /* Style the table headers */
 .solution-table th {
-    background-color: #007BFF; /* Blue background */
-    color: white; /* White text */
-    font-weight: bold;
-    padding: 12px;
-    border: 1px solid #ddd;
+    background-color: #007BFF; /* Blue header */
+    color: white;
+    padding: 15px;
     text-align: center;
-    font-size: 16px;
+    border: 3px solid black;
+    font-size: 20px;
+    font-weight: bold;
+    text-transform: uppercase;
 }
 
-/* Style the mini-table headers (for nested tables) */
-.mini-table th {
-    background-color: #0056b3; /* Darker blue for nested headers */
+/* Column headers styling */
+.solution-table th:first-child {
+    background-color: #007BFF;
     color: white;
-    padding: 8px;
-    font-size: 14px;
+    font-size: 22px;
     text-align: center;
-    border: 1px solid #ddd;
+}
+
+/* Adjust font size and boldness for column headers */
+.solution-table th:not(:first-child) {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+/* Styling for inner headers (inside the mini-tables) */
+.mini-table th {
+    background-color: #0056b3; /* Darker blue */
+    color: white;
+    font-weight: bold;
+    padding: 8px;
+    border: 2px solid black;
+    font-size: 16px;
 }
 
 /* Improved Row Header Styling */
@@ -288,3 +303,4 @@
     color: white;
     border: 3px solid black;
 }
+
