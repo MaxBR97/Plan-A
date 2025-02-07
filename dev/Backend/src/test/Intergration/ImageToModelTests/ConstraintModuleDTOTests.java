@@ -90,13 +90,15 @@ public class ConstraintModuleDTOTests {
     public void GivenValidZimplCode_WhenCompiling_ReturnsTrue() {
            assertTrue(model.isCompiling(1000));
     }
+
+    
     @Test
     public void GivenInvalidZimplCode_WhenCompiling_ReturnsFalse() {
         try {
             Path badZimpl = tmpDirPath.resolve("badZimpl.zimpl");
             Files.copy(Path.of(sourcePath), badZimpl, StandardCopyOption.REPLACE_EXISTING);
             badZimpl.toFile().deleteOnExit();
-            Files.writeString(badZimpl, "\nThis text is appended to zimpl code and make it not compile", StandardOpenOption.APPEND, StandardOpenOption.WRITE);
+            Files.writeString(badZimpl, "\nThis text is appended to zimpl code and make it not compile;",StandardOpenOption.APPEND, StandardOpenOption.WRITE);
             model = new Model(badZimpl.toFile().getPath());
             assertFalse(model.isCompiling(1000));
         }

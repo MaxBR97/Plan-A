@@ -4,42 +4,104 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="3057c127-864d-4028-bf48-8c39040ca4eb" name="Changes" comment="fixed bugs in tests" />
+    <list default="true" id="69cd5a63-68fc-437b-8317-2b8096dc636e" name="Changes" comment="misc">
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/remote-targets.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/remote-targets.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dev/Backend/src/main/java/Model/Model.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/main/java/Model/Model.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dev/Backend/src/test/Acceptance/ServiceRequestsTests.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/test/Acceptance/ServiceRequestsTests.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dev/Backend/src/test/Acceptance/ServiceTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/dev/Backend/src/test/Acceptance/ServiceTest.java" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
-  <component name="Git.Merge.Settings">
-    <option name="BRANCH" value="origin/main" />
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Class" />
+        <option value="Record" />
+      </list>
+    </option>
   </component>
   <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="backend_skeleton-tests_impl" />
+      </map>
+    </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;DenisPn&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings"><![CDATA[{
+  "selectedUrlAndAccountId": {
+    "url": "git@github.com:MaxBR97/Plan-A.git",
+    "accountId": "9f911d9f-7489-4905-9cda-b59141644ed0"
+  }
+}]]></component>
+  <component name="HighlightingSettingsPerFile">
+    <setting file="file://$PROJECT_DIR$/User/Models/145fe27c-d6ef-4831-9580-d16d54bb62dc.zpl" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/User/Models/23a1ebaa-384d-4ae2-9678-a5194c6c50da.zpl" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/User/Models/45b7402a-c88f-437d-a2f3-b4df4fa59bc1.zpl" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/User/Models/5b53628b-5276-4e94-9a81-2e81d246ed8c.zpl" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/User/Models/6e2b6445-3ac7-478c-bac3-221ba99b4e32.zpl" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/User/Models/7c31b6cd-85db-431f-a3a8-269eec35b818.zpl" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/User/Models/96fac268-6839-4f94-b81b-bb1ed297d67f.zpl" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/User/Models/ExampleZimplProgram.zpl" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/User/Models/e530b61d-6ffb-42e6-9161-cd5f87de70c5.zpl" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/User/Models/ee78089d-fa2f-4c71-81ca-6c3a8d058f45.zpl" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/dev/Backend/src/main/java/groupId/Service.java" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/example.zpl" root0="FORCE_HIGHLIGHTING" />
+  </component>
+  <component name="HttpClientSelectedEnvironments">
+    <file url="jar://$APPLICATION_HOME_DIR$/plugins/restClient/lib/restClient.jar!/com/intellij/ws/rest/client/requests/collection/post-requests.http" environment="test" />
   </component>
   <component name="MarkdownSettingsMigration">
     <option name="stateVersion" value="1" />
   </component>
-  <component name="ProblemsViewState">
-    <option name="selectedTabId" value="Security Analysis" />
+  <component name="MavenImportPreferences">
+    <option name="generalSettings">
+      <MavenGeneralSettings>
+        <option name="mavenHomeTypeForPersistence" value="WRAPPER" />
+      </MavenGeneralSettings>
+    </option>
+    <option name="importingSettings">
+      <MavenImportingSettings>
+        <option name="jdkForImporter" value="openjdk-23" />
+      </MavenImportingSettings>
+    </option>
   </component>
-  <component name="ProjectColorInfo"><![CDATA[{
-  "associatedIndex": 6
-}]]></component>
-  <component name="ProjectId" id="2sfcsdWB0ciRk7viTco8ssnfzWu" />
+  <component name="ProblemsViewState">
+    <option name="selectedTabId" value="ProjectErrors" />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 5
+}</component>
+  <component name="ProjectId" id="2rx4w9kzmiHcxB4jYumsEw3zk78" />
   <component name="ProjectViewState">
-    <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
-    "JUnit.ConstraintModuleDTOTests.executor": "Run",
+    "HTTP Request.All in rest-api_2.executor": "Run",
+    "HTTP Request.rest-api_3 | #1.executor": "Run",
+    "JUnit.Acceptance in artifactid.executor": "Run",
+    "JUnit.DTOTests.GivenSolution_WhenCreatingSolutionDTO_StructureIsCorrect.executor": "Debug",
+    "JUnit.ServiceRequestsTests.GivenEmptyZimplFIle_WhenCreatingIMageFrom_CreateEmptyImage.executor": "Debug",
     "JUnit.ServiceRequestsTests.GivenImageDTO_WhenConfigImage_ImageIsCorrect.executor": "Run",
-    "JUnit.ServiceRequestsTests.executor": "Debug",
-    "JUnit.ServiceRequestsTests.testSolve_Simple.executor": "Run",
-    "JUnit.ServiceTest.GivenFile_WhenCreateImage_ImageIsCorrect.executor": "Run",
-    "JUnit.ServiceTest.executor": "Debug",
-    "JUnit.ServiceTest.testCreateImage.executor": "Run",
-    "JUnit.Unit in artifactid.executor": "Run",
+    "JUnit.ServiceRequestsTests.executor": "Run",
+    "JUnit.ServiceRequestsTests.testSolve_Simple.executor": "Debug",
+    "JUnit.ServiceTest.GivenFile_WhenCreateImage_ImageIsCorrect.executor": "Debug",
+    "JUnit.ServiceTest.GivenImageDTO_WhenConfigImage_ImageIsCorrect.executor": "Run",
+    "JUnit.ServiceTest.executor": "Run",
+    "JUnit.ServiceTest.testCreateImage.executor": "Debug",
+    "JUnit.ServiceTest.testSolve_Simple.executor": "Debug",
     "JUnit.test in artifactid.executor": "Run",
     "RequestMappingsPanelOrder0": "0",
     "RequestMappingsPanelOrder1": "1",
@@ -47,33 +109,79 @@
     "RequestMappingsPanelWidth1": "75",
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
     "Spring Boot.Main.executor": "Run",
-    "git-widget-placeholder": "API-Impl",
+    "git-widget-placeholder": "main",
     "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "C:/Users/Nadav/Documents/GitHub/Plan-A",
     "node.js.detected.package.eslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
     "node.js.selected.package.tslint": "(autodetect)",
     "nodejs_package_manager_path": "npm",
+    "project.structure.last.edited": "Project",
+    "project.structure.proportion": "0.0",
+    "project.structure.side.proportion": "0.2",
+    "settings.editor.selected.configurable": "reference.settings.project.maven.repository.indices",
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
-  <component name="RunManager" selected="Spring Boot.Main">
-    <configuration name="ConstraintModuleDTOTests" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/dev/Backend/src/test/Utilities/Stubs/ZimplExamples" />
+    </key>
+  </component>
+  <component name="RunManager" selected="JUnit.ServiceTest.testSolve_Simple">
+    <configuration name="ServiceRequestsTests.GivenImageDTO_WhenConfigImage_ImageIsCorrect" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
       <module name="artifactid" />
       <extension name="coverage">
         <pattern>
-          <option name="PATTERN" value="Intergration.ImageToModelTests.*" />
+          <option name="PATTERN" value="Acceptance.*" />
           <option name="ENABLED" value="true" />
         </pattern>
       </extension>
-      <option name="PACKAGE_NAME" value="Intergration.ImageToModelTests" />
-      <option name="MAIN_CLASS_NAME" value="Intergration.ImageToModelTests.ConstraintModuleDTOTests" />
-      <option name="TEST_OBJECT" value="class" />
+      <option name="PACKAGE_NAME" value="Acceptance" />
+      <option name="MAIN_CLASS_NAME" value="Acceptance.ServiceRequestsTests" />
+      <option name="METHOD_NAME" value="GivenImageDTO_WhenConfigImage_ImageIsCorrect" />
+      <option name="TEST_OBJECT" value="method" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="ServiceRequestsTests.testSolve_Simple" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="artifactid" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="Acceptance.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="Acceptance" />
+      <option name="MAIN_CLASS_NAME" value="Acceptance.ServiceRequestsTests" />
+      <option name="METHOD_NAME" value="testSolve_Simple" />
+      <option name="TEST_OBJECT" value="method" />
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
     </configuration>
     <configuration name="ServiceTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="artifactid" />
+      <projectPathOnTarget name="projectPathOnTarget" value="/app" />
+      <target name="@@@LOCAL@@@" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="Acceptance.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="Acceptance" />
+      <option name="MAIN_CLASS_NAME" value="Acceptance.ServiceTest" />
+      <option name="METHOD_NAME" value="GivenImageDTO_WhenConfigImage_ImageIsCorrect" />
+      <option name="TEST_OBJECT" value="class" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="ServiceTest.GivenFile_WhenCreateImage_ImageIsCorrect" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
       <module name="artifactid" />
       <extension name="coverage">
         <pattern>
@@ -83,110 +191,101 @@
       </extension>
       <option name="PACKAGE_NAME" value="Acceptance" />
       <option name="MAIN_CLASS_NAME" value="Acceptance.ServiceTest" />
-      <option name="TEST_OBJECT" value="class" />
+      <option name="METHOD_NAME" value="GivenFile_WhenCreateImage_ImageIsCorrect" />
+      <option name="TEST_OBJECT" value="method" />
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
     </configuration>
-    <configuration name="Unit in artifactid" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+    <configuration name="ServiceTest.testSolve_Simple" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
       <module name="artifactid" />
-      <option name="TEST_OBJECT" value="directory" />
-      <dir value="$PROJECT_DIR$/dev/Backend/src/test/Unit" />
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
-    <configuration name="test in artifactid" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
-      <module name="artifactid" />
-      <option name="TEST_OBJECT" value="directory" />
-      <dir value="$PROJECT_DIR$/dev/Backend/src/test" />
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
-    <configuration name="Main" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" temporary="true" nameIsGenerated="true">
-      <module name="artifactid" />
-      <projectPathOnTarget name="projectPathOnTarget" value="/app" />
-      <target name="@@@LOCAL@@@" />
-      <option name="SPRING_BOOT_MAIN_CLASS" value="groupId.Main" />
       <extension name="coverage">
         <pattern>
-          <option name="PATTERN" value="groupId.*" />
+          <option name="PATTERN" value="Acceptance.*" />
           <option name="ENABLED" value="true" />
         </pattern>
       </extension>
+      <option name="PACKAGE_NAME" value="Acceptance" />
+      <option name="MAIN_CLASS_NAME" value="Acceptance.ServiceTest" />
+      <option name="METHOD_NAME" value="testSolve_Simple" />
+      <option name="TEST_OBJECT" value="method" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Main" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
+      <option name="ALTERNATIVE_JRE_PATH" value="openjdk-23 (2)" />
+      <module name="artifactid" />
+      <projectPathOnTarget name="projectPathOnTarget" value="/Plan-A" />
+      <target name="plan-a-docker:plan-a" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="groupId.Main" />
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
     </configuration>
     <list>
-      <item itemvalue="JUnit.Unit in artifactid" />
-      <item itemvalue="JUnit.test in artifactid" />
-      <item itemvalue="JUnit.ConstraintModuleDTOTests" />
+      <item itemvalue="JUnit.ServiceRequestsTests.GivenImageDTO_WhenConfigImage_ImageIsCorrect" />
+      <item itemvalue="JUnit.ServiceRequestsTests.testSolve_Simple" />
+      <item itemvalue="JUnit.ServiceTest.GivenFile_WhenCreateImage_ImageIsCorrect" />
+      <item itemvalue="JUnit.ServiceTest.testSolve_Simple" />
       <item itemvalue="JUnit.ServiceTest" />
       <item itemvalue="Spring Boot.Main" />
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Spring Boot.Main" />
+        <item itemvalue="JUnit.ServiceTest.testSolve_Simple" />
+        <item itemvalue="JUnit.ServiceTest.GivenFile_WhenCreateImage_ImageIsCorrect" />
         <item itemvalue="JUnit.ServiceTest" />
-        <item itemvalue="JUnit.ConstraintModuleDTOTests" />
-        <item itemvalue="JUnit.Unit in artifactid" />
-        <item itemvalue="JUnit.test in artifactid" />
+        <item itemvalue="JUnit.ServiceRequestsTests.GivenImageDTO_WhenConfigImage_ImageIsCorrect" />
+        <item itemvalue="JUnit.ServiceRequestsTests.testSolve_Simple" />
       </list>
     </recent_temporary>
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
-    <task id="LOCAL-00001" summary="updated exception handling, should be more informative">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="69cd5a63-68fc-437b-8317-2b8096dc636e" name="Changes" comment="" />
+      <created>1737487628776</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1737487628776</updated>
+      <workItem from="1737487631076" duration="6372000" />
+      <workItem from="1737494022912" duration="24000" />
+      <workItem from="1737494094510" duration="1831000" />
+      <workItem from="1737532514393" duration="4700000" />
+      <workItem from="1737608904529" duration="373000" />
+      <workItem from="1737609911754" duration="596000" />
+      <workItem from="1737610529768" duration="100000" />
+      <workItem from="1737610645787" duration="933000" />
+      <workItem from="1737618806797" duration="4743000" />
+      <workItem from="1737624022328" duration="4178000" />
+      <workItem from="1737641951197" duration="389000" />
+    </task>
+    <task id="LOCAL-00001" summary="refactored Image">
       <option name="closed" value="true" />
-      <created>1738683902600</created>
+      <created>1737635523708</created>
       <option name="number" value="00001" />
       <option name="presentableId" value="LOCAL-00001" />
       <option name="project" value="LOCAL" />
-      <updated>1738683902600</updated>
+      <updated>1737635523708</updated>
     </task>
-    <task id="LOCAL-00002" summary="started implementing fetching only primitive sets/params as dependencies, for not broken untill isPrimitive is fixed">
+    <task id="LOCAL-00002" summary="refactored Image">
       <option name="closed" value="true" />
-      <created>1738756132110</created>
+      <created>1737635531235</created>
       <option name="number" value="00002" />
       <option name="presentableId" value="LOCAL-00002" />
       <option name="project" value="LOCAL" />
-      <updated>1738756132110</updated>
+      <updated>1737635531235</updated>
     </task>
-    <task id="LOCAL-00003" summary="pulling from main">
+    <task id="LOCAL-00003" summary="misc">
       <option name="closed" value="true" />
-      <created>1738757345945</created>
+      <created>1738923979548</created>
       <option name="number" value="00003" />
       <option name="presentableId" value="LOCAL-00003" />
       <option name="project" value="LOCAL" />
-      <updated>1738757345946</updated>
+      <updated>1738923979548</updated>
     </task>
-    <task id="LOCAL-00004" summary="Added separation in types in ModelDTO, fixed all comp bugs but tests don't pass">
-      <option name="closed" value="true" />
-      <created>1738775944494</created>
-      <option name="number" value="00004" />
-      <option name="presentableId" value="LOCAL-00004" />
-      <option name="project" value="LOCAL" />
-      <updated>1738775944494</updated>
-    </task>
-    <task id="LOCAL-00005" summary="fixed bugs in tests">
-      <option name="closed" value="true" />
-      <created>1738776825800</created>
-      <option name="number" value="00005" />
-      <option name="presentableId" value="LOCAL-00005" />
-      <option name="project" value="LOCAL" />
-      <updated>1738776825800</updated>
-    </task>
-    <task active="true" id="Default" summary="Default task">
-      <changelist id="3057c127-864d-4028-bf48-8c39040ca4eb" name="Changes" comment="fixed bugs in tests" />
-      <created>1738850278687</created>
-      <option name="number" value="Default" />
-      <option name="presentableId" value="Default" />
-      <updated>1738850278687</updated>
-      <workItem from="1738850282672" duration="2422000" />
-    </task>
-    <option name="localTasksCounter" value="6" />
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -197,45 +296,36 @@
       <map>
         <entry key="MAIN">
           <value>
-            <State>
-              <option name="FILTERS">
-                <map>
-                  <entry key="branch">
-                    <value>
-                      <list>
-                        <option value="origin/backend_skeleton" />
-                      </list>
-                    </value>
-                  </entry>
-                </map>
-              </option>
-            </State>
+            <State />
           </value>
         </entry>
       </map>
     </option>
   </component>
   <component name="VcsManagerConfiguration">
+    <MESSAGE value="new branch" />
+    <MESSAGE value="refactored Image" />
+    <MESSAGE value="git ignore" />
     <MESSAGE value="misc" />
-    <MESSAGE value="updated exception handling, should be more informative" />
-    <MESSAGE value="started implementing fetching only primitive sets/params as dependencies, for not broken untill isPrimitive is fixed" />
-    <MESSAGE value="pulling from main" />
-    <MESSAGE value="Added separation in types in ModelDTO, fixed all comp bugs but tests don't pass" />
-    <MESSAGE value="fixed bugs in tests" />
-    <option name="LAST_COMMIT_MESSAGE" value="fixed bugs in tests" />
+    <option name="LAST_COMMIT_MESSAGE" value="misc" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
       <breakpoints>
         <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/dev/Backend/src/test/Acceptance/ServiceRequestsTests.java</url>
-          <line>122</line>
-          <option name="timeStamp" value="47" />
+          <url>file://$PROJECT_DIR$/dev/Backend/src/main/java/Model/Solution.java</url>
+          <line>73</line>
+          <option name="timeStamp" value="60" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/dev/Backend/src/test/Acceptance/ServiceTest.java</url>
-          <line>212</line>
-          <option name="timeStamp" value="48" />
+          <url>file://$PROJECT_DIR$/dev/Backend/src/main/java/Model/Solution.java</url>
+          <line>57</line>
+          <option name="timeStamp" value="61" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/dev/Backend/src/main/java/Model/Solution.java</url>
+          <line>81</line>
+          <option name="timeStamp" value="62" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

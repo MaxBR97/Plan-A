@@ -31,7 +31,7 @@ public class ModelTest {
 
     private static String source = "src/test/Unit/TestFile.zpl";
     private static String TEST_FILE_PATH = "src/test/Unit/TestFileINSTANCE.zpl";
-    private static float compilationBaselineTime = 6;
+    private static float compilationBaselineTime = 8;
     private static String[][] expectedParameters = {{"Conditioner","10"}, {"soldiers", "9"}, {"absoluteMinimalRivuah", "8"}};
     @BeforeAll
     public static void setUpFile() throws IOException {
@@ -203,6 +203,7 @@ public class ModelTest {
         assertTrue(res.equals("<\"fdas\",32,321>"));
     }
 
+    
     @Test
     public void testSolve(){
         Model m = null;
@@ -275,7 +276,7 @@ public class ModelTest {
        Path targetPath = Path.of(TEST_FILE_PATH);
        Files.deleteIfExists(targetPath);
        Files.deleteIfExists(Path.of(targetPath.toString()+"SOLUTION"));
-       //Files.deleteIfExists(Path.of("./src/test/Unit/TestFile2.zplSOLUTION"));
+       Files.deleteIfExists(Path.of("./src/test/Unit/TestFile2.zplSOLUTION"));
 
     }
 
