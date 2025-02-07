@@ -221,3 +221,70 @@
     max-width: 80%; /* Prevents the table from being too wide */
     text-align: center;
 }
+
+/* Style the table headers */
+.solution-table th {
+    background-color: #007BFF; /* Blue background */
+    color: white; /* White text */
+    font-weight: bold;
+    padding: 12px;
+    border: 1px solid #ddd;
+    text-align: center;
+    font-size: 16px;
+}
+
+/* Style the mini-table headers (for nested tables) */
+.mini-table th {
+    background-color: #0056b3; /* Darker blue for nested headers */
+    color: white;
+    padding: 8px;
+    font-size: 14px;
+    text-align: center;
+    border: 1px solid #ddd;
+}
+
+/* Improved Row Header Styling */
+.row-header {
+    font-weight: bold;
+    font-size: 18px;
+    text-align: center;
+    padding: 15px 20px;
+    color: white;
+    background: linear-gradient(to right, #00AFB9, #007a82); /* Gradient effect */
+    border: 2px solid black;
+    border-radius: 0px;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+    text-transform: capitalize; /* Capitalizes first letters */
+    white-space: nowrap;
+}
+
+/* Adjust table cell spacing */
+.solution-table td {
+    padding: 10px;
+}
+
+/* Ensure the row headers don't look oversized */
+.solution-table .row-header {
+    min-width: 120px; /* Prevents them from stretching too much */
+}
+
+/* Ensure all table cells, including headers, have black borders */
+.solution-table, .solution-table th, .solution-table td {
+    border: 3px solid black; /* Set border color and thickness */
+    border-collapse: collapse; /* Ensure no spacing between borders */
+}
+
+/* Ensure mini-table cells have black borders */
+.mini-table, .mini-table th, .mini-table td {
+    border: 3px solid black;
+    border-collapse: collapse;
+}
+
+/* Ensure row headers also have the same styling */
+.row-header {
+    background-color: #00AFB9; /* Keep existing background */
+    font-weight: bold;
+    text-align: center;
+    color: white;
+    border: 3px solid black;
+}
