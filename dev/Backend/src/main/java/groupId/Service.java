@@ -32,7 +32,7 @@ public class Service implements ServiceInterface {
         this.controller = controller;
     }
 
-    @GetMapping(value = {"/", "/{path:^(?!api|static).*$}/**"})
+    @GetMapping(value = {"/"/*, "/{path:^(?!api|static).*$}/**"*/})
     public ResponseEntity<Resource> serveHomePage() throws IOException {
         Resource resource = new ClassPathResource("static/index.html");
         return ResponseEntity.ok()

@@ -22,7 +22,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.*;
-
+import java.util.stream.Collectors;
 import java.nio.file.Path;
 
 
@@ -199,7 +199,7 @@ public class ModelTest {
 
     @Test
     public void testConvertingAtomsToTuple(){
-        String res = ModelInput.convertArrayOfAtomsToTuple(new String[]{"\"fdas\"", "32", "321"});
+        String res = ModelType.convertArrayOfAtoms(new String[]{"fdas", "32", "321"},new Tuple(new ModelPrimitives[]{ModelPrimitives.TEXT,ModelPrimitives.INT,ModelPrimitives.INT}));
         assertTrue(res.equals("<\"fdas\",32,321>"));
     }
 
@@ -208,11 +208,15 @@ public class ModelTest {
         Model m = null;
         try{
          m = new Model("./src/test/Unit/TestFile2.zpl");
+        Solution sol = m.solve(100);
         
-        if(m.solve(10) == null)
+        if(sol == null)
             assertFalse(true);
-        
-        assertTrue(true);
+        Set<String> stringVariables = model.getVariables().stream()
+            .map(ModelVariable::getIdentifier)
+            .collect(Collectors.toSet());
+        sol.parseSolution(model, stringVariables);
+        assertTrue(sol.isSolved());
         } catch(Exception e){assertTrue(false);}
     }
     
@@ -271,7 +275,7 @@ public class ModelTest {
        Path targetPath = Path.of(TEST_FILE_PATH);
        Files.deleteIfExists(targetPath);
        Files.deleteIfExists(Path.of(targetPath.toString()+"SOLUTION"));
-       Files.deleteIfExists(Path.of("./src/test/Unit/TestFile2.zplSOLUTION"));
+       //Files.deleteIfExists(Path.of("./src/test/Unit/TestFile2.zplSOLUTION"));
 
     }
 

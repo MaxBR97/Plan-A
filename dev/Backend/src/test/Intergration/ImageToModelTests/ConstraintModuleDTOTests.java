@@ -125,6 +125,7 @@ public class ConstraintModuleDTOTests {
         Set<String> vars= model.getVariables().stream().map(ModelVariable -> ModelVariable.getIdentifier()).collect(Collectors.toSet());
         try {
             solution.parseSolution(model,vars);
+            assertTrue(true);
         }
         catch (IOException e){
             fail(e.getMessage());

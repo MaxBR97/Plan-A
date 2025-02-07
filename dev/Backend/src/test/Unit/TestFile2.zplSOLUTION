@@ -1,0 +1,17 @@
+SCIP Status        : problem is solved [optimal solution found]
+Solving Time (sec) : 0.98
+Solving Nodes      : 1
+Primal Bound       : +1.18700000000000e+03 (3 solutions)
+Dual Bound         : +1.18700000000000e+03
+Gap                : 0.00 %
+objective value:                                 1187
+edge#1$Fillbox#4                                    1 	(obj:0)
+edge#2$Shin Gimel#0                                 1 	(obj:0)
+edge#3$Fillbox#12                                   1 	(obj:0)
+edge#4$Shin Gimel#8                                 1 	(obj:0)
+edge#5$Fillbox#0                                    1 	(obj:0)
+edge#6$Shin Gimel#4                                 1 	(obj:0)
+edge#7$Fillbox#8                                    1 	(obj:0)
+edge#9$Shin Gimel#12                                1 	(obj:0)
+maxGuards                                           1 	(obj:0)
+minimalSpacing                                     12 	(obj:0)

@@ -56,7 +56,7 @@ public class ServiceRequestsTests {
     }
     @BeforeEach
     public void setUp() {
-        userController = new UserController();
+        userController = new UserController("../User/Models");
         service=new Service(userController);
     }
 

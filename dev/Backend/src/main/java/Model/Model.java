@@ -41,8 +41,8 @@ public class Model implements ModelInterface {
     private final Map<String,ModelVariable> variables = new HashMap<>();
     private final Set<String> toggledOffFunctionalities = new HashSet<>();
     private boolean loadElementsToRam = true;
-    private final String zimplCompilationScript = "./src/main/resources/zimpl/checkCompilation.sh";
-    private final String zimplSolveScript = "./src/main/resources/zimpl/solve.sh" ;
+    private final String zimplCompilationScript = "src/main/resources/zimpl/checkCompilation.sh";
+    private final String zimplSolveScript = "src/main/resources/zimpl/solve.sh" ;
     private String originalSource;
     
     public Model(String sourceFilePath) throws IOException {
@@ -100,7 +100,7 @@ public class Model implements ModelInterface {
     public void setInput(ModelParameter identifier, String value) throws Exception {
 
         if(!identifier.isCompatible(value))
-            throw new Exception("incompatible type");
+        throw new Exception(value + " is an incompatible value, expected: " + identifier.getType());
         
         ModifierVisitor modifier = new ModifierVisitor(tokens, identifier.getIdentifier(), value,  ModifierVisitor.Action.SET, originalSource);
         modifier.visit(tree);
@@ -117,7 +117,7 @@ public class Model implements ModelInterface {
 
         for(String str : values){
            if( !identifier.isCompatible(str))
-             throw new Exception(str + " is an incompatible value");
+             throw new Exception(str + " is an incompatible value, expected: " + identifier.getType());
         }
         
         ModifierVisitor modifier = new ModifierVisitor(tokens, identifier.getIdentifier(), values,  ModifierVisitor.Action.SET, originalSource);
@@ -266,12 +266,11 @@ public boolean isCompiling(float timeout) {
                     }));
     
                 Files.write(Paths.get(sourceFilePath + "SOLUTION"), filteredOutput.getBytes());
-                return new Solution(filteredOutput);
+                return new Solution(Paths.get(sourceFilePath + "SOLUTION").toString());
             });
 
             try {
                 ans = future.get((long) timeout, TimeUnit.SECONDS);
-                
             } catch (TimeoutException e) {
                 process.destroy(); // Kill the process if timeout occurs
                 ans = null;
