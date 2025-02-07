@@ -124,6 +124,7 @@ public class ServiceTest {
                 Map.of()
         ));
         assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
         assertNotNull(response.getBody().imageId());
         assertEquals(response.getBody().model().constraints(), expected.model().constraints());
         assertEquals(response.getBody().model().preferences(), expected.model().preferences());
