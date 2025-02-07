@@ -134,7 +134,7 @@ public class ServiceRequestsTests {
             InputDTO input=new InputDTO(Map.of("mySet",List.of(List.of("1"),List.of("2"),List.of("3"))),
                     Map.of("x",List.of("10")),
                     List.of(),List.of());
-            SolveCommandDTO solveCommandDTO=new SolveCommandDTO(responseDTO.imageId(),input,60);
+            SolveCommandDTO solveCommandDTO=new SolveCommandDTO(responseDTO.imageId(),input,600);
             ImageDTO imageDTO=new ImageDTO(new VariableModuleDTO(Set.of("myVar"),Set.of(),Set.of()),Set.of(),Set.of());
             ImageConfigDTO config= new ImageConfigDTO(responseDTO.imageId(),imageDTO);
             userController.overrideImage(config);

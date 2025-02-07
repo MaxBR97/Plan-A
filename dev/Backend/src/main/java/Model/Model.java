@@ -258,10 +258,10 @@ public boolean isCompiling(float timeout) {
                     
                 }
     
-                // Remove last line (head -n -1 equivalent)
+                
                 String filteredOutput = buffer.toString().lines()
                     .collect(Collectors.collectingAndThen(Collectors.toList(), list -> {
-                        if (!list.isEmpty()) list.remove(list.size() - 1);
+                        
                         return String.join("\n", list);
                     }));
     
