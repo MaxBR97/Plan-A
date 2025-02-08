@@ -161,28 +161,30 @@ const handleSolve = async () => {
   // Construct the PATCH request body
   const patchRequestBody = {
       imageId,
-      variablesModule, // Assumed to be available in context
-      constraintModules: modules.map(module => ({
-          moduleName: module.name,
-          constraints: module.constraints.map(c => c.identifier),
-          inputSets: module.involvedSets,
-          inputParams: module.involvedParams,
-          moduleDescription: module.description
-      })),
-      preferenceModules: preferenceModules.map(module => ({
-          moduleName: module.name,
-          preferences: module.preferences.map(p => p.identifier),
-          inputSets: module.involvedSets,
-          inputParams: module.involvedParams,
-          moduleDescription: module.description
-      }))
+      image: { // Wrap everything under "image"
+          variablesModule, // Assumed to be available in context
+          constraintModules: modules.map(module => ({
+              moduleName: module.name,
+              constraints: module.constraints.map(c => c.identifier),
+              inputSets: module.involvedSets,
+              inputParams: module.involvedParams,
+              moduleDescription: module.description
+          })),
+          preferenceModules: preferenceModules.map(module => ({
+              moduleName: module.name,
+              preferences: module.preferences.map(p => p.identifier),
+              inputSets: module.involvedSets,
+              inputParams: module.involvedParams,
+              moduleDescription: module.description
+          }))
+      }
   };
 
   console.log("Sending PATCH request:", JSON.stringify(patchRequestBody, null, 2));
 
   try {
       // PATCH request to /Images
-      const patchResponse = await fetch("/Images", {
+      const patchResponse = await fetch("/images", {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(patchRequestBody)
@@ -234,8 +236,10 @@ const handleSolve = async () => {
           console.error("Server returned an error:", responseText);
           throw new Error(`HTTP Error! Status: ${response.status} - ${responseText}`);
       }
-
+      
       const data = JSON.parse(responseText);
+      console.log(responseText);
+      console.log(data);
       setSolutionResponse(data);
       navigate("/solution-results");
   } catch (error) {
@@ -243,6 +247,7 @@ const handleSolve = async () => {
       setErrorMessage(`Failed to solve. ${error.message}`);
   }
 };
+
 
   const [responseData, setResponseData] = useState(null);
   const [showModal, setShowModal] = useState(false);

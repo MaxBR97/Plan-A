@@ -25,13 +25,13 @@ public class RecordFactory {
         if(!solution.parsed())
             throw new RuntimeException("Solution must be parsed before attempting to convert to DTO.");
         if(!solution.isSolved())
-            return new SolutionDTO(false,-1,-1,new HashMap<>());
+            return new SolutionDTO(false,-1,-1,"",new HashMap<>());
         double solvingTime = solution.getSolvingTime();
         double objectiveValue = solution.getObjectiveValue();
         boolean solved = true;
         HashMap<String, SolutionVariable> variables = new HashMap<>();
          for(ModelVariable variable: solution.getVariables()){
-             String variableName= variable.getIdentifier();;
+             String variableName= variable.getIdentifier();
              Set<SolutionValueDTO> variableValues = new HashSet<>();
              List<String> variableStructure=List.copyOf(solution.getVariableStructure(variableName));
              List<String> variableTypes=List.copyOf(solution.getVariableTypes(variableName));
@@ -40,7 +40,7 @@ public class RecordFactory {
             }
             variables.put(variableName,new SolutionVariable(variableStructure,variableTypes,variableValues));
          }
-        return new SolutionDTO(solved,solvingTime,objectiveValue,variables);
+        return new SolutionDTO(solved,solvingTime,objectiveValue,"",variables);
     }
 
     public static PreferenceDTO makeDTO(ModelPreference preference) {
