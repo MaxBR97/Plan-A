@@ -58,5 +58,4 @@ public class Service implements ServiceInterface {
         SolutionDTO res = controller.solve(input);
         return ResponseEntity.ok(res);
     }
-
 }

@@ -9,5 +9,5 @@ import jakarta.validation.constraints.NotNull;
 
 
 public record SolutionDTO(@NotNull boolean solved, @Min(0) double solvingTime,
-                          @NotNull double objectiveValue,
+                          @NotNull double objectiveValue, @NotNull String errorMsg,
                           @NotNull Map<@NotBlank String, @Valid @NotNull SolutionVariable> solution) {}
