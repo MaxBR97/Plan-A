@@ -236,8 +236,10 @@ const handleSolve = async () => {
           console.error("Server returned an error:", responseText);
           throw new Error(`HTTP Error! Status: ${response.status} - ${responseText}`);
       }
-
+      
       const data = JSON.parse(responseText);
+      console.log(responseText);
+      console.log(data);
       setSolutionResponse(data);
       navigate("/solution-results");
   } catch (error) {
