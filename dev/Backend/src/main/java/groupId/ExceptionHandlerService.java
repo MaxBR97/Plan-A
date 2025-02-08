@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -28,6 +29,11 @@ public class ExceptionHandlerService {
     }
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<ExceptionDTO> handleException(RuntimeException ex) {
+        ExceptionDTO errorResponse = ExceptionRecordFactory.makeDTO(ex);
+        return ResponseEntity.status(500).body(errorResponse);
+    }
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ExceptionDTO> handleException(MethodArgumentNotValidException ex) {
         ExceptionDTO errorResponse = ExceptionRecordFactory.makeDTO(ex);
         return ResponseEntity.status(500).body(errorResponse);
     }

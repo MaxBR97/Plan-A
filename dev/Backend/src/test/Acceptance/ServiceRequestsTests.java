@@ -85,7 +85,7 @@ public class ServiceRequestsTests {
             ResponseEntity<CreateImageResponseDTO> response= service.createImage(body);
 
             CreateImageResponseDTO expected = new CreateImageResponseDTO(
-                    "some id", new ModelDTO(
+                    "some imageId", new ModelDTO(
                     Set.of(new ConstraintDTO("sampleConstraint", new DependenciesDTO(Set.of(), Set.of("x")))),
                     Set.of(new PreferenceDTO("myVar[3]", new DependenciesDTO(Set.of(), Set.of()))),
                     Set.of(new VariableDTO("myVar", new DependenciesDTO(Set.of("mySet"), Set.of()))),

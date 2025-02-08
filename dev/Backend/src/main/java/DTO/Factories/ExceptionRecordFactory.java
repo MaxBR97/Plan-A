@@ -6,12 +6,15 @@ import Exceptions.UserErrors.ZimplCompileError;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import org.springframework.core.NestedRuntimeException;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.validation.FieldError;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 public class ExceptionRecordFactory {
     private static final String ohNo= "An extra extra fatal occurred while handling an error";
@@ -75,5 +78,18 @@ public class ExceptionRecordFactory {
         Objects.requireNonNull(exception,ohNo);
         //TODO: LOG
         return new ExceptionDTO("An unhandled server communication occurred.");
+    }
+    public static ExceptionDTO makeDTO(MethodArgumentNotValidException exception) {
+        Objects.requireNonNull(exception,ohNo);
+        String errorMessage = exception.getBindingResult().getFieldErrors().stream()
+                // Map each FieldError to its error message
+                .map(fieldError -> {
+                        String message = fieldError.getDefaultMessage();
+                    return message != null ? message : "Validation error occurred";
+                })
+                // Collect all error messages into a single string, joined by newlines or commas
+                .collect(Collectors.joining("\n"));
+            //TODO: LOG
+            return new ExceptionDTO(errorMessage);
     }
 }

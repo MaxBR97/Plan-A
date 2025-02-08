@@ -77,7 +77,7 @@ public class ServiceTest {
 
         //Expected response
         CreateImageResponseDTO expected = new CreateImageResponseDTO(
-            "some id", new ModelDTO(
+            "some imageId", new ModelDTO(
               Set.of(new ConstraintDTO("sampleConstraint", new DependenciesDTO(Set.of("mySet"),Set.of("x")))),
                 Set.of(new PreferenceDTO("1", new DependenciesDTO(Set.of(),Set.of()))),
                 Set.of(new VariableDTO("myVar", new DependenciesDTO(Set.of("mySet"),Set.of()))),
@@ -115,7 +115,7 @@ public class ServiceTest {
         );
         //Expected response
         CreateImageResponseDTO expected = new CreateImageResponseDTO(
-                "some id", new ModelDTO(
+                "some imageId", new ModelDTO(
                 Set.of(new ConstraintDTO("sampleConstraint", new DependenciesDTO(Set.of("mySet"),Set.of("x")))),
                 Set.of(new PreferenceDTO("1", new DependenciesDTO(Set.of(),Set.of()))),
                 Set.of(new VariableDTO("myVar", new DependenciesDTO(Set.of("mySet"),Set.of()))),
@@ -188,7 +188,7 @@ public class ServiceTest {
 
         //Expected response
         CreateImageResponseDTO expected = new CreateImageResponseDTO(
-            "some id", new ModelDTO(
+            "some imageId", new ModelDTO(
               Set.of(new ConstraintDTO("drisha1", new DependenciesDTO(Set.of("People","Emdot"),Set.of("shiftTime"))),
               new ConstraintDTO("drisha2", new DependenciesDTO(Set.of("Emdot","People"),Set.of("shiftTime"))),
               new ConstraintDTO("drisha3", new DependenciesDTO(Set.of("People","Emdot"),Set.of("shiftTime","restHours"))),
@@ -238,7 +238,7 @@ public class ServiceTest {
 
             //Expected response
             CreateImageResponseDTO expected = new CreateImageResponseDTO(
-                    "some id", new ModelDTO(
+                    "some imageId", new ModelDTO(
                     Set.of(new ConstraintDTO("sampleConstraint", new DependenciesDTO(Set.of(),Set.of("x")))),
                     Set.of(new PreferenceDTO("myVar[3]", new DependenciesDTO(Set.of(),Set.of()))),
                     Set.of(new VariableDTO("myVar", new DependenciesDTO(Set.of("mySet"),Set.of()))),
