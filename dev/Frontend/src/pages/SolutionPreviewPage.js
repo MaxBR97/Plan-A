@@ -184,7 +184,7 @@ const handleSolve = async () => {
 
   try {
       // PATCH request to /Images
-      const patchResponse = await fetch("/Images", {
+      const patchResponse = await fetch("/images", {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(patchRequestBody)
