@@ -79,17 +79,24 @@ public class ExceptionRecordFactory {
         //TODO: LOG
         return new ExceptionDTO("An unhandled server communication occurred.");
     }
+    //kinda proud of this one
     public static ExceptionDTO makeDTO(MethodArgumentNotValidException exception) {
         Objects.requireNonNull(exception,ohNo);
         String errorMessage = exception.getBindingResult().getFieldErrors().stream()
                 // Map each FieldError to its error message
                 .map(fieldError -> {
-                        String message = fieldError.getDefaultMessage();
-                    return message != null ? message : "Validation error occurred";
+                    if(fieldError.getDefaultMessage() != null) {
+                        return fieldError.getField()+" was rejected. reason: " +
+                                fieldError.getDefaultMessage()+ " provided value: " +
+                                fieldError.getRejectedValue();
+                    }
+                        else {
+                            return "Validation error message generation occurred";
+                    }
                 })
-                // Collect all error messages into a single string, joined by newlines or commas
-                .collect(Collectors.joining("\n"));
+                .collect(Collectors.joining(", "));
+
             //TODO: LOG
-            return new ExceptionDTO(errorMessage);
+            return new ExceptionDTO("Error in DTO validation: "+ errorMessage);
     }
 }

@@ -84,15 +84,6 @@ private String storageDir;
     }
 
     public void overrideImage(ImageConfigDTO imgConfig) {
-        //These check were moved to be handles by spring annotations
-        /*//verify DTO field validity
-        BadRequestException.requireNotNull(imgConfig.image(),"Bad DTO during image config, ImageDTO is null");
-        BadRequestException.requireNotNull(imgConfig.imageId(),"Bad DTO during image config, imageId is null");
-        BadRequestException.requireNotNull(imgConfig.image().variablesModule(),"Bad DTO during image config, variables in image are null");
-        BadRequestException.requireNotNull(imgConfig.image().constraintModules(),"Bad DTO during image config, constraints in image are null");
-        BadRequestException.requireNotNull(imgConfig.image().preferenceModules(),"Bad DTO during image config, preferences in image are null");
-*/
-
         ImageDTO imageDTO= imgConfig.image();
         Image image=images.get(UUID.fromString(imgConfig.imageId()));
         Objects.requireNonNull(image,"Invalid imageId in image config/override image");
