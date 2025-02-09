@@ -8,12 +8,15 @@ export const ZPLProvider = ({ children }) => {
     const [modules, setModules] = useState([]);
     const [preferenceModules, setPreferenceModules] = useState([]);
     const [variables, setVariables] = useState([]);
-    const [setTypes, setSetTypes] = useState({}); // ✅ NEW: Store set types
-    const [paramTypes, setParamTypes] = useState({}); // ✅ NEW: Store param types
-    const [varTypes, setVarTypes] = useState({}); // ✅ NEW: Store variable types
+    const [setTypes, setSetTypes] = useState({});
+    const [paramTypes, setParamTypes] = useState({});
     const [imageId, setImageId] = useState(null);
-    const [solutionResponse, setSolutionResponse] = useState(null); // Store response
-    const [solutionData, setSolutionData] = useState(null);
+    const [solutionResponse, setSolutionResponse] = useState(null);
+    const [variablesModule, setVariablesModule] = useState({
+        variablesOfInterest: [],
+        variablesConfigurableSets: [],
+        variablesConfigurableParams: []
+    });
 
     return (
         <ZPLContext.Provider value={{
@@ -22,12 +25,11 @@ export const ZPLProvider = ({ children }) => {
             modules, setModules,
             preferenceModules, setPreferenceModules,
             variables, setVariables,
-            setTypes, setSetTypes, // ✅ Provide setTypes
-            paramTypes, setParamTypes, // ✅ Provide paramTypes
-            varTypes, setVarTypes, // ✅ Provide varTypes
+            setTypes, setSetTypes,
+            paramTypes, setParamTypes,
             imageId, setImageId,
             solutionResponse, setSolutionResponse,
-            solutionData, setSolutionData
+            variablesModule, setVariablesModule // Added variablesModule to context
         }}>
             {children}
         </ZPLContext.Provider>

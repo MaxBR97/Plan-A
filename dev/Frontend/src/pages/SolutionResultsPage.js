@@ -62,7 +62,7 @@ const SolutionResultsPage = () => {
             {[...new Set(solutions.map((sol) => sol.values[0]))].map(
               (row, rowIndex) => (
                 <tr key={rowIndex}>
-                  <td>{row}</td>
+                  <td className="row-header">{row}</td>
                   {[...new Set(solutions.map((sol) => sol.values[1]))].map(
                     (col, colIndex) => {
                       const match = solutions.find(
@@ -111,7 +111,7 @@ const SolutionResultsPage = () => {
             {[...new Set(solutions.map((sol) => sol.values[1]))].map(
               (row, rowIndex) => (
                 <tr key={rowIndex}>
-                  <td>{row}</td>
+                  <td className="row-header">{row}</td>
                   {[...new Set(solutions.map((sol) => sol.values[2]))].map(
                     (col, colIndex) => {
                       const relevantPeople = solutions.filter(

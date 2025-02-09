@@ -6,12 +6,15 @@ import Exceptions.UserErrors.ZimplCompileError;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import org.springframework.core.NestedRuntimeException;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.validation.FieldError;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 public class ExceptionRecordFactory {
     private static final String ohNo= "An extra extra fatal occurred while handling an error";
@@ -21,19 +24,24 @@ public class ExceptionRecordFactory {
     public static ExceptionDTO makeDTO(Exception exception) {
         Objects.requireNonNull(exception,ohNo);
         //TODO: LOG
-        return new ExceptionDTO("An unknown error occurred, see log for details, or contract the developer");
+        //return new ExceptionDTO("An unknown error occurred, see log for details, or contract the developer");
+        return new ExceptionDTO("Full error ahead, this is temporary and should not be shown to end users: "+ exception.getMessage());
     }
     public static ExceptionDTO makeDTO(RuntimeException exception) {
         Objects.requireNonNull(exception,ohNo);
         //TODO: LOG
-        return new ExceptionDTO("An unexpected fatal error occurred. See log for details, or contract the developer");
+//        return new ExceptionDTO("An unexpected fatal error occurred. See log for details, or contract the developer");
+        return new ExceptionDTO("Full error ahead, this is temporary and should not be shown to end users: "+ exception.getMessage());
+
     }
-    public static ExceptionDTO makeException(BadRequestException exception) {
+    public static ExceptionDTO makeDTO(BadRequestException exception) {
         Objects.requireNonNull(exception,ohNo);
         //TODO: LOG
-        return new ExceptionDTO("Bad HTTP request. See log for details, or contract the developer");
+//        return new ExceptionDTO("Bad HTTP request. See log for details, or contract the developer");
+        return new ExceptionDTO("Full error ahead, this is temporary and should not be shown to end users: "+ exception.getMessage());
+
     }
-    public static ExceptionDTO makeException(IOException exception) {
+    public static ExceptionDTO makeDTO(IOException exception) {
         Objects.requireNonNull(exception,ohNo);
         //TODO: LOG
         return new ExceptionDTO("An error occurred while trying to access the file system.\n" +
@@ -71,7 +79,24 @@ public class ExceptionRecordFactory {
         //TODO: LOG
         return new ExceptionDTO("An unhandled server communication occurred.");
     }
+    //kinda proud of this one
+    public static ExceptionDTO makeDTO(MethodArgumentNotValidException exception) {
+        Objects.requireNonNull(exception,ohNo);
+        String errorMessage = exception.getBindingResult().getFieldErrors().stream()
+                // Map each FieldError to its error message
+                .map(fieldError -> {
+                    if(fieldError.getDefaultMessage() != null) {
+                        return fieldError.getField()+" was rejected. reason: " +
+                                fieldError.getDefaultMessage()+ " provided value: " +
+                                fieldError.getRejectedValue();
+                    }
+                        else {
+                            return "Validation error message generation occurred";
+                    }
+                })
+                .collect(Collectors.joining(", "));
 
-
-
+            //TODO: LOG
+            return new ExceptionDTO("Error in DTO validation: "+ errorMessage);
+    }
 }

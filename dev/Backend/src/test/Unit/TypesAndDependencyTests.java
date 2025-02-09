@@ -270,7 +270,7 @@ public class TypesAndDependencyTests {
         ModelSet set = model.getSet(setName);
         assertEquals(expectedSetFirstDegreeDeps.size(), set.getSetDependencies().size());
         for (ModelSet setDep : set.getSetDependencies()) {
-            assertTrue(expectedSetFirstDegreeDeps.contains(setDep.getIdentifier()), "set id: "+setDep.getIdentifier());
+            assertTrue(expectedSetFirstDegreeDeps.contains(setDep.getIdentifier()), "set imageId: "+setDep.getIdentifier());
 
             if(hasSecondDegreeDeps){
                 for(ModelSet dep2 : setDep.getSetDependencies()){

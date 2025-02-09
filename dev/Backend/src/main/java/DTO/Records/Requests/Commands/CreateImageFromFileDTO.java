@@ -1,3 +1,5 @@
 package DTO.Records.Requests.Commands;
 
-public record CreateImageFromFileDTO(String code) {}
+import jakarta.validation.constraints.NotBlank;
+
+public record CreateImageFromFileDTO(@NotBlank String code) {}

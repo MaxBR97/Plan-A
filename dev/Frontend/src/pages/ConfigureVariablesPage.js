@@ -1,76 +1,77 @@
 import React, { useState, useEffect } from "react";
-import { Link } from 'react-router-dom';
-import { useZPL } from '../context/ZPLContext';
-import './ConfigureVariablesPage.css';
-import Checkbox from'../reusableComponents/Checkbox.js';
+import { Link } from "react-router-dom";
+import { useZPL } from "../context/ZPLContext";
+import "./ConfigureVariablesPage.css";
+import Checkbox from "../reusableComponents/Checkbox.js";
 
 const ConfigureVariablesPage = () => {
-    const { variables } = useZPL();
+    const { variables, variablesModule, setVariablesModule } = useZPL();
 
-    const allSets = variables.flatMap(variable => variable.dep?.setDependencies ?? []);
-    const allParams = variables.flatMap(variable => variable.dep?.paramDependencies ?? []);
+    const [selectedVars, setSelectedVars] = useState([]);  // Stores selected variables
+    const [selectedSets, setSelectedSets] = useState([]);  // Stores selected sets
+    const [selectedParams, setSelectedParams] = useState([]); // Stores selected params
+    const [displaySets, setDisplaySets] = useState([]);    // Stores sets that should be displayed
+    const [displayParams, setDisplayParams] = useState([]); // Stores params that should be displayed
 
-    const [selectedVars, setSelectedVars] = useState([]);
-    const [selectedSets, setSelectedSets] = useState([]);
-    const [selectedParams, setSelectedParams] = useState([]);
-    const [displaySets, setDisplaySets] = useState([]);
-    const [displayParams, setDisplayParams] = useState([]);
-
-    const determineSetAndParamsToDisplay = () => {
+    // Function to update displayed sets & params when variables are selected
+    const updateDisplayedSetsAndParams = () => {
         const newDisplaySets = selectedVars
-    .flatMap(variable => variable.dep?.setDependencies ?? [])
-    .reduce((unique, item) => 
-        unique.includes(item) ? unique : [...unique, item], 
-    []);
+            .flatMap(variable => variable.dep?.setDependencies ?? [])
+            .reduce((unique, item) => unique.includes(item) ? unique : [...unique, item], []);
 
-    const newDisplayParams = selectedVars
-    .flatMap(variable => variable.dep?.paramDependencies ?? [])
-    .reduce((unique, item) => 
-        unique.includes(item) ? unique : [...unique, item], 
-    []);
-    
+        const newDisplayParams = selectedVars
+            .flatMap(variable => variable.dep?.paramDependencies ?? [])
+            .reduce((unique, item) => unique.includes(item) ? unique : [...unique, item], []);
+
         setDisplaySets(newDisplaySets);
         setDisplayParams(newDisplayParams);
     };
 
     useEffect(() => {
-        determineSetAndParamsToDisplay();
-    }, [selectedVars]);
-    
+        updateDisplayedSetsAndParams();
+    }, [selectedVars]); // Update when selected variables change
 
-    const handleVarCheckboxChange = (itemId) => {
+    // Handles variable selection (checkbox clicked)
+    const handleVarCheckboxChange = (variable) => {
         setSelectedVars(prevSelectedVars => {
-        
-          if (prevSelectedVars.includes(itemId)) {
-            return prevSelectedVars.filter(id => id !== itemId);
-          } else {
-            return [...prevSelectedVars, itemId];
-          }
+            if (prevSelectedVars.includes(variable)) {
+                return prevSelectedVars.filter(v => v !== variable);
+            } else {
+                return [...prevSelectedVars, variable];
+            }
         });
-        determineSetAndParamsToDisplay();
-      };
+    };
 
-    const handleSetsCheckboxChange = (itemId) => {
+    // Handles set selection (checkbox clicked)
+    const handleSetCheckboxChange = (set) => {
         setSelectedSets(prevSelected => {
-          if (prevSelected.includes(itemId)) {
-            return prevSelected.filter(id => id !== itemId);
-          } else {
-            return [...prevSelected, itemId];
-          }
+            if (prevSelected.includes(set)) {
+                return prevSelected.filter(s => s !== set);
+            } else {
+                return [...prevSelected, set];
+            }
         });
+    };
 
-      };
-
-    const handleParamsCheckboxChange = (itemId) => {
-        setSelectedParams(prevSelected => { 
-          if (prevSelected.includes(itemId)) {
-            return prevSelected.filter(id => id !== itemId);
-          } else {
-            return [...prevSelected, itemId];
-          }
+    // Handles parameter selection (checkbox clicked)
+    const handleParamCheckboxChange = (param) => {
+        setSelectedParams(prevSelected => {
+            if (prevSelected.includes(param)) {
+                return prevSelected.filter(p => p !== param);
+            } else {
+                return [...prevSelected, param];
+            }
         });
+    };
 
-      };
+    // Save selected variables, sets, and parameters in context when navigating
+    const handleContinue = () => {
+        setVariablesModule({
+            variablesOfInterest: selectedVars.map(v => v.identifier),
+            variablesConfigurableSets: selectedSets,
+            variablesConfigurableParams: selectedParams
+        });
+    };
 
     return (
         <div className="configure-variables-page">
@@ -80,13 +81,9 @@ const ConfigureVariablesPage = () => {
                 {/* Variables Section */}
                 <div className="available-variables">
                     <h2>Available Variables</h2>
-                    {variables && Array.isArray(variables) && variables.length > 0 ? (
+                    {variables.length > 0 ? (
                         variables.map((variable, index) => (
-                            // <div key={index} className="variable-box">
-                            //     {variable.identifier}
-                            // </div>
                             <Checkbox
-                                className="variable-box"
                                 key={index}
                                 label={variable.identifier}
                                 checked={selectedVars.includes(variable)}
@@ -98,38 +95,30 @@ const ConfigureVariablesPage = () => {
                     )}
                 </div>
                 
-                {/* Sets & Parameters Section */}
+                {/* Sets & Parameters Section (Only for Selected Variables) */}
                 <div className="involved-section">
-                    <h2>All Sets</h2>
+                    <h2>Involved Sets</h2>
                     {displaySets.length > 0 ? (
                         displaySets.map((set, index) => (
-                            // <div key={index} className="set-box">
-                            //     {set}
-                            // </div>
                             <Checkbox
-                                className="set-box"
                                 key={index}
                                 label={set}
                                 checked={selectedSets.includes(set)}
-                                onChange={() => handleSetsCheckboxChange(set)}
+                                onChange={() => handleSetCheckboxChange(set)}
                             />
                         ))
                     ) : (
                         <p>No sets available.</p>
                     )}
-                    
-                    <h2>All Parameters</h2>
+
+                    <h2>Involved Parameters</h2>
                     {displayParams.length > 0 ? (
                         displayParams.map((param, index) => (
-                            // <div key={index} className="param-box">
-                            //     {param}
-                            // </div>
                             <Checkbox
-                                className="param-box"
                                 key={index}
                                 label={param}
                                 checked={selectedParams.includes(param)}
-                                onChange={() => handleParamsCheckboxChange(param)}
+                                onChange={() => handleParamCheckboxChange(param)}
                             />
                         ))
                     ) : (
@@ -138,7 +127,9 @@ const ConfigureVariablesPage = () => {
                 </div>
             </div>
             
-            <Link to="/configure-constraints" className="continue-button">Continue</Link>
+            <Link to="/configure-constraints" className="continue-button" onClick={handleContinue}>
+                Continue
+            </Link>
         </div>
     );
 };

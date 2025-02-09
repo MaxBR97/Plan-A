@@ -3,17 +3,13 @@ package groupId;
 import DTO.Factories.RecordFactory;
 import DTO.Records.Image.ConstraintModuleDTO;
 import DTO.Records.Image.PreferenceModuleDTO;
-import DTO.Records.Model.ModelDefinition.VariableDTO;
 import DTO.Records.Requests.Commands.ImageConfigDTO;
 import DTO.Records.Requests.Commands.SolveCommandDTO;
 import DTO.Records.Image.ImageDTO;
 import DTO.Records.Image.SolutionDTO;
 import DTO.Records.Requests.Responses.CreateImageResponseDTO;
-import DTO.Records.Requests.Responses.ImageResponseDTO;
+import Exceptions.InternalErrors.BadRequestException;
 import Image.Image;
-import Model.Model;
-import Model.ModelConstraint;
-import Model.ModelInput;
 import Model.ModelInterface;
 import Model.ModelType;
 import Model.ModelVariable;
@@ -22,13 +18,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 public class UserController {
@@ -91,11 +85,15 @@ private String storageDir;
 
     public void overrideImage(ImageConfigDTO imgConfig) {
         ImageDTO imageDTO= imgConfig.image();
-        Image image=images.get(UUID.fromString(imgConfig.id()));
-        Objects.requireNonNull(image,"Invalid id in image config/override image");
+        Image image=images.get(UUID.fromString(imgConfig.imageId()));
+        Objects.requireNonNull(image,"Invalid imageId in image config/override image");
         Map<String, ModelVariable> variables = new HashMap<>();
         ModelInterface model= image.getModel();
         for(String variable:imageDTO.variablesModule().variablesOfInterest()){
+            BadRequestException.requireNotNull(imgConfig.image().variablesModule().variablesOfInterest(),"Bad DTO during image config, field in variables in image is null");
+            BadRequestException.requireNotNull(imgConfig.image().variablesModule().variablesConfigurableParams(),"Bad DTO during image config, field in variables in image is null");
+            BadRequestException.requireNotNull(imgConfig.image().variablesModule().variablesConfigurableSets(),"Bad DTO during image config, field in variables in image is null");
+
             ModelVariable modelVariable=model.getVariable(variable);
             Objects.requireNonNull(modelVariable,"Invalid variable name in config/override image");
             variables.put(variable,modelVariable);
@@ -113,4 +111,6 @@ private String storageDir;
     public Image getImage(String id) {
         return images.get(UUID.fromString(id));
     }
+
+
 }

@@ -69,7 +69,8 @@ public class Solution {
                         //When var depends on anonymous primitive set, it's structure it an array of null blocks
                         //therefore block.dependency is an invalid access
                         //example: var varForTest1[CxS *{"A","a"} * S * {1 .. 5}];
-                        variableStructure.get(variable.getIdentifier()).add(block.dependency.identifier);
+                        if(block.dependency!=null) //fix?
+                            variableStructure.get(variable.getIdentifier()).add(block.dependency.identifier);
 
                     }
                 }

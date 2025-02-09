@@ -11,6 +11,7 @@ import DTO.Records.Image.SolutionDTO;
 import DTO.Records.Requests.Responses.CreateImageResponseDTO;
 import DTO.Records.Requests.Responses.ImageResponseDTO;
 
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.ResponseEntity;
@@ -41,21 +42,20 @@ public class Service implements ServiceInterface {
     }
     
     @PostMapping("/images")
-    public ResponseEntity<CreateImageResponseDTO> createImage(@RequestBody CreateImageFromFileDTO data) throws Exception {
+    public ResponseEntity<CreateImageResponseDTO> createImage(@Valid @RequestBody CreateImageFromFileDTO data) throws Exception {
         CreateImageResponseDTO response = controller.createImageFromFile(data.code());
         return ResponseEntity.ok(response);
     }
 
     @PatchMapping("/images")
-    public ResponseEntity<Void> configureImage(@RequestBody ImageConfigDTO imgConfig){
+    public ResponseEntity<Void> configureImage(@Valid @RequestBody ImageConfigDTO imgConfig){
         controller.overrideImage(imgConfig);
         return ResponseEntity.ok().build();
     }
     
     @PostMapping("/solve")
-    public ResponseEntity<SolutionDTO> solve(@RequestBody SolveCommandDTO input) throws Exception {
+    public ResponseEntity<SolutionDTO> solve(@Valid @RequestBody SolveCommandDTO input) throws Exception {
         SolutionDTO res = controller.solve(input);
         return ResponseEntity.ok(res);
     }
-
 }
