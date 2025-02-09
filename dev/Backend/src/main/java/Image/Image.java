@@ -134,7 +134,7 @@ public class Image {
             constraintsModules.get(name).ToggleModule();
     }*/
     public SolutionDTO solve(int timeout){
-        Solution solution=model.solve(timeout);
+        Solution solution=model.solve(timeout, "SOLUTION");
         try {
             solution.parseSolution(model, variables.getIdentifiers());
         } catch (IOException e) {

@@ -123,7 +123,7 @@ public class ConstraintModuleDTOTests {
 
     @Test
     public void testSolve(){
-        Solution solution= model.solve(1000);
+        Solution solution= model.solve(1000,"SOLUTION");
         Set<String> vars= model.getVariables().stream().map(ModelVariable -> ModelVariable.getIdentifier()).collect(Collectors.toSet());
         try {
             solution.parseSolution(model,vars);

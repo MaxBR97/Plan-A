@@ -209,7 +209,7 @@ public class ModelTest {
         Model m = null;
         try{
          m = new Model("./src/test/Unit/TestFile2.zpl");
-        Solution sol = m.solve(100);
+        Solution sol = m.solve(100,"SOLUTION");
         
         if(sol == null)
             assertFalse(true);

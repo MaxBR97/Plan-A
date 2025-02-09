@@ -285,7 +285,7 @@ public class Model implements ModelInterface {
                         continue;
                     }
 
-                    if(line.matches(".*file .* not found.*"))
+                    if(line.matches("file .* not found"))
                         throw new BadRequestException("Error: Tried solving non existing file: "+ line);
                     
                     if (line.matches(".*Error [0-9]{1,4}:.*")){

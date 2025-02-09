@@ -42,7 +42,7 @@ public class ModelStub implements ModelInterface {
     }
 
     @Override
-    public Solution solve(float timeout) {
+    public Solution solve(float timeout, String suffix) {
         return null;
     }
 

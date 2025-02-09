@@ -4,6 +4,8 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
+import Exceptions.InternalErrors.BadRequestException;
+
 /**
  * Interface defining the public API for interacting with a mathematical optimization model.
  * This interface provides methods for managing sets, parameters, constraints, preferences,
@@ -59,7 +61,7 @@ public interface ModelInterface {
      * @param timeout Maximum time in seconds to wait for compilation
      * @return true if compilation succeeds, false otherwise
      */
-    boolean isCompiling(float timeout);
+    boolean isCompiling(float timeout) throws BadRequestException;
 
     /**
      * Solves the model and returns the solution.
@@ -67,7 +69,7 @@ public interface ModelInterface {
      * @param timeout Maximum time in seconds to wait for solving
      * @return Solution object if solving succeeds, null otherwise
      */
-    Solution solve(float timeout);
+    Solution solve(float timeout, String solutionFileSufix) throws BadRequestException;
 
     /**
      * Retrieves a set by its identifier.
