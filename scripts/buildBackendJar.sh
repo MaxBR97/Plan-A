@@ -3,4 +3,4 @@
 SCRIPT_DIR=$( dirname "${BASH_SOURCE[0]}" )
 
 cd $SCRIPT_DIR/../dev/Backend
-mvn clean package -DskipTests
+mvn clean generate-sources package -DskipTests

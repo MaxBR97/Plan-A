@@ -1,5 +1,5 @@
 {
-  "name": "plan-a-front",
+  "name": "plan-a",
   "version": "0.1.0",
   "description": "A React and Electron application",
   "author": "Your Name <your-email@example.com>",
@@ -85,8 +85,17 @@
         }
       ]
     },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "include": "installers/windows/installer.nsh", 
+      "perMachine": true,
+      "installerIcon": "assets/icon.ico",
+      "uninstallerIcon": "assets/icon.ico",
+      "deleteAppDataOnUninstall": true
+    },
     "linux": {
-      "target": ["AppImage", "deb"],
+      "target": ["deb"],
       "extraFiles": [
         {
           "from": "installers/linux",
@@ -94,18 +103,22 @@
           "filter": ["**/*"]
         }
       ],
-      "category": "Development"
-    },
-    "nsis": {
-      "oneClick": false,
-      "allowToChangeInstallationDirectory": true,
-      "include": "installer.nsh",
-      "perMachine": true,
-      "installerIcon": "assets/icon.ico",
-      "uninstallerIcon": "assets/icon.ico"
+      "category": "Utility"
     },
     "deb": {
-      "depends": ["default-jre | java8-runtime"]
+      "depends": [
+        "default-jre | java8-runtime",
+        "gcc",
+        "g++",
+        "gfortran",
+        "liblapack3",
+        "libtbb12",
+        "libcliquer1",
+        "libopenblas-dev",
+        "patchelf"
+      ],
+      "afterInstall":"installers/linux/postInstall.sh"
+      
     }
     
   },
