@@ -1,5 +1,6 @@
 package Model;
 
+import Exceptions.InternalErrors.BadRequestException;
 import Exceptions.UserErrors.ZimplCompileError;
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.*;
@@ -47,6 +48,9 @@ public class Model implements ModelInterface {
     private String originalSource;
     
     public Model(String sourceFilePath) throws IOException {
+        if (!Files.exists(Paths.get(sourceFilePath))) {
+            throw new BadRequestException("File does not exist: " + sourceFilePath);
+        }
         this.sourceFilePath = sourceFilePath;
         parseSource();
     }
@@ -69,7 +73,8 @@ public class Model implements ModelInterface {
         //     throw new IllegalArgumentException("Set " + setName + " not found");
         // }
         if(!set.isCompatible(value))
-            throw new Exception("Incompatible types!");
+            throw new BadRequestException("set "+set.identifier+" is incompatible with given input: "+value+" , expected type: "+set.getType());
+        
         ModifierVisitor modifier = new ModifierVisitor(tokens, set.getIdentifier(), value, ModifierVisitor.Action.APPEND, originalSource);
         modifier.visit(tree);
         
@@ -86,7 +91,8 @@ public class Model implements ModelInterface {
         //     throw new IllegalArgumentException("Set " + setName + " not found");
         // }
         if(!set.isCompatible(value))
-            throw new Exception("Incompatible types!");
+            throw new BadRequestException("set "+set.identifier+" is incompatible with given input: "+value+" , expected type: "+set.getType());
+
         ModifierVisitor modifier = new ModifierVisitor(tokens, set.getIdentifier(), value,  ModifierVisitor.Action.DELETE, originalSource);
         modifier.visit(tree);
         
@@ -101,7 +107,7 @@ public class Model implements ModelInterface {
     public void setInput(ModelParameter identifier, String value) throws Exception {
 
         if(!identifier.isCompatible(value))
-        throw new Exception(value + " is an incompatible value, expected: " + identifier.getType());
+            throw new BadRequestException("parameter "+identifier.identifier+" is incompatible with given input: "+value +" expected type: "+identifier.getType());
         
         ModifierVisitor modifier = new ModifierVisitor(tokens, identifier.getIdentifier(), value,  ModifierVisitor.Action.SET, originalSource);
         modifier.visit(tree);
@@ -117,8 +123,9 @@ public class Model implements ModelInterface {
     public void setInput(ModelSet identifier, String[] values) throws Exception {
 
         for(String str : values){
-           if( !identifier.isCompatible(str))
-             throw new Exception(str + " is an incompatible value, expected: " + identifier.getType());
+            if(!identifier.isCompatible(str))
+                throw new BadRequestException("set "+identifier.identifier+" is incompatible with given input: "+str+" , expected type: "+identifier.getType());
+
         }
         
         ModifierVisitor modifier = new ModifierVisitor(tokens, identifier.getIdentifier(), values,  ModifierVisitor.Action.SET, originalSource);
@@ -167,68 +174,99 @@ public class Model implements ModelInterface {
     }
     
 
-public boolean isCompiling(float timeout) {
-    boolean ans = false;
-    try {
-        commentOutToggledFunctionalities();
-
-        ProcessBuilder processBuilder = new ProcessBuilder(
-            "scip", "-c", "read " + sourceFilePath + " q"
-        );
-        processBuilder.redirectErrorStream(true);
-        Process process = processBuilder.start();
-
-        // Executor service to handle timeouts
-        ExecutorService executor = Executors.newSingleThreadExecutor();
-        Future<Boolean> future = executor.submit(() -> {
-            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-            StringBuilder output = new StringBuilder();
-            String line;
-            while ((line = reader.readLine()) != null) {
-                output.append(line).append("\n");
-                
-                if (line.contains("original problem has")) {
-                    return true;
-                } else if (line.contains("error reading file")) {
-                    return false;
-                }
-            }
-            return false;
-        });
-
+    public boolean isCompiling(float timeout) throws BadRequestException {
+        boolean ans = false;
         try {
-            ans = future.get((long) timeout, TimeUnit.SECONDS);
-        } catch (TimeoutException e) {
-            process.destroy(); // Kill the process if timeout occurs
-            ans = false;
-        } finally {
-            executor.shutdown();
-        }
-
-        restoreToggledFunctionalities();
-        return ans;
-    } catch (Exception e) {
-        try {
-            restoreToggledFunctionalities();
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        }
-        e.printStackTrace();
-        return false;
-    }
-}
+            commentOutToggledFunctionalities();
     
-    public Solution solve(float timeout) {
+            ProcessBuilder processBuilder = new ProcessBuilder(
+                "scip", "-c", "read " + sourceFilePath + " q"
+            );
+            processBuilder.redirectErrorStream(true);
+            
+            Process process;
+            try {
+                process = processBuilder.start();
+            } catch (IOException e) {
+                // Check if it's specifically a command not found error
+                if (e.getMessage().contains("Cannot run program \"scip\"") || 
+                    e.getMessage().contains("error=2")) {
+                    throw new BadRequestException("SCIP solver not found. Please ensure SCIP is installed and available in system PATH");
+                }
+                throw e; // Rethrow other IOExceptions
+            }
+    
+            // Executor service to handle timeouts
+            ExecutorService executor = Executors.newSingleThreadExecutor();
+            Future<Boolean> future = executor.submit(() -> {
+                BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+                StringBuilder output = new StringBuilder();
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    output.append(line).append("\n");
+                    
+                    if (line.contains("original problem has")) {
+                        return true;
+                    } else if (line.contains("error reading file")) {
+                        return false;
+                    }
+                }
+
+                throw new BadRequestException("Error checking compilation: "+ output.toString());
+            });
+    
+            try {
+                ans = future.get((long) timeout, TimeUnit.SECONDS);
+            } catch (TimeoutException e) {
+                process.destroy(); // Kill the process if timeout occurs
+                ans = false;
+            } finally {
+                executor.shutdown();
+            }
+    
+            restoreToggledFunctionalities();
+            return ans;
+        } catch (Exception e) {
+            try {
+                restoreToggledFunctionalities();
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+            
+            // If it's our SCIP not found exception, rethrow it
+            if (e instanceof BadRequestException) {
+                throw (BadRequestException) e;
+            }
+            
+            e.printStackTrace();
+            return false;
+        }
+    }
+    
+    public Solution solve(float timeout, String solutionFileSufix) throws BadRequestException {
+        if(solutionFileSufix == null)
+            throw new BadRequestException("solutionFileSufix is null");
         Solution ans = null;
         try {
             commentOutToggledFunctionalities();
-
+    
             ProcessBuilder processBuilder = new ProcessBuilder(
                 "scip", "-c", "read " + sourceFilePath + " optimize display solution q"
             );
             processBuilder.redirectErrorStream(true);
-            Process process = processBuilder.start();
-
+            
+            Process process;
+            try {
+                process = processBuilder.start();
+            } catch (IOException e) {
+                // Check if it's specifically a command not found error
+                if (e.getMessage().contains("Cannot run program \"scip\"") || 
+                    e.getMessage().contains("error=2")) {
+                    throw new BadRequestException("SCIP solver not found. Please ensure SCIP is installed and available in system PATH");
+                }
+                throw e; // Rethrow other IOExceptions
+            }
+    
             // Executor service to handle timeouts
             ExecutorService executor = Executors.newSingleThreadExecutor();
             Future<Solution> future = executor.submit(() -> {
@@ -240,14 +278,22 @@ public boolean isCompiling(float timeout) {
                 int count = 0;
                 while ((line = reader.readLine()) != null) {
                     // Remove lines starting with '@'
-                    
                     if (line.startsWith("@@")) continue;
     
                     // Remove excessive newlines
                     if (line.trim().isEmpty() && (output.length() == 0 || output.toString().endsWith("\n"))) {
                         continue;
                     }
-    
+
+                    if(line.matches(".*file .* not found.*"))
+                        throw new BadRequestException("Error: Tried solving non existing file: "+ line);
+                    
+                    if (line.matches(".*Error [0-9]{1,4}:.*")){
+                        while ((line += reader.readLine()) != null)
+                        {}
+                        throw new BadRequestException("Error: Solving is unsuccesful: "+ line);
+                    }
+                    
                     // Capture lines after "SCIP Status" until the end
                     if (line.contains("SCIP Status")) {
                         buffer.setLength(0); // Clear buffer
@@ -256,20 +302,17 @@ public boolean isCompiling(float timeout) {
                     if (capture) {
                         buffer.append(line).append("\n");
                     }
-                    
                 }
     
-                
                 String filteredOutput = buffer.toString().lines()
                     .collect(Collectors.collectingAndThen(Collectors.toList(), list -> {
-                        
                         return String.join("\n", list);
                     }));
     
-                Files.write(Paths.get(sourceFilePath + "SOLUTION"), filteredOutput.getBytes());
-                return new Solution(Paths.get(sourceFilePath + "SOLUTION").toString());
+                Files.write(Paths.get(sourceFilePath + solutionFileSufix), filteredOutput.getBytes());
+                return new Solution(Paths.get(sourceFilePath + solutionFileSufix).toString());
             });
-
+    
             try {
                 ans = future.get((long) timeout, TimeUnit.SECONDS);
             } catch (TimeoutException e) {
@@ -278,7 +321,7 @@ public boolean isCompiling(float timeout) {
             } finally {
                 executor.shutdown();
             }
-
+    
             restoreToggledFunctionalities();
             return ans;
         } catch (Exception e) {
@@ -287,6 +330,12 @@ public boolean isCompiling(float timeout) {
             } catch (IOException ex) {
                 ex.printStackTrace();
             }
+            
+            // If it's our SCIP not found exception, rethrow it
+            if (e instanceof BadRequestException) {
+                throw (BadRequestException) e;
+            }
+            
             e.printStackTrace();
             return null;
         }

@@ -22,8 +22,7 @@ subto drisha3:
 
 subto drisha4:
     forall <person> in People: 
-        TotalMishmarot[person] == sum <person2,emda,zm
-        an> in People * Mishmarot | person ==person2 : Shibutsim[person2,emda,zman];
+        TotalMishmarot[person] == sum <person2,emda,zman> in People * Mishmarot | person ==person2 : Shibutsim[person2,emda,zman];
 
 minimize distributeShiftsEqually:
     sum <person> in People : (TotalMishmarot[person]**2);
