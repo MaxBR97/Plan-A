@@ -11,7 +11,8 @@ RUN apt-get install -y \
     npm \
     curl \
     maven \
-    dbus
+    dbus \
+    wget
 
 RUN apt-get install -y \
     libblas3 \
@@ -23,6 +24,9 @@ RUN apt-get install -y \
     libmetis5 \
     libopenblas0 \
     libtbb12
+    
+
+
 
 WORKDIR /Plan-A
 COPY . .

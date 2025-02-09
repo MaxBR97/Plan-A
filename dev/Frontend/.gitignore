@@ -13,6 +13,9 @@
 /dist
 Distribution
 resources
+installers/windows/jdk-windows.exe
+installers/windows/vc_redist.x64.exe
+installers/windows/SCIPOptSuite-installer.exe
 # misc
 .DS_Store
 .env.local
