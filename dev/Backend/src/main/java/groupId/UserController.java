@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -44,17 +45,34 @@ private String storageDir;
 
 
     public CreateImageResponseDTO createImageFromFile(String code) throws Exception {
-        UUID id= UUID.randomUUID();
+        UUID id = UUID.randomUUID();
         String name = id.toString();
-        String jarDir = new File(Main.class.getProtectionDomain()
-             .getCodeSource().getLocation().toURI()).getParent();
-        Path path = Paths.get(jarDir,storageDir, File.separator+name+".zpl");
-        Files.createDirectories(path.getParent());
-        Files.writeString(path,code, StandardOpenOption.CREATE);
-        Image image=new Image(path.toAbsolutePath().toString());
-        images.put(id,image);
-        return RecordFactory.makeDTO(id,image.getModel());
+
+        // Get application directory
+        String appDir;
+        try {
+            URI uri = getClass().getProtectionDomain().getCodeSource().getLocation().toURI();
+            appDir = new File(uri).getParent();
+        } catch (Exception e) {
+            appDir = System.getProperty("user.home"); // Fallback
+        }
+
+        if (appDir == null) {
+            throw new BadRequestException("Could not determine application directory.");
+        }
+
+        // Resolve the path relative to the JAR location
+        Path storagePath = Paths.get(appDir, storageDir);
+        Files.createDirectories(storagePath);
+        Path filePath = storagePath.resolve(name + ".zpl");
+        Files.writeString(filePath, code, StandardOpenOption.CREATE);
+        Image image = new Image(filePath.toAbsolutePath().toString());
+        images.put(id, image);
+
+        return RecordFactory.makeDTO(id, image.getModel());
     }
+
+    
 
     public SolutionDTO solve(SolveCommandDTO command) throws Exception {
         Image image = images.get(UUID.fromString(command.imageId()));

@@ -51,7 +51,7 @@ JAR_PATH="/opt/Plan-A/resources/resources/artifactid-0.0.1-SNAPSHOT.jar"
 
 if [ -f "$JAR_PATH" ]; then
     echo "Setting ownership and permissions for $JAR_PATH..."
-
+    
     # Change ownership to root
     sudo chown root:root "$JAR_PATH"
 
