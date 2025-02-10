@@ -80,7 +80,7 @@ const startJarProcess = () => {
   }
 
   // Spawn the JAR process
-  jarProcess = spawn('java', ['-jar', jarPath,`--server.port=${port}`/*,arg1,arg2*/ ]);
+  jarProcess = spawn('java', ['-jar', jarPath,`--server.port=${port}`, `app.file.storage-dir=./User/Models` /*,arg1,arg2*/ ]);
 
   // Optional: Log output from the JAR process
   jarProcess.stdout.on('data', (data) => {

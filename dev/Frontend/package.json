@@ -24,6 +24,9 @@
     "electron-start": "electron --no-sandbox .",
     "build": "react-scripts build && cp electron.js ./build/ && rm -rf ../Backend/src/main/resources/static/* && cp -r ./build/* ../Backend/src/main/resources/static && ( cd ../Backend/src/main/resources && port=$( grep -ioP \"(?<=server\\.port\\s=\\s)\\d+\" application.properties ) && sed -i \"s/\\(\\\"API_PORT\\\"[[:space:]]*:[[:space:]]*\\)\\\"[0-9]\\+\\\"/\\1\\\"$port\\\"/g\" ./static/config.json )",
     "electron-build": "npm run build && electron-builder",
+    "build-win": "react-scripts build && copy electron.js .\\build\\ && if exist ..\\Backend\\src\\main\\resources\\static\\* del /s /q ..\\Backend\\src\\main\\resources\\static\\* && xcopy .\\build\\* ..\\Backend\\src\\main\\resources\\static\\ /s /e /y",
+    "electron-build-win": "npm run build-win && electron-builder",
+    "electron-build-win2": "electron-builder",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
@@ -80,8 +83,7 @@
       "extraFiles": [
         {
           "from": "installers/windows",
-          "to": "installers",
-          "filter": ["**/*"]
+          "to": "installers"
         }
       ]
     },
@@ -90,8 +92,6 @@
       "allowToChangeInstallationDirectory": true,
       "include": "installers/windows/installer.nsh", 
       "perMachine": true,
-      "installerIcon": "assets/icon.ico",
-      "uninstallerIcon": "assets/icon.ico",
       "deleteAppDataOnUninstall": true
     },
     "linux": {
