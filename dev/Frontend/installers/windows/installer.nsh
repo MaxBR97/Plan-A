@@ -24,8 +24,8 @@
     File "${PROJECT_DIR}\installers\windows\vc_redist.x64.exe"
     ExecWait '"${PROJECT_DIR}\installers\windows\vc_redist.x64.exe" /norestart' $0
     ${If} $0 != "0"
-      DetailPrint "Visual C++ Redistributable installation failed with code $0"
-      Abort "Failed to install Visual C++ Redistributable. Please install it manually."
+      DetailPrint "VC Redist installation failed with code $0"
+      Abort "Failed to install VC Redist. Install manually."
     ${EndIf}
     
   ${EndIf}
@@ -38,7 +38,7 @@
     ExecWait '"${PROJECT_DIR}\installers\windows\jdk-windows.exe"' $0
     ${If} $0 != "0"
       DetailPrint "Java installation failed with code $0"
-      Abort "Failed to install Java. Please install it manually."
+      Abort "Failed to install Java. Install manually."
     ${EndIf}
     
   HaveJava:
@@ -49,7 +49,7 @@
   ExecWait '"${PROJECT_DIR}\installers\windows\SCIPOptSuite-installer.exe"' $0
   ${If} $0 != "0"
     DetailPrint "SCIP installation failed with code $0"
-    Abort "Failed to install SCIP. Please install it manually."
+    Abort "Failed to install SCIP. Install manually."
   ${EndIf}
   
   

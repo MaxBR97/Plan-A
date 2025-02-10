@@ -20,15 +20,18 @@ if [ "$OS" == "l" ]; then
     mv $SCRIPT_DIR/../dev/Frontend/Distribution $SCRIPT_DIR/../
     rm $SCRIPT_DIR/../dev/Frontend/installers/linux/scipoptsuite.deb
 elif [ "$OS" == "w" ]; then
-    wget -O  $SCRIPT_DIR/../dev/Frontend/installers/windows/SCIPOptSuite-installer.exe https://www.scipopt.org/download/release/SCIPOptSuite-9.2.1-win64.exe &&
-    wget -O $SCRIPT_DIR/../dev/Frontend/installers/windows/vc_redist.x64.exe https://aka.ms/vs/17/release/vc_redist.x64.exe &&
-    wget -O $SCRIPT_DIR/../dev/Frontend/installers/windows/jdk-windows.exe https://download.oracle.com/java/23/latest/jdk-23_windows-x64_bin.exe &&
-    (cd $SCRIPT_DIR/../dev/Frontend && npm run electron-build -- -$OS)
+    #$SCRIPT_DIR/installWine.sh &&
+    #export WINEDEBUG=-all &&
+    #export DISPLAY=:0 &&
+    #wget -O  $SCRIPT_DIR/../dev/Frontend/installers/windows/SCIPOptSuite-installer.exe https://www.scipopt.org/download/release/SCIPOptSuite-9.2.1-win64.exe &&
+    #wget -O $SCRIPT_DIR/../dev/Frontend/installers/windows/vc_redist.x64.exe https://aka.ms/vs/17/release/vc_redist.x64.exe &&
+    #wget -O $SCRIPT_DIR/../dev/Frontend/installers/windows/jdk-windows.exe https://download.oracle.com/java/23/latest/jdk-23_windows-x64_bin.exe &&
+    (cd $SCRIPT_DIR/../dev/Frontend && npm run electron-build -- -$OS --x64 --config.win.sign=false)
     rm -rf "$SCRIPT_DIR/../Distribution"
     mv $SCRIPT_DIR/../dev/Frontend/Distribution $SCRIPT_DIR/../
-    rm $SCRIPT_DIR/../dev/Frontend/installers/windows/SCIPOptSuite-installer.exe
-    rm $SCRIPT_DIR/../dev/Frontend/installers/windows/vc_redist.x64.exe
-    rm $SCRIPT_DIR/../dev/Frontend/installers/windows/jdk-windows.exe
+    #rm $SCRIPT_DIR/../dev/Frontend/installers/windows/SCIPOptSuite-installer.exe
+    #rm $SCRIPT_DIR/../dev/Frontend/installers/windows/vc_redist.x64.exe
+    #rm $SCRIPT_DIR/../dev/Frontend/installers/windows/jdk-windows.exe
 else
     echo "wrong input: choose 'l' or 'w'!"
     exit 1

@@ -80,6 +80,8 @@
     ],
     "win": {
       "target": ["nsis"],
+      "sign": false,
+      "verifyUpdateCodeSignature": false,
       "extraFiles": [
         {
           "from": "installers/windows",
