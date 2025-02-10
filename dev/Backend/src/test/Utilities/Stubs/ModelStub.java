@@ -1,10 +1,18 @@
 package Utilities.Stubs;
 
-import Model.*;
-
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
+
+import Model.Model;
+import Model.ModelConstraint;
+import Model.ModelFunctionality;
+import Model.ModelInterface;
+import Model.ModelParameter;
+import Model.ModelPreference;
+import Model.ModelSet;
+import Model.ModelVariable;
+import Model.Solution;
 
 public class ModelStub implements ModelInterface {
     Model RealModel;
@@ -100,5 +108,17 @@ public class ModelStub implements ModelInterface {
     public Collection<ModelParameter> getParameters() {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'getParameters'");
+    }
+
+    @Override
+    public String[] getInput(ModelParameter parameter) throws Exception {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'getInput'");
+    }
+
+    @Override
+    public List<String[]> getInput(ModelSet set) throws Exception {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'getInput'");
     }
 }

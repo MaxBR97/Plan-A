@@ -1,29 +1,41 @@
 package Unit;
 
+import java.io.IOException;
+import java.nio.channels.FileChannel;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import java.nio.file.StandardOpenOption;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.Assertions;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
-
-import java.io.IOException;
-
-import java.nio.channels.FileChannel;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
-import java.nio.file.StandardOpenOption;
-
-import Model.*;
-import Utilities.Stubs.ModelStub;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import java.util.*;
-import java.util.stream.Collectors;
-import java.nio.file.Path;
+import Model.Model;
+import Model.ModelConstraint;
+import Model.ModelFunctionality;
+import Model.ModelInterface;
+import Model.ModelParameter;
+import Model.ModelPreference;
+import Model.ModelPrimitives;
+import Model.ModelSet;
+import Model.ModelType;
+import Model.ModelVariable;
+import Model.Solution;
+import Model.Tuple;
 
 
 public class ModelTest {
@@ -219,8 +231,37 @@ public class ModelTest {
             .collect(Collectors.toSet());
         sol.parseSolution(m, stringVariables);
         assertTrue(sol.isSolved());
-        assertTrue(sol.getSolvingTime() > 0);
+        assertEquals(sol.getObjectiveValue() , 1187);
         } catch(Exception e){assertTrue(false);}
+    }
+
+    @Test
+    public void testValidGetInputOfParameter() throws Exception {
+        ModelParameter subject = model.getParameter("conditioner");
+        assertNotNull(subject);
+        assertArrayEquals(new String[]{"10"}, model.getInput(subject));
+    }
+
+
+    @Test
+    public void testValidGetInputOfSet() throws Exception {
+        ModelSet subject = model.getSet("Emdot");
+        assertNotNull(subject);
+        List<String[]> expected =  List.of(new String[]{"Shin Gimel"}, new String[]{"Fillbox"});
+        int i=0;
+        for(String[] element : model.getInput(subject)){
+            assertArrayEquals(element, expected.get(i));
+            i++;
+        }
+    }
+
+    @Test
+    public void testInvalidGetInputOfSet() throws Exception {
+        ModelSet subject = model.getSet("C");
+        assertNotNull(subject);
+        assertThrows(Exception.class, () -> {
+            model.getInput(subject);
+        });
     }
     
     //TODO: implement

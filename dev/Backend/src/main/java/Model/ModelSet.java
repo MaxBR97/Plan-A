@@ -1,6 +1,5 @@
 package Model;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -49,11 +48,7 @@ public class ModelSet extends ModelInput {
 
     // Set entire list of elements
     public void setElements(List<String> elements) {
-        if (elements == null) {
-            this.elements = new ArrayList<>();
-        } else {
-            this.elements = new ArrayList<>(elements);
-        }
+        this.elements = elements;
     }
 
     // Add single element

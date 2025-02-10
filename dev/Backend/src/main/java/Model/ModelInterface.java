@@ -1,8 +1,7 @@
 package Model;
 
 import java.util.Collection;
-import java.util.Map;
-import java.util.Set;
+import java.util.List;
 
 import Exceptions.InternalErrors.BadRequestException;
 
@@ -47,6 +46,13 @@ public interface ModelInterface {
      */
     void setInput(ModelSet identifier, String[] values) throws Exception;
 
+    // Get last committed input from zpl file
+    String[] getInput(ModelParameter parameter) throws Exception;
+
+    // Get last committed input from zpl file
+    List<String[]> getInput(ModelSet set) throws Exception;
+
+    
     /**
      * Toggles a model functionality on or off.
      * 
@@ -127,6 +133,6 @@ public interface ModelInterface {
 
     public Collection<ModelSet> getSets();
 
-    public Collection<ModelParameter> getParameters() ;
+    public Collection<ModelParameter> getParameters();
 
 }

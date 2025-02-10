@@ -2,6 +2,7 @@ package Model;
 
 import Exceptions.InternalErrors.BadRequestException;
 import Exceptions.UserErrors.ZimplCompileError;
+
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.*;
 
@@ -22,6 +23,7 @@ import parser.FormulationParser.UExprContext;
 
 import java.io.*;
 import java.nio.file.*;
+import java.security.Policy;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -138,7 +140,40 @@ public class Model implements ModelInterface {
             parseSource();
         }
     }
-    //TODO: make toggling (commenting out) work for preferences too!
+    
+    //TODO: the design is fucked up, and it's apparent in getInput methods. I need to make a better design of things.
+    @Override
+    public String[] getInput(ModelParameter parameter) throws Exception {
+        if(parameter == null)
+            throw new BadRequestException("Trying to get input of a null parameter!");
+        if(params.get(parameter.getIdentifier()) == null)
+            throw new BadRequestException("parameter " + parameter.getIdentifier() + " doesnt exist ");
+        if(params.get(parameter.getIdentifier()).hasValue() == false)
+            throw new BadRequestException("parameter " + parameter.getIdentifier() + " is not set to have an input, or is not a declarative parameter");
+        parameter = params.get(parameter.getIdentifier());
+
+        return ModelType.convertStringToAtoms(parameter.getValue());
+        
+    }
+
+    @Override
+    public List<String[]> getInput(ModelSet set) throws Exception {
+        if(set == null || set.getIdentifier() == null)
+            throw new BadRequestException("Trying to get input of a null set!");
+        if(sets.get(set.getIdentifier()) == null)
+            throw new BadRequestException("set " + set.getIdentifier() + " doesnt exist ");
+        if(sets.get(set.getIdentifier()).getElements() == null)
+            throw new BadRequestException("set " + set.getIdentifier() + " is not set to have an input, or is not declarative set");
+        
+        set = sets.get(set.getIdentifier());
+        List<String[]> ans = new LinkedList<>();
+        for(String element :set.getElements() ){
+            ans.add(ModelType.convertStringToAtoms(element));
+        }
+        return ans;
+        
+    }
+
     public void toggleFunctionality(ModelFunctionality mf, boolean turnOn) {
         if (!turnOn) {
             toggledOffFunctionalities.add(mf.getIdentifier());
@@ -383,6 +418,9 @@ public class Model implements ModelInterface {
 
     private class CollectorVisitor extends FormulationBaseVisitor<Void> {
 
+        public CollectorVisitor(){
+
+        }
 
         public Void visitParamDecl(FormulationParser.ParamDeclContext ctx){
             String paramName = extractName(ctx.sqRef().getText());
@@ -467,49 +505,6 @@ public class Model implements ModelInterface {
             return bracketIndex == -1 ? sqRef : sqRef.substring(0, bracketIndex);
         }
         
-        
-        
-        @Deprecated
-        private ParseTree parseComponentExpression(String component) {
-            
-            CharStream input = CharStreams.fromString(component);
-            FormulationLexer lexer = new FormulationLexer(input);
-            CommonTokenStream tokens = new CommonTokenStream(lexer);
-            FormulationParser parser = new FormulationParser(tokens);
-            
-            // Parse as a numerical expression
-            return parser.nExpr().uExpr();
-        }
-        @Deprecated
-        private List<String> splitExpression(String expr) {
-            List<String> components = new ArrayList<>();
-            int parenthesesLevel = 0;
-            StringBuilder currentComponent = new StringBuilder();
-            
-            for (char c : expr.toCharArray()) {
-                if (c == '(') {
-                    parenthesesLevel++;
-                } else if (c == ')') {
-                    parenthesesLevel--;
-                }
-                
-                if ((c == '+' || c == '-') && parenthesesLevel == 0) {
-                    if (currentComponent.length() > 0) {
-                        components.add(currentComponent.toString().trim());
-                        currentComponent = new StringBuilder();
-                    }
-                }
-                
-                currentComponent.append(c);
-            }
-            
-            if (currentComponent.length() > 0) {
-                components.add(currentComponent.toString().trim());
-            }
-            
-            return components;
-        }
-        
         private java.util.List<String> parseSetElements(FormulationParser.SetExprContext ctx) {
             java.util.List<String> elements = new ArrayList<>();
             
@@ -548,9 +543,15 @@ public class Model implements ModelInterface {
                             if (currentElement.length() > 0) {
                                 elements.add(currentElement.toString().trim());
                             }
+                        } else { // no csv
+                            elements = null;
                         }
+                    } else { // not Desc
+                        elements = null;
                     }
                 }
+                else
+                    elements = null;
             }
             
             return elements;
