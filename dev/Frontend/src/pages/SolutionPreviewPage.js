@@ -313,6 +313,9 @@ const handleSolve = async () => {
     navigate("/solution-results"); // ✅ Redirect to the next screen
   };
 
+  const selectedParams = variablesModule?.variablesConfigurableParams ?? [];
+
+
   return (
     <div className="solution-preview-page">
       <h1 className="page-title">Solution Preview</h1>
@@ -448,80 +451,80 @@ const handleSolve = async () => {
         </div>
 
         {/* Variable Sets Section */}
-        <div className="module-section">
-          <h2 className="section-title">Variable Sets</h2>
-          {Array.from(new Set(allSets)).map((set, index) => {
-            // ✅ Fetch type from new source: setTypes
-            const typeList = setTypes[set]
-              ? Array.isArray(setTypes[set])
-                ? setTypes[set]
-                : [setTypes[set]]
-              : ["Unknown"];
+        {/* Variable Sets Section */}
+<div className="module-section">
+  <h2 className="section-title">Variable Sets</h2>
+  {Array.from(new Set(Object.keys(setTypes)))
+    .filter((set) => variablesModule?.variablesConfigurableSets.includes(set))
+    .map((set, index) => {
+      // Fetch type from setTypes
+      const typeList = setTypes[set]
+        ? Array.isArray(setTypes[set])
+          ? setTypes[set]
+          : [setTypes[set]]
+        : ["Unknown"];
 
-            return (
-              <div key={index} className="module-box">
-                {/* Display Variable Name */}
-                <h3 className="module-title">{set}</h3>
+      return (
+        <div key={index} className="module-box">
+          {/* Display Variable Name */}
+          <h3 className="module-title">{set}</h3>
 
-                {/* Display Type from setTypes */}
-                <p className="variable-type">
-                  <strong>Type:</strong> {typeList.join(", ")}
-                </p>
+          {/* Display Type from setTypes */}
+          <p className="variable-type">
+            <strong>Type:</strong> {typeList.join(", ")}
+          </p>
 
-                {/* Add Button */}
-                <button
-                  className="add-button"
-                  onClick={() => handleAddVariable(set, typeList)}
-                ></button>
+          {/* Add Button */}
+          <button
+            className="add-button"
+            onClick={() => handleAddVariable(set, typeList)}
+          ></button>
 
-                {/* Input Fields - Each type gets its own separate textbox */}
-                {variableValues[set]?.map((row, rowIndex) => (
-                  <div key={rowIndex} className="input-row">
-                    {row.map((value, typeIndex) => {
-                      return (
-                        <input
-                          key={typeIndex}
-                          type="text"
-                          value={value}
-                          onChange={(e) =>
-                            handleVariableChange(
-                              set,
-                              rowIndex,
-                              typeIndex,
-                              e.target.value
-                            )
-                          }
-                          className="variable-input"
-                          placeholder={`Enter ${
-                            typeList[typeIndex] || "value"
-                          }:`}
-                        />
-                      );
-                    })}
+          {/* Input Fields - Each type gets its own separate textbox */}
+          {variableValues[set]?.map((row, rowIndex) => (
+            <div key={rowIndex} className="input-row">
+              {row.map((value, typeIndex) => {
+                return (
+                  <input
+                    key={typeIndex}
+                    type="text"
+                    value={value}
+                    onChange={(e) =>
+                      handleVariableChange(
+                        set,
+                        rowIndex,
+                        typeIndex,
+                        e.target.value
+                      )
+                    }
+                    className="variable-input"
+                    placeholder={`Enter ${typeList[typeIndex] || "value"}:`}
+                  />
+                );
+              })}
 
-                    {/* ✅ Add a divider after each row */}
-                    <hr className="input-divider" />
-                  </div>
-                ))}
-              </div>
-            );
-          })}
+              {/* Add a divider after each row */}
+              <hr className="input-divider" />
+            </div>
+          ))}
         </div>
+      );
+    })}
+</div>
 
         {/* Variable Parameters Section */}
-        <div className="module-section">
-          <h2 className="section-title">Variable Parameters</h2>
-          {Object.keys(paramTypes).map((param, index) => (
+         {/* Parameters Section */}
+      <div className="module-section">
+        <h2 className="section-title">Parameters</h2>
+        {Object.keys(paramTypes)
+          .filter((param) => selectedParams.includes(param))
+          .map((param, index) => (
             <div key={index} className="module-box">
-              {/* Display Parameter Name */}
               <h3 className="module-title">{param}</h3>
-
-              {/* Display Parameter Type from paramTypes */}
               <p className="variable-type">
                 <strong>Type:</strong> {paramTypes[param] || "Unknown"}
               </p>
-
-              {/* Input Field */}
+              {/* Input field for each parameter */}
               <input
                 type="text"
                 value={paramValues[param] || ""}
@@ -531,7 +534,7 @@ const handleSolve = async () => {
               />
             </div>
           ))}
-        </div>
+      </div>
 
         {/* Error Message */}
         {errorMessage && (

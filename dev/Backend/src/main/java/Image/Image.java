@@ -1,5 +1,17 @@
 package Image;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+
 import DTO.Factories.RecordFactory;
 import DTO.Records.Image.SolutionDTO;
 import DTO.Records.Model.ModelData.InputDTO;
@@ -170,5 +182,68 @@ public class Image {
         constraintsModules.clear();
         preferenceModules.clear();
         this.variables.override(variables,sets,params);
+    }
+
+    public Set<String> getAllInvolvedSets() {
+        Set<String> allSets = new HashSet<>();
+
+        // Add inputSets from each constraint module
+        for (ConstraintModule constraintModule : constraintsModules.values()) {
+            allSets.addAll(constraintModule.getInputSets());
+        }
+
+        // Add inputSets from each preference module
+        for (PreferenceModule preferenceModule : preferenceModules.values()) {
+            allSets.addAll(preferenceModule.getInputSets());
+        }
+            
+        allSets.addAll(variables.getInputSets());
+
+        return allSets;
+    }
+
+    public Set<String> getAllInvolvedParams() {
+        Set<String> allParams = new HashSet<>();
+
+        // Add inputParams from each constraint module
+        for (ConstraintModule constraintModule : constraintsModules.values()) {
+            allParams.addAll(constraintModule.getInputParams());
+        }
+
+        // Add inputParams from each preference module
+        for (PreferenceModule preferenceModule : preferenceModules.values()) {
+            allParams.addAll(preferenceModule.getInputParams());
+        }
+
+        allParams.addAll(variables.getInputParams());
+
+        return allParams;
+    }
+
+    
+
+    public InputDTO getInput() throws Exception {
+        Set<String> relevantParams = getAllInvolvedParams();
+        Set<String> relevantSets = getAllInvolvedSets();
+        Map<String, List<List<String>>> setsToValues = new HashMap<>();
+        Map<String,List<String>> paramsToValues = new HashMap<>();
+
+        for (String param : relevantParams.toArray(new String[0])) {
+            String[] atoms = model.getInput(model.getParameter(param));
+            paramsToValues.put(param, List.of(atoms));
+        }
+
+        for (String set : relevantSets.toArray(new String[0])) {
+            List<String[]> atomsOfElements = model.getInput(model.getSet(set));
+            List<List<String>> convertedList = new ArrayList<>();
+            for (String[] array : atomsOfElements) {
+                convertedList.add(Arrays.asList(array)); // Convert String[] to List<String>
+        
+            }
+
+            setsToValues.put(set, convertedList);
+        }
+
+        return new InputDTO(setsToValues,paramsToValues,new LinkedList<>(), new LinkedList<>());
     }
 }

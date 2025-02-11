@@ -1,32 +1,43 @@
 package Acceptance;
 
-import DTO.Records.Image.*;
-import DTO.Records.Model.ModelData.InputDTO;
-import Image.Modules.PreferenceModule;
-import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.boot.test.web.server.LocalServerPort;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.*;
-
-//import org.springframework.*;
-import static org.junit.jupiter.api.Assertions.*;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+
+import DTO.Records.Image.ConstraintModuleDTO;
+import DTO.Records.Image.ImageDTO;
+import DTO.Records.Image.PreferenceModuleDTO;
+import DTO.Records.Image.SolutionDTO;
+import DTO.Records.Image.SolutionValueDTO;
+import DTO.Records.Image.VariableModuleDTO;
+import DTO.Records.Model.ModelData.InputDTO;
 import DTO.Records.Model.ModelDefinition.ConstraintDTO;
 import DTO.Records.Model.ModelDefinition.DependenciesDTO;
 import DTO.Records.Model.ModelDefinition.ModelDTO;
 import DTO.Records.Model.ModelDefinition.PreferenceDTO;
 import DTO.Records.Model.ModelDefinition.VariableDTO;
-import DTO.Records.Requests.Commands.*;
+import DTO.Records.Requests.Commands.CreateImageFromFileDTO;
+import DTO.Records.Requests.Commands.ImageConfigDTO;
+import DTO.Records.Requests.Commands.SolveCommandDTO;
 import DTO.Records.Requests.Responses.CreateImageResponseDTO;
 import groupId.Main;
 import groupId.Service;
@@ -78,8 +89,8 @@ public class ServiceTest {
         //Expected response
         CreateImageResponseDTO expected = new CreateImageResponseDTO(
             "some imageId", new ModelDTO(
-              Set.of(new ConstraintDTO("sampleConstraint", new DependenciesDTO(Set.of("mySet"),Set.of("x")))),
-                Set.of(new PreferenceDTO("1", new DependenciesDTO(Set.of(),Set.of()))),
+              Set.of(new ConstraintDTO("sampleConstraint", new DependenciesDTO(Set.of(),Set.of("x")))),
+                Set.of(new PreferenceDTO("myVar[3]", new DependenciesDTO(Set.of(),Set.of()))),
                 Set.of(new VariableDTO("myVar", new DependenciesDTO(Set.of("mySet"),Set.of()))),
                 Map.of("mySet",List.of("INT")),
                 Map.of("x","INT"),
@@ -116,8 +127,8 @@ public class ServiceTest {
         //Expected response
         CreateImageResponseDTO expected = new CreateImageResponseDTO(
                 "some imageId", new ModelDTO(
-                Set.of(new ConstraintDTO("sampleConstraint", new DependenciesDTO(Set.of("mySet"),Set.of("x")))),
-                Set.of(new PreferenceDTO("1", new DependenciesDTO(Set.of(),Set.of()))),
+                Set.of(new ConstraintDTO("sampleConstraint", new DependenciesDTO(Set.of(),Set.of("x")))),
+                Set.of(new PreferenceDTO("myVar[3]", new DependenciesDTO(Set.of(),Set.of()))),
                 Set.of(new VariableDTO("myVar", new DependenciesDTO(Set.of("mySet"),Set.of()))),
                 Map.of("mySet",List.of("INT")),
                 Map.of("x","INT"),
@@ -140,7 +151,7 @@ public class ServiceTest {
                         Set.of("sampleConstraint"),Set.of("mySet"),Set.of("x")));
         Set<PreferenceModuleDTO> preferenceModuleDTOs=Set.of(
                 new PreferenceModuleDTO("Test module","PeanutButter",
-                        Set.of("1"),Set.of(),Set.of()));
+                        Set.of("myVar[3]"),Set.of(),Set.of()));
         VariableModuleDTO variableModuleDTO= new VariableModuleDTO(Set.of("myVar"),Set.of("mySet"),Set.of());
         ImageDTO imageDTO= new ImageDTO(variableModuleDTO,constraintModuleDTOs,preferenceModuleDTOs);
         ImageConfigDTO configDTO= new ImageConfigDTO(response.getBody().imageId(),imageDTO);
@@ -290,5 +301,97 @@ public class ServiceTest {
         } catch (Exception e) {
             fail(e.getMessage());
         }
+    }
+
+    @Test
+    public void testLoadImageInput() {
+        // create Image
+        CreateImageResponseDTO imageCreated = createImageCall(SimpleCodeExample);
+        String imageId = imageCreated.imageId();
+    Set<ConstraintModuleDTO> constraintModuleDTOs=Set.of(
+            new ConstraintModuleDTO("MyConst","description",
+                    Set.of("sampleConstraint"),Set.of(),Set.of("x")));
+    Set<PreferenceModuleDTO> preferenceModuleDTOs=Set.of(
+            new PreferenceModuleDTO("MyPref","desc",
+                    Set.of("myVar[3]"),Set.of(),Set.of()));
+    VariableModuleDTO variableModuleDTO= new VariableModuleDTO(Set.of("myVar"),Set.of("mySet"),Set.of());
+    ImageDTO imageDTO= new ImageDTO(variableModuleDTO,constraintModuleDTOs,preferenceModuleDTOs);
+    ImageConfigDTO configDTO= new ImageConfigDTO(imageId,imageDTO);
+    configImage(configDTO);
+
+    InputDTO expected = new InputDTO(
+    Map.of(
+        "mySet", List.of(List.of("7"), List.of("6"),List.of("4"))
+    ),
+    Map.of(
+        "x", List.of("10")
+    ),
+    List.of(), 
+    List.of()  
+    );
+
+
+        
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        
+        // Create http request with body and headers
+        HttpEntity<Void> request = new HttpEntity<>( headers);
+
+        // Send POST request with body
+        String url = "http://localhost:" + port + "/images/"+imageId+"/inputs";
+        ResponseEntity<InputDTO> response = restTemplate.exchange(
+            url,
+            HttpMethod.GET,
+            request,
+            InputDTO.class
+        );
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(response.getBody().setsToValues(),expected.setsToValues());
+        assertEquals(response.getBody().paramsToValues(),expected.paramsToValues());
+        assertEquals(response.getBody().constraintsToggledOff(),expected.constraintsToggledOff());
+        assertEquals(response.getBody().preferencesToggledOff(),expected.preferencesToggledOff());
+        
+    }
+
+    private CreateImageResponseDTO createImageCall(String code){
+        CreateImageFromFileDTO body = new CreateImageFromFileDTO(SimpleCodeExample);
+
+        
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        
+        // Create http request with body and headers
+        HttpEntity<CreateImageFromFileDTO> request = new HttpEntity<>(body, headers);
+
+        // Send POST request with body
+        String url = "http://localhost:" + port + "/images";
+        ResponseEntity<CreateImageResponseDTO> response = restTemplate.exchange(
+            url,
+            HttpMethod.POST,
+            request,
+            CreateImageResponseDTO.class
+        );
+
+        return response.getBody();
+    }
+
+    private Void configImage(ImageConfigDTO code){
+       
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<ImageConfigDTO> request2 = new HttpEntity<>(code, headers);
+        // Send PATCH request with body
+        String url2 = "http://localhost:" + port + "/images";
+        ResponseEntity<Void> response2 = restTemplate.exchange(
+                url2,
+                HttpMethod.PATCH,
+                request2,
+                Void.class
+        );
+        assertEquals(HttpStatus.OK, response2.getStatusCode());   
+        return response2.getBody();
     }
 }

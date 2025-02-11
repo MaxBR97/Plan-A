@@ -111,20 +111,22 @@ public class Solution {
         parsed=true;
     }
     private void parseSolutionValues(BufferedReader reader, Set<String> varsToParse) throws IOException {
-        Pattern variablePattern = Pattern.compile("([a-zA-Z_\\$0-9]+)(#[a-zA-Z0-9\\$#]+(?:\\s+[a-zA-Z0-9\\$#]+)*)\\s+(\\d+)\\s+\\(obj:(\\d+)\\)");
+        Pattern variablePattern = Pattern.compile("^(.*?)[ \\t]+(\\d+)[ \\t]+\\(obj:(\\d+)\\)");
         String line;
         while ((line = reader.readLine()) != null){
             Matcher variableMatcher = variablePattern.matcher(line);
             if (variableMatcher.find()) {
-                String variableName = variableMatcher.group(1);
-                String values = variableMatcher.group(2);
-                int objectiveValue = Integer.parseInt(variableMatcher.group(3));
-                if(varsToParse.contains(variableName) && objectiveValue!=0) {
-                    //A 0 objective value means the solution part has no effect on the actual max/min expression
-                    List<String> variableValues = new ArrayList<>(Arrays.asList(values.split("[#&$]"))); //need a new array to remove dependence
-                    variableValues.removeIf(String::isEmpty); // I hate this, but I hate regex even more. removes empty strings
-                    variableSolution.get(variableName).add(new Tuple<>(variableValues,objectiveValue));
+                String solution = variableMatcher.group(1);
+                int objectiveValue = Integer.parseInt(variableMatcher.group(2));
+                List<String> splitSolution = new LinkedList<>(Arrays.asList(solution.split("[#$]"))); //need a new array to remove dependence
+                String variableIdentifier = splitSolution.getFirst();
+                splitSolution.removeFirst();
+                if(varsToParse.contains(variableIdentifier) && objectiveValue!=0) { //A 0 objective value means the solution part has no effect on the actual max/min expression
+                    variableSolution.get(variableIdentifier).add(new Tuple<>(splitSolution,objectiveValue));
                 }
+            }
+            else {
+                //TODO: log or throw exception?
             }
         }
     }

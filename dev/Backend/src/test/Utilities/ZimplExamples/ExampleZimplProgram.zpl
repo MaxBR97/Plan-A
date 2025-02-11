@@ -2,9 +2,10 @@ param weight := 10;
 param absoluteMinimalSpacing := 8;
 param soldiers := 10;
 
-set C := {1 .. soldiers};
 
-#set C := {"Ben","Dan","Ron","Nir","Niv","Avi","Shlomo"};
+#set C := {1 .. soldiers};
+
+set C := {"Ben","Dan","Ron","Nir","Niv","Avi","Shlomo"};
 set Stations := {"Shin Gimel", "Fillbox"};
 #Hours from 0:00 to 20:00 in 4 hour intervals
 set Times := {0,4,8,12,16,20};

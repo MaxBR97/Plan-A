@@ -32,6 +32,7 @@ import java.util.*;
 
 import org.springframework.web.bind.annotation.RestController;
 
+import DTO.Records.Model.ModelData.InputDTO;
 import DataAccess.ModelRepository;
 
 @RestController
@@ -125,6 +126,10 @@ private final ModelRepository modelRepository;
     }
     public Image getImage(String id) {
         return imageRepository.findById(id).get();
+    }
+
+    InputDTO loadLastInput(String imageId) throws Exception {
+        return imageRepository.findById(imageId).get().getInput();
     }
 
 
