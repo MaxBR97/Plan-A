@@ -8,66 +8,61 @@ import DTO.Records.Requests.Commands.SolveCommandDTO;
 import DTO.Records.Image.ImageDTO;
 import DTO.Records.Image.SolutionDTO;
 import DTO.Records.Requests.Responses.CreateImageResponseDTO;
+import DataAccess.ImageRepository;
 import Exceptions.InternalErrors.BadRequestException;
 import Image.Image;
 import Model.ModelInterface;
 import Model.ModelType;
 import Model.ModelVariable;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.InputStream;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.*;
 
-@Service
+import org.springframework.web.bind.annotation.RestController;
+
+import DataAccess.ModelRepository;
+
+@RestController
 public class UserController {
-private final Map<UUID,Image> images;
+//private final Map<UUID,Image> images;
+private final ImageRepository imageRepository;
+private final ModelRepository modelRepository;
 
-@Value("${app.file.storage-dir}")
-private String storageDir;
+    @Value("${app.file.storage-dir}")
+    private String storageDir;
 
 
-    public UserController(){
-        images = new HashMap<>();
+    @Autowired // Spring will automatically inject the correct ImageRepository implementation
+    public UserController(ImageRepository imageRepository, ModelRepository modelRepository) {
+        this.imageRepository = imageRepository;
+        this.modelRepository = modelRepository;
     }
-
-    //Dependency injection - for TESTS only!
-    public UserController(String path){
-        images = new HashMap<>();
-        this.storageDir = path;
-    }
-
 
     public CreateImageResponseDTO createImageFromFile(String code) throws Exception {
         UUID id = UUID.randomUUID();
         String name = id.toString();
 
         // Get application directory
-        String appDir;
-        try {
-            URI uri = getClass().getProtectionDomain().getCodeSource().getLocation().toURI();
-            appDir = new File(uri).getParent();
-        } catch (Exception e) {
-            appDir = System.getProperty("user.home"); // Fallback
-        }
-
-        if (appDir == null) {
-            throw new BadRequestException("Could not determine application directory.");
-        }
-
-        // Resolve the path relative to the JAR location
-        Path storagePath = Paths.get(appDir, storageDir);
-        Files.createDirectories(storagePath);
-        Path filePath = storagePath.resolve(name + ".zpl");
-        Files.writeString(filePath, code, StandardOpenOption.CREATE);
-        Image image = new Image(filePath.toAbsolutePath().toString());
-        images.put(id, image);
+        
+        // Files.createDirectories(storagePath);
+        // Path filePath = storagePath.resolve(name + ".zpl");
+        // Files.writeString(filePath, code, StandardOpenOption.CREATE);
+        InputStream inputStream = new ByteArrayInputStream(code.getBytes(StandardCharsets.UTF_8));
+        modelRepository.uploadDocument(name + ".zpl", inputStream);
+        Image image = new Image(name);
+        imageRepository.save(image);
 
         return RecordFactory.makeDTO(id, image.getModel());
     }
@@ -75,7 +70,8 @@ private String storageDir;
     
 
     public SolutionDTO solve(SolveCommandDTO command) throws Exception {
-        Image image = images.get(UUID.fromString(command.imageId()));
+        //Image image = images.get(UUID.fromString(command.imageId()));
+        Image image = imageRepository.findById(command.imageId()).get();
         ModelInterface model = image.getModel();
         for (Map.Entry<String,List<List<String>>> set : command.input().setsToValues().entrySet()){
             List<String> setElements = new LinkedList<>();
@@ -103,7 +99,8 @@ private String storageDir;
 
     public void overrideImage(ImageConfigDTO imgConfig) {
         ImageDTO imageDTO= imgConfig.image();
-        Image image=images.get(UUID.fromString(imgConfig.imageId()));
+        //Image image=images.get(UUID.fromString(imgConfig.imageId()));
+        Image image = imageRepository.findById(imgConfig.imageId()).get();
         Objects.requireNonNull(image,"Invalid imageId in image config/override image");
         Map<String, ModelVariable> variables = new HashMap<>();
         ModelInterface model= image.getModel();
@@ -127,7 +124,7 @@ private String storageDir;
         }
     }
     public Image getImage(String id) {
-        return images.get(UUID.fromString(id));
+        return imageRepository.findById(id).get();
     }
 
 

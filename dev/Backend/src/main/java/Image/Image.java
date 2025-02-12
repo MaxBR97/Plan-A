@@ -20,25 +20,19 @@ public class Image {
     private final VariableModule variables;
     private final ModelInterface model;
     private final int defaultTimeout = 60;
+    
     public Image(ModelInterface model) {
         constraintsModules = new HashMap<>();
         preferenceModules = new HashMap<>();
         variables = new VariableModule();
         this.model = model;
     }
+    
     public Image(String path) throws IOException {
         constraintsModules = new HashMap<>();
         preferenceModules = new HashMap<>();
         variables = new VariableModule();
         this.model = new Model(path);
-    }
-
-    //TODO: implement deep copy!
-    public Image(Image image) {
-        this.constraintsModules = null;
-        this.preferenceModules = null;
-        this.variables = null;
-        this.model = null;
     }
 
     //will probably have to use an adapter layer, or change types to DTOs

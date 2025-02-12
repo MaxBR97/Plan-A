@@ -5,17 +5,38 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 
+import org.springframework.beans.factory.annotation.Value;
+
 import DataAccess.ModelRepository;
+import Exceptions.InternalErrors.BadRequestException;
 
 public class ModelLocalDiskDAO implements ModelRepository {
-    private Path storeDir;
+    private Path storagePath;
+
+    @Value("${app.file.storage-dir}")
+    private String loadedRelativeStoragePath;
 
     public ModelLocalDiskDAO() {
-        storeDir = Path.of("User/Models" + File.separator);
+        String appDir;
+        try {
+            URI uri = getClass().getProtectionDomain().getCodeSource().getLocation().toURI();
+            appDir = new File(uri).getParent();
+        } catch (Exception e) {
+            appDir = System.getProperty("user.home"); // Fallback
+        }
+
+        if (appDir == null) {
+            throw new BadRequestException("Could not determine application directory.");
+        }
+        // Resolve the path relative to the JAR location
+        this.storagePath = Paths.get(appDir, loadedRelativeStoragePath);
+
         ensureDirectoryExists();
     }
 
@@ -51,7 +72,9 @@ public class ModelLocalDiskDAO implements ModelRepository {
     public void deleteDocument(String documentId) {
         Path filePath = getStoreDir().resolve(documentId);
         try {
-            Files.delete(filePath);
+            if (Files.exists(filePath)) {
+                Files.delete(filePath);
+            }
         } catch (IOException e) {
             throw new RuntimeException("Failed to delete document: " + documentId, e);
         }
@@ -64,6 +87,6 @@ public class ModelLocalDiskDAO implements ModelRepository {
     }
 
     private Path getStoreDir() {
-        return this.storeDir;
+        return this.storagePath;
     }
 }
