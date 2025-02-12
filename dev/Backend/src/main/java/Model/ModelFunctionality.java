@@ -1,14 +1,21 @@
 package Model;
 
 import java.util.List;
-//TODO: functionality can also depend on variables, therefore variable dependency should also be created.
+
+import jakarta.persistence.MappedSuperclass;
+
+@MappedSuperclass
 public abstract class ModelFunctionality extends ModelComponent {
 
-    public ModelFunctionality(String identifier) {
-        super(identifier);
+    public ModelFunctionality(String imageId, String identifier) {
+        super(imageId, identifier);
     }
 
-    public ModelFunctionality(String constName, List<ModelSet> basicSets, List<ModelParameter> basicParams) {
-        super(constName,basicSets,basicParams);
+    public ModelFunctionality(String imageId, String constName, List<ModelSet> basicSets, List<ModelParameter> basicParams) {
+        super(imageId, constName,basicSets,basicParams);
+    }
+
+    protected ModelFunctionality(){
+        super();
     }
 }

@@ -1,21 +1,31 @@
 package Model;
 
-import java.util.Collection;
 import java.util.List;
+
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 
 //import parser.FormulationParser.ParamDeclContext;
 
+@Entity
+@Table(name="parameters")
 public class ModelParameter extends ModelInput {
+
+
+    @Transient
     private String value;
 
-    public ModelParameter(String identifier, ModelType type) {
-       super(identifier,type);
+    public ModelParameter(){
+        super();
     }
-
-
-    public ModelParameter(String paramName, ModelType type, List<ModelSet> basicSets,
+    public ModelParameter(String imageId, String identifier, ModelType type) {
+       super(imageId, identifier,type);
+    }
+    
+    public ModelParameter(String imageId, String paramName, ModelType type, List<ModelSet> basicSets,
             List<ModelParameter> basicParams) {
-        super(paramName, type, basicSets, basicParams);
+        super(imageId, paramName, type, basicSets, basicParams);
     }
     @Override
     public boolean isPrimitive(){

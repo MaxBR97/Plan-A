@@ -37,20 +37,18 @@ import DataAccess.ModelRepository;
 
 @RestController
 public class UserController {
-//private final Map<UUID,Image> images;
-private final ImageRepository imageRepository;
-private final ModelRepository modelRepository;
-
-    @Value("${app.file.storage-dir}")
-    private String storageDir;
+    //private final Map<UUID,Image> images;
+    private final ImageRepository imageRepository;
+    private final ModelRepository modelRepository;
 
 
-    @Autowired // Spring will automatically inject the correct ImageRepository implementation
+    @Autowired
     public UserController(ImageRepository imageRepository, ModelRepository modelRepository) {
         this.imageRepository = imageRepository;
         this.modelRepository = modelRepository;
     }
 
+    //TODO: ensure the code file does not exceed 8KB
     public CreateImageResponseDTO createImageFromFile(String code) throws Exception {
         UUID id = UUID.randomUUID();
         String name = id.toString();
@@ -61,8 +59,8 @@ private final ModelRepository modelRepository;
         // Path filePath = storagePath.resolve(name + ".zpl");
         // Files.writeString(filePath, code, StandardOpenOption.CREATE);
         InputStream inputStream = new ByteArrayInputStream(code.getBytes(StandardCharsets.UTF_8));
-        modelRepository.uploadDocument(name + ".zpl", inputStream);
-        Image image = new Image(name);
+        modelRepository.uploadDocument(name, inputStream);
+        Image image = new Image(name,modelRepository);
         imageRepository.save(image);
 
         return RecordFactory.makeDTO(id, image.getModel());

@@ -17,43 +17,93 @@ import DTO.Records.Image.SolutionDTO;
 import DTO.Records.Model.ModelData.InputDTO;
 import DTO.Records.Model.ModelDefinition.ConstraintDTO;
 import DTO.Records.Model.ModelDefinition.PreferenceDTO;
-import Image.Modules.*;
-import Model.*;
+import DataAccess.ModelRepository;
+import Image.Modules.ConstraintModule;
+import Image.Modules.PreferenceModule;
+import Image.Modules.VariableModule;
+import Model.Model;
+import Model.ModelConstraint;
 import Model.ModelInterface;
+import Model.ModelPreference;
 import Model.ModelVariable;
+import Model.Solution;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
+import jakarta.transaction.Transactional;
 
-import java.io.IOException;
-import java.util.*;
-
+@Entity
+@Table(name = "images")
 public class Image {
-    // Note: this implies module names must be unique between user constraints/preferences.
-    private final HashMap<String,ConstraintModule> constraintsModules;
-    private final HashMap<String,PreferenceModule> preferenceModules;
-    private final VariableModule variables;
-    private final ModelInterface model;
-    private final int defaultTimeout = 60;
-    
-    public Image(ModelInterface model) {
-        constraintsModules = new HashMap<>();
-        preferenceModules = new HashMap<>();
-        variables = new VariableModule();
-        this.model = model;
+
+    @Id
+    @Column(name = "image_id") 
+    private String id;
+
+    // @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    // @JoinColumn(name = "image_id")
+    // @MapKey(name = "name")
+    //@Transient
+    private HashMap<String,ConstraintModule> constraintsModules;
+
+    // @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    // @JoinColumn(name = "image_id")
+    // @MapKey(name = "name")
+    @Transient
+    private HashMap<String,PreferenceModule> preferenceModules;
+
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @JoinColumn(name = "image_id")
+    //@Transient
+    private VariableModule variables;
+
+    @Transient
+    private int defaultTimeout = 60;
+
+    @Transient
+    private ModelInterface model;
+    // public Image(ModelInterface model) {
+    //     constraintsModules = new HashMap<>();
+    //     preferenceModules = new HashMap<>();
+    //     variables = new VariableModule();
+    //     this.model = model;
+    // }
+
+    protected Image() {
+        this.id = null;
+        this.constraintsModules = new HashMap<>();
+        this.preferenceModules = new HashMap<>();
+        this.variables = new VariableModule();
+        this.model = null;
     }
     
-    public Image(String path) throws IOException {
+    
+    public Image(String id, ModelRepository modelRepository) throws Exception {
         constraintsModules = new HashMap<>();
         preferenceModules = new HashMap<>();
         variables = new VariableModule();
-        this.model = new Model(path);
+        this.model = new Model(id,modelRepository);
+        this.id = id;
     }
 
     //will probably have to use an adapter layer, or change types to DTOs
+    @Transactional
     public void addConstraintModule(ConstraintModule module) {
         constraintsModules.put(module.getName(), module);
     }
+
+    @Transactional
     public void addConstraintModule(String moduleName, String description) {
-        constraintsModules.put(moduleName, new ConstraintModule(moduleName, description));
+        constraintsModules.put( moduleName, new ConstraintModule(this, moduleName, description));
     }
+    
+    @Transactional
     public void addConstraintModule(String moduleName, String description, Collection<String> constraints, Collection<String> inputSets, Collection<String> inputParams) {
         HashSet<ModelConstraint> modelConstraints = new HashSet<>();
         for (String name : constraints) {
@@ -61,14 +111,20 @@ public class Image {
             Objects.requireNonNull(constraint,"Invalid constraint name in add constraint in image");
             modelConstraints.add(constraint);
         }
-        constraintsModules.put(moduleName, new ConstraintModule(moduleName, description, modelConstraints,inputSets,inputParams));
+        constraintsModules.put(moduleName, new ConstraintModule(this, moduleName, description, modelConstraints, inputSets, inputParams));
     }
+
+    @Transactional
     public void addPreferenceModule(PreferenceModule module) {
         preferenceModules.put(module.getName(), module);
     }
+
+    @Transactional
     public void addPreferenceModule(String moduleName, String description) {
-        preferenceModules.put(moduleName, new PreferenceModule(moduleName, description));
+        preferenceModules.put(moduleName, new PreferenceModule(this, moduleName, description));
     }
+
+    @Transactional
     public void addPreferenceModule(String moduleName, String description, Collection<String> preferences, Collection<String> inputSets, Collection<String> inputParams) {
         HashSet<ModelPreference> modelPreferences = new HashSet<>();
         for (String name : preferences) {
@@ -76,7 +132,7 @@ public class Image {
            Objects.requireNonNull(preference,"Invalid preference name in add preference module");
            modelPreferences.add(preference);
         }
-        preferenceModules.put(moduleName, new PreferenceModule(moduleName, description, modelPreferences,inputSets,inputParams));
+        preferenceModules.put(moduleName, new PreferenceModule(this, moduleName, description, modelPreferences,inputSets,inputParams));
     }
     public ConstraintModule getConstraintModule(String name) {
         return constraintsModules.get(name);
@@ -91,26 +147,39 @@ public class Image {
         return preferenceModules;
     }
 
+    @Transactional
     public void addConstraint(String moduleName, ConstraintDTO constraint) {
         if(!constraintsModules.containsKey(moduleName))
             throw new IllegalArgumentException("No constraint module with name: " + moduleName);
         constraintsModules.get(moduleName).addConstraint(model.getConstraint(constraint.identifier()));
     }
+
+    @Transactional
     public void removeConstraint(String moduleName, ConstraintDTO constraint) {
         if(!constraintsModules.containsKey(moduleName))
             throw new IllegalArgumentException("No constraint module with name: " + moduleName);
         constraintsModules.get(moduleName).removeConstraint(model.getConstraint(constraint.identifier()));
     }
+
+    @Transactional
     public void addPreference(String moduleName, PreferenceDTO preferenceDTO) {
         if(!preferenceModules.containsKey(moduleName))
             throw new IllegalArgumentException("No preference module with name: " + moduleName);
         preferenceModules.get(moduleName).addPreference(model.getPreference(preferenceDTO.identifier()));
     }
+
+    @Transactional
+    public void setVariablesModule(Set<ModelVariable> map1, Collection<String> sets, Collection<String> params ){
+        this.variables = new VariableModule(this, map1, sets, params);
+    }
+
+    @Transactional
     public void removePreference(String moduleName, PreferenceDTO preferenceDTO) {
         if(!preferenceModules.containsKey(moduleName))
             throw new IllegalArgumentException("No preference module with name: " + moduleName);
         preferenceModules.get(moduleName).removePreference(model.getPreference(preferenceDTO.identifier()));
     }
+    
     public Map<String,ModelVariable> getVariables() {
         return variables.getVariables();
     }
@@ -173,11 +242,12 @@ public class Image {
     public ModelInterface getModel() {
         return this.model;
     }
-    @Deprecated
+
     public String getId() {
-        // Do not use this! ID stored in controller, image not aware of its own ID.
-        throw new UnsupportedOperationException("Unimplemented method 'getId'");
+       return this.id;
     }
+
+    @Transactional
     public void reset(Map<String,ModelVariable> variables, Collection<String> sets, Collection<String> params) {
         constraintsModules.clear();
         preferenceModules.clear();

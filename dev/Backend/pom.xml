@@ -114,6 +114,12 @@
         <scope>provided</scope>
     </dependency>
 
+	<dependency>
+    <groupId>org.junit.jupiter</groupId>
+    <artifactId>junit-jupiter-api</artifactId>
+    <scope>test</scope>
+	</dependency>
+
     <!-- Spring Boot Starter Test (for writing tests) -->
     <dependency>
         <groupId>org.springframework.boot</groupId>
@@ -133,6 +139,14 @@
 	<build>
 		<testSourceDirectory>src/test</testSourceDirectory>
 		<plugins>
+					<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<forkCount>1</forkCount>
+					<reuseForks>false</reuseForks>
+				</configuration>
+			</plugin>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>

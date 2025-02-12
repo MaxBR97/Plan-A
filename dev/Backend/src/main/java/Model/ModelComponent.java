@@ -1,22 +1,51 @@
 package Model;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Id;
+import jakarta.persistence.MappedSuperclass;
+import jakarta.persistence.Transient;
+
+
+@MappedSuperclass
 public abstract class ModelComponent {
+    
+    @Id
+    @Column(name = "name", insertable = false, updatable = false)
     protected String identifier;
+
+    @Id  
+    @Column(name = "image_id")
+    private String imageId;
+
+    @Transient
     protected List<ModelSet> setDependencies; // order matters
+    @Transient
     protected List<ModelParameter> paramDependencies;
     
-    public ModelComponent(String identifier) {
+    //required for JPA
+    protected ModelComponent(){
+        this.imageId="nullImage";
+        this.identifier="nullIdentifier";
+    }
+
+    public ModelComponent(String imageId, String identifier) {
         this.identifier = identifier;
         this.setDependencies = new LinkedList<>();
         this.paramDependencies = new LinkedList<>();
+        this.imageId=imageId;
     }
 
-public ModelComponent(String identifier, List<ModelSet> setDep, List<ModelParameter> paramDep) {
+public ModelComponent(String imageId, String identifier, List<ModelSet> setDep, List<ModelParameter> paramDep) {
         this.identifier = identifier;
         this.setDependencies = setDep;
         this.paramDependencies = paramDep;
+        this.imageId=imageId;
     }
 
     public String getIdentifier() {

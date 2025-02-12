@@ -5,6 +5,7 @@ import Exceptions.UserErrors.ZimplCompileError;
 
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.*;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import Model.ModelInput.StructureBlock;
 import parser.*;
@@ -22,6 +23,7 @@ import parser.FormulationParser.TupleContext;
 import parser.FormulationParser.UExprContext;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.security.Policy;
 import java.util.*;
@@ -33,9 +35,13 @@ import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
 import org.antlr.runtime.tree.TreeWizard;
+import org.springframework.web.bind.annotation.RestController;
+
+import DataAccess.ModelRepository;
+
 
 public class Model implements ModelInterface {
-    private final String sourceFilePath;
+    private final String id;
     ParseTree tree;
     private CommonTokenStream tokens;
     private final Map<String,ModelSet> sets = new HashMap<>();
@@ -48,17 +54,40 @@ public class Model implements ModelInterface {
     private final String zimplCompilationScript = "src/main/resources/zimpl/checkCompilation.sh";
     private final String zimplSolveScript = "src/main/resources/zimpl/solve.sh" ;
     private String originalSource;
+    private ModelRepository modelRepository;
     
-    public Model(String sourceFilePath) throws IOException {
-        if (!Files.exists(Paths.get(sourceFilePath))) {
-            throw new BadRequestException("File does not exist: " + sourceFilePath);
-        }
-        this.sourceFilePath = sourceFilePath;
+    
+    public Model(String id, ModelRepository modelRepository) throws Exception {
+        this.modelRepository = modelRepository;
+        this.id = id;
         parseSource();
     }
+
+    private InputStream getSource() throws Exception{
+        InputStream inputStream = modelRepository.downloadDocument(id);
+        return inputStream;
+    }
+
+    private String getSourcePathToFile() throws Exception {
+        return modelRepository.getLocalStoreDir().resolve(id+".zpl").toString();
+    }
+
+    private String getSolutionPathToFile(String suffix) throws Exception {
+        return modelRepository.getLocalStoreDir().resolve(id+suffix+".zpl").toString();
+    }
+
+    private void writeToSource(String newSource) throws Exception{
+        InputStream inputStream = new ByteArrayInputStream(newSource.getBytes(StandardCharsets.UTF_8));
+        modelRepository.uploadDocument(id, inputStream);
+    }
+
+    private void writeSolution(String content, String suffix) throws Exception {
+        InputStream inputStream = new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
+        modelRepository.uploadDocument(id + suffix, inputStream);
+    }
     
-    private void parseSource() throws IOException {
-        originalSource = new String(Files.readAllBytes(Paths.get(sourceFilePath)));
+    private void parseSource() throws Exception {
+        originalSource = new String(getSource().readAllBytes());
         CharStream charStream = CharStreams.fromString(originalSource);
         FormulationLexer lexer = new FormulationLexer(charStream);
         tokens = new CommonTokenStream(lexer);
@@ -83,7 +112,7 @@ public class Model implements ModelInterface {
         if (modifier.isModified()) {
             // Write modified source back to file, preserving original formatting
             String modifiedSource = modifier.getModifiedSource();
-            Files.write(Paths.get(sourceFilePath), modifiedSource.getBytes());
+            writeToSource(modifiedSource);
             parseSource();
         }
     }
@@ -101,7 +130,7 @@ public class Model implements ModelInterface {
         if (modifier.isModified()) {
             // Write modified source back to file, preserving original formatting
             String modifiedSource = modifier.getModifiedSource();
-            Files.write(Paths.get(sourceFilePath), modifiedSource.getBytes());
+            writeToSource(modifiedSource);
             parseSource();
         }
     }
@@ -117,7 +146,7 @@ public class Model implements ModelInterface {
         if (modifier.isModified()) {
             // Write modified source back to file, preserving original formatting
             String modifiedSource = modifier.getModifiedSource();
-            Files.write(Paths.get(sourceFilePath), modifiedSource.getBytes());
+            writeToSource(modifiedSource);
             parseSource();
         }
     }
@@ -136,7 +165,7 @@ public class Model implements ModelInterface {
         if (modifier.isModified()) {
             // Write modified source back to file, preserving original formatting
             String modifiedSource = modifier.getModifiedSource();
-            Files.write(Paths.get(sourceFilePath), modifiedSource.getBytes());
+            writeToSource(modifiedSource);
             parseSource();
         }
     }
@@ -182,7 +211,7 @@ public class Model implements ModelInterface {
         }
     }
 
-    private void commentOutToggledFunctionalities() throws IOException {
+    private void commentOutToggledFunctionalities() throws Exception {
         if (toggledOffFunctionalities.isEmpty()) {
             return;
         }
@@ -193,18 +222,18 @@ public class Model implements ModelInterface {
         
         if (modifier.isModified()) {
             String modifiedSource = modifier.getModifiedSource();
-            Files.write(Paths.get(sourceFilePath), modifiedSource.getBytes());
+            writeToSource(modifiedSource);
         //    parseSource();
         }
     }
 
-    private void restoreToggledFunctionalities() throws IOException {
+    private void restoreToggledFunctionalities() throws Exception {
         if (toggledOffFunctionalities.isEmpty()) {
             return;
         }
 
         // Read the original file content and restore it
-        Files.write(Paths.get(sourceFilePath), originalSource.getBytes());
+        writeToSource(originalSource);
         parseSource();
     }
     
@@ -215,8 +244,9 @@ public class Model implements ModelInterface {
             commentOutToggledFunctionalities();
     
             ProcessBuilder processBuilder = new ProcessBuilder(
-                "scip", "-c", "read " + sourceFilePath + " q"
+                "scip", "-c", "read " + getSourcePathToFile() + " q"
             );
+           
             processBuilder.redirectErrorStream(true);
             
             Process process;
@@ -264,7 +294,7 @@ public class Model implements ModelInterface {
         } catch (Exception e) {
             try {
                 restoreToggledFunctionalities();
-            } catch (IOException ex) {
+            } catch (Exception ex) {
                 ex.printStackTrace();
             }
             
@@ -286,7 +316,7 @@ public class Model implements ModelInterface {
             commentOutToggledFunctionalities();
     
             ProcessBuilder processBuilder = new ProcessBuilder(
-                "scip", "-c", "read " + sourceFilePath + " optimize display solution q"
+                "scip", "-c", "read " + getSourcePathToFile() + " optimize display solution q"
             );
             processBuilder.redirectErrorStream(true);
             
@@ -343,9 +373,9 @@ public class Model implements ModelInterface {
                     .collect(Collectors.collectingAndThen(Collectors.toList(), list -> {
                         return String.join("\n", list);
                     }));
-    
-                Files.write(Paths.get(sourceFilePath + solutionFileSufix), filteredOutput.getBytes());
-                return new Solution(Paths.get(sourceFilePath + solutionFileSufix).toString());
+                    
+                writeSolution(filteredOutput, solutionFileSufix);
+                return new Solution(getSolutionPathToFile(solutionFileSufix));
             });
     
             try {
@@ -362,7 +392,7 @@ public class Model implements ModelInterface {
         } catch (Exception e) {
             try {
                 restoreToggledFunctionalities();
-            } catch (IOException ex) {
+            } catch (Exception ex) {
                 ex.printStackTrace();
             }
             
@@ -426,7 +456,7 @@ public class Model implements ModelInterface {
             String paramName = extractName(ctx.sqRef().getText());
             TypeVisitor typer = new TypeVisitor();
             typer.visit(ctx.expr());
-            ModelParameter param = new ModelParameter(paramName,typer.getType(), typer.getBasicSets(),typer.getBasicParams());
+            ModelParameter param = new ModelParameter(id,paramName,typer.getType(), typer.getBasicSets(),typer.getBasicParams());
             if(loadElementsToRam){
                 param.setValue(ctx.expr().getText());
             }
@@ -438,7 +468,7 @@ public class Model implements ModelInterface {
         public Void visitSetDecl(FormulationParser.SetDeclContext ctx) {
             String setName = extractName(ctx.sqRef().getText());
             
-            sets.put(setName,new ModelSet(setName,ModelPrimitives.UNKNOWN));
+            sets.put(setName,new ModelSet(id,setName,ModelPrimitives.UNKNOWN));
             return super.visitSetDecl(ctx);
         }
         
@@ -448,7 +478,7 @@ public class Model implements ModelInterface {
             
             TypeVisitor typer = new TypeVisitor();
             typer.visit(ctx.setExpr());
-            ModelSet set = new ModelSet(setName,typer.getType(),typer.getBasicSets(),typer.getBasicParams());
+            ModelSet set = new ModelSet(id,setName,typer.getType(),typer.getBasicSets(),typer.getBasicParams());
             if(loadElementsToRam){
                 java.util.List<String> elements = parseSetElements(ctx.setExpr());
                 set.setElements(elements);
@@ -462,7 +492,7 @@ public class Model implements ModelInterface {
             String constName = extractName(ctx.name.getText());
             TypeVisitor visitor = new TypeVisitor();
             visitor.visit(ctx);
-            constraints.put(constName, new ModelConstraint(constName,visitor.getBasicSets(),visitor.getBasicParams()));
+            constraints.put(constName, new ModelConstraint(id, constName,visitor.getBasicSets(),visitor.getBasicParams()));
             return super.visitConstraint(ctx);
         }
 
@@ -478,7 +508,7 @@ public class Model implements ModelInterface {
                 visitor.visit(expressionComponent);
                 
                 preferences.put(expressionComponent.getText(), 
-                    new ModelPreference(expressionComponent.getText(), 
+                    new ModelPreference(id,expressionComponent.getText(), 
                                         visitor.getBasicSets(), 
                                         visitor.getBasicParams())
                 );
@@ -495,7 +525,7 @@ public class Model implements ModelInterface {
             if(ctx.sqRef() instanceof FormulationParser.SqRefCsvContext){
                 isComplex = ((FormulationParser.SqRefCsvContext)(ctx.sqRef())).csv() == null ? false : true;
             }
-            variables.put(varName, new ModelVariable(varName, visitor.getBasicSets(), visitor.getBasicParams(),isComplex));
+            variables.put(varName, new ModelVariable(id,varName, visitor.getBasicSets(), visitor.getBasicParams(),isComplex));
             return super.visitVariable(ctx);
         }
 
@@ -1073,7 +1103,7 @@ public class Model implements ModelInterface {
             if (ctx.condition() != null){
                 TypeVisitor elementVisitor = new TypeVisitor();
                 elementVisitor.visit(ctx.condition());
-                ModelSet s = new ModelSet("anonymous_set", elementVisitor.type,elementVisitor.basicSets,elementVisitor.basicParams);
+                ModelSet s = new ModelSet(id,"anonymous_set", elementVisitor.type,elementVisitor.basicSets,elementVisitor.basicParams);
                 basicSets.add(s);
                 type = elementVisitor.getType();
             }
@@ -1081,12 +1111,12 @@ public class Model implements ModelInterface {
                 // Handle explicit set elements
                 TypeVisitor elementVisitor = new TypeVisitor();
                 elementVisitor.visit(ctx.csv().expr(0));
-                ModelSet s = new ModelSet("anonymous_set", elementVisitor.type,elementVisitor.basicSets,elementVisitor.basicParams);
+                ModelSet s = new ModelSet(id,"anonymous_set", elementVisitor.type,elementVisitor.basicSets,elementVisitor.basicParams);
                 // Add this as a basic set since it's explicitly defined
                 basicSets.add(s);
                 type = elementVisitor.getType();
             } else if (ctx.range() != null) {
-                ModelSet s = new ModelSet("anonymous_set", ModelPrimitives.INT);
+                ModelSet s = new ModelSet(id,"anonymous_set", ModelPrimitives.INT);
                 basicSets.add(s);
                 type = ModelPrimitives.INT;
                 TypeVisitor visitor = new TypeVisitor();
@@ -1168,7 +1198,7 @@ public class Model implements ModelInterface {
             for(Integer p : pointersToSetComp){
                 resultingStructure[count++] = totalStructure[p-1];
             }
-            ModelSet newSet = new ModelSet("anonymous_set",visitor.getBasicSets(),visitor.getBasicParams(),resultingStructure);
+            ModelSet newSet = new ModelSet(id,"anonymous_set",visitor.getBasicSets(),visitor.getBasicParams(),resultingStructure);
             basicSets.add(newSet);
             if(type == null || type == ModelPrimitives.UNKNOWN)
                 type = newSet.getType();

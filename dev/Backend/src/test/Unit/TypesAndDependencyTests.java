@@ -6,10 +6,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
     import static org.junit.jupiter.api.Assertions.assertThrows;
     import static org.junit.jupiter.api.Assertions.assertTrue;
     import static org.junit.jupiter.api.Assertions.fail;
-    
-    import java.io.IOException;
-    
-    import java.nio.channels.FileChannel;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.channels.FileChannel;
     import java.nio.file.Files;
     import java.nio.file.OpenOption;
     import java.nio.file.StandardCopyOption;
@@ -23,10 +24,12 @@ import java.util.List;
     import org.junit.jupiter.api.AfterAll;
     import org.junit.jupiter.api.BeforeAll;
     import org.junit.jupiter.api.BeforeEach;
-    import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import Model.*;
@@ -36,14 +39,35 @@ import java.nio.file.Files;
     import java.nio.file.StandardCopyOption;
     import java.io.IOException;
 
+import org.junit.jupiter.api.TestMethodOrder;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.TestPropertySource;
+
 import com.sun.source.tree.AssertTree;
+
+import DataAccess.ModelRepository;
+import groupId.Main;
     
+
+@SpringBootTest(classes = Main.class)
+//@ComponentScan(basePackages = {"Model", "DataAccess","DataAccess.LocalStorage", "Image.Modules"})
+//@ExtendWith(SpringExtension.class)
+//@ActiveProfiles("test") 
+//@Transactional
+@TestPropertySource(properties = {
+    "storage.type=local",
+    "spring.jpa.hibernate.ddl-auto=create-drop",
+    "spring.jpa.show-sql=true"
+})
+@TestMethodOrder(MethodOrderer.Alphanumeric.class)
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class TypesAndDependencyTests {
    
     private Model model;
 
     private static String source = "./src/test/Unit/TestFile.zpl";
     private static String TEST_FILE_PATH = "./src/test/Unit/TestFileINSTANCE.zpl";
+    private static String sourceId = "TestFileINSTANCE";
 
     private static HashMap<String,String[]> immidiateSetDependencies =  new HashMap<String,String[]>();
     private static HashMap<String,String[]> immidiateParamDependencies =  new HashMap<String,String[]>();
@@ -51,13 +75,19 @@ public class TypesAndDependencyTests {
     private static HashMap<String,String[]> secondDegreeParamDependencies =  new HashMap<String,String[]>();
     private static HashMap<String,Boolean> primitives = new HashMap<>();
     private static HashMap<String,Boolean> isComplexVariable = new HashMap<>();
+
+    private static ModelRepository modelRepository;
+
+    @Autowired
+    public void setModelRepository(ModelRepository injectedRepository) {
+        modelRepository = injectedRepository;
+    }   
     
     @BeforeAll
     public static void setUpFile() throws IOException {
         Path sourcePath = Path.of(source);
         Path targetPath = Path.of(TEST_FILE_PATH);
         Files.deleteIfExists(targetPath);
-        
         Files.copy(sourcePath, targetPath, StandardCopyOption.REPLACE_EXISTING);
 
         //TRUTH
@@ -149,8 +179,11 @@ public class TypesAndDependencyTests {
     }
 
     @BeforeEach
-    public void setUp() throws IOException {
-        model = new Model(TEST_FILE_PATH);
+    public void setUp() throws Exception{
+        InputStream inputStream = new ByteArrayInputStream(Files.readAllBytes(Path.of(TEST_FILE_PATH)));
+        modelRepository.uploadDocument(sourceId, inputStream);
+        inputStream.close();
+        model = new Model(sourceId,modelRepository);
     }
 
 
@@ -426,10 +459,18 @@ public class TypesAndDependencyTests {
     }
 
     @AfterAll
-    public static void cleanUp() throws IOException {
-        Path targetPath = Path.of(TEST_FILE_PATH);
-        Files.deleteIfExists(targetPath);
+    public static void cleanUp() throws Exception {
+       Path targetPath = Path.of(TEST_FILE_PATH);
+       Files.deleteIfExists(targetPath);
+       //Files.deleteIfExists(Path.of(targetPath.toString()+"SOLUTION"));
+       //Files.deleteIfExists(Path.of("./src/test/Unit/TestFile2.zplSOLUTION"));
+       System.gc();
+       //temporary solution to a synchronization problem - deleteing file while in use
+       
+        modelRepository.deleteDocument(sourceId);
+        
     }
+
 
 
     

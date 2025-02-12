@@ -1,10 +1,17 @@
 package DataAccess;
 
 import java.io.InputStream;
+import java.nio.file.Path;
 
-public interface ModelRepository {
-    public  void uploadDocument(String documentId, InputStream documentStream);
-    public  InputStream downloadDocument(String documentId);
-    public  void deleteDocument(String documentId);
-    public  boolean documentExists(String documentId);
+import org.springframework.stereotype.Repository;
+
+//TODO: Eviction strategy of local files.
+public abstract class ModelRepository {
+    
+    public abstract void uploadDocument(String documentId, InputStream documentStream) throws Exception;
+    public abstract void uploadDocument(String documentId, String documentStream) throws Exception;
+    public  abstract InputStream downloadDocument(String documentId) throws Exception;
+    public  abstract void deleteDocument(String documentId) throws Exception;
+    public  abstract boolean documentExists(String documentId) throws Exception;
+    public abstract Path getLocalStoreDir();
 }

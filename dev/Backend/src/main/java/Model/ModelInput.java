@@ -2,26 +2,37 @@ package Model;
 
 import java.util.LinkedList;
 import java.util.List;
+
+import jakarta.persistence.MappedSuperclass;
+import jakarta.persistence.Transient;
+
+@MappedSuperclass
 public abstract class ModelInput extends ModelComponent {
+    @Transient
     protected ModelType myType;
+    @Transient
     protected StructureBlock[] myStruct;
 
-    public ModelInput(String identifier, ModelType type) {
-        super(identifier);
+    public ModelInput(String imageId, String identifier, ModelType type) {
+        super(imageId, identifier);
         myType = type;
         setDependencies = new LinkedList<>();
         paramDependencies = new LinkedList<>();
     }
 
-    public ModelInput(String identifier, ModelType type, List<ModelSet> a, List<ModelParameter> b) {
-        super(identifier);
+    public ModelInput(String imageId, String identifier, ModelType type, List<ModelSet> a, List<ModelParameter> b) {
+        super(imageId, identifier);
         myType = type;
     setDependencies = a;
         paramDependencies = b;
     }
 
-    ModelInput(String identifier, ModelType type, List<ModelSet> a, List<ModelParameter> b, StructureBlock[] struct) {
-        super(identifier);
+    public ModelInput(){
+        super();
+    }
+
+    ModelInput(String imageId, String identifier, ModelType type, List<ModelSet> a, List<ModelParameter> b, StructureBlock[] struct) {
+        super(imageId, identifier);
         myType = type;
         setDependencies = a;
         paramDependencies = b;

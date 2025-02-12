@@ -2,14 +2,22 @@ package Model;
 
 import java.util.List;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 
+@Entity
+@Table(name="constraints")
 public class ModelConstraint extends ModelFunctionality {
     
-    public ModelConstraint(String identifier) {
-        super(identifier);
+    public ModelConstraint(){
+        super();
     }
 
-    ModelConstraint(String constName, List<ModelSet> basicSets, List<ModelParameter> basicParams) {
-        super(constName,basicSets,basicParams);
+    public ModelConstraint(String imageId, String identifier) {
+        super(imageId, identifier);
+    }
+
+    ModelConstraint(String imageId, String constName, List<ModelSet> basicSets, List<ModelParameter> basicParams) {
+        super(imageId, constName,basicSets,basicParams);
     }
 }

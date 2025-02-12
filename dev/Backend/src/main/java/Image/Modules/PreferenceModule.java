@@ -4,26 +4,48 @@ import Model.ModelConstraint;
 import Model.ModelParameter;
 import Model.ModelPreference;
 import Model.ModelSet;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.MapKey;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
+import jakarta.transaction.Transactional;
 
 import java.util.*;
 
+import Image.Image;
+import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
+import jakarta.persistence.Entity;
+
+// @Entity
+// @Table(name = "preference_module")
 public class PreferenceModule extends Module{
     /**
      * a preference module, holding the user definition for a group of model preference
      * (a preference is a single expressions in the expression sum in the minimize/maximize expression in zimpl)
      */
+    
+    // @Id
+    // @GeneratedValue(strategy = GenerationType.IDENTITY)
+    // private Long id;
+
+    // @ElementCollection
+    // @Column(name = "input_set")
+    // @MapKey(name = "name")
     private final Map<String, ModelPreference> preferences;
 
 
-
-
-    public PreferenceModule(String name, String description) {
-        super(name, description);
+    public PreferenceModule(Image image ,String name, String description) {
+        super(image, name, description);
         preferences = new HashMap<>();
 
     }
-    public PreferenceModule(String name, String description, Collection<ModelPreference> preferences, Collection<String> inputSets, Collection<String> inputParams) {
-        super(name, description,inputSets,inputParams);
+    public PreferenceModule(Image image ,String name, String description, Collection<ModelPreference> preferences, Collection<String> inputSets, Collection<String> inputParams) {
+        super(image , name, description,inputSets,inputParams);
         this.preferences = new HashMap<>();
         for (ModelPreference constraint : preferences) {
             this.preferences.put(constraint.getIdentifier(), constraint);
@@ -58,12 +80,15 @@ public class PreferenceModule extends Module{
     public Map<String, ModelPreference> getPreferences() {
         return preferences;
     }
+    @Transactional
     public void addPreference(ModelPreference preference){
         preferences.put(preference.getIdentifier(),preference);
     }
+    @Transactional
     public void removePreference(ModelPreference preference){
         preferences.remove(preference.getIdentifier());
     }
+    @Transactional
     public void removePreference(String identifier){
         preferences.remove(identifier);
     }

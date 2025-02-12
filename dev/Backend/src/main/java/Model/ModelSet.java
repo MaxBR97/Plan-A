@@ -3,20 +3,33 @@ package Model;
 import java.util.Collections;
 import java.util.List;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
+
+@Entity
+@Table(name="sets")
 public class ModelSet extends ModelInput {
+
+
+    @Transient
     private List<String> elements;
 
-    public ModelSet(String identifier, ModelType type) {
-        super(identifier,type);
+    protected ModelSet(){
+        super();
     }
 
-    public ModelSet(String setName, ModelType type, List<ModelSet> basicSets, List<ModelParameter> basicParams) {
-        super(setName, type, basicSets, basicParams);
+    public ModelSet(String imageId, String identifier, ModelType type) {
+        super(imageId, identifier,type);
+    }
+
+    public ModelSet(String imageId, String setName, ModelType type, List<ModelSet> basicSets, List<ModelParameter> basicParams) {
+        super(imageId, setName, type, basicSets, basicParams);
     }
 
 
-    public ModelSet(String setName, List<ModelSet> basicSets, List<ModelParameter> basicParams,StructureBlock[] resultingStructure) {
-        super(setName,null, basicSets, basicParams);
+    public ModelSet(String imageId, String setName, List<ModelSet> basicSets, List<ModelParameter> basicParams,StructureBlock[] resultingStructure) {
+        super(imageId, setName,null, basicSets, basicParams);
             //infer type
             Tuple type = new Tuple();
             int i = 0;

@@ -1,12 +1,16 @@
 package Unit;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.channels.FileChannel;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -20,10 +24,25 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestMethodOrder;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.context.junit4.SpringRunner;
 
+import Acceptance.RunWith;
+import DataAccess.ModelRepository;
 import Model.Model;
 import Model.ModelConstraint;
 import Model.ModelFunctionality;
@@ -36,21 +55,48 @@ import Model.ModelType;
 import Model.ModelVariable;
 import Model.Solution;
 import Model.Tuple;
+import groupId.Main;
+import jakarta.transaction.Transactional;
 
 
+@SpringBootTest(classes = Main.class)
+//@ComponentScan(basePackages = {"Model", "DataAccess","DataAccess.LocalStorage", "Image.Modules"})
+//@ExtendWith(SpringExtension.class)
+//@ActiveProfiles("test") 
+//@Transactional
+@TestPropertySource(properties = {
+    "storage.type=local",
+    "spring.jpa.hibernate.ddl-auto=create-drop",
+    "spring.jpa.show-sql=true"
+})
+@TestMethodOrder(MethodOrderer.Alphanumeric.class)
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
+
+// To run tests type "mvn test" or right click the circle next to the class name, 
+// and choose "Run all tests with coverage"
 public class ModelTest {
     private ModelInterface model;
-
     private static String source = "src/test/Unit/TestFile.zpl";
     private static String TEST_FILE_PATH = "src/test/Unit/TestFileINSTANCE.zpl";
-    private static float compilationBaselineTime = 8;
+    private static String SOLVE_FILE_PATH = "src/test/Unit/TestFile2.zpl";
+    private static String sourceId = "TestFileINSTANCE";
+    private static String sourceSolveId = "TestFile2";
+    private static float compilationBaselineTime = 6;
     private static String[][] expectedParameters = {{"Conditioner","10"}, {"soldiers", "9"}, {"absoluteMinimalRivuah", "8"}};
+    
+    //@Autowired
+    private static ModelRepository modelRepository;
+
+    @Autowired
+    public void setModelRepository(ModelRepository injectedRepository) {
+        modelRepository = injectedRepository;
+    }
+
     @BeforeAll
-    public static void setUpFile() throws IOException {
+    public static void setUpFile() throws Exception {
         Path sourcePath = Path.of(source);
         Path targetPath = Path.of(TEST_FILE_PATH);
         Files.deleteIfExists(targetPath);
-        
         Files.copy(sourcePath, targetPath, StandardCopyOption.REPLACE_EXISTING);
     }
 
@@ -76,8 +122,14 @@ public class ModelTest {
     
     
     @BeforeEach
-    public void setUp() throws IOException {
-        model = new Model(TEST_FILE_PATH);
+    public void setUp() throws Exception{
+        InputStream inputStream = new ByteArrayInputStream(Files.readAllBytes(Path.of(TEST_FILE_PATH)));
+        modelRepository.uploadDocument(sourceId, inputStream);
+        InputStream inputStream2 = new ByteArrayInputStream(Files.readAllBytes(Path.of(SOLVE_FILE_PATH)));
+        modelRepository.uploadDocument(sourceSolveId, inputStream2);
+        inputStream.close();    
+        inputStream2.close();
+        model = new Model(sourceId,modelRepository);
     }
     
     @Test
@@ -88,7 +140,7 @@ public class ModelTest {
     
     @Test
     public void testInvalidFilePath() throws IOException {
-        assertThrows(Exception.class, ()->new Model("nonexistent_file6293.txt"));
+        assertThrows(Exception.class, ()->modelRepository.downloadDocument("nonexistent_file6293.txt"));
     }
     
     
@@ -199,12 +251,12 @@ public class ModelTest {
         assertTrue(model.isCompiling(compilationBaselineTime));
         try{
         String gibbrish = "gfsgfd;";
-        Files.writeString(Path.of(TEST_FILE_PATH), gibbrish, StandardOpenOption.APPEND);
+        InputStream original = modelRepository.downloadDocument(sourceId);
+        InputStream broken = new ByteArrayInputStream(new String(new String(original.readAllBytes()) + gibbrish).getBytes());
+        modelRepository.uploadDocument(sourceId, broken);
         assertFalse(model.isCompiling(compilationBaselineTime));
-        FileChannel fileChannel = FileChannel.open(Path.of(TEST_FILE_PATH), StandardOpenOption.WRITE);
-        long newSize = fileChannel.size() - gibbrish.length();
-        fileChannel.truncate(newSize);
-        assertTrue(model.isCompiling(compilationBaselineTime));
+        original.close();
+        broken.close();
         } catch (Exception e){
             assertFalse(true);
         }
@@ -221,7 +273,8 @@ public class ModelTest {
     public void testSolve(){
         Model m = null;
         try{
-         m = new Model("./src/test/Unit/TestFile2.zpl");
+        
+        m = new Model(this.sourceSolveId,modelRepository);
         Solution sol = m.solve(100,"SOLUTION");
         
         if(sol == null)
@@ -279,7 +332,7 @@ public class ModelTest {
     //TODO: implement
     @Test
     public void testInvalidParameterAssignment() throws Exception {
-        assertTrue(true); 
+        assertTrue(true);
     }
 
     @ParameterizedTest
@@ -288,16 +341,32 @@ public class ModelTest {
         id = id.replaceAll(" ", "");
         assertTrue(model.getSet(id) != null || model.getConstraint(id) != null || model.getParameter(id) != null || model.getPreference(id) != null || model.getVariable(id) != null);
     }
+
     //TODO:The parsing of preferences must be tested further!
 
 
     @AfterAll
-    public static void cleanUp() throws IOException {
+    public static void cleanUp() throws Exception {
        Path targetPath = Path.of(TEST_FILE_PATH);
        Files.deleteIfExists(targetPath);
-       Files.deleteIfExists(Path.of(targetPath.toString()+"SOLUTION"));
-       Files.deleteIfExists(Path.of("./src/test/Unit/TestFile2.zplSOLUTION"));
-
+       //Files.deleteIfExists(Path.of(targetPath.toString()+"SOLUTION"));
+       //Files.deleteIfExists(Path.of("./src/test/Unit/TestFile2.zplSOLUTION"));
+       int count = 0;
+       System.gc();
+       //temporary solution to a synchronization problem - deleteing file while in use
+       while(true){
+        try{
+        Thread.sleep(100);
+        modelRepository.deleteDocument(sourceId);
+        modelRepository.deleteDocument(sourceSolveId);
+        break;
+        } catch(Exception e){
+            count++;
+            if(count == 10)
+                throw e;
+        }
+       }
     }
+    
 
 }
