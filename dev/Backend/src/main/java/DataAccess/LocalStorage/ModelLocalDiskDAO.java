@@ -1,14 +1,17 @@
 package DataAccess.LocalStorage;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 
-import DataAccess.ModelDAO;
+import DataAccess.ModelRepository;
 
-public class ModelLocalDiskDAO implements ModelDAO {
+public class ModelLocalDiskDAO implements ModelRepository {
     private Path storeDir;
 
     public ModelLocalDiskDAO() {
