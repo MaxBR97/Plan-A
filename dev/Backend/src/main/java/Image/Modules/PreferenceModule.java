@@ -1,28 +1,28 @@
 package Image.Modules;
 
-import Model.ModelConstraint;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
+import Image.Image;
 import Model.ModelParameter;
 import Model.ModelPreference;
 import Model.ModelSet;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.DiscriminatorValue;
+import jakarta.persistence.Entity;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinColumns;
 import jakarta.persistence.MapKey;
 import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import jakarta.transaction.Transactional;
 
-import java.util.*;
-
-import Image.Image;
-import jakarta.persistence.Column;
-import jakarta.persistence.ElementCollection;
-import jakarta.persistence.Entity;
-
-// @Entity
+@Entity
 // @Table(name = "preference_module")
+@DiscriminatorValue("PREFERENCE")
 public class PreferenceModule extends Module{
     /**
      * a preference module, holding the user definition for a group of model preference
@@ -33,11 +33,22 @@ public class PreferenceModule extends Module{
     // @GeneratedValue(strategy = GenerationType.IDENTITY)
     // private Long id;
 
-    // @ElementCollection
-    // @Column(name = "input_set")
-    // @MapKey(name = "name")
-    private final Map<String, ModelPreference> preferences;
+    // @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    // @JoinColumns(
+    //             {
+    //                 @JoinColumn(name="image_id", referencedColumnName="image_id", nullable=false),
+    //                 @JoinColumn(name="module_name", referencedColumnName="name", nullable=false)
+    //             }
+    //             )
+    // @MapKey(name="id.identifier")
+    @Transient
+    private Map<String, ModelPreference> preferences;
 
+
+    protected PreferenceModule() {
+        super();
+        preferences = new HashMap<String,ModelPreference>();
+    }
 
     public PreferenceModule(Image image ,String name, String description) {
         super(image, name, description);

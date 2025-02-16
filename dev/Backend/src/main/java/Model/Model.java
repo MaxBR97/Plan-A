@@ -104,7 +104,7 @@ public class Model implements ModelInterface {
         //     throw new IllegalArgumentException("Set " + setName + " not found");
         // }
         if(!set.isCompatible(value))
-            throw new BadRequestException("set "+set.identifier+" is incompatible with given input: "+value+" , expected type: "+set.getType());
+            throw new BadRequestException("set "+set.getIdentifier()+" is incompatible with given input: "+value+" , expected type: "+set.getType());
         
         ModifierVisitor modifier = new ModifierVisitor(tokens, set.getIdentifier(), value, ModifierVisitor.Action.APPEND, originalSource);
         modifier.visit(tree);
@@ -122,7 +122,7 @@ public class Model implements ModelInterface {
         //     throw new IllegalArgumentException("Set " + setName + " not found");
         // }
         if(!set.isCompatible(value))
-            throw new BadRequestException("set "+set.identifier+" is incompatible with given input: "+value+" , expected type: "+set.getType());
+            throw new BadRequestException("set "+set.getIdentifier()+" is incompatible with given input: "+value+" , expected type: "+set.getType());
 
         ModifierVisitor modifier = new ModifierVisitor(tokens, set.getIdentifier(), value,  ModifierVisitor.Action.DELETE, originalSource);
         modifier.visit(tree);
@@ -138,7 +138,7 @@ public class Model implements ModelInterface {
     public void setInput(ModelParameter identifier, String value) throws Exception {
 
         if(!identifier.isCompatible(value))
-            throw new BadRequestException("parameter "+identifier.identifier+" is incompatible with given input: "+value +" expected type: "+identifier.getType());
+            throw new BadRequestException("parameter "+identifier.getIdentifier()+" is incompatible with given input: "+value +" expected type: "+identifier.getType());
         
         ModifierVisitor modifier = new ModifierVisitor(tokens, identifier.getIdentifier(), value,  ModifierVisitor.Action.SET, originalSource);
         modifier.visit(tree);
@@ -155,7 +155,7 @@ public class Model implements ModelInterface {
 
         for(String str : values){
             if(!identifier.isCompatible(str))
-                throw new BadRequestException("set "+identifier.identifier+" is incompatible with given input: "+str+" , expected type: "+identifier.getType());
+                throw new BadRequestException("set "+identifier.getIdentifier()+" is incompatible with given input: "+str+" , expected type: "+identifier.getType());
 
         }
         
@@ -1187,7 +1187,7 @@ public class Model implements ModelInterface {
             for(ModelSet s : visitor.basicSets){
                 int i = 1;
                 for(StructureBlock sb : s.getStructure()){
-                    totalStructure[count] = new StructureBlock(s, sb == null && s.identifier.equals("anonymous_set") ? i : sb.position);
+                    totalStructure[count] = new StructureBlock(s, sb == null && s.getIdentifier().equals("anonymous_set") ? i : sb.position);
                     count++;
                     i++;
                 }   

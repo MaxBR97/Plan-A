@@ -33,6 +33,9 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinColumns;
+import jakarta.persistence.MapKey;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
@@ -46,22 +49,23 @@ public class Image {
     @Column(name = "image_id") 
     private String id;
 
-    // @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    // @JoinColumn(name = "image_id")
-    // @MapKey(name = "name")
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @JoinColumn(name = "image_id",insertable=false, updatable=false)
+    @MapKey(name = "id.name")
     //@Transient
-    private HashMap<String,ConstraintModule> constraintsModules;
+    private Map<String,ConstraintModule> constraintsModules;
 
     // @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    // @JoinColumn(name = "image_id")
+    // @JoinColumn(name = "image_id",insertable=false, updatable=false)
     // @MapKey(name = "name")
     @Transient
-    private HashMap<String,PreferenceModule> preferenceModules;
+    private Map<String,PreferenceModule> preferenceModules;
 
-    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-    @JoinColumn(name = "image_id")
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JoinColumn(name = "image_id",insertable=false, updatable=false)
+    @MapKey(name = "id.name")
     //@Transient
-    private VariableModule variables;
+    private Map<String,VariableModule> variables;
 
     @Transient
     private int defaultTimeout = 60;
@@ -79,7 +83,7 @@ public class Image {
         this.id = null;
         this.constraintsModules = new HashMap<>();
         this.preferenceModules = new HashMap<>();
-        this.variables = new VariableModule();
+        setVariableModule(new VariableModule());
         this.model = null;
     }
     
@@ -87,7 +91,7 @@ public class Image {
     public Image(String id, ModelRepository modelRepository) throws Exception {
         constraintsModules = new HashMap<>();
         preferenceModules = new HashMap<>();
-        variables = new VariableModule();
+        setVariableModule(new VariableModule());
         this.model = new Model(id,modelRepository);
         this.id = id;
     }
@@ -113,6 +117,14 @@ public class Image {
         }
         constraintsModules.put(moduleName, new ConstraintModule(this, moduleName, description, modelConstraints, inputSets, inputParams));
     }
+    @Transactional
+    public void setConstraintsModules(HashMap<String,ConstraintModule> constraintsModules){
+        this.constraintsModules = constraintsModules;
+    }
+    @Transactional
+    public void setPreferencesModules(HashMap<String,PreferenceModule> prefs){
+        this.preferenceModules = prefs;
+    }
 
     @Transactional
     public void addPreferenceModule(PreferenceModule module) {
@@ -134,16 +146,20 @@ public class Image {
         }
         preferenceModules.put(moduleName, new PreferenceModule(this, moduleName, description, modelPreferences,inputSets,inputParams));
     }
+    @Transactional
     public ConstraintModule getConstraintModule(String name) {
         return constraintsModules.get(name);
     }
+    @Transactional
     public PreferenceModule getPreferenceModules(String name) {
         return preferenceModules.get(name);
     }
-    public HashMap<String, ConstraintModule> getConstraintsModules() {
+    @Transactional
+    public Map<String, ConstraintModule> getConstraintsModules() {
         return constraintsModules;
     }
-    public HashMap<String, PreferenceModule> getPreferenceModules() {
+    @Transactional
+    public Map<String, PreferenceModule> getPreferenceModules() {
         return preferenceModules;
     }
 
@@ -170,7 +186,7 @@ public class Image {
 
     @Transactional
     public void setVariablesModule(Set<ModelVariable> map1, Collection<String> sets, Collection<String> params ){
-        this.variables = new VariableModule(this, map1, sets, params);
+        setVariableModule(new VariableModule(this, map1, sets, params));
     }
 
     @Transactional
@@ -179,13 +195,23 @@ public class Image {
             throw new IllegalArgumentException("No preference module with name: " + moduleName);
         preferenceModules.get(moduleName).removePreference(model.getPreference(preferenceDTO.identifier()));
     }
-    
+    @Transactional
     public Map<String,ModelVariable> getVariables() {
-        return variables.getVariables();
+        return getVariableModule().getVariables();
     }
-    public ModelVariable getVariable(String name) {
-        return variables.get(name);
+
+    
+    @Transactional
+    public void setVariableModule(VariableModule module){
+        if (this.variables == null)
+            this.variables = new HashMap<>();
+        this.variables.put(VariableModule.getVariableModuleName(), module);
     }
+    @Transactional
+    public VariableModule getVariableModule(){
+        return this.variables.get(VariableModule.getVariableModuleName());
+    }
+
     /*public void addVariable(ModelVariable variable) {
         variables.put(variable.getIdentifier(), variable);
     }
@@ -197,8 +223,7 @@ public class Image {
     }
     /*
      */
-    public void fetchVariables(){
-    }
+
     /*
     public void TogglePreference(String name){
             Objects.requireNonNull(name,"Null value during Toggle Preference in Image");
@@ -211,8 +236,8 @@ public class Image {
     public SolutionDTO solve(int timeout){
         Solution solution=model.solve(timeout, "SOLUTION");
         try {
-            solution.parseSolution(model, variables.getIdentifiers());
-        } catch (IOException e) {
+            solution.parseSolution(model, getVariableModule().getIdentifiers());
+        } catch (Exception e) {
             throw new RuntimeException("IO exception while parsing solution file, message: "+ e);
         }
         return RecordFactory.makeDTO(solution);
@@ -251,7 +276,7 @@ public class Image {
     public void reset(Map<String,ModelVariable> variables, Collection<String> sets, Collection<String> params) {
         constraintsModules.clear();
         preferenceModules.clear();
-        this.variables.override(variables,sets,params);
+        getVariableModule().override(variables,sets,params);
     }
 
     public Set<String> getAllInvolvedSets() {
@@ -267,7 +292,7 @@ public class Image {
             allSets.addAll(preferenceModule.getInputSets());
         }
             
-        allSets.addAll(variables.getInputSets());
+        allSets.addAll(getVariableModule().getInputSets());
 
         return allSets;
     }
@@ -285,7 +310,7 @@ public class Image {
             allParams.addAll(preferenceModule.getInputParams());
         }
 
-        allParams.addAll(variables.getInputParams());
+        allParams.addAll(getVariableModule().getInputParams());
 
         return allParams;
     }

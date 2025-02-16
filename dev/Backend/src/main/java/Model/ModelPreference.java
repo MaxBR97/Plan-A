@@ -6,7 +6,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name="constraints")
+@Table(name="preferences")
 public class ModelPreference extends ModelFunctionality {
 
     public ModelPreference(){

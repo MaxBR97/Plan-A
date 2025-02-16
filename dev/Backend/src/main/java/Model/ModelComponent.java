@@ -7,21 +7,18 @@ import java.util.List;
 import java.util.Set;
 
 import jakarta.persistence.Column;
-import jakarta.persistence.Id;
+import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.MappedSuperclass;
 import jakarta.persistence.Transient;
-
 
 @MappedSuperclass
 public abstract class ModelComponent {
     
-    @Id
-    @Column(name = "name", insertable = false, updatable = false)
-    protected String identifier;
+    @EmbeddedId
+    protected ModelComponentId id;
 
-    @Id  
-    @Column(name = "image_id")
-    private String imageId;
+    @Column(name="module_name",insertable=false, updatable=false)
+    protected String module_name;
 
     @Transient
     protected List<ModelSet> setDependencies; // order matters
@@ -30,31 +27,37 @@ public abstract class ModelComponent {
     
     //required for JPA
     protected ModelComponent(){
-        this.imageId="nullImage";
-        this.identifier="nullIdentifier";
+        this.id = new ModelComponentId();
+        this.id.setImageId("nullImage");
+        this.id.setIdentifier("nullIdentifier");
+        this.module_name = "default";
     }
 
     public ModelComponent(String imageId, String identifier) {
-        this.identifier = identifier;
+        this.id = new ModelComponentId();
+        this.id.setIdentifier(identifier);
         this.setDependencies = new LinkedList<>();
         this.paramDependencies = new LinkedList<>();
-        this.imageId=imageId;
+        this.id.setImageId(imageId);
+        this.module_name = "default";
     }
 
 public ModelComponent(String imageId, String identifier, List<ModelSet> setDep, List<ModelParameter> paramDep) {
-        this.identifier = identifier;
+        this.id = new ModelComponentId();    
+        this.id.setIdentifier(identifier);
         this.setDependencies = setDep;
         this.paramDependencies = paramDep;
-        this.imageId=imageId;
+        this.id.setImageId(imageId);
+        this.module_name = "default";
     }
 
     public String getIdentifier() {
-        return identifier;
+        return this.id.getIdentifier();
     }
 
     public ModelSet findSetDependency(String identifier){
         for( ModelSet s : setDependencies){
-            if(s.identifier.equals(identifier))
+            if(s.id.getIdentifier().equals(identifier))
                 return s;
         }
         return null;
@@ -62,7 +65,7 @@ public ModelComponent(String imageId, String identifier, List<ModelSet> setDep, 
 
     public ModelParameter findParamDependency(String identifier){
         for( ModelParameter s : paramDependencies){
-            if(s.identifier.equals(identifier))
+            if(s.id.getIdentifier().equals(identifier))
                 return s;
         }
         return null;

@@ -1,37 +1,41 @@
 package Image.Modules;
 
-import Model.*;
-import jakarta.persistence.Column;
-import jakarta.persistence.ElementCollection;
-import jakarta.transaction.Transactional;
-
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 import Image.Image;
+import Model.ModelConstraint;
+import Model.ModelParameter;
+import Model.ModelSet;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinColumns;
 import jakarta.persistence.MapKey;
-import jakarta.persistence.Table;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Transient;
+import jakarta.transaction.Transactional;
 
-// @Entity
-// @Table(name = "constraint_module")
+@Entity
+@DiscriminatorValue("CONSTRAINT")
 public class ConstraintModule extends Module{
     /**
      * a constraint module, holding the user definition for a group of model constraints
      * (a group of subTo expressions in zimpl code)
      */
 
-    // @Id
-    // @GeneratedValue(strategy = GenerationType.IDENTITY)
-    // private String id;
-
-
-    // @ElementCollection
-    // @Column(name = "constraints")
-    // @MapKey(name = "name")
-    private final Map<String,ModelConstraint> constraints;
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumns({
+        @JoinColumn(name = "image_id", referencedColumnName = "image_id", nullable = false),
+        @JoinColumn(name = "module_name", referencedColumnName = "name", nullable = false)
+    })
+    @MapKey(name = "id.identifier")
+    //@Transient
+    private Map<String,ModelConstraint> constraints;
 
     public ConstraintModule(Image image , String name, String description) {
         super(image, name, description);
@@ -43,6 +47,11 @@ public class ConstraintModule extends Module{
         for (ModelConstraint constraint : constraints) {
             this.constraints.put(constraint.getIdentifier(), constraint);
         }
+    }
+
+    public ConstraintModule() {
+       super();
+       this.constraints = new HashMap<String,ModelConstraint>();
     }
     /**
      * Fetch all ModelSets that are in use in any of the constraints in the module.
@@ -65,9 +74,11 @@ public class ConstraintModule extends Module{
         }
         return involvedParameters;
     }
+    @Transactional
     public Map<String, ModelConstraint> getConstraints() {
         return constraints;
     }
+    @Transactional
     public ModelConstraint getConstraint(String constraintName) {
         return constraints.get(constraintName);
     }

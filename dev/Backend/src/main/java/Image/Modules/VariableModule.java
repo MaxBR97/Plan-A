@@ -7,12 +7,15 @@ import java.util.Map;
 import java.util.Set;
 
 import Image.Image;
+import Model.ModelParameter;
+import Model.ModelSet;
 import Model.ModelVariable;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
+import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinColumns;
 import jakarta.persistence.MapKey;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
@@ -20,61 +23,53 @@ import jakarta.persistence.Transient;
 import jakarta.transaction.Transactional;
 
 @Entity
-@Table(name = "variable_module")
-public class VariableModule {
-
-    @Id
-    @Column(name="image_id")
-    private String id;
+@DiscriminatorValue("VARIABLE")
+public class VariableModule extends Module {
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "image_id")
-    @MapKey(name = "identifier")
+    @JoinColumns({
+        @JoinColumn(name = "image_id", referencedColumnName = "image_id", nullable = false),
+        @JoinColumn(name = "module_name", referencedColumnName = "name", nullable = false)
+    })
+    @MapKey(name = "id.identifier")
+    //@Transient
     private Map<String, ModelVariable> variables;
 
-    // @ElementCollection
-    // @Column(name = "input_set")
     @Transient
-    final Set<String> inputSets;
+    private final static String genericName = "VariableModule";
 
-    // @ElementCollection
-    // @Column(name = "input_param")
-    @Transient
-    final Set<String> inputParams;
-
-
-    public Map<String, ModelVariable> getVariables() {
-        return variables;
-    }
-
-    public Set<String> getInputSets() {
-        return inputSets;
-    }
-
-    public Set<String> getInputParams() {
-        return inputParams;
-    }
-
-    public VariableModule() {
-        variables = new HashMap<>();
-        inputSets = new HashSet<>();
-        inputParams = new HashSet<>();
-    }
-
+        public Map<String, ModelVariable> getVariables() {
+            return variables;
+        }
+    
+        public Set<String> getInputSets() {
+            return inputSets;
+        }
+    
+        public Set<String> getInputParams() {
+            return inputParams;
+        }
+    
+        public VariableModule() {
+           super();
+           variables = new HashMap<>();
+        }
+    
     public VariableModule(Image image, Map<String, ModelVariable> variables, Collection<String> inputSets, Collection<String> inputParams) {
-        this.id = image.getId();
-        this.variables = new HashMap<>(variables);
-        this.inputSets = new HashSet<>(inputSets);
-        this.inputParams = new HashSet<>(inputParams);
+       super(image,getVariableModuleName(),"NO DESCRIPTION", inputSets, inputParams);
+       this.variables = new HashMap<>();
     }
+
     public VariableModule(Image image, Set<ModelVariable> variables, Collection<String> inputSets, Collection<String> inputParams) {
-        this.id = image.getId();
+        super(image,getVariableModuleName(),"NO DESCRIPTION",inputSets,inputParams);
         this.variables = new HashMap<>();
         for(ModelVariable variable: variables) {
             this.variables.put(variable.getIdentifier(),variable);
         }
-        this.inputSets = new HashSet<>(inputSets);
-        this.inputParams = new HashSet<>(inputParams);
+    }
+
+    public static String getVariableModuleName(){
+        return genericName;
     }
 
     @Transactional
@@ -105,18 +100,37 @@ public class VariableModule {
     public void addVariable(ModelVariable variable) {
         variables.put(variable.getIdentifier(),variable);
     }
-    /*
+
+    @Transactional
     public void addParam(String name){
-        inputParams.add(name);
+                inputParams.add(name);
     }
+
+    @Transactional
     public void addSet(String name){
         inputParams.add(name);
     }
-    public void addSets(Collection<String> sets){
-        inputSets.addAll(sets);
+
+    @Transactional
+    public void removeSet(String name){
+        inputSets.remove(name);
     }
-    public void addParams(Collection<String> params){
-        inputParams.addAll(params);
+
+    @Transactional
+    public void removeParam(String name){
+                inputSets.remove(name);
     }
-    */
+
+    @Override
+    public Set<ModelSet> getInvolvedSets() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'getInvolvedSets'");
+    }
+
+    @Override
+    public Set<ModelParameter> getInvolvedParameters() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'getInvolvedParameters'");
+    }
+    
 }

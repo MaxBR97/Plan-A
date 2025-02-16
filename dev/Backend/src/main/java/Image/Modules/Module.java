@@ -1,78 +1,91 @@
 package Image.Modules;
 
-import Model.ModelFunctionality;
-import Model.ModelParameter;
-import Model.ModelSet;
-import jakarta.persistence.CollectionTable;
-import jakarta.persistence.Column;
-import jakarta.persistence.ElementCollection;
-import jakarta.persistence.EmbeddedId;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.Table;
-
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
 import Image.Image;
+import Model.ModelParameter;
+import Model.ModelSet;
+import jakarta.persistence.CollectionTable;
+import jakarta.persistence.Column;
+import jakarta.persistence.DiscriminatorColumn;
+import jakarta.persistence.ElementCollection;
+import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.IdClass;
 import jakarta.persistence.Inheritance;
 import jakarta.persistence.InheritanceType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 
 @Entity
-@Inheritance(strategy = InheritanceType.JOINED) // Use joined table inheritance
+@DiscriminatorColumn(name = "module_type")
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @Table(name = "modules")
 public abstract class Module {
 
     @EmbeddedId
     private ModuleId id;
 
-    @Column
+    @Column(name = "description")
     private String description;
 
     @ElementCollection
+    @CollectionTable(
+        name = "input_sets",
+        joinColumns = {
+            @JoinColumn(name = "image_id", referencedColumnName = "image_id", nullable = false),
+            @JoinColumn(name = "module_name", referencedColumnName = "name", nullable = false)
+        }
+    )
     @Column(name = "input_set")
     protected Set<String> inputSets = new HashSet<>();
 
-    @ElementCollection
-    @Column(name = "input_param")
+    
+    // @ElementCollection
+    // @CollectionTable(name = "input_params", joinColumns= {@JoinColumn(name="image_id"),@JoinColumn(name = "module_name", referencedColumnName = "name")})
+    // @Column(name = "input_param")
+    @Transient
     protected Set<String> inputParams = new HashSet<>();
 
     protected Module() {
         // Required by JPA
+        this.id = new ModuleId("0", "noname");
+        this.description = "";
         inputSets = new HashSet<>();
         inputParams = new HashSet<>();
     }
 
     public Module(Image image, String name, String description) {
-        id = new ModuleId(image.getId(), name);
+        this.id = new ModuleId(image.getId(), name);
         this.description = description;
      //   isActive=true;
         inputSets = new HashSet<>();
         inputParams = new HashSet<>();
     }
+
     public Module(Image image, String name, String description, Collection<String> inputSets, Collection<String> inputParams) {
-        id = new ModuleId(image.getId(), name);
+        this.id = new ModuleId(image.getId(), name);
         this.description = description;
         //   isActive=true;
        this.inputSets = new HashSet<>(inputSets);
        this.inputParams = new HashSet<>(inputParams);
     }
 
-    public ModuleId getId() {
-        return id;
+    public String getId() {
+        return this.id.getId();
     }
 
-    public void setId(ModuleId id) {
-        this.id = id;
+    public void setId(String id) {
+        this.id.setId(id);
     }
 
-    public String getImageId() {
-        return id.getImageId();
-    }
 
     public String getName() {
-        return id.getName();
+        return this.id.getName();
     }
 
    // private boolean isActive;

@@ -70,7 +70,7 @@ public abstract class ModelInput extends ModelComponent {
     }
 
     public boolean isPrimitive(){
-        boolean identified_set = !this.identifier.equals("anonymous_set");
+        boolean identified_set = !this.getIdentifier().equals("anonymous_set");
         boolean exactlyOneSetDescendant = this.setDependencies.size() == 1;
         boolean exactlyZeroParamDescendant = this.paramDependencies.size() == 0;
         if(identified_set && exactlyOneSetDescendant && exactlyZeroParamDescendant){

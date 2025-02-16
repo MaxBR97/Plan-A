@@ -1,12 +1,19 @@
 package Model;
 
-import org.yaml.snakeyaml.util.Tuple;
-
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.*;
-import java.util.regex.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import org.yaml.snakeyaml.util.Tuple;
 
 public class Solution {
     final String engineMsg;
@@ -71,7 +78,7 @@ public class Solution {
                         //therefore block.dependency is an invalid access
                         //example: var varForTest1[CxS *{"A","a"} * S * {1 .. 5}];
                         if(block.dependency!=null) //fix?
-                            variableStructure.get(variable.getIdentifier()).add(block.dependency.identifier);
+                            variableStructure.get(variable.getIdentifier()).add(block.dependency.getIdentifier());
 
                     }
                 }

@@ -5,32 +5,33 @@ import java.util.Objects;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
-import java.io.Serializable;
-import java.util.Objects;
 
 @Embeddable
 public class ModuleId implements Serializable {
     
-    @Column(name = "image_id")
-    private String imageId;
+    @Column(name = "image_id",insertable=false, updatable=false)
+    private String id;
 
-    @Column(name = "name")
+    @Column(name = "name",insertable=false, updatable=false)
     private String name;
 
-    protected ModuleId() {} 
+    protected ModuleId() {
+        id = "noId";
+        name= "noname";
+    } 
 
-    public ModuleId(String imageId, String name) {
-        this.imageId = imageId;
+    public ModuleId(String id, String name) {
+        this.id = id;
         this.name = name;
     }
 
     // Getters and setters
-    public String getImageId() {
-        return imageId;
+    public String getId() {
+        return id;
     }
 
-    public void setImageId(String imageId) {
-        this.imageId = imageId;
+    public void setId(String id) {
+        this.id = id;
     }
 
     public String getName() {
@@ -46,12 +47,12 @@ public class ModuleId implements Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ModuleId moduleId = (ModuleId) o;
-        return Objects.equals(imageId, moduleId.imageId) &&
+        return Objects.equals(id, moduleId.id) &&
                 Objects.equals(name, moduleId.name);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(imageId, name);
+        return Objects.hash(id, name);
     }
 }

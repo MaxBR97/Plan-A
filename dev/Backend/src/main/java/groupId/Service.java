@@ -74,4 +74,9 @@ public class Service implements ServiceInterface {
         InputDTO res = controller.loadLastInput(imageId);
         return ResponseEntity.ok(res);
     }
+
+    //TODO: remove this getter. Temporarily exists to support bad tests.
+    public UserController getUserController() {
+        return this.controller;
+    }
 }
