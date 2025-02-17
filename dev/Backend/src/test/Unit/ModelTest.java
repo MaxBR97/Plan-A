@@ -3,14 +3,10 @@ package Unit;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.channels.FileChannel;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-import java.nio.file.StandardOpenOption;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -26,22 +22,14 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestMethodOrder;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.test.context.junit4.SpringRunner;
 
-import Acceptance.RunWith;
 import DataAccess.ModelRepository;
 import Model.Model;
 import Model.ModelConstraint;
@@ -56,7 +44,6 @@ import Model.ModelVariable;
 import Model.Solution;
 import Model.Tuple;
 import groupId.Main;
-import jakarta.transaction.Transactional;
 
 
 @SpringBootTest(classes = Main.class)
@@ -90,6 +77,7 @@ public class ModelTest {
     @Autowired
     public void setModelRepository(ModelRepository injectedRepository) {
         modelRepository = injectedRepository;
+        Model.injectRepository(modelRepository);
     }
 
     @BeforeAll
@@ -129,7 +117,7 @@ public class ModelTest {
         modelRepository.uploadDocument(sourceSolveId, inputStream2);
         inputStream.close();    
         inputStream2.close();
-        model = new Model(sourceId,modelRepository);
+        model = new Model(sourceId);
     }
     
     @Test
@@ -274,7 +262,7 @@ public class ModelTest {
         Model m = null;
         try{
         
-        m = new Model(this.sourceSolveId,modelRepository);
+        m = new Model(this.sourceSolveId);
         Solution sol = m.solve(100,"SOLUTION");
         
         if(sol == null)

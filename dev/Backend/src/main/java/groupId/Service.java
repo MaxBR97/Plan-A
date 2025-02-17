@@ -36,10 +36,10 @@ import jakarta.validation.Valid;
 @RestController
 @RequestMapping("/")
 public class Service implements ServiceInterface {
-    private final UserController controller;
+    private final ImageController controller;
 
     @Autowired 
-    public Service(UserController controller) {
+    public Service(ImageController controller) {
         this.controller = controller;
     }
 
@@ -76,7 +76,7 @@ public class Service implements ServiceInterface {
     }
 
     //TODO: remove this getter. Temporarily exists to support bad tests.
-    public UserController getUserController() {
+    public ImageController getImageController() {
         return this.controller;
     }
 }

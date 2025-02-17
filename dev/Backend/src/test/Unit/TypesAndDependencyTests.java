@@ -81,6 +81,7 @@ public class TypesAndDependencyTests {
     @Autowired
     public void setModelRepository(ModelRepository injectedRepository) {
         modelRepository = injectedRepository;
+        Model.injectRepository(modelRepository);
     }   
     
     @BeforeAll
@@ -183,7 +184,7 @@ public class TypesAndDependencyTests {
         InputStream inputStream = new ByteArrayInputStream(Files.readAllBytes(Path.of(TEST_FILE_PATH)));
         modelRepository.uploadDocument(sourceId, inputStream);
         inputStream.close();
-        model = new Model(sourceId,modelRepository);
+        model = new Model(sourceId);
     }
 
 

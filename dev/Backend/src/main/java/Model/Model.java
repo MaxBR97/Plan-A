@@ -54,13 +54,22 @@ public class Model implements ModelInterface {
     private final String zimplCompilationScript = "src/main/resources/zimpl/checkCompilation.sh";
     private final String zimplSolveScript = "src/main/resources/zimpl/solve.sh" ;
     private String originalSource;
-    private ModelRepository modelRepository;
+
+    private static ModelRepository modelRepository;
     
     
-    public Model(String id, ModelRepository modelRepository) throws Exception {
-        this.modelRepository = modelRepository;
+    public Model(String id) throws Exception {
         this.id = id;
         parseSource();
+    }
+    
+    public static void injectRepository(ModelRepository modelRepo){
+        modelRepository = modelRepo;
+    }
+
+    public static void uploadNewModel(String documentId, String code) throws Exception {
+        InputStream inputStream = new ByteArrayInputStream(code.getBytes(StandardCharsets.UTF_8));
+        modelRepository.uploadDocument(documentId, inputStream);
     }
 
     private InputStream getSource() throws Exception{
@@ -1342,5 +1351,14 @@ public class Model implements ModelInterface {
         return set;
     }
 
+    @Override
+    public ModelComponent getComponent(String mc){
+        return getSet(mc) != null ? getSet(mc) :
+        getParameter(mc) != null ? getParameter(mc) :
+        getVariable(mc) != null ? getVariable(mc) :
+        getConstraint(mc) != null ? getConstraint(mc) :
+        getPreference(mc);
+
+    }
 
 }

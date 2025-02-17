@@ -5,11 +5,13 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import Image.Image;
 import Model.ModelConstraint;
 import Model.ModelParameter;
 import Model.ModelSet;
+import ch.qos.logback.core.model.Model;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
@@ -61,6 +63,7 @@ public class ConstraintModule extends Module{
     public Set<ModelSet> getInvolvedSets(){
         HashSet<ModelSet> involvedSets = new HashSet<>();
         for(ModelConstraint constraint : constraints.values()){
+            constraint = ((ModelConstraint)loadFullComponent(constraint));
             constraint.getPrimitiveSets(involvedSets);
         }
         return involvedSets;
@@ -70,6 +73,7 @@ public class ConstraintModule extends Module{
     public Set<ModelParameter> getInvolvedParameters() {
         HashSet<ModelParameter> involvedParameters = new HashSet<>();
         for(ModelConstraint preference : constraints.values()){
+            preference = ((ModelConstraint)loadFullComponent(preference));
             preference.getPrimitiveParameters(involvedParameters);
         }
         return involvedParameters;

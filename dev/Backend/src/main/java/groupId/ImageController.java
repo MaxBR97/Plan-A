@@ -29,47 +29,42 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.*;
+import Model.Model;
 
 import org.springframework.web.bind.annotation.RestController;
 
 import DTO.Records.Model.ModelData.InputDTO;
 import DataAccess.ModelRepository;
+import jakarta.transaction.Transactional;
 
 @RestController
-public class UserController {
+public class ImageController {
     //private final Map<UUID,Image> images;
     private final ImageRepository imageRepository;
-    private final ModelRepository modelRepository;
 
 
     @Autowired
-    public UserController(ImageRepository imageRepository, ModelRepository modelRepository) {
+    public ImageController(ImageRepository imageRepository, ModelRepository modelRepository) {
         this.imageRepository = imageRepository;
-        this.modelRepository = modelRepository;
+        Model.injectRepository(modelRepository);
     }
 
-    //TODO: ensure the code file does not exceed 8KB
+    //TODO: ensure the code file received does not exceed 8KB
+    @Transactional
     public CreateImageResponseDTO createImageFromFile(String code) throws Exception {
         UUID id = UUID.randomUUID();
         String name = id.toString();
-
-        // Get application directory
         
-        // Files.createDirectories(storagePath);
-        // Path filePath = storagePath.resolve(name + ".zpl");
-        // Files.writeString(filePath, code, StandardOpenOption.CREATE);
-        InputStream inputStream = new ByteArrayInputStream(code.getBytes(StandardCharsets.UTF_8));
-        modelRepository.uploadDocument(name, inputStream);
-        Image image = new Image(name,modelRepository);
+        Model.uploadNewModel(name,code);
+        Image image = new Image(name);
         imageRepository.save(image);
 
         return RecordFactory.makeDTO(id, image.getModel());
     }
 
-    
 
+    @Transactional
     public SolutionDTO solve(SolveCommandDTO command) throws Exception {
-        //Image image = images.get(UUID.fromString(command.imageId()));
         Image image = imageRepository.findById(command.imageId()).get();
         ModelInterface model = image.getModel();
         for (Map.Entry<String,List<List<String>>> set : command.input().setsToValues().entrySet()){
@@ -96,9 +91,9 @@ public class UserController {
         return image.solve(command.timeout());
     }
 
+    @Transactional
     public void overrideImage(ImageConfigDTO imgConfig) {
         ImageDTO imageDTO= imgConfig.image();
-        //Image image=images.get(UUID.fromString(imgConfig.imageId()));
         Image image = imageRepository.findById(imgConfig.imageId()).get();
         Objects.requireNonNull(image,"Invalid imageId in image config/override image");
         Map<String, ModelVariable> variables = new HashMap<>();
@@ -122,10 +117,13 @@ public class UserController {
                     preferenceModule.preferences(),preferenceModule.inputSets(),preferenceModule.inputParams());
         }
     }
+
+    @Transactional
     public Image getImage(String id) {
         return imageRepository.findById(id).get();
     }
 
+    @Transactional
     InputDTO loadLastInput(String imageId) throws Exception {
         return imageRepository.findById(imageId).get().getInput();
     }

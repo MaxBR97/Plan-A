@@ -1,6 +1,5 @@
 package Image;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -11,20 +10,22 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import DTO.Factories.RecordFactory;
 import DTO.Records.Image.SolutionDTO;
 import DTO.Records.Model.ModelData.InputDTO;
 import DTO.Records.Model.ModelDefinition.ConstraintDTO;
 import DTO.Records.Model.ModelDefinition.PreferenceDTO;
-import DataAccess.ModelRepository;
 import Image.Modules.ConstraintModule;
 import Image.Modules.PreferenceModule;
 import Image.Modules.VariableModule;
 import Model.Model;
 import Model.ModelConstraint;
 import Model.ModelInterface;
+import Model.ModelParameter;
 import Model.ModelPreference;
+import Model.ModelSet;
 import Model.ModelVariable;
 import Model.Solution;
 import jakarta.persistence.CascadeType;
@@ -33,10 +34,9 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinColumns;
 import jakarta.persistence.MapKey;
 import jakarta.persistence.OneToMany;
-import jakarta.persistence.OneToOne;
+import jakarta.persistence.PostLoad;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
 import jakarta.transaction.Transactional;
@@ -55,9 +55,9 @@ public class Image {
     //@Transient
     private Map<String,ConstraintModule> constraintsModules;
 
-    // @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    // @JoinColumn(name = "image_id",insertable=false, updatable=false)
-    // @MapKey(name = "name")
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JoinColumn(name = "image_id",insertable=false, updatable=false)
+    @MapKey(name = "id.name")
     @Transient
     private Map<String,PreferenceModule> preferenceModules;
 
@@ -75,32 +75,37 @@ public class Image {
     // public Image(ModelInterface model) {
     //     constraintsModules = new HashMap<>();
     //     preferenceModules = new HashMap<>();
-    //     variables = new VariableModule();
+    //     variables = new VariableModule(this, Map.of(), List.of(),List.of());
     //     this.model = model;
     // }
 
-    protected Image() {
-        this.id = null;
-        this.constraintsModules = new HashMap<>();
-        this.preferenceModules = new HashMap<>();
-        setVariableModule(new VariableModule());
-        this.model = null;
-    }
-    
-    
-    public Image(String id, ModelRepository modelRepository) throws Exception {
+    protected Image () throws Exception {
         constraintsModules = new HashMap<>();
         preferenceModules = new HashMap<>();
-        setVariableModule(new VariableModule());
-        this.model = new Model(id,modelRepository);
+        variables = new HashMap<>();
+    }
+    
+    public Image(String id) throws Exception {
         this.id = id;
+        constraintsModules = new HashMap<>();
+        preferenceModules = new HashMap<>();
+        setVariableModule(new VariableModule(this, Map.of(), List.of(),List.of()));
+        this.model = new Model(id);
     }
 
-    //will probably have to use an adapter layer, or change types to DTOs
-    @Transactional
-    public void addConstraintModule(ConstraintModule module) {
-        constraintsModules.put(module.getName(), module);
+    @PostLoad
+    private void initializeTransientFields() throws Exception {
+        if(variables == null || variables.isEmpty())
+            setVariableModule(new VariableModule(this, Map.of(), List.of(),List.of()));
+        this.model = new Model(id);
     }
+
+
+    // //will probably have to use an adapter layer, or change types to DTOs
+    // @Transactional
+    // public void addConstraintModule(ConstraintModule module) {
+    //     constraintsModules.put(module.getName(), module);
+    // }
 
     @Transactional
     public void addConstraintModule(String moduleName, String description) {
@@ -126,10 +131,10 @@ public class Image {
         this.preferenceModules = prefs;
     }
 
-    @Transactional
-    public void addPreferenceModule(PreferenceModule module) {
-        preferenceModules.put(module.getName(), module);
-    }
+    // @Transactional
+    // public void addPreferenceModule(PreferenceModule module) {
+    //     preferenceModules.put(module.getName(), module);
+    // }
 
     @Transactional
     public void addPreferenceModule(String moduleName, String description) {
@@ -284,15 +289,15 @@ public class Image {
 
         // Add inputSets from each constraint module
         for (ConstraintModule constraintModule : constraintsModules.values()) {
-            allSets.addAll(constraintModule.getInputSets());
+            allSets.addAll(constraintModule.getInvolvedSets().stream().map((ModelSet s) -> s.getIdentifier()).collect(Collectors.toSet()));
         }
 
         // Add inputSets from each preference module
         for (PreferenceModule preferenceModule : preferenceModules.values()) {
-            allSets.addAll(preferenceModule.getInputSets());
+            allSets.addAll(preferenceModule.getInvolvedSets().stream().map((ModelSet s) -> s.getIdentifier()).collect(Collectors.toSet()));
         }
             
-        allSets.addAll(getVariableModule().getInputSets());
+        allSets.addAll(getVariableModule().getInvolvedSets().stream().map((ModelSet s) -> s.getIdentifier()).collect(Collectors.toSet()));
 
         return allSets;
     }
@@ -302,15 +307,15 @@ public class Image {
 
         // Add inputParams from each constraint module
         for (ConstraintModule constraintModule : constraintsModules.values()) {
-            allParams.addAll(constraintModule.getInputParams());
+            allParams.addAll(constraintModule.getInvolvedParameters().stream().map((ModelParameter s) -> s.getIdentifier()).collect(Collectors.toSet()));
         }
 
         // Add inputParams from each preference module
         for (PreferenceModule preferenceModule : preferenceModules.values()) {
-            allParams.addAll(preferenceModule.getInputParams());
+            allParams.addAll(preferenceModule.getInvolvedParameters().stream().map((ModelParameter s) -> s.getIdentifier()).collect(Collectors.toSet()));
         }
 
-        allParams.addAll(getVariableModule().getInputParams());
+        allParams.addAll(getVariableModule().getInvolvedParameters().stream().map((ModelParameter s) -> s.getIdentifier()).collect(Collectors.toSet()));
 
         return allParams;
     }
@@ -333,9 +338,7 @@ public class Image {
             List<List<String>> convertedList = new ArrayList<>();
             for (String[] array : atomsOfElements) {
                 convertedList.add(Arrays.asList(array)); // Convert String[] to List<String>
-        
             }
-
             setsToValues.put(set, convertedList);
         }
 

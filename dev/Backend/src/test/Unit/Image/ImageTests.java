@@ -5,7 +5,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.Collection;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Set;
@@ -14,7 +13,6 @@ import java.util.stream.Collectors;
 import org.junit.jupiter.api.AfterAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeAll;
@@ -31,7 +29,7 @@ import org.springframework.test.context.TestPropertySource;
 import DataAccess.ImageRepository;
 import DataAccess.ModelRepository;
 import Image.Image;
-import Image.Modules.ConstraintModule;
+import Model.Model;
 import Model.ModelInterface;
 import Model.ModelParameter;
 import Model.ModelSet;
@@ -77,6 +75,7 @@ public class ImageTests {
     public void setModelRepository(ImageRepository injected1, ModelRepository injected2) {
         imageRepository = injected1;
         modelRepository = injected2;
+        Model.injectRepository(modelRepository);
     }
 
     
@@ -96,7 +95,7 @@ public class ImageTests {
         InputStream inputStream = new ByteArrayInputStream(Files.readAllBytes(Path.of(TEST_FILE_PATH)));
         modelRepository.uploadDocument(sourceId, inputStream);
         inputStream.close();
-        image = new Image(sourceId, modelRepository);
+        image = new Image(sourceId);
     }
 
     @Test

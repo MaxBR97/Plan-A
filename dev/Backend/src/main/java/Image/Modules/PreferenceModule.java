@@ -5,8 +5,10 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import Image.Image;
+import Model.ModelConstraint;
 import Model.ModelParameter;
 import Model.ModelPreference;
 import Model.ModelSet;
@@ -29,19 +31,12 @@ public class PreferenceModule extends Module{
      * (a preference is a single expressions in the expression sum in the minimize/maximize expression in zimpl)
      */
     
-    // @Id
-    // @GeneratedValue(strategy = GenerationType.IDENTITY)
-    // private Long id;
-
-    // @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-    // @JoinColumns(
-    //             {
-    //                 @JoinColumn(name="image_id", referencedColumnName="image_id", nullable=false),
-    //                 @JoinColumn(name="module_name", referencedColumnName="name", nullable=false)
-    //             }
-    //             )
-    // @MapKey(name="id.identifier")
-    @Transient
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumns({
+        @JoinColumn(name = "image_id", referencedColumnName = "image_id", nullable = false),
+        @JoinColumn(name = "module_name", referencedColumnName = "name", nullable = false)
+    })
+    @MapKey(name = "id.identifier")
     private Map<String, ModelPreference> preferences;
 
 
@@ -71,6 +66,7 @@ public class PreferenceModule extends Module{
     public Set<ModelSet> getInvolvedSets(){
         HashSet<ModelSet> involvedSets = new HashSet<>();
         for(ModelPreference constraint : preferences.values()){
+            constraint = ((ModelPreference)loadFullComponent(constraint));
             constraint.getPrimitiveSets(involvedSets);
         }
         return involvedSets;
@@ -80,6 +76,7 @@ public class PreferenceModule extends Module{
     public Set<ModelParameter> getInvolvedParameters() {
         HashSet<ModelParameter> involvedParameters = new HashSet<>();
         for(ModelPreference preference : preferences.values()){
+          preference = ((ModelPreference)loadFullComponent(preference));
           preference.getPrimitiveParameters(involvedParameters);
         }
         return involvedParameters;

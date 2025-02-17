@@ -306,8 +306,8 @@ public class ServiceTest {
     @Test
     public void testLoadImageInput() {
         // create Image
-        CreateImageResponseDTO imageCreated = createImageCall(SimpleCodeExample);
-        String imageId = imageCreated.imageId();
+    CreateImageResponseDTO imageCreated = createImageCall(SimpleCodeExample);
+    String imageId = imageCreated.imageId();
     Set<ConstraintModuleDTO> constraintModuleDTOs=Set.of(
             new ConstraintModuleDTO("MyConst","description",
                     Set.of("sampleConstraint"),Set.of(),Set.of("x")));
@@ -353,7 +353,6 @@ public class ServiceTest {
         assertEquals(response.getBody().paramsToValues(),expected.paramsToValues());
         assertEquals(response.getBody().constraintsToggledOff(),expected.constraintsToggledOff());
         assertEquals(response.getBody().preferencesToggledOff(),expected.preferencesToggledOff());
-        
     }
 
     private CreateImageResponseDTO createImageCall(String code){

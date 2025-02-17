@@ -12,7 +12,7 @@ import Image.Image;
 import Model.Solution;
 import groupId.Main;
 import groupId.Service;
-import groupId.UserController;
+import groupId.ImageController;
 
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -55,7 +55,7 @@ public class ServiceRequestsTests {
             """;
     static Path tmpDirPath;
     static String sourcePath = "src/test/Utilities/ZimplExamples/ExampleZimplProgram.zpl";
-    static UserController userController;
+    static ImageController imageController;
     @Autowired
     Service service;
 
@@ -74,7 +74,7 @@ public class ServiceRequestsTests {
     }
     @BeforeEach
     public void setUp() {
-        userController = service.getUserController();
+        imageController = service.getImageController();
     }
 
     @Test
@@ -134,7 +134,7 @@ public class ServiceRequestsTests {
             ImageConfigDTO configDTO= new ImageConfigDTO(response.getBody().imageId(),imageDTO);
             ResponseEntity<Void> response2= service.configureImage(configDTO);
             assertEquals(HttpStatus.OK, response2.getStatusCode());
-            Image image= userController.getImage(response.getBody().imageId());
+            Image image= imageController.getImage(response.getBody().imageId());
             assertNotNull(image);
             ImageDTO actual= RecordFactory.makeDTO(image);
             assertEquals(imageDTO, actual);
@@ -147,15 +147,15 @@ public class ServiceRequestsTests {
     @Test
     public void testSolve_Simple() {
         try {
-            CreateImageResponseDTO responseDTO=userController.createImageFromFile(SimpleCodeExample);
+            CreateImageResponseDTO responseDTO=imageController.createImageFromFile(SimpleCodeExample);
             InputDTO input=new InputDTO(Map.of("mySet",List.of(List.of("1"),List.of("2"),List.of("3"))),
                     Map.of("x",List.of("10")),
                     List.of(),List.of());
             SolveCommandDTO solveCommandDTO=new SolveCommandDTO(responseDTO.imageId(),input,600);
             ImageDTO imageDTO=new ImageDTO(new VariableModuleDTO(Set.of("myVar"),Set.of(),Set.of()),Set.of(),Set.of());
             ImageConfigDTO config= new ImageConfigDTO(responseDTO.imageId(),imageDTO);
-            userController.overrideImage(config);
-            SolutionDTO solution=userController.solve(solveCommandDTO);
+            imageController.overrideImage(config);
+            SolutionDTO solution=imageController.solve(solveCommandDTO);
             assertEquals(Set.of(new SolutionValueDTO(List.of("3"),10)),solution.solution().get("myVar").solutions());
         } catch (Exception e) {
             fail(e.getMessage());

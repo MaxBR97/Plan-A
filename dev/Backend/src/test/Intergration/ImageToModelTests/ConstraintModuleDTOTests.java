@@ -1,28 +1,39 @@
 package Intergration.ImageToModelTests;
 
-import Image.Image;
-import groupId.Main;
-import jakarta.persistence.EntityManager;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.nio.file.StandardOpenOption;
+import java.util.Collection;
+import java.util.Set;
+import java.util.stream.Collectors;
 
-import org.junit.jupiter.api.*;
-import org.junit.jupiter.api.extension.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.jupiter.*;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import DataAccess.ImageRepository;
 import DataAccess.ModelRepository;
-
-import java.io.IOException;
-import java.nio.file.*;
-import java.util.Collection;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import Model.*;
-import static org.junit.jupiter.api.Assertions.*;
+import Model.Model;
+import Model.ModelConstraint;
+import Model.ModelInterface;
+import Model.ModelPreference;
+import Model.Solution;
+import groupId.Main;
+import jakarta.persistence.EntityManager;
 
 @SpringBootTest(classes = Main.class)
 @ExtendWith(MockitoExtension.class)
@@ -76,7 +87,7 @@ public class ConstraintModuleDTOTests {
     @BeforeEach
     public void beforeEach() throws Exception {
         try {
-            model = new Model(sourcePath, modelRepository);
+            model = new Model(sourcePath);
         }
         catch (Exception e) {
             System.out.println(e.getMessage());
@@ -88,7 +99,7 @@ public class ConstraintModuleDTOTests {
     public void GivenPath_WhenPathInvalid_ThrowsException() {
         String badPath= sourcePath+ "/IDontExist.zpl";
         //TODO: a custom exception will probably be a better choice, instead of letting IO be thrown upwards
-        assertThrows(IOException.class, () -> new Model(badPath,modelRepository));
+        assertThrows(IOException.class, () -> new Model(badPath));
     }
     //TODO: Writer an easier to work with zimpl example, this one throws warnings
     @Test
@@ -126,7 +137,7 @@ public class ConstraintModuleDTOTests {
             Files.copy(Path.of(sourcePath), badZimpl, StandardCopyOption.REPLACE_EXISTING);
             badZimpl.toFile().deleteOnExit();
             Files.writeString(badZimpl, "\nThis text is appended to zimpl code and make it not compile;",StandardOpenOption.APPEND, StandardOpenOption.WRITE);
-            model = new Model(badZimpl.toFile().getPath(),modelRepository);
+            model = new Model(badZimpl.toFile().getPath());
             assertFalse(model.isCompiling(1000));
         }
         catch (Exception e){
@@ -140,7 +151,7 @@ public class ConstraintModuleDTOTests {
             Files.copy(Path.of(sourcePath), badZimpl, StandardCopyOption.REPLACE_EXISTING);
             badZimpl.toFile().deleteOnExit();
             Files.writeString(badZimpl, "", StandardOpenOption.WRITE, StandardOpenOption.WRITE);
-            model = new Model(badZimpl.toFile().getPath(),modelRepository);
+            model = new Model(badZimpl.toFile().getPath());
             assertFalse(model.isCompiling(1000));
         }
         catch (Exception e){

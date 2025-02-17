@@ -5,9 +5,12 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import Image.Image;
+import Model.ModelConstraint;
 import Model.ModelParameter;
+import Model.ModelPreference;
 import Model.ModelSet;
 import Model.ModelVariable;
 import jakarta.persistence.CascadeType;
@@ -123,14 +126,22 @@ public class VariableModule extends Module {
 
     @Override
     public Set<ModelSet> getInvolvedSets() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getInvolvedSets'");
+        HashSet<ModelSet> involvedSets = new HashSet<>();
+        for(ModelVariable var : variables.values()){
+            var = ((ModelVariable)loadFullComponent(var));
+            var.getPrimitiveSets(involvedSets);
+        }
+        return involvedSets;
     }
 
     @Override
     public Set<ModelParameter> getInvolvedParameters() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getInvolvedParameters'");
+        HashSet<ModelParameter> involvedParameters = new HashSet<>();
+        for(ModelVariable var : variables.values()){
+            var = ((ModelVariable)loadFullComponent(var));
+          var.getPrimitiveParameters(involvedParameters);
+        }
+        return involvedParameters;
     }
     
 }

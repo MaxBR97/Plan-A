@@ -135,4 +135,6 @@ public interface ModelInterface {
 
     public Collection<ModelParameter> getParameters();
 
+    public ModelComponent getComponent(String identifier);
+
 }
