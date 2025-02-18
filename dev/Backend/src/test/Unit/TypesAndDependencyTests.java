@@ -41,6 +41,7 @@ import java.nio.file.Files;
 
 import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 
 import com.sun.source.tree.AssertTree;
@@ -54,13 +55,14 @@ import groupId.Main;
 //@ExtendWith(SpringExtension.class)
 //@ActiveProfiles("test") 
 //@Transactional
-@TestPropertySource(properties = {
-    "storage.type=local",
-    "spring.jpa.hibernate.ddl-auto=create-drop",
-    "spring.jpa.show-sql=true"
-})
+// @TestPropertySource(properties = {
+//     "storage.type=local",
+//     "spring.jpa.hibernate.ddl-auto=create-drop",
+//     "spring.jpa.show-sql=true"
+// })
 @TestMethodOrder(MethodOrderer.Alphanumeric.class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
+@ActiveProfiles("inMemory") 
 public class TypesAndDependencyTests {
    
     private Model model;

@@ -6,6 +6,32 @@ setlocal
 :: Get the current script location
 set "scriptLocation=%~dp0"
 
+:: Change to the backend directory and build with Maven
+cd /d "%scriptLocation%\..\dev\Backend"
+echo Compiling the backend...
+call mvn clean generate-sources package -DskipTests
+if %errorlevel% neq 0 (
+    echo Maven build failed! Exiting...
+    exit /b %errorlevel%
+)
+
+
+:: Move the generated JAR file to the frontend resources folder
+set "jarFile=%scriptLocation%\..\dev\Backend\target\artifactid-0.0.1-SNAPSHOT.jar"
+set "destinationDir=%scriptLocation%\..\dev\Frontend\resources"
+if exist "%jarFile%" (
+    echo Moving JAR file to frontend resources...
+    move /Y "%jarFile%" "%destinationDir%\artifactid-0.0.1-SNAPSHOT.jar"
+    if %errorlevel% neq 0 (
+        echo Failed to move JAR file! Exiting...
+        exit /b %errorlevel%
+    )
+) else (
+    echo JAR file not found! Exiting...
+    exit /b 1
+)
+
+
 :: Define the file URLs (to be updated later)
 set "file1URL=https://download.oracle.com/java/23/latest/jdk-23_windows-x64_bin.exe"
 set "file2URL=https://aka.ms/vs/17/release/vc_redist.x64.exe"

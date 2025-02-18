@@ -22,6 +22,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.ActiveProfiles;
 
 import DTO.Records.Image.ConstraintModuleDTO;
 import DTO.Records.Image.ImageDTO;
@@ -43,6 +44,7 @@ import groupId.Main;
 import groupId.Service;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,classes = Main.class)
+@ActiveProfiles("inMemory") 
 public class ServiceTest {
     @LocalServerPort
     private int port;

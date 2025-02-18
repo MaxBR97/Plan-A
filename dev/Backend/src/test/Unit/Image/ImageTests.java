@@ -24,7 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.ActiveProfiles;
 
 import DataAccess.ImageRepository;
 import DataAccess.ModelRepository;
@@ -41,13 +41,7 @@ import jakarta.transaction.Transactional;
 @SpringBootTest(classes = Main.class)
 //@ComponentScan(basePackages = {"Model", "DataAccess","DataAccess.LocalStorage", "Image.Modules"})
 //@ExtendWith(SpringExtension.class)
-//@ActiveProfiles("test") 
-//@Transactional
-@TestPropertySource(properties = {
-    "storage.type=local",
-    "spring.jpa.hibernate.ddl-auto=create-drop",
-    "spring.jpa.show-sql=true"
-})
+@ActiveProfiles("inMemory") 
 @TestMethodOrder(MethodOrderer.Alphanumeric.class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class ImageTests {
@@ -86,8 +80,6 @@ public class ImageTests {
         Path targetPath = Path.of(TEST_FILE_PATH);
         Files.deleteIfExists(targetPath);
         Files.copy(sourcePath2, targetPath, StandardCopyOption.REPLACE_EXISTING);
-
-        
     }
 
     @BeforeEach

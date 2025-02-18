@@ -28,6 +28,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 
 import DataAccess.ModelRepository;
@@ -51,15 +52,11 @@ import groupId.Main;
 //@ExtendWith(SpringExtension.class)
 //@ActiveProfiles("test") 
 //@Transactional
-@TestPropertySource(properties = {
-    "storage.type=local",
-    "spring.jpa.hibernate.ddl-auto=create-drop",
-    "spring.jpa.show-sql=true"
-})
 @TestMethodOrder(MethodOrderer.Alphanumeric.class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
+@ActiveProfiles("inMemory") 
 
-// To run tests type "mvn test" or right click the circle next to the class name, 
+// To run tests type "mvn test -Dtest=ModelTest" or right click the circle next to the class name, 
 // and choose "Run all tests with coverage"
 public class ModelTest {
     private ModelInterface model;

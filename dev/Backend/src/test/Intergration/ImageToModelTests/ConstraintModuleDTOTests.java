@@ -24,6 +24,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.test.context.ActiveProfiles;
 
 import DataAccess.ImageRepository;
 import DataAccess.ModelRepository;
@@ -37,6 +38,7 @@ import jakarta.persistence.EntityManager;
 
 @SpringBootTest(classes = Main.class)
 @ExtendWith(MockitoExtension.class)
+@ActiveProfiles("inMemory")
 public class ConstraintModuleDTOTests {
     static String SimpleCodeExample = """
                 param x := 2;
