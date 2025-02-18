@@ -20,7 +20,6 @@ import parser.*;
 @EnableJpaRepositories(basePackages = {"DataAccess", "Model","Image", "Unit","Image.Modules"})
 @ComponentScan(basePackages = {"groupId", "DataAccess", "Model", "Image", "Unit","Image.Modules"})
 @EntityScan(basePackages = {"DataAccess", "Model", "Unit", "groupId", "Image","Image.Modules"})
-@Profile("inMemory")
 public class Main {
 
 	public static void main(String[] args) {

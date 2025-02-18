@@ -23,10 +23,5 @@ spring:
             action: create
             create-target: target/schema.sql
 
-
-app:
-  file:
-    storage-dir: ../User/Models
-
 storage:
   type: local

@@ -14,9 +14,5 @@ spring:
         format_sql: true
     show-sql: true
 
-app:
-  file:
-    storage-dir: ../User/Models
-
 storage:
   type: local

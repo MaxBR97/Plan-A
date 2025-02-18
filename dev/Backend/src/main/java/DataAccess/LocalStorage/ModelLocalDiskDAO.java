@@ -12,12 +12,11 @@ import java.nio.file.Paths;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Repository;
 
 import DataAccess.ModelRepository;
 import Exceptions.InternalErrors.BadRequestException;
 
-@Repository
+
 public class ModelLocalDiskDAO extends ModelRepository {
     private Path storagePath;
     private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
