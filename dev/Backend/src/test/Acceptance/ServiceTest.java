@@ -44,7 +44,7 @@ import groupId.Main;
 import groupId.Service;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,classes = Main.class)
-@ActiveProfiles("inMemory") 
+@ActiveProfiles("inMemory-local") 
 public class ServiceTest {
     @LocalServerPort
     private int port;

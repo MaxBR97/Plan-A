@@ -3,8 +3,6 @@ package DataAccess;
 import java.io.InputStream;
 import java.nio.file.Path;
 
-import org.springframework.beans.factory.annotation.Value;
-
 import DataAccess.LocalStorage.ModelLocalDiskDAO;
 import Exceptions.InternalErrors.BadRequestException;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
@@ -24,13 +22,12 @@ import software.amazon.awssdk.services.s3.model.S3Exception;
 public class S3ModelStorageService extends  ModelRepository{
 
     private final S3Client s3;
-    private final String bucketName = "zpl-store2";
+    private final String bucketName;
     private ModelLocalDiskDAO localCache;
 
-    public S3ModelStorageService(@Value("${app.file.storage-dir}") String loadedRelativeStoragePath,
-                                @Value("${cloud.aws.region:us-east-1}") String region) {
+    public S3ModelStorageService(String loadedRelativeStoragePath, String region, String bucketName) {
         localCache = new ModelLocalDiskDAO(loadedRelativeStoragePath);
-
+        this.bucketName = bucketName;
         this.s3 = S3Client.builder()
                 .region(Region.of(region))
                 .credentialsProvider(DefaultCredentialsProvider.create())

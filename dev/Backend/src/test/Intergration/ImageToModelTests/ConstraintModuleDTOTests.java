@@ -25,7 +25,7 @@ import jakarta.persistence.EntityManager;
 
 @SpringBootTest(classes = Main.class)
 @ExtendWith(MockitoExtension.class)
-@ActiveProfiles("inMemory")
+@ActiveProfiles("inMemory-local")
 public class ConstraintModuleDTOTests {
     static String SimpleCodeExample = """
                 param x := 2;

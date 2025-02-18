@@ -29,7 +29,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.TestPropertySource;
 
 import DataAccess.ModelRepository;
 import Model.Model;
@@ -54,7 +53,7 @@ import groupId.Main;
 //@Transactional
 @TestMethodOrder(MethodOrderer.Alphanumeric.class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-@ActiveProfiles("inMemory") 
+@ActiveProfiles("inMemory-local") 
 
 // To run tests type "mvn test -Dtest=ModelTest" or right click the circle next to the class name, 
 // and choose "Run all tests with coverage"

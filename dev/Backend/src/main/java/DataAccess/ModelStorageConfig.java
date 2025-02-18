@@ -14,21 +14,22 @@ public class ModelStorageConfig {
     
     @Bean
     @ConditionalOnProperty(name = "storage.type", havingValue = "s3")
-    public ModelRepository s3ModelRepository(@Value("${cloud.aws.region}") String region,
-                                             @Value("${app.file.storage-dir}") String storagePath) {
-        return new S3ModelStorageService(storagePath, region);
+    public ModelRepository s3ModelRepository(@Value("${cloud.aws.region:eu-central-1}") String region,
+                                             @Value("${app.file.storage-dir:.}") String storagePath,
+                                             @Value("${cloud.aws.s3-bucket:zpl-store2}") String bucketName) {
+        return new S3ModelStorageService(storagePath, region, bucketName);
     }
 
     @Primary
     @Bean
     @ConditionalOnProperty(name = "storage.type", havingValue = "local")
-    public ModelRepository localModelRepository(@Value("${app.file.storage-dir}") String storagePath) {
+    public ModelRepository localModelRepository(@Value("${app.file.storage-dir:.}") String storagePath) {
         return new ModelLocalDiskDAO(storagePath);
     }
 
     @Bean
     @ConditionalOnMissingBean(ModelRepository.class)
-    public ModelRepository defaultRepository(@Value("${app.file.storage-dir}") String storagePath) {
+    public ModelRepository defaultRepository(@Value("${app.file.storage-dir:.}") String storagePath) {
         return new ModelLocalDiskDAO(storagePath);
     }
 }
