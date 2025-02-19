@@ -22,6 +22,7 @@ import Image.Modules.PreferenceModule;
 import Image.Modules.VariableModule;
 import Model.Model;
 import Model.ModelConstraint;
+import Model.ModelFactory;
 import Model.ModelInterface;
 import Model.ModelParameter;
 import Model.ModelPreference;
@@ -72,6 +73,9 @@ public class Image {
 
     @Transient
     private ModelInterface model;
+
+    @Transient
+    private static ModelFactory modelFactory;
     // public Image(ModelInterface model) {
     //     constraintsModules = new HashMap<>();
     //     preferenceModules = new HashMap<>();
@@ -90,14 +94,18 @@ public class Image {
         constraintsModules = new HashMap<>();
         preferenceModules = new HashMap<>();
         setVariableModule(new VariableModule(this, Map.of(), List.of(),List.of()));
-        this.model = new Model(id);
+        this.model = modelFactory.getModel(id);
+    }
+
+    public static void setModelFactory(ModelFactory factory){
+        modelFactory = factory;
     }
 
     @PostLoad
     private void initializeTransientFields() throws Exception {
         if(variables == null || variables.isEmpty())
             setVariableModule(new VariableModule(this, Map.of(), List.of(),List.of()));
-        this.model = new Model(id);
+        this.model = modelFactory.getModel(id);
     }
 
 

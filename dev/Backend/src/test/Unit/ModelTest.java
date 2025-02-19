@@ -67,13 +67,12 @@ public class ModelTest {
     private static float compilationBaselineTime = 6;
     private static String[][] expectedParameters = {{"Conditioner","10"}, {"soldiers", "9"}, {"absoluteMinimalRivuah", "8"}};
     
-    //@Autowired
     private static ModelRepository modelRepository;
 
     @Autowired
     public void setModelRepository(ModelRepository injectedRepository) {
         modelRepository = injectedRepository;
-        Model.injectRepository(modelRepository);
+        // Model.injectRepository(modelRepository);
     }
 
     @BeforeAll
@@ -113,7 +112,7 @@ public class ModelTest {
         modelRepository.uploadDocument(sourceSolveId, inputStream2);
         inputStream.close();    
         inputStream2.close();
-        model = new Model(sourceId);
+        model = new Model(modelRepository, sourceId);
     }
     
     @Test
@@ -258,7 +257,7 @@ public class ModelTest {
         Model m = null;
         try{
         
-        m = new Model(this.sourceSolveId);
+        m = new Model(modelRepository, this.sourceSolveId);
         Solution sol = m.solve(100,"SOLUTION");
         
         if(sol == null)

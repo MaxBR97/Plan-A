@@ -29,24 +29,28 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.*;
+
 import Model.Model;
 
 import org.springframework.web.bind.annotation.RestController;
 
 import DTO.Records.Model.ModelData.InputDTO;
 import DataAccess.ModelRepository;
+import Model.ModelFactory;
 import jakarta.transaction.Transactional;
 
 @RestController
 public class ImageController {
     //private final Map<UUID,Image> images;
     private final ImageRepository imageRepository;
+    private final ModelFactory modelFactory;
 
 
     @Autowired
-    public ImageController(ImageRepository imageRepository, ModelRepository modelRepository) {
+    public ImageController(ImageRepository imageRepository, ModelFactory modelFactory) {
         this.imageRepository = imageRepository;
-        Model.injectRepository(modelRepository);
+        this.modelFactory = modelFactory;
+        Image.setModelFactory(modelFactory);
     }
 
     //TODO: ensure the code file received does not exceed 8KB
@@ -55,7 +59,7 @@ public class ImageController {
         UUID id = UUID.randomUUID();
         String name = id.toString();
         
-        Model.uploadNewModel(name,code);
+        modelFactory.uploadNewModel(name,code);
         Image image = new Image(name);
         imageRepository.save(image);
 

@@ -6,6 +6,7 @@ import Exceptions.UserErrors.ZimplCompileError;
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import Model.ModelInput.StructureBlock;
 import parser.*;
@@ -39,8 +40,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import DataAccess.ModelRepository;
 
-
-public class Model implements ModelInterface {
+public class Model extends ModelInterface {
     private final String id;
     ParseTree tree;
     private CommonTokenStream tokens;
@@ -55,22 +55,15 @@ public class Model implements ModelInterface {
     private final String zimplSolveScript = "src/main/resources/zimpl/solve.sh" ;
     private String originalSource;
 
-    private static ModelRepository modelRepository;
+    private ModelRepository modelRepository;
     
     
-    public Model(String id) throws Exception {
+    public Model(ModelRepository repo, String id) throws Exception {
+        modelRepository = repo;
         this.id = id;
         parseSource();
     }
-    
-    public static void injectRepository(ModelRepository modelRepo){
-        modelRepository = modelRepo;
-    }
 
-    public static void uploadNewModel(String documentId, String code) throws Exception {
-        InputStream inputStream = new ByteArrayInputStream(code.getBytes(StandardCharsets.UTF_8));
-        modelRepository.uploadDocument(documentId, inputStream);
-    }
 
     private InputStream getSource() throws Exception{
         InputStream inputStream = modelRepository.downloadDocument(id);

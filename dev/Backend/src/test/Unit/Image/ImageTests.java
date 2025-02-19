@@ -30,6 +30,7 @@ import DataAccess.ImageRepository;
 import DataAccess.ModelRepository;
 import Image.Image;
 import Model.Model;
+import Model.ModelFactory;
 import Model.ModelInterface;
 import Model.ModelParameter;
 import Model.ModelSet;
@@ -54,6 +55,7 @@ public class ImageTests {
 
     private static ModelRepository modelRepository;
     private static ImageRepository imageRepository;
+    private static ModelFactory modelFactory;
 
     @Autowired
     private EntityManager entityManager;
@@ -66,10 +68,10 @@ public class ImageTests {
     private static List<Image> images;
 
     @Autowired
-    public void setModelRepository(ImageRepository injected1, ModelRepository injected2) {
+    public void setModelRepository(ImageRepository injected1, ModelFactory factory) {
         imageRepository = injected1;
-        modelRepository = injected2;
-        Model.injectRepository(modelRepository);
+        modelFactory = factory;
+        modelRepository = factory.getRepository();
     }
 
     

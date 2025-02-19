@@ -76,7 +76,7 @@ public class ConstraintModuleDTOTests {
     @BeforeEach
     public void beforeEach() throws Exception {
         try {
-            model = new Model(sourcePath);
+            model = new Model(modelRepository, sourcePath);
         }
         catch (Exception e) {
             System.out.println(e.getMessage());
