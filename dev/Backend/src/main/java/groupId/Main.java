@@ -15,6 +15,7 @@ import Model.Model;
 import Model.ModelSet;
 import parser.*;
 
+//TODO: Make an order in maven pom file, and make a proper pom hierarchy.
 
 @SpringBootApplication(scanBasePackages = {"groupId", "DataAccess", "Model", "Image", "Unit", "Integration", "Acceptance", "DTO", "Exceptions", "Image.Modules","Exceptions.UserErrors"})
 @EnableJpaRepositories(basePackages = {"DataAccess", "Model","Image", "Unit","Image.Modules"})

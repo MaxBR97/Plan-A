@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -356,6 +357,34 @@ public class ServiceTest {
         assertEquals(response.getBody().constraintsToggledOff(),expected.constraintsToggledOff());
         assertEquals(response.getBody().preferencesToggledOff(),expected.preferencesToggledOff());
     }
+    
+    @Test
+    public void getImagesTest(){
+        CreateImageResponseDTO firstImage = createImageCall(SimpleCodeExample);
+        CreateImageResponseDTO secondImage = createImageCall("""
+                                                                set S := {<1,\"a\">, <2,\"bs\">};
+                                                                minimize this:
+                                                                    300;
+                                                                """);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        HttpEntity<Void> request = new HttpEntity<>(headers);
+
+        String url = "http://localhost:" + port + "/images";
+        
+        ResponseEntity<List<ImageDTO>> response = restTemplate.exchange(
+            url,
+            HttpMethod.GET,
+            request,
+            new ParameterizedTypeReference<List<ImageDTO>>() {}
+        );
+
+        //TODO: Check response more thoroughly.
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(2, response.getBody().size());
+    }
 
     private CreateImageResponseDTO createImageCall(String code){
         CreateImageFromFileDTO body = new CreateImageFromFileDTO(SimpleCodeExample);
@@ -395,4 +424,5 @@ public class ServiceTest {
         assertEquals(HttpStatus.OK, response2.getStatusCode());   
         return response2.getBody();
     }
+
 }

@@ -1,6 +1,7 @@
 package groupId;
 
 import java.io.IOException;
+import java.util.List;
 
 import DTO.Records.Requests.Commands.CreateImageFromFileDTO;
 import DTO.Records.Requests.Commands.CreateImageFromPathDTO;
@@ -69,9 +70,21 @@ public class Service implements ServiceInterface {
         return ResponseEntity.ok(res);
     }
 
-    @GetMapping("images/{id}/inputs")
+    @GetMapping("/images/{id}/inputs")
     public ResponseEntity<InputDTO> loadImageInput(@PathVariable("id") String imageId) throws Exception {
         InputDTO res = controller.loadLastInput(imageId);
+        return ResponseEntity.ok(res);
+    }
+
+    @GetMapping("/images/{id}")
+    public ResponseEntity<InputDTO> getImage(@PathVariable("id") String imageId) throws Exception {
+        throw new Exception("unimplemented");
+    }
+
+    //in the future will become get all current user's owned images.
+    @GetMapping("/images")
+    public ResponseEntity<List<ImageDTO>> getAllImages() throws Exception {
+        List<ImageDTO> res = controller.getAllImages();
         return ResponseEntity.ok(res);
     }
 

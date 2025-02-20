@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package GRPC;
+
+option java_multiple_files = true;
+option java_package = "GRPC";
+
+service SolverService {
+  rpc isCompiling (ExecutionRequest) returns (CompilationResult);
+  rpc solve (ExecutionRequest) returns (Solution);
+}
+
+message ExecutionRequest {
+    string code = 1;
+    int32 timeout = 2;
+}
+
+message CompilationResult {
+    bool result = 1;
+}
+
+message Solution {
+  string solution = 1;
+}

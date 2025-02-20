@@ -132,5 +132,14 @@ public class ImageController {
         return imageRepository.findById(imageId).get().getInput();
     }
 
+    @Transactional
+    public List<ImageDTO> getAllImages() {
+        List<ImageDTO> ans = new LinkedList<>();
+        for(Image image : imageRepository.findAll()){
+            ans.add(RecordFactory.makeDTO(image));
+        }
+        return ans;
+    }
+
 
 }
