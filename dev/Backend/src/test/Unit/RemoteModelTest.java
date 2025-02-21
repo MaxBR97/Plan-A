@@ -1,12 +1,13 @@
 package Unit;
 
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 
-@TestPropertySource(properties = {
-    "model.useRemote=remote",
-    "model.grpc.port=localhost",
-    "model.grpc.port=0"
-})
-public class RemoteModelTest  extends ModelTest{
+import SolverService.SolverServiceApplication;
+import groupId.Main;
+
+@ActiveProfiles({"inMemory-local","remote"})
+public class RemoteModelTest  extends ModelTest {
     
 }

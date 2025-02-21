@@ -44,6 +44,7 @@ import DataAccess.ModelRepository;
 import GRPC.CompilationResult;
 import GRPC.ExecutionRequest;
 import GRPC.SolverServiceGrpc;
+import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder;
 
 public class ModelProxy extends ModelInterface {
     private final String id;
@@ -255,7 +256,7 @@ public class ModelProxy extends ModelInterface {
         String serviceBHost = this.solverHost;
         int serviceBPort = this.solverPort;
 
-        ManagedChannel channel = ManagedChannelBuilder.forAddress(serviceBHost, serviceBPort)
+        ManagedChannel channel = NettyChannelBuilder.forAddress(serviceBHost, serviceBPort)
                 .usePlaintext()
                 .build();
 

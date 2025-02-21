@@ -135,11 +135,11 @@
         <optional>true</optional>
     </dependency>
 
-	<dependency>
+	<!-- <dependency>
         <groupId>io.github.lognet</groupId>
         <artifactId>grpc-spring-boot-starter</artifactId>
         <version>4.6.0</version>
-    </dependency>
+    </dependency> -->
 
      <dependency>
             <groupId>io.grpc</groupId>
@@ -162,7 +162,7 @@
         <dependency>
             <groupId>com.google.protobuf</groupId>
             <artifactId>protobuf-java</artifactId>
-            <version>4.29.3</version>
+            <version>3.25.5</version>
         </dependency>
 
         <dependency>

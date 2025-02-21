@@ -53,11 +53,8 @@ import groupId.Main;
 //@ActiveProfiles("test") 
 //@Transactional
 @TestMethodOrder(MethodOrderer.Alphanumeric.class)
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-@ActiveProfiles("inMemory-local") 
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS) 
 
-// To run tests type "mvn test -Dtest=ModelTest" or right click the circle next to the class name, 
-// and choose "Run all tests with coverage"
 public abstract class ModelTest {
     private ModelInterface model;
     private static String source = "src/test/Unit/TestFile.zpl";
@@ -84,7 +81,6 @@ public abstract class ModelTest {
         Path targetPath = Path.of(TEST_FILE_PATH);
         Files.deleteIfExists(targetPath);
         Files.copy(sourcePath, targetPath, StandardCopyOption.REPLACE_EXISTING);
-
     }
 
     private ModelSet getSet(ModelInterface m, String identifier) throws Exception{
@@ -258,10 +254,10 @@ public abstract class ModelTest {
     
     @Test
     public void testSolve(){
-        Model m = null;
+        ModelInterface m = null;
         try{
         
-        m = new Model(modelRepository, this.sourceSolveId);
+        m = modelFactory.getModel(this.sourceSolveId);
         Solution sol = m.solve(100,"SOLUTION");
         
         if(sol == null)
@@ -338,21 +334,21 @@ public abstract class ModelTest {
        Files.deleteIfExists(targetPath);
        //Files.deleteIfExists(Path.of(targetPath.toString()+"SOLUTION"));
        //Files.deleteIfExists(Path.of("./src/test/Unit/TestFile2.zplSOLUTION"));
-       int count = 0;
-       System.gc();
-       //temporary solution to a synchronization problem - deleteing file while in use
-       while(true){
-        try{
-        Thread.sleep(100);
-        modelRepository.deleteDocument(sourceId);
-        modelRepository.deleteDocument(sourceSolveId);
-        break;
-        } catch(Exception e){
-            count++;
-            if(count == 10)
-                throw e;
-        }
-       }
+    //    int count = 0;
+    //    System.gc();
+    //    //temporary solution to a synchronization problem - deleteing file while in use
+    //    while(true){
+    //     try{
+    //     Thread.sleep(100);
+    //     modelRepository.deleteDocument(sourceId);
+    //     modelRepository.deleteDocument(sourceSolveId);
+    //     break;
+    //     } catch(Exception e){
+    //         count++;
+    //         if(count == 10)
+    //             throw e;
+    //     }
+    //    }
     }
     
 

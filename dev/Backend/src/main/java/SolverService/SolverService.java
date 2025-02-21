@@ -30,7 +30,7 @@ public class SolverService extends SolverServiceGrpc.SolverServiceImplBase {
         String code = request.getCode();
         float timeout = request.getTimeout();
         try{
-        ModelInterface model = modelFactory.getModel(request.getId());
+        ModelInterface model = modelFactory.getModel(request.getId(),"local");
         boolean ans = model.isCompiling(timeout);
 
         CompilationResult response = CompilationResult.newBuilder()
@@ -49,7 +49,7 @@ public class SolverService extends SolverServiceGrpc.SolverServiceImplBase {
         String code = request.getCode();
         float timeout = request.getTimeout();
         try{
-        ModelInterface model = modelFactory.getModel(request.getId());
+        ModelInterface model = modelFactory.getModel(request.getId(),"local");
         Model.Solution ans = model.solve(timeout, "tmp");
         
         
