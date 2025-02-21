@@ -33,6 +33,7 @@ import org.springframework.test.context.ActiveProfiles;
 import DataAccess.ModelRepository;
 import Model.Model;
 import Model.ModelConstraint;
+import Model.ModelFactory;
 import Model.ModelFunctionality;
 import Model.ModelInterface;
 import Model.ModelParameter;
@@ -57,7 +58,7 @@ import groupId.Main;
 
 // To run tests type "mvn test -Dtest=ModelTest" or right click the circle next to the class name, 
 // and choose "Run all tests with coverage"
-public class ModelTest {
+public abstract class ModelTest {
     private ModelInterface model;
     private static String source = "src/test/Unit/TestFile.zpl";
     private static String TEST_FILE_PATH = "src/test/Unit/TestFileINSTANCE.zpl";
@@ -68,10 +69,12 @@ public class ModelTest {
     private static String[][] expectedParameters = {{"Conditioner","10"}, {"soldiers", "9"}, {"absoluteMinimalRivuah", "8"}};
     
     private static ModelRepository modelRepository;
+    private static ModelFactory modelFactory;
 
     @Autowired
-    public void setModelRepository(ModelRepository injectedRepository) {
-        modelRepository = injectedRepository;
+    public void setModelRepository(ModelFactory factory) {
+        this.modelFactory = factory;
+        this.modelRepository = factory.getRepository();
         // Model.injectRepository(modelRepository);
     }
 
@@ -81,6 +84,7 @@ public class ModelTest {
         Path targetPath = Path.of(TEST_FILE_PATH);
         Files.deleteIfExists(targetPath);
         Files.copy(sourcePath, targetPath, StandardCopyOption.REPLACE_EXISTING);
+
     }
 
     private ModelSet getSet(ModelInterface m, String identifier) throws Exception{
@@ -112,11 +116,11 @@ public class ModelTest {
         modelRepository.uploadDocument(sourceSolveId, inputStream2);
         inputStream.close();    
         inputStream2.close();
-        model = new Model(modelRepository, sourceId);
+        model = modelFactory.getModel(sourceId);
     }
     
     @Test
-    public void testModelConstruction() {
+    public void testModelConstruction() throws Exception {
         assertNotNull(model);
         assertTrue(model.isCompiling(compilationBaselineTime));
     }
@@ -229,7 +233,7 @@ public class ModelTest {
 
 
     @Test
-    public void testBasicCompilation(){
+    public void testBasicCompilation() throws Exception{
         assertFalse(model.isCompiling(0.00000000001f));
         assertTrue(model.isCompiling(compilationBaselineTime));
         try{

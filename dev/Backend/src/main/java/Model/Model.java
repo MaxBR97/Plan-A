@@ -65,25 +65,25 @@ public class Model extends ModelInterface {
     }
 
 
-    private InputStream getSource() throws Exception{
+    public InputStream getSource() throws Exception{
         InputStream inputStream = modelRepository.downloadDocument(id);
         return inputStream;
     }
 
-    private String getSourcePathToFile() throws Exception {
+    public String getSourcePathToFile() throws Exception {
         return modelRepository.getLocalStoreDir().resolve(id+".zpl").toString();
     }
 
-    private String getSolutionPathToFile(String suffix) throws Exception {
+    public String getSolutionPathToFile(String suffix) throws Exception {
         return modelRepository.getLocalStoreDir().resolve(id+suffix+".zpl").toString();
     }
 
-    private void writeToSource(String newSource) throws Exception{
+    public void writeToSource(String newSource) throws Exception{
         InputStream inputStream = new ByteArrayInputStream(newSource.getBytes(StandardCharsets.UTF_8));
         modelRepository.uploadDocument(id, inputStream);
     }
 
-    private void writeSolution(String content, String suffix) throws Exception {
+    public void writeSolution(String content, String suffix) throws Exception {
         InputStream inputStream = new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
         modelRepository.uploadDocument(id + suffix, inputStream);
     }
@@ -309,7 +309,7 @@ public class Model extends ModelInterface {
             return false;
         }
     }
-    
+    //TODO: remove solutionFileSufix, it should be dedcided internally in Model class
     public Solution solve(float timeout, String solutionFileSufix) throws BadRequestException {
         if(solutionFileSufix == null)
             throw new BadRequestException("solutionFileSufix is null");

@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import Model.ModelInput.StructureBlock;
+import SolverService.SolverService;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import parser.*;
@@ -40,6 +41,9 @@ import org.antlr.runtime.tree.TreeWizard;
 import org.springframework.web.bind.annotation.RestController;
 
 import DataAccess.ModelRepository;
+import GRPC.CompilationResult;
+import GRPC.ExecutionRequest;
+import GRPC.SolverServiceGrpc;
 
 public class ModelProxy extends ModelInterface {
     private final String id;
@@ -70,25 +74,25 @@ public class ModelProxy extends ModelInterface {
     }
 
 
-    private InputStream getSource() throws Exception{
+    public InputStream getSource() throws Exception{
         InputStream inputStream = modelRepository.downloadDocument(id);
         return inputStream;
     }
 
-    private String getSourcePathToFile() throws Exception {
+    public String getSourcePathToFile() throws Exception {
         return modelRepository.getLocalStoreDir().resolve(id+".zpl").toString();
     }
 
-    private String getSolutionPathToFile(String suffix) throws Exception {
+    public String getSolutionPathToFile(String suffix) throws Exception {
         return modelRepository.getLocalStoreDir().resolve(id+suffix+".zpl").toString();
     }
 
-    private void writeToSource(String newSource) throws Exception{
+    public void writeToSource(String newSource) throws Exception{
         InputStream inputStream = new ByteArrayInputStream(newSource.getBytes(StandardCharsets.UTF_8));
         modelRepository.uploadDocument(id, inputStream);
     }
 
-    private void writeSolution(String content, String suffix) throws Exception {
+    public void writeSolution(String content, String suffix) throws Exception {
         InputStream inputStream = new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
         modelRepository.uploadDocument(id + suffix, inputStream);
     }
@@ -244,8 +248,10 @@ public class ModelProxy extends ModelInterface {
         parseSource();
     }
     
-
-    public boolean isCompiling(float timeout) throws BadRequestException {
+    //TODO: convert isCompiling and solve to asynchronous calls.
+    //TODO: much refactoring and optimisation needed.
+    @Override
+    public boolean isCompiling(float timeout) throws Exception {
         String serviceBHost = this.solverHost;
         int serviceBPort = this.solverPort;
 
@@ -253,15 +259,40 @@ public class ModelProxy extends ModelInterface {
                 .usePlaintext()
                 .build();
 
-        // ServiceBGrpc.ServiceBBlockingStub stub = ServiceBGrpc.newBlockingStub(channel);
-        // MessageResponse response = stub.getMessage(EmptyRequest.newBuilder().build());
+        SolverServiceGrpc.SolverServiceBlockingStub stub = SolverServiceGrpc.newBlockingStub(channel);
 
-        // channel.shutdown();
-        // return "Service A received: " + response.getMessage();
-        return true;
+        ExecutionRequest request = ExecutionRequest.newBuilder()
+                .setId(id)
+                .setCode(this.originalSource)
+                .setTimeout(timeout)
+                .build();
+
+        CompilationResult response = stub.isCompiling(request);
+
+        channel.shutdown().awaitTermination(5, TimeUnit.SECONDS);
+        return response.getResult();
     }
     
     public Solution solve(float timeout, String solutionFileSufix) throws BadRequestException {
+        // ManagedChannel channel = ManagedChannelBuilder.forAddress(solverHost, solverPort)
+        //         .usePlaintext() // No TLS for now
+        //         .build();
+
+        // // Create a blocking stub (synchronous client)
+        // SolverServiceGrpc.SolverServiceBlockingStub stub = SolverServiceGrpc.newBlockingStub(channel);
+
+        // // Create and send the request
+        // ExecutionRequest request = ExecutionRequest.newBuilder()
+        //         .setId("some problem data")
+        //         .setCode("some problem data")
+        //         .setTimeout("some problem data")
+        //         .build();
+
+        // GRPC.Solution response = stub.solve(request);
+
+        // System.out.println("Solution: " + response.getSolution());
+
+        // channel.shutdown();
         return null;
     }
 

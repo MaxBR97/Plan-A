@@ -246,7 +246,7 @@ public class Image {
             Objects.requireNonNull(name,"Null value during Toggle Constraint in Image");
             constraintsModules.get(name).ToggleModule();
     }*/
-    public SolutionDTO solve(int timeout){
+    public SolutionDTO solve(int timeout) throws Exception{
         Solution solution=model.solve(timeout, "SOLUTION");
         try {
             solution.parseSolution(model, getVariableModule().getIdentifiers());
