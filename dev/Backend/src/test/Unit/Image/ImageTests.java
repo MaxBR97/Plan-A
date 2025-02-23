@@ -29,7 +29,6 @@ import org.springframework.test.context.ActiveProfiles;
 import DataAccess.ImageRepository;
 import DataAccess.ModelRepository;
 import Image.Image;
-import Model.Model;
 import Model.ModelFactory;
 import Model.ModelInterface;
 import Model.ModelParameter;
@@ -228,9 +227,16 @@ public class ImageTests {
        Files.deleteIfExists(targetPath);
        
        System.gc();
-       
-        modelRepository.deleteDocument(sourceId);
-       
+       int count = 0;
+       while(count<20){
+        try{
+            modelRepository.deleteAll();
+            Thread.sleep(100);
+            break;
+        } catch (Exception e){
+            count++;
+        }
+       }
     }
 
 

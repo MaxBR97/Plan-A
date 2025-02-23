@@ -9,6 +9,8 @@ import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -20,6 +22,7 @@ import Exceptions.InternalErrors.BadRequestException;
 public class ModelLocalDiskDAO extends ModelRepository {
     private Path storagePath;
     private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
+    private List<String> cached;
 
     
     public ModelLocalDiskDAO(@Value("${app.file.storage-dir}") String loadedRelativeStoragePath) {
@@ -46,6 +49,7 @@ public class ModelLocalDiskDAO extends ModelRepository {
         }
 
         ensureDirectoryExists();
+        cached = new ArrayList<>();
     }
 
     private void ensureDirectoryExists() {
@@ -67,15 +71,17 @@ public class ModelLocalDiskDAO extends ModelRepository {
         while ((bytesRead = inStream.read(buffer)) != -1) {
             outStream.write(buffer, 0, bytesRead);
         }
+        cached.add(documentId);
     } catch (Exception e) {
         lock.readLock().unlock();
         throw new BadRequestException("Failed to upload document: " + e.getMessage());
     }
     lock.readLock().unlock();
-}
+    
+    }
 
 
-        @Override
+    @Override
     public void uploadDocument(String documentId, String documentString) throws Exception {
         Path filePath = getStoreDir().resolve(documentId + ".zpl");
         lock.readLock().lock();
@@ -86,6 +92,7 @@ public class ModelLocalDiskDAO extends ModelRepository {
             throw new BadRequestException("Failed to upload document: " + e.getMessage());
         }
         lock.readLock().unlock();
+        
     }
 
     @Override
@@ -94,6 +101,7 @@ public class ModelLocalDiskDAO extends ModelRepository {
         lock.readLock().lock();
         try {
             InputStream ans = new FileInputStream(filePath.toFile());
+            cached.add(documentId);
             lock.readLock().unlock();
             return ans;
         } catch (Exception e) {
@@ -107,8 +115,8 @@ public class ModelLocalDiskDAO extends ModelRepository {
         Path filePath = getStoreDir().resolve(documentId+ ".zpl");
         lock.writeLock().lock();
         try {
-            
             Files.deleteIfExists(filePath);
+            cached.remove(documentId);
         } catch (Exception e) {
             lock.writeLock().unlock();
             throw new BadRequestException("Failed to delete document: "+e.getMessage());
@@ -128,6 +136,22 @@ public class ModelLocalDiskDAO extends ModelRepository {
 
     public Path getLocalStoreDir() {
         return getStoreDir();
+    }
+
+    // actually deletes current session's files
+    public void clearCache() throws Exception {
+        List<String> tmp = List.copyOf(cached);
+        for(String id : tmp) {
+            deleteDocument(id);
+        }
+    }
+
+    // actually deletes all files in the storage file. 
+    public void deleteAll() throws Exception {
+        List<String> tmp = List.copyOf(cached);
+        for(String id : tmp) {
+            deleteDocument(id);
+        }
     }
 
 }

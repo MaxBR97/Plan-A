@@ -2,6 +2,7 @@ package DataAccess;
 
 import java.io.InputStream;
 import java.nio.file.Path;
+import java.util.List;
 
 import DataAccess.LocalStorage.ModelLocalDiskDAO;
 import Exceptions.InternalErrors.BadRequestException;
@@ -10,13 +11,19 @@ import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
+import software.amazon.awssdk.services.s3.model.Delete;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
+import software.amazon.awssdk.services.s3.model.DeleteObjectsRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.HeadBucketRequest;
 import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
 import software.amazon.awssdk.services.s3.model.NoSuchBucketException;
+import software.amazon.awssdk.services.s3.model.ObjectIdentifier;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.S3Exception;
+import software.amazon.awssdk.services.s3.model.S3Object;
 
 
 public class S3ModelStorageService extends  ModelRepository{
@@ -124,6 +131,39 @@ public class S3ModelStorageService extends  ModelRepository{
 
     public Path getLocalStoreDir(){
         return localCache.getLocalStoreDir();
+    }
+
+    @Override
+    public void clearCache() throws Exception {
+       localCache.clearCache();
+    }
+
+    @Override
+    public void deleteAll() throws Exception {
+        localCache.clearCache();
+        
+        ListObjectsV2Request listRequest = ListObjectsV2Request.builder().bucket(bucketName).build();
+        ListObjectsV2Response listResponse;
+
+        do {
+            listResponse = s3.listObjectsV2(listRequest);
+            List<S3Object> objects = listResponse.contents();
+
+            if (!objects.isEmpty()) {
+                DeleteObjectsRequest deleteRequest = DeleteObjectsRequest.builder()
+                        .bucket(bucketName)
+                        .delete(Delete.builder()
+                                .objects(objects.stream()
+                                        .map(obj -> ObjectIdentifier.builder().key(obj.key()).build())
+                                        .toList())
+                                .build())
+                        .build();
+                
+                s3.deleteObjects(deleteRequest);
+            }
+
+            listRequest = listRequest.toBuilder().continuationToken(listResponse.nextContinuationToken()).build();
+        } while (listResponse.isTruncated());
     }
     
 }

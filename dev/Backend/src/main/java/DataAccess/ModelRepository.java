@@ -18,4 +18,6 @@ public abstract class ModelRepository {
     public Path getLocalyCachedFile(String documentId) {
         return getLocalStoreDir().resolve(documentId+ ".zpl"); 
     }
+    public abstract void clearCache() throws Exception;
+    public abstract void deleteAll() throws Exception;
 }

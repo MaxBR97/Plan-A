@@ -128,12 +128,12 @@
     </dependency>
 
     <!-- Spring Boot DevTools (Optional, for live reload in development) -->
-    <dependency>
+    <!-- <dependency>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-devtools</artifactId>
         <scope>runtime</scope>
         <optional>true</optional>
-    </dependency>
+    </dependency> -->
 
 	<!-- <dependency>
         <groupId>io.github.lognet</groupId>
