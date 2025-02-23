@@ -7,7 +7,7 @@ import org.springframework.test.context.TestPropertySource;
 import SolverService.SolverServiceApplication;
 import groupId.Main;
 
-@ActiveProfiles({"inMemory-local","remote"})
+@ActiveProfiles({"H2mem","grpcSolver"})
 public class RemoteModelTest  extends ModelTest {
     
 }

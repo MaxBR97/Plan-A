@@ -7,6 +7,9 @@ import io.grpc.stub.StreamObserver;
 import net.devh.boot.grpc.server.service.GrpcService;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
+import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import GRPC.CompilationResult;
 import GRPC.ExecutionRequest;
@@ -15,7 +18,10 @@ import GRPC.SolverServiceGrpc;
 import Model.ModelFactory;
 import Model.ModelInterface;
 
+//TODO: check why grpc starts even when remote is off
+@Profile("grpcSolver")
 @GrpcService
+@Component
 public class SolverService extends SolverServiceGrpc.SolverServiceImplBase {
 
     ModelFactory modelFactory;

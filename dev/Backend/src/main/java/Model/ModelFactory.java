@@ -32,12 +32,12 @@ public class ModelFactory {
                         @Value("${server.port:4000}") int serverPort, 
                         Environment env) {
         environment = env;
-        String remote = env.acceptsProfiles(Profiles.of("remote")) ? "remote" : "local";
+        String remote = env.acceptsProfiles(Profiles.of("grpcSolver")) ? "grpcSolver" : "local";
         modelInstance = remote;
         remoteHost = host;
         remotePort = port;
         
-        if (remote.equals("remote")) {
+        if (remote.equals("grpcSolver")) {
             remotePort = (remotePort == 0) ? serverPort : remotePort;
         }
 
@@ -53,7 +53,7 @@ public class ModelFactory {
         
         if(role.equals("local"))
             return new Model(modelRepository,id);
-        else if(role.equals("remote"))
+        else if(role.equals("grpcSolver"))
             return new ModelProxy(modelRepository,id,remoteHost,remotePort);
         throw new BadRequestException(" invalid configuration of model");
     }
