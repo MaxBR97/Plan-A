@@ -264,37 +264,44 @@ public class ModelProxy extends ModelInterface {
 
         ExecutionRequest request = ExecutionRequest.newBuilder()
                 .setId(id)
-                .setCode(this.originalSource)
+                //.setCode(this.originalSource)
                 .setTimeout(timeout)
                 .build();
 
+        commentOutToggledFunctionalities();
         CompilationResult response = stub.isCompiling(request);
+        restoreToggledFunctionalities();
 
         channel.shutdown().awaitTermination(5, TimeUnit.SECONDS);
         return response.getResult();
     }
     
-    public Solution solve(float timeout, String solutionFileSufix) throws BadRequestException {
-        // ManagedChannel channel = ManagedChannelBuilder.forAddress(solverHost, solverPort)
-        //         .usePlaintext() // No TLS for now
-        //         .build();
+    public Solution solve(float timeout, String solutionFileSufix) throws Exception {
+        String serviceBHost = this.solverHost;
+        int serviceBPort = this.solverPort;
 
-        // // Create a blocking stub (synchronous client)
-        // SolverServiceGrpc.SolverServiceBlockingStub stub = SolverServiceGrpc.newBlockingStub(channel);
+        ManagedChannel channel = NettyChannelBuilder.forAddress(serviceBHost, serviceBPort)
+                .usePlaintext()
+                .build();
 
-        // // Create and send the request
-        // ExecutionRequest request = ExecutionRequest.newBuilder()
-        //         .setId("some problem data")
-        //         .setCode("some problem data")
-        //         .setTimeout("some problem data")
-        //         .build();
+        SolverServiceGrpc.SolverServiceBlockingStub stub = SolverServiceGrpc.newBlockingStub(channel);
 
-        // GRPC.Solution response = stub.solve(request);
+        ExecutionRequest request = ExecutionRequest.newBuilder()
+                .setId(id)
+                .setTimeout(timeout)
+                .build();
 
-        // System.out.println("Solution: " + response.getSolution());
+        commentOutToggledFunctionalities();                
+        GRPC.Solution response = stub.solve(request);
+        restoreToggledFunctionalities();
+        modelRepository.downloadDocument(response.getSolution());
+        if(response.getSolution().equals("null"))
+            return null;
+        Path pathToSolution = modelRepository.getLocalyCachedFile(response.getSolution());
+        Solution sol = new Solution(pathToSolution.toString());
 
-        // channel.shutdown();
-        return null;
+        channel.shutdown().awaitTermination(5, TimeUnit.SECONDS);
+        return sol;
     }
 
     List<FormulationParser.UExprContext> findComponentContexts(FormulationParser.NExprContext ctx) {

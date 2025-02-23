@@ -14,4 +14,8 @@ public abstract class ModelRepository {
     public  abstract void deleteDocument(String documentId) throws Exception;
     public  abstract boolean documentExists(String documentId) throws Exception;
     public abstract Path getLocalStoreDir();
+
+    public Path getLocalyCachedFile(String documentId) {
+        return getLocalStoreDir().resolve(documentId+ ".zpl"); 
+    }
 }

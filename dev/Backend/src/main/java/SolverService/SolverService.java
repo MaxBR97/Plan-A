@@ -33,10 +33,10 @@ public class SolverService extends SolverServiceGrpc.SolverServiceImplBase {
 
     @Override
     public void isCompiling(ExecutionRequest request, StreamObserver<CompilationResult> responseObserver) {
-        String code = request.getCode();
+        String id = request.getId();
         float timeout = request.getTimeout();
         try{
-        ModelInterface model = modelFactory.getModel(request.getId(),"local");
+        ModelInterface model = modelFactory.getModel(id,"local");
         boolean ans = model.isCompiling(timeout);
 
         CompilationResult response = CompilationResult.newBuilder()
@@ -52,17 +52,23 @@ public class SolverService extends SolverServiceGrpc.SolverServiceImplBase {
 
     @Override
     public void solve(ExecutionRequest request, StreamObserver<GRPC.Solution> responseObserver) {
-        String code = request.getCode();
+        String id = request.getId();
         float timeout = request.getTimeout();
         try{
-        ModelInterface model = modelFactory.getModel(request.getId(),"local");
+        ModelInterface model = modelFactory.getModel(id,"local");
         Model.Solution ans = model.solve(timeout, "tmp");
-        
-        
-        Files.readAllBytes(Path.of(model.getSolutionPathToFile("tmp")));
-        GRPC.Solution response = Solution.newBuilder()
-                .setSolution("")
-                .build();
+        GRPC.Solution response;
+        if(ans != null) {
+            String content = new String(Files.readAllBytes(Path.of(model.getSolutionPathToFile("tmp"))));
+            model.writeSolution(content , "tmp");
+            response =  Solution.newBuilder()
+            .setSolution(id+"tmp")
+            .build();
+        } else {
+            response =  Solution.newBuilder()
+            .setSolution("null")
+            .build();
+        }
         
         responseObserver.onNext(response);
         } catch (Exception e){

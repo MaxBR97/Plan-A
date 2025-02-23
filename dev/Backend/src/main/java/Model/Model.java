@@ -81,11 +81,13 @@ public class Model extends ModelInterface {
     public void writeToSource(String newSource) throws Exception{
         InputStream inputStream = new ByteArrayInputStream(newSource.getBytes(StandardCharsets.UTF_8));
         modelRepository.uploadDocument(id, inputStream);
+        modelRepository.downloadDocument(id);
     }
 
     public void writeSolution(String content, String suffix) throws Exception {
         InputStream inputStream = new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
         modelRepository.uploadDocument(id + suffix, inputStream);
+        modelRepository.downloadDocument(id + suffix);
     }
     
     private void parseSource() throws Exception {
