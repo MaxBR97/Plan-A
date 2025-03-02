@@ -123,8 +123,9 @@ public class ImageController {
     }
 
     @Transactional
-    public Image getImage(String id) {
-        return imageRepository.findById(id).get();
+    public ImageDTO getImage(String id) {
+        Image image = imageRepository.findById(id).get();
+        return RecordFactory.makeDTO(image);
     }
 
     @Transactional
@@ -141,5 +142,11 @@ public class ImageController {
         return ans;
     }
 
+    @Transactional
+    void deleteImage(String imageId) throws Exception {
+        imageRepository.deleteById(imageId);
+        System.gc();
+        modelFactory.deleteModel(imageId);
+    }
 
 }

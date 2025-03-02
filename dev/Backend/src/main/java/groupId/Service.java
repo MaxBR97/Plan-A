@@ -13,11 +13,13 @@ import DTO.Records.Requests.Responses.CreateImageResponseDTO;
 import DTO.Records.Requests.Responses.ImageResponseDTO;
 
 import jakarta.validation.Valid;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -34,6 +36,7 @@ import DTO.Records.Requests.Commands.SolveCommandDTO;
 import DTO.Records.Requests.Responses.CreateImageResponseDTO;
 import jakarta.validation.Valid;
 
+//TODO: make all returned status codes to comply with best practices/REST conventions
 @RestController
 @RequestMapping("/")
 public class Service implements ServiceInterface {
@@ -77,8 +80,12 @@ public class Service implements ServiceInterface {
     }
 
     @GetMapping("/images/{id}")
-    public ResponseEntity<InputDTO> getImage(@PathVariable("id") String imageId) throws Exception {
-        throw new Exception("unimplemented");
+    public ResponseEntity<ImageDTO> getImage(@PathVariable("id") String imageId) throws Exception {
+        ImageDTO res = controller.getImage(imageId);
+        if (res == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(res);
     }
 
     //in the future will become get all current user's owned images.
@@ -86,6 +93,12 @@ public class Service implements ServiceInterface {
     public ResponseEntity<List<ImageDTO>> getAllImages() throws Exception {
         List<ImageDTO> res = controller.getAllImages();
         return ResponseEntity.ok(res);
+    }
+
+    @DeleteMapping("/images/{id}")
+    public ResponseEntity<Void> deleteImage(@PathVariable("id") String imageId) throws Exception {
+        controller.deleteImage(imageId);
+        return ResponseEntity.ok().build();
     }
 
     //TODO: remove this getter. Temporarily exists to support bad tests.

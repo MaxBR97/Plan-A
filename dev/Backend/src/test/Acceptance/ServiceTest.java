@@ -316,7 +316,7 @@ public class ServiceTest {
         @Test
         public void testLoadImageInput() {
             // create Image
-        CreateImageResponseDTO imageCreated = createImageCall(SimpleCodeExample);
+        CreateImageResponseDTO imageCreated = createImageCall(SimpleCodeExample).getBody();
         String imageId = imageCreated.imageId();
         Set<ConstraintModuleDTO> constraintModuleDTOs=Set.of(
                 new ConstraintModuleDTO("MyConst","description",
@@ -367,12 +367,12 @@ public class ServiceTest {
         
         @Test
         public void getImagesTest(){
-            CreateImageResponseDTO firstImage = createImageCall(SimpleCodeExample);
+            CreateImageResponseDTO firstImage = createImageCall(SimpleCodeExample).getBody();
             CreateImageResponseDTO secondImage = createImageCall("""
                                                                     set S := {<1,\"a\">, <2,\"bs\">};
                                                                     minimize this:
                                                                         300;
-                                                                    """);
+                                                                    """).getBody();
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
     
@@ -392,8 +392,24 @@ public class ServiceTest {
             assertNotNull(response.getBody());
             assertEquals(2, response.getBody().size());
         }
+
+        @Test
+        public void deleteImageTest() {
+            ResponseEntity<CreateImageResponseDTO> createdImage = createImageCall(SimpleCodeExample);
+            assertEquals(HttpStatus.OK, createdImage.getStatusCode());
+            String imageId = createdImage.getBody().imageId();
+            ResponseEntity<ImageDTO> image = getImageCall(imageId);
+            assertEquals(HttpStatus.OK, image.getStatusCode());
+            assertNotNull(image.getBody());
+
+            ResponseEntity<Void> deleted = deleteImageCall(imageId);
+            assertEquals(HttpStatus.OK, deleted.getStatusCode());
+
+            image = getImageCall(imageId);
+            assertEquals(HttpStatus.resolve(500), image.getStatusCode());
+        }
     
-        private CreateImageResponseDTO createImageCall(String code){
+        private ResponseEntity<CreateImageResponseDTO> createImageCall(String code){
             CreateImageFromFileDTO body = new CreateImageFromFileDTO(SimpleCodeExample);
     
             
@@ -412,7 +428,7 @@ public class ServiceTest {
                 CreateImageResponseDTO.class
             );
     
-            return response.getBody();
+            return response;
         }
     
         private Void configImage(ImageConfigDTO code){
@@ -432,6 +448,46 @@ public class ServiceTest {
             return response2.getBody();
         }
     
+        private ResponseEntity<Void> deleteImageCall(String imageId){
+            
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            
+            // Create http request with body and headers
+            HttpEntity<Void> request = new HttpEntity<>(headers);
+    
+            // Send POST request with body
+            String url = "http://localhost:" + port + "/images/" + imageId;
+            ResponseEntity<Void> response = restTemplate.exchange(
+                url,
+                HttpMethod.DELETE,
+                request,
+                Void.class
+            );
+    
+            return response;
+        }
+
+        private ResponseEntity<ImageDTO> getImageCall(String imageId){
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            
+            // Create http request with body and headers
+            HttpEntity<Void> request = new HttpEntity<>(headers);
+    
+            // Send POST request with body
+            String url = "http://localhost:" + port + "/images/" + imageId;
+            ResponseEntity<ImageDTO> response = restTemplate.exchange(
+                url,
+                HttpMethod.GET,
+                request,
+                ImageDTO.class
+            );
+    
+            return response;
+        }
+
+
         @AfterEach
         public void cleanUp() throws Exception {
             System.gc();

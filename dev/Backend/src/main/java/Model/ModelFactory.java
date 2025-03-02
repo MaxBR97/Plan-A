@@ -66,4 +66,8 @@ public class ModelFactory {
     public ModelRepository getRepository(){
         return modelRepository;
     }
+
+    public void deleteModel(String imageId) throws Exception {
+        modelRepository.deleteDocument(imageId);
+    }
 }
