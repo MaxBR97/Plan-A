@@ -340,8 +340,7 @@ public class Model extends ModelInterface {
     
             // Executor service to handle timeouts
             ExecutorService executor = Executors.newSingleThreadExecutor();
-            List<Future<Solution>> futures = executor.invokeAll(
-            List.of(() -> {
+            Future<Solution> future = executor.submit(() -> {
                 BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
                 StringBuilder buffer = new StringBuilder();
                 boolean capture = false;
@@ -361,17 +360,15 @@ public class Model extends ModelInterface {
                         buffer.setLength(0);
                         capture = true;
                     }
-                    if (capture) buffer.append(line).append("\n");
+                    if (capture) 
+                        buffer.append(line).append("\n");
                 }
-
+            
                 String filteredOutput = buffer.toString().lines()
                     .collect(Collectors.joining("\n"));
                 writeSolution(filteredOutput, solutionFileSufix);
                 return new Solution(getSolutionPathToFile(solutionFileSufix));
-            }),
-            (long) timeout, TimeUnit.SECONDS  // Force execution with timeout
-            );
-            Future<Solution> future = futures.get(0);
+            });
             
             try {
                 ans = future.get((long) timeout, TimeUnit.SECONDS);
