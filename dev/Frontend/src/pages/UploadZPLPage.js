@@ -61,6 +61,7 @@ const UploadZPLPage = () => {
                 <textarea
                     value={fileContent}
                     onChange={(e) => setFileContent(e.target.value)}
+                    className="fixed-textarea"
                 />
                 <button className="upload-button" onClick={handleUpload}>Upload</button>
             </div>

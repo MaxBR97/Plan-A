@@ -323,6 +323,8 @@ public class Model extends ModelInterface {
                 "scip", "-c", "read " + getSourcePathToFile() + " optimize display solution q"
             );
             processBuilder.redirectErrorStream(true);
+            processBuilder.redirectInput(ProcessBuilder.Redirect.PIPE); // Prevents waiting for input
+
             
             Process process;
             try {
@@ -338,50 +340,39 @@ public class Model extends ModelInterface {
     
             // Executor service to handle timeouts
             ExecutorService executor = Executors.newSingleThreadExecutor();
-            Future<Solution> future = executor.submit(() -> {
+            List<Future<Solution>> futures = executor.invokeAll(
+            List.of(() -> {
                 BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-                StringBuilder output = new StringBuilder();
-                String line;
-                boolean capture = false;
                 StringBuilder buffer = new StringBuilder();
-                int count = 0;
+                boolean capture = false;
+                String line;
                 while ((line = reader.readLine()) != null) {
-                    // Remove lines starting with '@'
-                    if (line.startsWith("@@")) continue;
-    
-                    // Remove excessive newlines
-                    if (line.trim().isEmpty() && (output.length() == 0 || output.toString().endsWith("\n"))) {
+                    if (line.startsWith("@@")) continue;  // Ignore certain lines
+                    if (line.trim().isEmpty() && (buffer.length() == 0 || buffer.toString().endsWith("\n"))) {
                         continue;
                     }
-
-                    if(line.matches("file .* not found"))
-                        throw new BadRequestException("Error: Tried solving non existing file: "+ line);
-                    
-                    if (line.matches(".*Error [0-9]{1,4}:.*")){
-                        while ((line += reader.readLine()) != null)
-                        {}
-                        throw new BadRequestException("Error: Solving is unsuccesful: "+ line);
+                    if (line.matches("file .* not found"))
+                        throw new BadRequestException("Error: Tried solving non-existing file: " + line);
+                    if (line.matches(".*Error [0-9]{1,4}:.*")) {
+                        while ((line = reader.readLine()) != null) {} // Consume remaining error messages
+                        throw new BadRequestException("Error: Solving unsuccessful: " + line);
                     }
-                    
-                    // Capture lines after "SCIP Status" until the end
                     if (line.contains("SCIP Status")) {
-                        buffer.setLength(0); // Clear buffer
+                        buffer.setLength(0);
                         capture = true;
                     }
-                    if (capture) {
-                        buffer.append(line).append("\n");
-                    }
+                    if (capture) buffer.append(line).append("\n");
                 }
-    
+
                 String filteredOutput = buffer.toString().lines()
-                    .collect(Collectors.collectingAndThen(Collectors.toList(), list -> {
-                        return String.join("\n", list);
-                    }));
-                    
+                    .collect(Collectors.joining("\n"));
                 writeSolution(filteredOutput, solutionFileSufix);
                 return new Solution(getSolutionPathToFile(solutionFileSufix));
-            });
-    
+            }),
+            (long) timeout, TimeUnit.SECONDS  // Force execution with timeout
+            );
+            Future<Solution> future = futures.get(0);
+            
             try {
                 ans = future.get((long) timeout, TimeUnit.SECONDS);
             } catch (TimeoutException e) {

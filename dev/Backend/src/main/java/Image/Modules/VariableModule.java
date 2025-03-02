@@ -81,7 +81,7 @@ public class VariableModule extends Module {
         inputSets.clear();
         inputParams.clear();
     }
-
+    
     public void override(Map<String, ModelVariable> variables, Collection<String> inputSets, Collection<String> inputParams) {
         this.variables.clear();
         this.inputSets.clear();

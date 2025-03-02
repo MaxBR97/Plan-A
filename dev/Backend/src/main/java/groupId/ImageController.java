@@ -37,6 +37,7 @@ import org.springframework.web.bind.annotation.RestController;
 import DTO.Records.Model.ModelData.InputDTO;
 import DataAccess.ModelRepository;
 import Model.ModelFactory;
+import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 
 @RestController
@@ -44,12 +45,14 @@ public class ImageController {
     //private final Map<UUID,Image> images;
     private final ImageRepository imageRepository;
     private final ModelFactory modelFactory;
+    private EntityManager entityManager;
 
 
     @Autowired
-    public ImageController(ImageRepository imageRepository, ModelFactory modelFactory) {
+    public ImageController(ImageRepository imageRepository, ModelFactory modelFactory, EntityManager em) {
         this.imageRepository = imageRepository;
         this.modelFactory = modelFactory;
+        this.entityManager = em;
         Image.setModelFactory(modelFactory);
     }
 
@@ -99,6 +102,10 @@ public class ImageController {
     public void overrideImage(ImageConfigDTO imgConfig) {
         ImageDTO imageDTO= imgConfig.image();
         Image image = imageRepository.findById(imgConfig.imageId()).get();
+        entityManager.merge(image);
+        // //TODO: Not good going, should be fixed to do the operation with deleting and re-writing the whole image
+        // imageRepository.deleteById(image.getId());
+        // imageRepository.flush();
         Objects.requireNonNull(image,"Invalid imageId in image config/override image");
         Map<String, ModelVariable> variables = new HashMap<>();
         ModelInterface model= image.getModel();
@@ -120,6 +127,7 @@ public class ImageController {
             image.addPreferenceModule(preferenceModule.moduleName(), preferenceModule.description(),
                     preferenceModule.preferences(),preferenceModule.inputSets(),preferenceModule.inputParams());
         }
+        entityManager.merge(image);
     }
 
     @Transactional

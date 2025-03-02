@@ -408,7 +408,7 @@ public class ServiceTest {
             image = getImageCall(imageId);
             assertEquals(HttpStatus.resolve(500), image.getStatusCode());
         }
-    
+
         private ResponseEntity<CreateImageResponseDTO> createImageCall(String code){
             CreateImageFromFileDTO body = new CreateImageFromFileDTO(SimpleCodeExample);
     

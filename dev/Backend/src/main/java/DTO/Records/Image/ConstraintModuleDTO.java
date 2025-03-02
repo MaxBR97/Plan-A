@@ -15,4 +15,10 @@ import java.util.Set;
  */
 public record ConstraintModuleDTO(@NotBlank String moduleName, @NotNull String description, @Valid Set<@NotBlank String> constraints,
                                   @Valid Set<@NotBlank String> inputSets,
-                                  @Valid Set<@NotBlank String> inputParams) {}
+                                  @Valid Set<@NotBlank String> inputParams) {
+                                    public ConstraintModuleDTO {
+                                        if (description == null) {
+                                            description = "";
+                                        }
+                                    }
+                                  }

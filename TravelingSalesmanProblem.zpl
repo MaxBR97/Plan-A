@@ -14,6 +14,7 @@ set  Steps:= {1..citiesToVisit};
 set AllPossibleCombinations := {<i,a,b> in Steps * CitiesNames * CitiesNames | a != b};
 var Edges[AllPossibleCombinations] binary;
 
+
 subto StartFromStartingCity:
     sum <step,src,dest> in AllPossibleCombinations | step == 1 and src == StartingCity : Edges[step,src,dest]   == 1;
 
