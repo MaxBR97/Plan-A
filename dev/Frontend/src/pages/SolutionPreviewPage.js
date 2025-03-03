@@ -4,6 +4,7 @@ import { useZPL } from "../context/ZPLContext";
 import "./SolutionPreviewPage.css";
 import SolutionResultsPage from "./SolutionResultsPage.js";
 import NumberInput from '../reusableComponents/NumberInput';
+import SetEntry from '../reusableComponents/SetEntry';
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom"; // Import useNavigate
 
@@ -28,6 +29,7 @@ const SolutionPreviewPage = () => {
   );
   const [variableValues, setVariableValues] = useState({});
   const [paramValues, setParamValues] = useState({});
+  const [selectedVariableValues, setSelectedVariableValues] = useState({});
   const [constraintsToggledOff, setConstraintsToggledOff] = useState([]);
   const [showResults, setShowResults] = useState(true);
   const [timeout, setTimeout] = useState(10);
@@ -39,12 +41,8 @@ const SolutionPreviewPage = () => {
     }));
   };
 
-  const handleValueChange = (setName, index, value) => {
-    setVariableValues((prev) => {
-      const newValues = [...prev[setName]];
-      newValues[index] = value;
-      return { ...prev, [setName]: newValues };
-    });
+  const isRowSelected = (setName, rowIndex) => {
+    return selectedVariableValues[setName]?.includes(rowIndex) || false;
   };
 
   const handleParamChange = (paramName, value) => {
@@ -66,26 +64,80 @@ const SolutionPreviewPage = () => {
   const handleAddVariable = (setName) => {
     console.log("Adding Variable for:", setName);
     console.log("Available setTypes:", setTypes);
-
+  
     if (!setTypes[setName]) {
       console.error(`❌ Error: setTypes does not contain ${setName}`);
       return; // Prevent further execution
     }
-
+  
     const numTypes = getNumTypes(setTypes[setName]); // Function to extract type count
-
-    setVariableValues((prev) => ({
-      ...prev,
-      [setName]: [...(prev[setName] || []), new Array(numTypes).fill("")],
-    }));
+  
+    setVariableValues((prev) => {
+      const newRow = new Array(numTypes).fill("");
+      const updatedValues = [...(prev[setName] || []), newRow];
+      
+      // Calculate the rowIndex of the newly added row
+      const rowIndex = updatedValues.length - 1;
+  
+      setSelectedVariableValues((selectedPrev) => ({
+        ...selectedPrev,
+        [setName]: [...(selectedPrev[setName] || []), rowIndex],
+      }));
+  
+      return {
+        ...prev,
+        [setName]: updatedValues,
+      };
+    });
   };
-
+  
+  const handleRemoveVariable = (setName, rowIndex) => {
+    setVariableValues((prev) => {
+      const updatedValues = [...(prev[setName] || [])];
+      updatedValues.splice(rowIndex, 1); // Remove the row at rowIndex
+      return { ...prev, [setName]: updatedValues };
+    });
+  
+    setSelectedVariableValues((prev) => {
+      const updated = { ...prev };
+      const isSelected = updated[setName].includes(rowIndex);
+      if (isSelected) {
+        updated[setName] = updated[setName].filter((index) => index !== rowIndex);
+      }
+      // Adjust selected indexes after removal
+      if(updated[setName]){
+          updated[setName] = updated[setName].map(index => index > rowIndex ? index -1 : index);
+      }
+  
+      return updated;
+    });
+  };
+  
   const handleVariableChange = (setName, rowIndex, typeIndex, value) => {
     setVariableValues((prev) => {
       const updatedValues = [...(prev[setName] || [])];
       updatedValues[rowIndex] = [...updatedValues[rowIndex]]; // Copy row to avoid mutation
       updatedValues[rowIndex][typeIndex] = value; // Update only the correct type input
       return { ...prev, [setName]: updatedValues };
+    });
+  };
+  
+  const handleVariableToggle = (setName, rowIndex) => {
+    setSelectedVariableValues((prev) => {
+      const updated = { ...prev };
+  
+      if (!updated[setName]) {
+        updated[setName] = [];
+      }
+  
+      const isSelected = updated[setName].includes(rowIndex);
+      if (isSelected) {
+        updated[setName] = updated[setName].filter((index) => index !== rowIndex);
+      } else {
+        updated[setName] = [...updated[setName], rowIndex];
+      }
+  
+      return updated;
     });
   };
 
@@ -195,16 +247,25 @@ const handleSolve = async () => {
           [parseFloat(value) || 0]
       ])
   );
-
   const requestBody = {
-      imageId,
-      input: {
-          setsToValues: variableValues,
-          paramsToValues: transformedParamValues,
-          constraintsToggledOff: constraintsToggledOff,
-          preferencesToggledOff: preferencesToggledOff
-      },
-      timeout: timeout
+    imageId,
+    input: {
+      setsToValues: Object.entries(variableValues).reduce((acc, [setName, rows]) => {
+        if (selectedVariableValues[setName]) {
+          const selectedRows = rows.filter((_, rowIndex) =>
+            selectedVariableValues[setName].includes(rowIndex)
+          );
+          if (selectedRows.length > 0) {
+            acc[setName] = selectedRows;
+          }
+        }
+        return acc;
+      }, {}),
+      paramsToValues: transformedParamValues,
+      constraintsToggledOff: constraintsToggledOff,
+      preferencesToggledOff: preferencesToggledOff,
+    },
+    timeout: timeout,
   };
 
   console.log("Sending POST request:", JSON.stringify(requestBody, null, 2));
@@ -473,16 +534,29 @@ const handleSolve = async () => {
             <div key={rowIndex} className="input-row">
               {row.map((value, typeIndex) => {
                 return (
-                  <input
+                  <SetEntry
                     key={typeIndex}
                     type="text"
                     value={value}
-                    onChange={(e) =>
+                    checked={isRowSelected(set, rowIndex)}
+                    onEdit={(e) =>
                       handleVariableChange(
                         set,
                         rowIndex,
                         typeIndex,
                         e.target.value
+                      )
+                    }
+                    onToggle={(e) =>
+                      handleVariableToggle(
+                        set,
+                        rowIndex,
+                      )
+                    }
+                    onDelete={(e) =>
+                      handleRemoveVariable(
+                        set,
+                        rowIndex,
                       )
                     }
                     className="variable-input"

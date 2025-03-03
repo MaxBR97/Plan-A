@@ -1,15 +1,34 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useZPL } from "../context/ZPLContext";
 import "./SolutionResultsPage.css";
-
 const SolutionResultsPage = () => {
   const { solutionResponse } = useZPL();
-  const [selectedVariable, setSelectedVariable] = useState(
-    Object.keys(solutionResponse?.solution || {})[0]
-  );
+  const [selectedVariable, setSelectedVariable] = useState(null);
+
+  // Use useEffect to update selectedVariable when solutionResponse becomes available
+  useEffect(() => {
+    if(solutionResponse?.solved == false) {
+
+    }
+    else if (solutionResponse?.solution) {
+      const variables = Object.keys(solutionResponse.solution);
+      if (variables.length > 0 && !selectedVariable) {
+        setSelectedVariable(variables[0]);
+      }
+    }
+  }, [solutionResponse, selectedVariable]);
+
+  if(solutionResponse?.solved == false) {
+    return <p>Failed to solve!</p>;
+  }
 
   if (!solutionResponse || !solutionResponse.solution) {
     return <p>No solution data available.</p>;
+  }
+
+  // Only proceed with rendering the rest if we have a selected variable
+  if (!selectedVariable) {
+    return <p>Loading solution data...</p>;
   }
 
   const handleVariableChange = (event) => {
@@ -17,8 +36,10 @@ const SolutionResultsPage = () => {
   };
 
   const variableData = solutionResponse.solution[selectedVariable];
+  console.log("selected variables: ", selectedVariable);
   const { setStructure, solutions } = variableData;
 
+  // Rest of your component...
   // Check if all objective values are binary (0 or 1)
   const isBinary = solutions.every(
     (sol) => sol.objectiveValue === 0 || sol.objectiveValue === 1
