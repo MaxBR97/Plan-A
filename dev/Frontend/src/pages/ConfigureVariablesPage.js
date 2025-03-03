@@ -7,29 +7,41 @@ import Checkbox from "../reusableComponents/Checkbox.js";
 const ConfigureVariablesPage = () => {
     const { variables, variablesModule, setVariablesModule } = useZPL();
 
-    const [selectedVars, setSelectedVars] = useState([]);  // Stores selected variables
-    const [selectedSets, setSelectedSets] = useState([]);  // Stores selected sets
-    const [selectedParams, setSelectedParams] = useState([]); // Stores selected params
+    const [selectedVars, setSelectedVars] = useState(variables);  // Stores selected variables
     const [displaySets, setDisplaySets] = useState([]);    // Stores sets that should be displayed
     const [displayParams, setDisplayParams] = useState([]); // Stores params that should be displayed
-
-    // Function to update displayed sets & params when variables are selected
-    const updateDisplayedSetsAndParams = () => {
+    const [selectedSets, setSelectedSets] = useState([]);  // Stores selected sets
+    const [selectedParams, setSelectedParams] = useState([]); // Stores selected params
+    const [hasInitialized, setHasInitialized] = useState(false);
+    
+    useEffect(() => {
+        // First, update the displayed sets and params
         const newDisplaySets = selectedVars
-            .flatMap(variable => variable.dep?.setDependencies ?? [])
-            .reduce((unique, item) => unique.includes(item) ? unique : [...unique, item], []);
-
+          .flatMap(variable => variable.dep?.setDependencies ?? [])
+          .reduce((unique, item) => unique.includes(item) ? unique : [...unique, item], []);
+      
         const newDisplayParams = selectedVars
-            .flatMap(variable => variable.dep?.paramDependencies ?? [])
-            .reduce((unique, item) => unique.includes(item) ? unique : [...unique, item], []);
-
+          .flatMap(variable => variable.dep?.paramDependencies ?? [])
+          .reduce((unique, item) => unique.includes(item) ? unique : [...unique, item], []);
+      
         setDisplaySets(newDisplaySets);
         setDisplayParams(newDisplayParams);
-    };
-
-    useEffect(() => {
-        updateDisplayedSetsAndParams();
-    }, [selectedVars]); // Update when selected variables change
+        
+        // Only during initialization, also set the selected sets and params
+        if (!hasInitialized && newDisplaySets.length > 0) {
+          setSelectedSets(newDisplaySets);
+          setSelectedParams(newDisplayParams);
+          setHasInitialized(true);
+        } else {
+          // For subsequent updates, filter out any that are no longer displayed
+          setSelectedSets(prevSelected => 
+            prevSelected.filter(set => newDisplaySets.includes(set))
+          );
+          setSelectedParams(prevSelected => 
+            prevSelected.filter(param => newDisplayParams.includes(param))
+          );
+        }
+      }, [selectedVars, hasInitialized]);
 
     // Handles variable selection (checkbox clicked)
     const handleVarCheckboxChange = (variable) => {
