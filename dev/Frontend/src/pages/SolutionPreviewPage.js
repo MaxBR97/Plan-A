@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { useZPL } from "../context/ZPLContext";
 import "./SolutionPreviewPage.css";
+import SolutionResultsPage from "./SolutionResultsPage.js";
+import NumberInput from '../reusableComponents/NumberInput';
 import { useNavigate } from "react-router-dom"; // Import useNavigate
 
 const SolutionPreviewPage = () => {
@@ -26,7 +28,8 @@ const SolutionPreviewPage = () => {
   const [variableValues, setVariableValues] = useState({});
   const [paramValues, setParamValues] = useState({});
   const [constraintsToggledOff, setConstraintsToggledOff] = useState([]);
-
+  const [showResults, setShowResults] = useState(true);
+  const [timeout, setTimeout] = useState(10);
   const navigate = useNavigate(); // Initialize navigation
   const handleAddValue = (setName) => {
     setVariableValues((prev) => ({
@@ -218,7 +221,7 @@ const handleSolve = async () => {
           constraintsToggledOff: constraintsToggledOff,
           preferencesToggledOff: preferencesToggledOff
       },
-      timeout: 30
+      timeout: timeout
   };
 
   console.log("Sending POST request:", JSON.stringify(requestBody, null, 2));
@@ -241,7 +244,8 @@ const handleSolve = async () => {
       console.log(responseText);
       console.log(data);
       setSolutionResponse(data);
-      navigate("/solution-results");
+      //navigate("/solution-results");\
+      setShowResults(true)
   } catch (error) {
       console.error("Error solving problem:", error);
       setErrorMessage(`Failed to solve. ${error.message}`);
@@ -310,7 +314,8 @@ const handleSolve = async () => {
   };
   const handleFakeResponse = () => {
     setSolutionResponse(fakeResponse); // ✅ Store the fake response in context
-    navigate("/solution-results"); // ✅ Redirect to the next screen
+    //navigate("/solution-results"); // ✅ Redirect to the next screen
+    setShowResults(true);
   };
 
   const selectedParams = variablesModule?.variablesConfigurableParams ?? [];
@@ -543,11 +548,21 @@ const handleSolve = async () => {
           </div>
         )}
 
-        {/* Solve Button */}
+        {/* Timeout Input */}
+        <div className="p-4">
+          <NumberInput 
+            value={timeout}   
+            onChange={setTimeout}
+            label="Timeout: "
+            placeholder="Enter amount"
+            min="0"
+          />
+        </div>
 
         <button className="solve-button" onClick={handleSolve}>
           Solve
         </button>
+        
 
         {/* Modal for Response */}
         {showModal && (
@@ -564,6 +579,9 @@ const handleSolve = async () => {
             </div>
           </div>
         )}
+        <div className="results">
+        {showResults && <SolutionResultsPage />}
+        </div>
       </div>
 
       <Link to="/configure-constraints" className="back-button">
