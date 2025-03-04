@@ -27,7 +27,7 @@ public class Solution {
     an example for a solution is: V -> { [1,"a"], [2, "b"] } note: order matters!
     Since from this point on this is only static data to be shown to the user, only Strings are in use
      */
-    final HashMap<String, List<Tuple<List<String>, Integer>>> variableSolution;
+    final HashMap<String, List<Tuple<List<String>, Double>>> variableSolution;
     final HashMap<String, List<String>> variableStructure;
     final HashMap<String, List<String>> variableTypes;
     double solvingTime;
@@ -125,7 +125,7 @@ public class Solution {
             Matcher variableMatcher = variablePattern.matcher(line);
             if (variableMatcher.find()) {
                 String solution = variableMatcher.group(1);
-                int objectiveValue = Integer.parseInt(variableMatcher.group(2));
+                Double objectiveValue = Double.parseDouble(variableMatcher.group(2));
                 List<String> splitSolution = new LinkedList<>(Arrays.asList(solution.split("[#$]"))); //need a new array to remove dependence
                 String variableIdentifier = splitSolution.getFirst();
                 splitSolution.removeFirst();
@@ -146,11 +146,11 @@ public class Solution {
         return solved;
     }
 
-    public HashMap<String, List<Tuple<List<String>, Integer>>> getVariableSolution() {
+    public HashMap<String, List<Tuple<List<String>, Double>>> getVariableSolution() {
         return variableSolution;
     }
 
-    public List<Tuple<List<String>, Integer>> getVariableSolution(String identifier) {
+    public List<Tuple<List<String>, Double>> getVariableSolution(String identifier) {
         return variableSolution.get(identifier);
     }
 

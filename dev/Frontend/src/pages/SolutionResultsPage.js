@@ -1,23 +1,33 @@
 import React, { useState, useEffect } from "react";
 import { useZPL } from "../context/ZPLContext";
 import "./SolutionResultsPage.css";
+import SuperTable from "../reusableComponents/SuperTable.js";
+import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
+
 const SolutionResultsPage = () => {
   const { solutionResponse } = useZPL();
   const [selectedVariable, setSelectedVariable] = useState(null);
-
+  const [displayStructure, setDisplayStructure] = useState([]);
+  console.log(displayStructure)
   // Use useEffect to update selectedVariable when solutionResponse becomes available
   useEffect(() => {
     if(solutionResponse?.solved == false) {
-
+      // Handle solved false case if needed
     }
     else if (solutionResponse?.solution) {
       const variables = Object.keys(solutionResponse.solution);
       if (variables.length > 0 && !selectedVariable) {
-        setSelectedVariable(variables[0]);
+        const firstVariable = variables[0];
+        setSelectedVariable(firstVariable);
+        
+        // Initialize displayStructure with the first variable's set structure
+        const initialSetStructure = solutionResponse.solution[firstVariable]?.setStructure || [];
+        setDisplayStructure([...initialSetStructure, "value"]);
       }
     }
   }, [solutionResponse, selectedVariable]);
 
+  // Early return conditions
   if(solutionResponse?.solved == false) {
     return <p>Failed to solve!</p>;
   }
@@ -32,161 +42,104 @@ const SolutionResultsPage = () => {
   }
 
   const handleVariableChange = (event) => {
-    setSelectedVariable(event.target.value);
+    const newVariable = event.target.value;
+    setSelectedVariable(newVariable);
+    
+    // Update displayStructure when variable changes
+    const newSetStructure = solutionResponse.solution[newVariable]?.setStructure || [];
+    setDisplayStructure(newSetStructure);
   };
 
   const variableData = solutionResponse.solution[selectedVariable];
-  console.log("selected variables: ", selectedVariable);
   const { setStructure, solutions } = variableData;
 
-  // Rest of your component...
   // Check if all objective values are binary (0 or 1)
   const isBinary = solutions.every(
     (sol) => sol.objectiveValue === 0 || sol.objectiveValue === 1
   );
 
+  const onDragEnd = (result) => {
+    if (!result.destination) return;
+
+    const newSetStructure = Array.from(displayStructure);
+    const [reorderedItem] = newSetStructure.splice(result.source.index, 1);
+    newSetStructure.splice(result.destination.index, 0, reorderedItem);
+    setDisplayStructure(newSetStructure);
+  };
+  
   return (
-    <div className="solution-results-page">
-      <h1 className="page-title">Solution Results</h1>
+    <div className="solution-results-page flex">
+      <div className="w-2/3 pr-4">
+        <h1 className="page-title text-2xl font-bold mb-4">Solution Results</h1>
+        
+        {/* Variable Dropdown */}
+        <div className="solution-dropdown-container mb-4">
+          <div className="solution-dropdown">
+            <label className="mr-2">Select Variable: </label>
+            <select 
+              onChange={handleVariableChange} 
+              value={selectedVariable || ''}
+              className="border rounded p-1"
+            >
+              {Object.keys(solutionResponse.solution).map((variable) => (
+                <option key={variable} value={variable}>
+                  {variable}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
 
-      {/* Dropdown to Select Variable */}
-      <div className="solution-dropdown-container">
-      <div className="solution-dropdown">
-      <label>Select Variable: </label>
-      
-      <select onChange={handleVariableChange} value={selectedVariable}>
-        {Object.keys(solutionResponse.solution).map((variable) => (
-          <option key={variable} value={variable}>
-            {variable}
-          </option>
-        ))}
-      </select>
+        {/* Main Solution Table */}
+        <div className="solution-table-container">
+          <SuperTable 
+            solutions={solutions} 
+            setStructure={setStructure} 
+            isBinary={isBinary} 
+            onValueChange={(tuple, newValue) => { 
+              console.log("Updated:", tuple, "->", newValue); 
+            }} 
+          />
+        </div>
       </div>
-      </div>
-      {/* Render Table Based on setStructure.length */}
-      <div className="solution-table-container">
-      {setStructure.length === 2 && (
-        <table className="solution-table">
-          <thead>
-            <tr>
-              <th>
-                {setStructure[1]} \ {setStructure[0]}
-              </th>
-              {[...new Set(solutions.map((sol) => sol.values[1]))].map(
-                (col, index) => (
-                  <th key={index}>{col}</th>
-                )
-              )}
-            </tr>
-          </thead>
-          <tbody>
-            {[...new Set(solutions.map((sol) => sol.values[0]))].map(
-              (row, rowIndex) => (
-                <tr key={rowIndex}>
-                  <td className="row-header">{row}</td>
-                  {[...new Set(solutions.map((sol) => sol.values[1]))].map(
-                    (col, colIndex) => {
-                      const match = solutions.find(
-                        (sol) => sol.values[0] === row && sol.values[1] === col
-                      );
-                      return (
-                        <td key={colIndex}>
-                        {match ? (
-                            isBinary ? (
-                                <span className={`binary-value ${match.objectiveValue === 1 ? "v" : "x"}`}>
-                                    {match.objectiveValue === 1 ? "✔" : "✖"}
-                                </span>
-                            ) : (
-                                match.objectiveValue
-                            )
-                        ) : (
-                            <span className="binary-value x">✖</span> 
-                        )}
-                    </td>
-                    
-                      );
-                    }
-                  )}
-                </tr>
-              )
-            )}
-          </tbody>
-        </table>
-      )}
 
-      {setStructure.length === 3 && (
-        <table className="solution-table">
-          <thead>
-            <tr>
-              <th>
-                {setStructure[2]} \ {setStructure[1]}
-              </th>
-              {[...new Set(solutions.map((sol) => sol.values[2]))].map(
-                (col, index) => (
-                  <th key={index}>{col}</th>
-                )
+      {/* Draggable Set Structure Box */}
+      <div className="w-1/3 pl-4">
+        <div className="border rounded p-4">
+          <h2 className="text-xl font-semibold mb-4">Result Representation Order</h2>
+          <DragDropContext onDragEnd={onDragEnd}>
+            <Droppable droppableId="set-structure-list">
+              {(provided) => (
+                <div 
+                  {...provided.droppableProps} 
+                  ref={provided.innerRef}
+                  className="space-y-2"
+                >
+                  {displayStructure.map((set, index) => (
+                    <Draggable 
+                      key={`${set}-${index}`} 
+                      draggableId={`${set}-${index}`} 
+                      index={index}
+                    >
+                      {(provided) => (
+                        <div
+                          ref={provided.innerRef}
+                          {...provided.draggableProps}
+                          {...provided.dragHandleProps}
+                          className="p-2 border rounded bg-gray-100 hover:bg-gray-200 cursor-move"
+                        >
+                          {set}
+                        </div>
+                      )}
+                    </Draggable>
+                  ))}
+                  {provided.placeholder}
+                </div>
               )}
-            </tr>
-          </thead>
-          <tbody>
-            {[...new Set(solutions.map((sol) => sol.values[1]))].map(
-              (row, rowIndex) => (
-                <tr key={rowIndex}>
-                  <td className="row-header">{row}</td>
-                  {[...new Set(solutions.map((sol) => sol.values[2]))].map(
-                    (col, colIndex) => {
-                      const relevantPeople = solutions.filter(
-                        (sol) => sol.values[1] === row && sol.values[2] === col
-                      );
-                      return (
-                        <td key={colIndex}>
-                          <table className="mini-table">
-                            <thead>
-                              <tr>
-                                {relevantPeople.map((sol, pIndex) => (
-                                  <th key={pIndex}>{sol.values[0]}</th>
-                                ))}
-                              </tr>
-                            </thead>
-                            <tbody>
-                              <tr>
-                                {relevantPeople.map((sol, pIndex) => (
-                                  <td key={colIndex}>
-                                    {sol ? (
-                                      isBinary ? (
-                                        <span
-                                          className={`binary-value ${
-                                            sol.objectiveValue === 1
-                                              ? "v"
-                                              : "x"
-                                          }`}
-                                        >
-                                          {sol.objectiveValue === 1
-                                            ? "✔"
-                                            : "✖"}
-                                        </span>
-                                      ) : (
-                                        sol.objectiveValue
-                                      )
-                                    ) : (
-                                      <span className="binary-value x">✖</span>
-                                    )}
-                                  </td>
-                                ))}
-                              </tr>
-                            </tbody>
-                          </table>
-                        </td>
-                      );
-                    }
-                  )}
-                </tr>
-              )
-            )}
-          </tbody>
-        </table>
-      )}
-    </div>
+            </Droppable>
+          </DragDropContext>
+        </div>
+      </div>
     </div>
   );
 };

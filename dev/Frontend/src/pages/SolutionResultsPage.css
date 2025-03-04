@@ -210,7 +210,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    width: 100%;
+    width: 10%;
     margin-top: 30px; /* Adjust spacing as needed */
 }
 
@@ -226,10 +226,10 @@
 .solution-table th {
     background-color: #007BFF; /* Blue header */
     color: white;
-    padding: 15px;
+    padding: 5px;
     text-align: center;
     border: 3px solid black;
-    font-size: 20px;
+    font-size: 10px;
     font-weight: bold;
     text-transform: uppercase;
 }
@@ -238,13 +238,13 @@
 .solution-table th:first-child {
     background-color: #007BFF;
     color: white;
-    font-size: 22px;
+    font-size: 14px;
     text-align: center;
 }
 
 /* Adjust font size and boldness for column headers */
 .solution-table th:not(:first-child) {
-    font-size: 18px;
+    font-size: 14px;
     font-weight: bold;
 }
 
@@ -255,7 +255,7 @@
     font-weight: bold;
     padding: 8px;
     border: 2px solid black;
-    font-size: 16px;
+    font-size: 14px;
 }
 
 /* Improved Row Header Styling */
@@ -275,12 +275,12 @@
 
 /* Adjust table cell spacing */
 .solution-table td {
-    padding: 10px;
+    padding: 3px;
 }
 
 /* Ensure the row headers don't look oversized */
 .solution-table .row-header {
-    min-width: 120px; /* Prevents them from stretching too much */
+    min-width: 12px; /* Prevents them from stretching too much */
 }
 
 /* Ensure all table cells, including headers, have black borders */

@@ -7,11 +7,14 @@
   "homepage": "./",
   "private": true,
   "dependencies": {
+    "@dnd-kit/core": "^6.3.1",
+    "@dnd-kit/sortable": "^10.0.0",
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
     "axios": "^1.7.9",
     "react": "^18.3.1",
+    "react-beautiful-dnd": "^13.1.1",
     "react-dnd": "^16.0.1",
     "react-dnd-html5-backend": "^16.0.1",
     "react-dom": "^18.3.1",
@@ -62,12 +65,16 @@
       {
         "from": "resources",
         "to": "resources",
-        "filter": ["**/*"]
+        "filter": [
+          "**/*"
+        ]
       },
       {
         "from": "installers",
         "to": "installers",
-        "filter": ["**/*"]
+        "filter": [
+          "**/*"
+        ]
       }
     ],
     "directories": {
@@ -79,7 +86,9 @@
       "resources/**/*"
     ],
     "win": {
-      "target": ["nsis"],
+      "target": [
+        "nsis"
+      ],
       "sign": false,
       "verifyUpdateCodeSignature": false,
       "extraFiles": [
@@ -92,17 +101,21 @@
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
-      "include": "installers/windows/installer.nsh", 
+      "include": "installers/windows/installer.nsh",
       "perMachine": true,
       "deleteAppDataOnUninstall": true
     },
     "linux": {
-      "target": ["deb"],
+      "target": [
+        "deb"
+      ],
       "extraFiles": [
         {
           "from": "installers/linux",
           "to": "installers",
-          "filter": ["**/*"]
+          "filter": [
+            "**/*"
+          ]
         }
       ],
       "category": "Utility"
@@ -119,10 +132,8 @@
         "libopenblas-dev",
         "patchelf"
       ],
-      "afterInstall":"installers/linux/postInstall.sh"
-      
+      "afterInstall": "installers/linux/postInstall.sh"
     }
-    
   },
   "proxy": "http://localhost:4000",
   "devDependencies": {

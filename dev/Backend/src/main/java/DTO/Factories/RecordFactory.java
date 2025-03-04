@@ -35,7 +35,7 @@ public class RecordFactory {
              Set<SolutionValueDTO> variableValues = new HashSet<>();
              List<String> variableStructure=List.copyOf(solution.getVariableStructure(variableName));
              List<String> variableTypes=List.copyOf(solution.getVariableTypes(variableName));
-             for(Tuple<List<String>,Integer> value:solution.getVariableSolution(variableName)){
+             for(Tuple<List<String>,Double> value:solution.getVariableSolution(variableName)){
                 variableValues.add(new SolutionValueDTO(value._1(),value._2()));
             }
             variables.put(variableName,new SolutionVariable(variableStructure,variableTypes,variableValues));
