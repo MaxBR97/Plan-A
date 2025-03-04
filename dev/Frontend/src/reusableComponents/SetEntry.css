@@ -1,0 +1,9 @@
+.set-entry-container {
+    display: flex;
+    align-items: center;
+  }
+  
+.set-entry-element {
+margin-right: 10px;
+width: 120px;
+}

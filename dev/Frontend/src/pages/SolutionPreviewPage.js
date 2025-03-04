@@ -174,9 +174,15 @@ const loadInputs = async () => {
       const data = JSON.parse(responseText);
 
      
-        setVariableValues(data.setsToValues);
-        setParamValues(data.paramsToValues);
-      
+      setVariableValues(data.setsToValues);
+      setParamValues(data.paramsToValues);
+        
+      const preSelectedVariables = {};
+      Object.keys(data.setsToValues).forEach((setName) => {
+        preSelectedVariables[setName] = data.setsToValues[setName].map((_, index) => index);
+      });
+
+    setSelectedVariableValues(preSelectedVariables);
       
   } catch (error) {
       console.error("Error fetching inputs:", error);
@@ -532,20 +538,14 @@ const handleSolve = async () => {
           {/* Input Fields - Each type gets its own separate textbox */}
           {variableValues[set]?.map((row, rowIndex) => (
             <div key={rowIndex} className="input-row">
-              {row.map((value, typeIndex) => {
-                return (
+              
                   <SetEntry
-                    key={typeIndex}
-                    type="text"
-                    value={value}
+                    key={rowIndex}
+                    typeList={typeList}
+                    row={row}
                     checked={isRowSelected(set, rowIndex)}
-                    onEdit={(e) =>
-                      handleVariableChange(
-                        set,
-                        rowIndex,
-                        typeIndex,
-                        e.target.value
-                      )
+                    onEdit={(e, typeIndex) => // Capture typeIndex here
+                      handleVariableChange(set, rowIndex, typeIndex, e.target.value)
                     }
                     onToggle={(e) =>
                       handleVariableToggle(
@@ -560,10 +560,10 @@ const handleSolve = async () => {
                       )
                     }
                     className="variable-input"
-                    placeholder={`Enter ${typeList[typeIndex] || "value"}:`}
+                    
                   />
-                );
-              })}
+              
+              
 
               {/* Add a divider after each row */}
               <hr className="input-divider" />

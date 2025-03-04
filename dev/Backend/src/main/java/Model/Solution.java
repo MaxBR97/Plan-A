@@ -119,7 +119,7 @@ public class Solution {
         parsed=true;
     }
     private void parseSolutionValues(BufferedReader reader, Set<String> varsToParse) throws IOException {
-        Pattern variablePattern = Pattern.compile("^(.*?)[ \\t]+(\\d+)[ \\t]+\\(obj:(\\d+)\\)");
+        Pattern variablePattern = Pattern.compile("^(.*?)[ \\t]+(\\d+\\.?\\d*)[ \\t]+\\(obj:(\\d+\\.?\\d*)\\)");
         String line;
         while ((line = reader.readLine()) != null){
             Matcher variableMatcher = variablePattern.matcher(line);
