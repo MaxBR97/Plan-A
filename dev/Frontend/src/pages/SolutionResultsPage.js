@@ -3,12 +3,13 @@ import { useZPL } from "../context/ZPLContext";
 import "./SolutionResultsPage.css";
 import SuperTable from "../reusableComponents/SuperTable.js";
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
+import Checkbox from "../reusableComponents/Checkbox.js";
 
 const SolutionResultsPage = () => {
   const { solutionResponse } = useZPL();
   const [selectedVariable, setSelectedVariable] = useState(null);
+  const [displayValue, setDisplayValue] = useState(true);
   const [displayStructure, setDisplayStructure] = useState([]);
-  console.log(displayStructure)
   // Use useEffect to update selectedVariable when solutionResponse becomes available
   useEffect(() => {
     if(solutionResponse?.solved == false) {
@@ -22,10 +23,17 @@ const SolutionResultsPage = () => {
         
         // Initialize displayStructure with the first variable's set structure
         const initialSetStructure = solutionResponse.solution[firstVariable]?.setStructure || [];
+        
+        // Only set initial state if displayValue hasn't been set yet
+        if (displayValue === null) {
+          setDisplayValue(true);
+        }
+        
+        // Always update displayStructure to include 'value'
         setDisplayStructure([...initialSetStructure, "value"]);
       }
     }
-  }, [solutionResponse, selectedVariable]);
+  }, [solutionResponse, selectedVariable, displayValue]);
 
   // Early return conditions
   if(solutionResponse?.solved == false) {
@@ -47,8 +55,19 @@ const SolutionResultsPage = () => {
     
     // Update displayStructure when variable changes
     const newSetStructure = solutionResponse.solution[newVariable]?.setStructure || [];
+    if(displayValue)
+      setDisplayStructure([...newSetStructure, "value"]);
+    else
     setDisplayStructure(newSetStructure);
   };
+
+  const handleDisplayValue = (checked) => {
+    setDisplayValue(checked)
+    if(checked)
+      setDisplayStructure([...displayStructure, "value"])
+    else
+      setDisplayStructure(displayStructure.filter((entry) => entry !== "value"))
+  }
 
   const variableData = solutionResponse.solution[selectedVariable];
   const { setStructure, solutions } = variableData;
@@ -94,8 +113,10 @@ const SolutionResultsPage = () => {
         <div className="solution-table-container">
           <SuperTable 
             solutions={solutions} 
-            setStructure={setStructure} 
-            isBinary={isBinary} 
+            setStructure={setStructure}
+            displayStructure={displayStructure}
+            isBinary={true} 
+            valueSetName={"value"}
             onValueChange={(tuple, newValue) => { 
               console.log("Updated:", tuple, "->", newValue); 
             }} 
@@ -138,6 +159,13 @@ const SolutionResultsPage = () => {
               )}
             </Droppable>
           </DragDropContext>
+          <Checkbox
+            label="Display Value?"
+            checked={displayValue}
+            disabled={false}
+            onChange={(checked) => handleDisplayValue(checked)}
+            name="Display Value"
+            />
         </div>
       </div>
     </div>

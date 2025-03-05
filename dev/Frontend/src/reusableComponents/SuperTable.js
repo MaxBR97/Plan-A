@@ -1,36 +1,46 @@
 import React, { useState } from "react";
 
-const SuperTable = ({ solutions, setStructure, isBinary, onValueChange, showTitleOnLastSet=true }) => {
+const SuperTable = ({ solutions, setStructure, displayStructure, isDisplayBinary , valueSetName }) => {
   const [editingCell, setEditingCell] = useState(null); // Track which cell is being edited
   const [editValue, setEditValue] = useState(""); // Temporary value for editing
 
-  if (setStructure.length < 1) {
+  if (displayStructure.length < 1) {
     return <p>Set structure must have at least 1 dimension.</p>;
   }
 
   const handleCellClick = (solutionTuple) => {
-    console.log(solutionTuple)
+    //console.log(solutionTuple)
     setEditingCell(solutionTuple); // Store the full tuple being edited
     setEditValue(solutionTuple.objectiveValue); // Set current value for editing
   };
 
+  const getRelevantValue = (sol, level) => {
+        if(displayStructure[level] == valueSetName){
+          return sol.objectiveValue
+        }
+        const lookAtIndex = setStructure.indexOf(displayStructure[level]);
+        return sol.values[lookAtIndex];
+  }
   
 
   const generateTable = (level, parentFilters = {}) => {
-    // console.log(setStructure)
-    const currentSet = setStructure[level];
-    const nextSet = setStructure[level + 1];
+    // console.log(displayStructure)
+    const currentSet = displayStructure[level];
+    const nextSet = displayStructure[level + 1];
 
     const uniqueValues = [
       ...new Set(
         solutions
-          .filter((sol) =>
-            Object.entries(parentFilters).every(([key, val]) => {
-              const keyIndex = setStructure.indexOf(key);
-              return keyIndex !== -1 && sol.values[keyIndex] === val;
+          .filter((sol) =>{
+            const x = Object.entries(parentFilters).every(([key, val]) => {
+              const keyIndex = displayStructure.indexOf(key);
+              return keyIndex !== -1 && getRelevantValue(sol,keyIndex) === val;
             })
+            //console.log("x: " , x)
+            return x
+          }
           )
-          .map((sol) => sol.values[level])
+          .map((sol) => { return getRelevantValue(sol, level)})
       ),
     ].sort((a, b) => {
       if (typeof a === "number" && typeof b === "number") {
@@ -38,22 +48,30 @@ const SuperTable = ({ solutions, setStructure, isBinary, onValueChange, showTitl
       }
       return String(a).localeCompare(String(b)); // Sort text alphabetically
     });
-    
-    
-    // if(level === setStructure.length) {
-    //   console.log("ALERT1")
-    //   return( <table></table> )
+
+    // if(level == displayStructure.length) {
+      
+    //   return (
+    //     <div>
+    //       {uniqueValues.map((rowValue, rowIndex)=> {
+    //        console.log(rowValue)
+    //        return <p>{rowValue}</p>
+    //       }
+    //         )
+    //       }
+    //     </div>
+    //   );
     // }
 
-    if (level === setStructure.length - 1) {
+    if (level === displayStructure.length - 1) {
       return (
         <table className="solution-table">
           <thead>
           { 
-            showTitleOnLastSet ?
+            displayStructure.length == 1 ?
             <tr>
               <th>{currentSet}</th>
-            </tr> : <tr/>
+            </tr> : <tr></tr>
           }
           </thead>
           <tbody>
@@ -66,8 +84,7 @@ const SuperTable = ({ solutions, setStructure, isBinary, onValueChange, showTitl
                 return String(a).localeCompare(String(b)); // Alphabetical sort
               })
               .map((value, index) => {
-                const match = solutions.find((sol) => sol.values[level] === value);
-                
+                const match = solutions.find((sol) => getRelevantValue(sol, level) === value);
                 return (
                   <tr key={index}>
                     <td
@@ -84,8 +101,37 @@ const SuperTable = ({ solutions, setStructure, isBinary, onValueChange, showTitl
         </table>
       );
     }
+    
+    if (level === displayStructure.length - 2) {
+      return (
+        <table className="solution-table">
+          <thead>
+            <tr>
+              <th>{currentSet}</th> 
+              <th>{nextSet}</th> 
+            </tr>
+          </thead>
+          <tbody>
+            {uniqueValues.map((rowValue, rowIndex) => (
+              <tr key={rowIndex}>
+                <td className="row-header">{rowValue}</td>
+                {nextSet
+                  ?   
+                     
+                      generateTable(level + 1, { ...parentFilters, [currentSet]: rowValue})
+                    
+                      
+                    
+                  : null}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      );
+    }
 
     return (
+      
       <table className="solution-table">
         <thead>
           <tr>
@@ -93,7 +139,7 @@ const SuperTable = ({ solutions, setStructure, isBinary, onValueChange, showTitl
             {nextSet &&
               [
                 ...new Set(
-                  solutions.map((sol) => sol.values[level + 1])
+                  solutions.map((sol) => getRelevantValue(sol, level+1))
                 ),
               ].map((col, index) => <th key={index}>{col}</th>)}
           </tr>
@@ -105,7 +151,7 @@ const SuperTable = ({ solutions, setStructure, isBinary, onValueChange, showTitl
               {nextSet
                 ? [
                     ...new Set(
-                      solutions.map((sol) => sol.values[level + 1])
+                      solutions.map((sol) => getRelevantValue(sol,level+1))
                     ),
                   ].map((colValue, colIndex) => {
                     return (
