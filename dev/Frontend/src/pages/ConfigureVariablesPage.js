@@ -13,6 +13,7 @@ const ConfigureVariablesPage = () => {
     const [selectedSets, setSelectedSets] = useState([]);  // Stores selected sets
     const [selectedParams, setSelectedParams] = useState([]); // Stores selected params
     const [hasInitialized, setHasInitialized] = useState(false);
+    const [variablesTags, setVariablesTags] = useState([])
     
     useEffect(() => {
         // First, update the displayed sets and params
@@ -41,6 +42,7 @@ const ConfigureVariablesPage = () => {
             prevSelected.filter(param => newDisplayParams.includes(param))
           );
         }
+        
       }, [selectedVars, hasInitialized]);
 
     // Handles variable selection (checkbox clicked)
@@ -137,6 +139,18 @@ const ConfigureVariablesPage = () => {
                         <p>No parameters available.</p>
                     )}
                 </div>
+                {/* <div>
+                    {selectedVars.map((value,key) => {
+                        <input
+                        key={key} // Important to add a unique key here
+                        type="text"
+                        value={value}
+                        onChange
+                        placeholder
+                        
+                      />
+                    })}
+                </div> */}
             </div>
             
             <Link to="/configure-constraints" className="continue-button" onClick={handleContinue}>

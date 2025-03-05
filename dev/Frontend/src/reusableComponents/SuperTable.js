@@ -31,22 +31,28 @@ const SuperTable = ({ solutions, setStructure, displayStructure, isDisplayBinary
     const uniqueValues = [
       ...new Set(
         solutions
-          .filter((sol) =>{
+          .filter((sol) => {
             const x = Object.entries(parentFilters).every(([key, val]) => {
               const keyIndex = displayStructure.indexOf(key);
-              return keyIndex !== -1 && getRelevantValue(sol,keyIndex) === val;
-            })
-            //console.log("x: " , x)
-            return x
-          }
-          )
-          .map((sol) => { return getRelevantValue(sol, level)})
-      ),
+              return keyIndex !== -1 && getRelevantValue(sol, keyIndex) === val;
+            });
+            console.log("x: ", x);
+            return x;
+          })
+          .map((sol) => getRelevantValue(sol, level))
+      )
     ].sort((a, b) => {
-      if (typeof a === "number" && typeof b === "number") {
-        return a - b; // Sort numbers in ascending order
+      // Convert to numbers first, then compare
+      const numA = Number(a);
+      const numB = Number(b);
+      
+      // Check if both are valid numbers
+      if (!isNaN(numA) && !isNaN(numB)) {
+        return numA - numB; // Sort numbers in ascending order
       }
-      return String(a).localeCompare(String(b)); // Sort text alphabetically
+      
+      // If not numbers, sort as strings
+      return String(a).localeCompare(String(b));
     });
 
     // if(level == displayStructure.length) {

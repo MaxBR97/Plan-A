@@ -196,7 +196,7 @@ public class RecordFactory {
         Set<VariableDTO> variables = new HashSet<>();
         Map<String,List<String>> setTypes = new HashMap<>();
         Map<String,String> paramTypes = new HashMap<>();
-        Map<String,String> varTypes = new HashMap<>();
+        Map<String,List<String>> varTypes = new HashMap<>();
         for(ModelConstraint constraint : modelInterface.getConstraints()){
             HashSet<ModelSet> primitiveSets = new HashSet<>();
             HashSet<ModelParameter> primitiveParameters = new HashSet<>();
@@ -229,6 +229,7 @@ public class RecordFactory {
                 setTypes.putIfAbsent(set.getIdentifier(),set.getType().typeList());
             for(ModelParameter parameter : primitiveParameters)
                 paramTypes.putIfAbsent(parameter.getIdentifier(),parameter.getType().toString());
+            varTypes.putIfAbsent(variable.getIdentifier(),variable.getType().typeList());
         }
         return new ModelDTO(constraints, preferences, variables, setTypes,paramTypes,varTypes);
     }

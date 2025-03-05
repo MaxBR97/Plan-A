@@ -11,14 +11,17 @@ import jakarta.persistence.Transient;
 public abstract class ModelOutput extends ModelComponent {
     @Transient
     protected boolean isComplex;
+    @Transient
+    protected ModelType myType;
 
     public ModelOutput(String imageId, String identifier) {
         super(imageId, identifier);
     }
 
-    public ModelOutput(String imageId, String ident, List<ModelSet> dep, List<ModelParameter> paramDep) {
+    public ModelOutput(String imageId, String ident, List<ModelSet> dep, List<ModelParameter> paramDep, ModelType type) {
         super(imageId, ident,dep,paramDep);
         isComplex = false;
+        myType = type;
     }
 
     protected ModelOutput(){
@@ -40,5 +43,9 @@ public abstract class ModelOutput extends ModelComponent {
         }
 
         return ((StructureBlock[])sb.toArray());
+    }
+
+    public ModelType getType() {
+        return this.myType;
     }
 }

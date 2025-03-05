@@ -104,7 +104,7 @@ public class ServiceTest {
                     Set.of(new VariableDTO("myVar", new DependenciesDTO(Set.of("mySet"),Set.of()))),
                     Map.of("mySet",List.of("INT")),
                     Map.of("x","INT"),
-                    Map.of()));
+                    Map.of("myVar",List.of("INT"))));
             
             assertEquals(HttpStatus.OK, response.getStatusCode());
             assertNotNull(response.getBody().imageId());
@@ -142,7 +142,7 @@ public class ServiceTest {
                     Set.of(new VariableDTO("myVar", new DependenciesDTO(Set.of("mySet"),Set.of()))),
                     Map.of("mySet",List.of("INT")),
                     Map.of("x","INT"),
-                    Map.of()
+                    Map.of("myVar",List.of("INT"))
             ));
             assertEquals(HttpStatus.OK, response.getStatusCode());
             assertNotNull(response.getBody());
@@ -222,7 +222,11 @@ public class ServiceTest {
                     "Emdot",List.of("TEXT")),
                     Map.of("shiftTime","INT",
                     "restHours","INT"),
-                          Map.of()));
+                          Map.of("Shibutsim",List.of("TEXT","TEXT","INT"),
+                                    "TotalMishmarot",List.of("TEXT")
+                                )
+                    )
+                );
             
             assertEquals(HttpStatus.OK, response.getStatusCode());
             assertNotNull(response.getBody().imageId());
@@ -265,7 +269,7 @@ public class ServiceTest {
                         Set.of(new VariableDTO("myVar", new DependenciesDTO(Set.of("mySet"),Set.of()))),
                         Map.of("mySet",List.of("INT")),
                         Map.of("x","INT"),
-                        Map.of()));
+                        Map.of("myVar",List.of("INT"))));
     
                 assertEquals(HttpStatus.OK, response.getStatusCode());
                 assertNotNull(response.getBody().imageId());

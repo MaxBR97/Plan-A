@@ -18,8 +18,8 @@ public class ModelVariable extends ModelOutput {
         super();
     }
 
-    public ModelVariable(String imageId, String ident, List<ModelSet> dep, List<ModelParameter> paramDep, boolean isComplex) {
-        super(imageId, ident,dep,paramDep);
+    public ModelVariable(String imageId, String ident, List<ModelSet> dep, List<ModelParameter> paramDep, ModelType type, boolean isComplex) {
+        super(imageId, ident,dep,paramDep,type);
         this.isComplex = isComplex;
     }
 

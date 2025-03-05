@@ -15,7 +15,8 @@ export const ZPLProvider = ({ children }) => {
     const [variablesModule, setVariablesModule] = useState({
         variablesOfInterest: [],
         variablesConfigurableSets: [],
-        variablesConfigurableParams: []
+        variablesConfigurableParams: [],
+        variablesTags: [],
     });
 
     return (
@@ -30,6 +31,7 @@ export const ZPLProvider = ({ children }) => {
             imageId, setImageId,
             solutionResponse, setSolutionResponse,
             variablesModule, setVariablesModule // Added variablesModule to context
+            
         }}>
             {children}
         </ZPLContext.Provider>

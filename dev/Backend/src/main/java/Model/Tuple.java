@@ -1,5 +1,6 @@
 package Model;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -9,7 +10,7 @@ public class Tuple implements ModelType {
     private List<ModelPrimitives> val;
 
     public Tuple(ModelPrimitives[] val){
-        this.val = Arrays.asList(val);
+        this.val = new ArrayList<>(Arrays.asList(val));
     }
 
     Tuple() {

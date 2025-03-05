@@ -517,7 +517,7 @@ public class Model extends ModelInterface {
             if(ctx.sqRef() instanceof FormulationParser.SqRefCsvContext){
                 isComplex = ((FormulationParser.SqRefCsvContext)(ctx.sqRef())).csv() == null ? false : true;
             }
-            variables.put(varName, new ModelVariable(id,varName, visitor.getBasicSets(), visitor.getBasicParams(),isComplex));
+            variables.put(varName, new ModelVariable(id,varName, visitor.getBasicSets(), visitor.getBasicParams(),visitor.type,isComplex));
             return super.visitVariable(ctx);
         }
 
@@ -953,6 +953,24 @@ public class Model extends ModelInterface {
             basicSets = new LinkedList<>();
             basicParams = new LinkedList<>();
         }
+
+        private void appendType(ModelType add) {
+            if(type == ModelPrimitives.UNKNOWN) {
+                if(add instanceof ModelPrimitives)
+                    type = add;
+                else {
+                    type = new Tuple();
+                    ((Tuple)type).append((Tuple)add);
+                }
+            }
+            else if (type instanceof Tuple){
+                ((Tuple)type).append(add);
+            }
+            else {
+                type = new Tuple (new ModelPrimitives[]{(ModelPrimitives)type});
+                ((Tuple)type).append(add);
+            }
+        }
     
         // Main visitor methods for type analysis
         @Override
@@ -1135,22 +1153,53 @@ public class Model extends ModelInterface {
             return null;
         }
 
+        @Override
+        public Void visitCsv(FormulationParser.CsvContext ctx){
+            for(ExprContext subCtx : ctx.expr()){
+                visit(subCtx);
+            }
+            return null;
+        }
+
+        @Override
+        public Void visitExpr(FormulationParser.ExprContext ctx){
+            if(ctx.setExpr() != null)
+                visit(ctx.setExpr());
+            else if(ctx.nExpr() != null)
+                visit(ctx.nExpr());
+            else if(ctx.strExpr() != null)
+                visit(ctx.strExpr());
+            else if(ctx.boolExpr() != null)
+                visit(ctx.boolExpr());
+            else if(ctx.tuple() != null)
+                visit(ctx.tuple());
+            return null;
+        }
+
         
 
         @Override
         public Void visitSqRefCsv(FormulationParser.SqRefCsvContext ctx){
 
             if(ctx.ID().getText() != null && getSet(ctx.ID().getText()) != null){
-                basicSets.add(getSet(ctx.ID().getText()));
+                ModelSet set = getSet(ctx.ID().getText());
+                basicSets.add(set);
+                appendType(set.getType());
             } else if(ctx.ID().getText() != null && getParameter(ctx.ID().getText()) != null){
-                basicParams.add(getParameter(ctx.ID().getText()));
+                ModelParameter param = getParameter(ctx.ID().getText());
+                basicParams.add(param);
+                appendType(param.getType());
             }
 
             if(ctx.csv() != null && getSet(ctx.csv().getText()) != null){
-                basicSets.add(getSet(ctx.csv().getText()));
+                ModelSet set = getSet(ctx.csv().getText());
+                basicSets.add(set);
+                appendType(set.getType());
             }
             else if(ctx.csv() != null && getParameter(ctx.csv().getText()) != null){
-                basicParams.add(getParameter(ctx.csv().getText()));
+                ModelParameter param = getParameter(ctx.csv().getText());
+                basicParams.add(param);
+                appendType(param.getType());
             }  
             else if(ctx.csv() != null){
                 visit(ctx.csv());
