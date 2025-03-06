@@ -2,35 +2,30 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useZPL } from '../context/ZPLContext';
 import './ConfigureConstraintsPage.css';
+import Checkbox from '../reusableComponents/Checkbox';
 
 const ConfigureConstraintsPage = () => {
     const navigate = useNavigate();
-
-    // Fetch constraints & modules from ZPL context
     const { constraints: jsonConstraints = [], modules = [], setModules = () => {} } = useZPL();
 
-    // Local states
     const [availableConstraints, setAvailableConstraints] = useState([]);
     const [moduleName, setModuleName] = useState('');
     const [selectedModuleIndex, setSelectedModuleIndex] = useState(null);
 
-    // Initialize available constraints dynamically from JSON
     useEffect(() => {
         setAvailableConstraints(jsonConstraints);
     }, [jsonConstraints]);
 
-    // Add a new module
     const addConstraintModule = () => {
         if (moduleName.trim() !== '') {
             setModules((prevModules) => [
                 ...prevModules,
-                { name: moduleName, description: "", constraints: [], involvedSets: [], involvedParams: [] }
+                { name: moduleName, description: "", constraints: [], involvedSets: [], involvedParams: [] , inputSets:[], inputParams:[]}
             ]);
             setModuleName('');
         }
     };
 
-    // Update module description
     const updateModuleDescription = (newDescription) => {
         setModules((prevModules) =>
             prevModules.map((module, idx) =>
@@ -39,7 +34,6 @@ const ConfigureConstraintsPage = () => {
         );
     };
 
-    // Add constraint to selected module
     const addConstraintToModule = (constraint) => {
         if (selectedModuleIndex === null) {
             alert('Please select a module first!');
@@ -47,7 +41,6 @@ const ConfigureConstraintsPage = () => {
         }
 
         setModules((prevModules) => {
-            if (!prevModules) return [];
             return prevModules.map((module, idx) => {
                 if (idx === selectedModuleIndex) {
                     if (!module.constraints.some(c => c.identifier === constraint.identifier)) {
@@ -63,11 +56,89 @@ const ConfigureConstraintsPage = () => {
             });
         });
 
-        // Remove constraint from the available list
         setAvailableConstraints((prev) =>
             prev.filter((c) => c.identifier !== constraint.identifier)
         );
     };
+
+    const removeConstraintFromModule = (constraint) => {
+        if (selectedModuleIndex === null) return;
+
+        setModules((prevModules) =>
+            prevModules.map((module, idx) => {
+                if (idx === selectedModuleIndex) {
+                    const newConstraints = module.constraints.filter(c => c.identifier !== constraint.identifier);
+
+                    const remainingSets = new Set();
+                    const remainingParams = new Set();
+                    newConstraints.forEach(c => {
+                        (c.dep?.setDependencies || []).forEach(set => remainingSets.add(set));
+                        (c.dep?.paramDependencies || []).forEach(param => remainingParams.add(param));
+                    });
+
+                    return {
+                        ...module,
+                        constraints: newConstraints,
+                        involvedSets: [...remainingSets],
+                        involvedParams: [...remainingParams]
+                    };
+                }
+                return module;
+            })
+        );
+
+        setAvailableConstraints((prev) => [...prev, constraint]);
+    };
+
+    const deleteModule = (index) => {
+        setModules((prevModules) => prevModules.filter((_, i) => i !== index));
+    
+        // Reset selection if the deleted module was selected
+        if (selectedModuleIndex === index) {
+            setSelectedModuleIndex(null);
+        } else if (selectedModuleIndex > index) {
+            setSelectedModuleIndex(selectedModuleIndex - 1); // Adjust index if needed
+        }
+    };
+
+    //console.log(modules)
+    const handleToggleInvolvedSet = (setName) => {
+        setModules((prevModules) =>
+            prevModules.map((module, idx) => {
+                if (idx === selectedModuleIndex) {
+                    // Check if the set is already in inputSets
+                    const isSetIncluded = module.inputSets.includes(setName);
+                    const updatedInputSets = isSetIncluded
+                        ? module.inputSets.filter((s) => s !== setName) // Remove if already included
+                        : [...module.inputSets, setName]; // Add if not included
+                    
+                    return { ...module, inputSets: updatedInputSets };
+                }
+                return module;
+            })
+        );
+    };
+    
+    const handleToggleInvolvedParam = (paramName) => {
+        
+        setModules((prevModules) =>
+            prevModules.map((module, idx) => {
+                if (idx === selectedModuleIndex) {
+                    // Check if the param is already in involvedParams
+                    const isParamIncluded = module.inputParams.includes(paramName);
+                    const updatedParams = isParamIncluded
+                        ? module.inputParams.filter((p) => p !== paramName) // Remove if included
+                        : [...module.inputParams, paramName]; // Add if not included
+    
+                    return { ...module, inputParams: updatedParams };
+                }
+                return module;
+            })
+        );
+    };
+    
+    
+    
 
     return (
         <div className="configure-constraints-page">
@@ -92,6 +163,15 @@ const ConfigureConstraintsPage = () => {
                                     onClick={() => setSelectedModuleIndex(index)}
                                 >
                                     {module.name}
+                                </button>
+                                <button 
+                                    className="delete-module-button"
+                                    onClick={(e) => {
+                                        e.stopPropagation(); // Prevent selecting the module when clicking delete
+                                        deleteModule(index);
+                                    }}
+                                >
+                                    ❌
                                 </button>
                             </div>
                         ))}
@@ -119,7 +199,11 @@ const ConfigureConstraintsPage = () => {
                             <div className="module-drop-area">
                                 {modules[selectedModuleIndex]?.constraints?.length > 0 ? (
                                     modules[selectedModuleIndex].constraints.map((c, i) => (
-                                        <div key={i} className="dropped-constraint">
+                                        <div 
+                                            key={i} 
+                                            className="dropped-constraint constraint-box"
+                                            onClick={() => removeConstraintFromModule(c)}
+                                        >
                                             {c.identifier}
                                         </div>
                                     ))
@@ -127,18 +211,33 @@ const ConfigureConstraintsPage = () => {
                                     <p>No constraints added</p>
                                 )}
                             </div>
-                            <h3>Involved Sets</h3>
-                            <ul>
+
+                            <h3>Select input Sets:</h3>
+                            <div>
                                 {modules[selectedModuleIndex]?.involvedSets.map((set, i) => (
-                                    <li key={i}>{set}</li>
+                                    <div key={i}>
+                                        <Checkbox 
+                                            type="checkbox" 
+                                            checked={modules[selectedModuleIndex]?.inputSets.includes(set)} 
+                                            onChange={() => handleToggleInvolvedSet(set)}
+                                        /> {set}
+                                    </div>
                                 ))}
-                            </ul>
-                            <h3>Involved Parameters</h3>
-                            <ul>
+                            </div>
+
+                            <h3>Select input Parameters:</h3>
+                            <div>
                                 {modules[selectedModuleIndex]?.involvedParams.map((param, i) => (
-                                    <li key={i}>{param}</li>
+                                    <div key={i}>
+                                        <Checkbox 
+                                            type="checkbox" 
+                                            checked={modules[selectedModuleIndex]?.inputParams.includes(param)} 
+                                            onChange={() => handleToggleInvolvedParam(param)}
+                                        /> {param}
+                                    </div>
                                 ))}
-                            </ul>
+                            </div>
+
                         </>
                     )}
                 </div>
