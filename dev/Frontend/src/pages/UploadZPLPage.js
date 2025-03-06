@@ -10,6 +10,7 @@ const UploadZPLPage = () => {
         variables, setVariables,
         setTypes, setSetTypes, // ✅ Use correct setter
         paramTypes, setParamTypes, // ✅ Use correct setter
+        varTypes, setVarTypes,
         constraints, setConstraints,
         preferences, setPreferences
     } = useZPL();
@@ -66,6 +67,7 @@ const UploadZPLPage = () => {
             setPreferences(responseData.model.preferences);
             setSetTypes(responseData.model.setTypes); // ✅ Store set types
             setParamTypes(responseData.model.paramTypes); // ✅ Store param types
+            setVarTypes(responseData.model.varTypes);
             
 
             console.log("Full Response Data:", responseData);

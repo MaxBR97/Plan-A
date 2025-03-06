@@ -116,6 +116,11 @@ app.on('window-all-closed', () => {
 // Ensure the JAR process is killed when the Electron app quits
 app.on('will-quit', () => {
   if (jarProcess) {
-    jarProcess.kill();
+    // Force kill on Windows - win32 will match both windows 32 bit and 64 bit
+    if (process.platform === 'win32') {
+      spawn('taskkill', ['/pid', jarProcess.pid, '/f', '/t']);
+    } else {
+      jarProcess.kill('SIGTERM'); // More explicit signal
+    }
   }
 });

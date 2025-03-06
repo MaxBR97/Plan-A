@@ -6,6 +6,15 @@ setlocal
 :: Get the current script location
 set "scriptLocation=%~dp0"
 
+:: Compile Frontend
+cd /d "%scriptLocation%\..\dev\Frontend"
+echo Compiling the frontend...
+call npm run build-win
+if %errorlevel% neq 0 (
+    echo Frontend build failed!
+    exit /b %errorlevel%
+)
+
 :: Change to the backend directory and build with Maven
 cd /d "%scriptLocation%\..\dev\Backend"
 echo Compiling the backend...

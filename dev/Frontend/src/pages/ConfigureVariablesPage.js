@@ -3,18 +3,19 @@ import { Link } from "react-router-dom";
 import { useZPL } from "../context/ZPLContext";
 import "./ConfigureVariablesPage.css";
 import Checkbox from "../reusableComponents/Checkbox.js";
+import TagConfigure from "../reusableComponents/TagConfigure.js";
 
 const ConfigureVariablesPage = () => {
-    const { variables, variablesModule, setVariablesModule } = useZPL();
+    const { variables, varTypes, variablesModule, setVariablesModule } = useZPL();
 
-    const [selectedVars, setSelectedVars] = useState(variables);  // Stores selected variables
+    const [selectedVars, setSelectedVars] = useState((variables || []));  // Stores selected variables
     const [displaySets, setDisplaySets] = useState([]);    // Stores sets that should be displayed
     const [displayParams, setDisplayParams] = useState([]); // Stores params that should be displayed
     const [selectedSets, setSelectedSets] = useState([]);  // Stores selected sets
     const [selectedParams, setSelectedParams] = useState([]); // Stores selected params
     const [hasInitialized, setHasInitialized] = useState(false);
-    const [variablesTags, setVariablesTags] = useState([])
-    
+    const [variablesTags, setVariablesTags] = useState(varTypes)
+   
     useEffect(() => {
         // First, update the displayed sets and params
         const newDisplaySets = selectedVars
@@ -83,10 +84,23 @@ const ConfigureVariablesPage = () => {
         setVariablesModule({
             variablesOfInterest: selectedVars.map(v => v.identifier),
             variablesConfigurableSets: selectedSets,
-            variablesConfigurableParams: selectedParams
+            variablesConfigurableParams: selectedParams,
+            variablesTags: variablesTags
         });
     };
 
+    // In your parent component where selectedVars is defined
+const handleTagValueChange = (e, varIdentifier, index) => {
+    // Make a copy of the current state
+    const updatedVariablesTags = { ...variablesTags };
+    
+    // Update the specific value at the specific index for the specific variable
+    updatedVariablesTags[varIdentifier][index] = e.target.value;
+    
+    // Update the state
+    setVariablesTags(updatedVariablesTags);
+  };
+console.log("variables tags: ",variablesTags)
     return (
         <div className="configure-variables-page">
             <h1 className="page-title">Configure Variables</h1>
@@ -139,18 +153,18 @@ const ConfigureVariablesPage = () => {
                         <p>No parameters available.</p>
                     )}
                 </div>
-                {/* <div>
-                    {selectedVars.map((value,key) => {
-                        <input
-                        key={key} // Important to add a unique key here
-                        type="text"
-                        value={value}
-                        onChange
-                        placeholder
-                        
-                      />
+                <div className="tags-container">
+                    {selectedVars.map((value, key) => {
+                        return <TagConfigure
+                        key={key}
+                        label="s"
+                        variable={value}
+                        types={varTypes[value.identifier]}
+                        values={variablesTags[value.identifier] || []}
+                        onChange={(e, index) => handleTagValueChange(e, value.identifier, index)}
+                        />
                     })}
-                </div> */}
+                </div>
             </div>
             
             <Link to="/configure-constraints" className="continue-button" onClick={handleContinue}>

@@ -6,11 +6,16 @@ import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import Checkbox from "../reusableComponents/Checkbox.js";
 
 const SolutionResultsPage = () => {
-  const { solutionResponse } = useZPL();
+  const { variablesModule, solutionResponse } = useZPL();
   const [selectedVariable, setSelectedVariable] = useState(null);
   const [displayValue, setDisplayValue] = useState(true);
   const [displayStructure, setDisplayStructure] = useState([]);
   // Use useEffect to update selectedVariable when solutionResponse becomes available
+
+  const getSetStructure = (variable) => {
+    return variablesModule.variablesTags[variable] || solutionResponse.solution[variable]?.setStructure || [];
+  }
+  
   useEffect(() => {
     if(solutionResponse?.solved == false) {
       // Handle solved false case if needed
@@ -22,8 +27,8 @@ const SolutionResultsPage = () => {
         setSelectedVariable(firstVariable);
         
         // Initialize displayStructure with the first variable's set structure
-        const initialSetStructure = solutionResponse.solution[firstVariable]?.setStructure || [];
-        
+        //const initialSetStructure = solutionResponse.solution[firstVariable]?.setStructure || [];
+        const initialSetStructure = getSetStructure(firstVariable);
         // Only set initial state if displayValue hasn't been set yet
         if (displayValue === null) {
           setDisplayValue(true);
@@ -54,7 +59,7 @@ const SolutionResultsPage = () => {
     setSelectedVariable(newVariable);
     
     // Update displayStructure when variable changes
-    const newSetStructure = solutionResponse.solution[newVariable]?.setStructure || [];
+    const newSetStructure = getSetStructure(newVariable);
     if(displayValue)
       setDisplayStructure([...newSetStructure, "value"]);
     else
@@ -70,8 +75,8 @@ const SolutionResultsPage = () => {
   }
 
   const variableData = solutionResponse.solution[selectedVariable];
-  const { setStructure, solutions } = variableData;
-
+  let { setStructure, solutions } = variableData;
+  setStructure = getSetStructure(selectedVariable) || setStructure;
   // Check if all objective values are binary (0 or 1)
   const isBinary = solutions.every(
     (sol) => sol.objectiveValue === 0 || sol.objectiveValue === 1

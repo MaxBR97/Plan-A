@@ -10,6 +10,7 @@ export const ZPLProvider = ({ children }) => {
     const [variables, setVariables] = useState([]);
     const [setTypes, setSetTypes] = useState({});
     const [paramTypes, setParamTypes] = useState({});
+    const [varTypes, setVarTypes] = useState({});
     const [imageId, setImageId] = useState(null);
     const [solutionResponse, setSolutionResponse] = useState(null);
     const [variablesModule, setVariablesModule] = useState({
@@ -28,10 +29,11 @@ export const ZPLProvider = ({ children }) => {
             variables, setVariables,
             setTypes, setSetTypes,
             paramTypes, setParamTypes,
+            varTypes, setVarTypes,
             imageId, setImageId,
             solutionResponse, setSolutionResponse,
             variablesModule, setVariablesModule // Added variablesModule to context
-            
+
         }}>
             {children}
         </ZPLContext.Provider>

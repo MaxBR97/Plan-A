@@ -36,7 +36,6 @@ const SuperTable = ({ solutions, setStructure, displayStructure, isDisplayBinary
               const keyIndex = displayStructure.indexOf(key);
               return keyIndex !== -1 && getRelevantValue(sol, keyIndex) === val;
             });
-            console.log("x: ", x);
             return x;
           })
           .map((sol) => getRelevantValue(sol, level))
