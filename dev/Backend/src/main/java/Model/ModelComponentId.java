@@ -13,7 +13,10 @@ public class ModelComponentId implements Serializable {
     private String imageId;
 
     // Default constructor (required by Hibernate)
-    public ModelComponentId() {}
+    public ModelComponentId() {
+        identifier= "defaultIdentifier";
+        imageId = "defaultImageId";
+    }
 
     public ModelComponentId(String identifier, String imageId) {
         this.identifier = identifier;

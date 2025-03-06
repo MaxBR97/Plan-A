@@ -160,11 +160,11 @@ public class Image {
         preferenceModules.put(moduleName, new PreferenceModule(this, moduleName, description, modelPreferences,inputSets,inputParams));
     }
     @Transactional
-    public ConstraintModule getConstraintModule(String name) {
+    public ConstraintModule getConstraintsModule(String name) {
         return constraintsModules.get(name);
     }
     @Transactional
-    public PreferenceModule getPreferenceModules(String name) {
+    public PreferenceModule getPreferencesModule(String name) {
         return preferenceModules.get(name);
     }
     @Transactional
@@ -175,6 +175,7 @@ public class Image {
     public Map<String, PreferenceModule> getPreferenceModules() {
         return preferenceModules;
     }
+   
 
     @Transactional
     public void addConstraint(String moduleName, ConstraintDTO constraint) {

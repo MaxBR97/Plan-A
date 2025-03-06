@@ -10,6 +10,6 @@ import java.util.Set;
 public record InputDTO(
         @Valid Map<String, List<List<@NotBlank String>>> setsToValues,
         @Valid Map<String, List<@NotBlank String>> paramsToValues,
-        @Valid List<@NotBlank String> constraintsToggledOff,
-        @Valid List<@NotBlank String> preferencesToggledOff
+        @Valid List<@NotBlank String> constraintModulesToggledOff,
+        @Valid List<@NotBlank String> preferenceModulesToggledOff
     ) {}

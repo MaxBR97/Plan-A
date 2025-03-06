@@ -151,7 +151,7 @@ public class ImageTests {
         imageRepository.save(image);
         commit();
         fetchedIm = imageRepository.findById(sourceId).get();
-        assertTrue(fetchedIm.getConstraintModule("myConstraint") != null);
+        assertTrue(fetchedIm.getConstraintsModule("myConstraint") != null);
         imageRepository.delete(fetchedIm);
         commit();
         assertThrows(NoSuchElementException.class, () -> imageRepository.findById(sourceId).get() );

@@ -39,6 +39,8 @@ import DataAccess.ModelRepository;
 import Model.ModelFactory;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
+import Model.ModelConstraint;
+import Model.ModelPreference;
 
 @RestController
 public class ImageController {
@@ -87,12 +89,18 @@ public class ImageController {
             model.setInput(model.getParameter(parameter.getKey()), ModelType.convertArrayOfAtoms(parameter.getValue().toArray(new String[0]), model.getParameter(parameter.getKey()).getType()));
         }
 
-        for (String constraint : command.input().constraintsToggledOff()){
-            model.toggleFunctionality(model.getConstraint(constraint), false);
+        for (String constraintModule : command.input().constraintModulesToggledOff()){
+            Collection<ModelConstraint> constraintsToToggleOff = image.getConstraintsModule(constraintModule).getConstraints().values();
+            for(ModelConstraint mc : constraintsToToggleOff){
+                model.toggleFunctionality(model.getConstraint(mc.getIdentifier()), false);
+            }
         }
 
-        for (String preference : command.input().preferencesToggledOff()){
-            model.toggleFunctionality(model.getPreference(preference), false);
+        for (String preferenceModule : command.input().preferenceModulesToggledOff()){
+            Collection<ModelPreference> preferencesToToggleOff = image.getPreferencesModule(preferenceModule).getPreferences().values();
+            for(ModelPreference mp : preferencesToToggleOff){
+                model.toggleFunctionality(model.getPreference(mp.getIdentifier()), false);
+            }
         }
 
         return image.solve(command.timeout());
