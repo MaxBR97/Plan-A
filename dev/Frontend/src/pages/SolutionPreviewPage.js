@@ -52,12 +52,14 @@ const SolutionPreviewPage = () => {
   };
 
   const handleParamChange = (paramName, value) => {
+    // Ensure value is always an array of strings
+    const formattedValue = Array.isArray(value) ? value : [String(value)];
+    
     setParamValues((prev) => ({
       ...prev,
-      [paramName]: value,
+      [paramName]: formattedValue,
     }));
   };
-
   const getNumTypes = (typeInfo) => {
     if (!typeInfo) {
       console.warn("⚠️ Warning: getNumTypes received undefined typeInfo.");
@@ -261,7 +263,7 @@ const handleSolve = async () => {
   const transformedParamValues = Object.fromEntries(
       Object.entries(paramValues).map(([key, value]) => [
           key,
-          [parseFloat(value) || 0]
+          value
       ])
   );
   const requestBody = {
@@ -318,67 +320,6 @@ const handleSolve = async () => {
   const [showModal, setShowModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState(null);
 
-  const fakeResponse = {
-    solved: true,
-    solvingTime: 12.5,
-    objectiveValue: 100.23,
-    solution: {
-      Soldier_shift: {
-        setStructure: ["C", "Stations", "Times"],
-        typeStructure: ["INT", "TEXT", "INT"],
-        solutions: [
-          {
-            values: ["1", "Fillbox", "8"],
-            objectiveValue: 1,
-          },
-          {
-            values: ["2", "Fillbox", "16"],
-            objectiveValue: 1,
-          },
-          {
-            values: ["3", "Fillbox", "0"],
-            objectiveValue: 1,
-          },
-          {
-            values: ["4", "Fillbox", "20"],
-            objectiveValue: 1,
-          },
-          {
-            values: ["2", "Shin Gimel", "16"],
-            objectiveValue: 1,
-          },
-          {
-            values: ["3", "Shin Gimel", "16"],
-            objectiveValue: 1,
-          },
-          {
-            values: ["4", "Shin Gimel", "16"],
-            objectiveValue: 1,
-          },
-          {
-            values: ["5", "Shin Gimel", "16"],
-            objectiveValue: 1,
-          },
-        ],
-      },
-      minGuards: {
-        setStructure: ["X", "Y"],
-        typeStructure: ["INT"],
-        solutions: [
-          {
-            values: ["X val", "Y val"],
-            objectiveValue: 30,
-          },
-        ],
-      },
-    },
-  };
-  const handleFakeResponse = () => {
-    setSolutionResponse(fakeResponse); // ✅ Store the fake response in context
-    //navigate("/solution-results"); // ✅ Redirect to the next screen
-    setShowResults(true);
-  };
-
   const selectedParams = variablesModule?.variablesConfigurableParams ?? [];
 
   return (
@@ -410,7 +351,7 @@ const handleSolve = async () => {
                   value: paramValues[paramName],
                   type: paramTypes[paramName]
                 };
-                inputParams[paramName] = inputParam; 
+                inputParams[paramName] = inputParam;
               });
               
               return (

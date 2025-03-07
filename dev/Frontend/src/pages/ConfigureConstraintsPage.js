@@ -14,6 +14,7 @@ const ConfigureConstraintsPage = () => {
     const bannedSets = [...new Set(variables.flatMap(v => v.dep?.setDependencies || []))];
     const bannedParams = [...new Set(variables.flatMap(v => v.dep?.paramDependencies || []))];
     console.log(modules)
+    console.log(bannedParams)
 
     useEffect(() => {
         setAvailableConstraints(jsonConstraints);
@@ -101,10 +102,12 @@ const ConfigureConstraintsPage = () => {
             })
         );
 
-        setAvailableConstraints((prev) => [...prev, constraint]);
+        setAvailableConstraints((prev) => prev.includes(constraint) ? prev : [...prev, constraint]);
     };
 
     const deleteModule = (index) => {
+        
+        modules[index].constraints.forEach((constraint) => removeConstraintFromModule(constraint))
         setModules((prevModules) => prevModules.filter((_, i) => i !== index));
     
         // Reset selection if the deleted module was selected

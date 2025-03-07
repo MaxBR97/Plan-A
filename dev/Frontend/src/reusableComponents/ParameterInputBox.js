@@ -1,6 +1,9 @@
 import React from "react";
 
 const ParameterInputBox = ({ paramName, type, value, onChange }) => {
+  // Ensure the value is an array
+  const paramValue = Array.isArray(value) ? value[0] || "" : "";
+
   return (
     <div className="module-box">
       <h3 className="module-title">{paramName}</h3>
@@ -9,8 +12,8 @@ const ParameterInputBox = ({ paramName, type, value, onChange }) => {
       </p>
       <input
         type="text"
-        value={value || ""}
-        onChange={(e) => onChange(paramName, e.target.value)}
+        value={paramValue}
+        onChange={(e) => onChange(paramName, [e.target.value])}
         className="variable-input"
         placeholder={`Enter ${type || "value"}...`}
       />

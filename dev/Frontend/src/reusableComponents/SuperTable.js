@@ -53,6 +53,7 @@ const SuperTable = ({ solutions, setStructure, displayStructure, isDisplayBinary
       // If not numbers, sort as strings
       return String(a).localeCompare(String(b));
     });
+   
 
     // if(level == displayStructure.length) {
       
@@ -135,18 +136,32 @@ const SuperTable = ({ solutions, setStructure, displayStructure, isDisplayBinary
       );
     }
 
-    return (
+    const nextUniqueValues = [
+      ...new Set(
+        solutions.map((sol) => getRelevantValue(sol, level+1))
+      ),
+    ].sort((a, b) => {
+      // Convert to numbers first, then compare
+      const numA = Number(a);
+      const numB = Number(b);
       
+      // Check if both are valid numbers
+      if (!isNaN(numA) && !isNaN(numB)) {
+        return numA - numB; // Sort numbers in ascending order
+      }
+      
+      // If not numbers, sort as strings
+      return String(a).localeCompare(String(b));
+    });
+
+    return (
+     
       <table className="solution-table">
         <thead>
           <tr>
             <th>{nextSet} \ {currentSet}</th> 
             {nextSet &&
-              [
-                ...new Set(
-                  solutions.map((sol) => getRelevantValue(sol, level+1))
-                ),
-              ].map((col, index) => <th key={index}>{col}</th>)}
+              nextUniqueValues.map((col, index) => <th key={index}>{col}</th>)}
           </tr>
         </thead>
         <tbody>
@@ -154,11 +169,7 @@ const SuperTable = ({ solutions, setStructure, displayStructure, isDisplayBinary
             <tr key={rowIndex}>
               <td className="row-header">{rowValue}</td>
               {nextSet
-                ? [
-                    ...new Set(
-                      solutions.map((sol) => getRelevantValue(sol,level+1))
-                    ),
-                  ].map((colValue, colIndex) => {
+                ? nextUniqueValues.map((colValue, colIndex) => {
                     return (
                       <td key={colIndex}>
                         {generateTable(level + 2, { ...parentFilters, [currentSet]: rowValue, [nextSet] : colValue })}
