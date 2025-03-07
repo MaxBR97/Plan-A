@@ -15,9 +15,9 @@ const ConfigureConstraintsPage = () => {
     const bannedParams = [...new Set(variables.flatMap(v => v.dep?.paramDependencies || []))];
     console.log(modules)
     console.log(bannedParams)
-
+    
     useEffect(() => {
-        setAvailableConstraints(jsonConstraints);
+        setAvailableConstraints(jsonConstraints.filter((c) => modules.every((module) => !module.constraints.includes(c))));
     }, [jsonConstraints]);
 
     const addConstraintModule = () => {
@@ -59,10 +59,15 @@ const ConfigureConstraintsPage = () => {
                 return module;
             });
         });
-
-        setAvailableConstraints((prev) =>
-            prev.filter((c) => c.identifier !== constraint.identifier)
-        );
+        
+        setAvailableConstraints((prev) => {
+            const filteredConstraints = prev.filter((c) => c.identifier !== constraint.identifier);
+            const uniqueConstraints = Array.from(
+              new Map(filteredConstraints.map(item => [item.identifier, item])).values()
+            );
+            
+            return uniqueConstraints;
+          });
     };
 
     const removeConstraintFromModule = (constraint) => {
@@ -101,7 +106,7 @@ const ConfigureConstraintsPage = () => {
                 return module;
             })
         );
-
+        
         setAvailableConstraints((prev) => prev.includes(constraint) ? prev : [...prev, constraint]);
     };
 
@@ -159,7 +164,7 @@ const ConfigureConstraintsPage = () => {
 
     return (
         <div className="configure-constraints-page">
-            <h1 className="page-title">Configure High-Level Constraints</h1>
+            <h1 className="page-title">Configure Constraint Modules</h1>
 
             <div className="constraints-layout">
                 {/* Constraint Modules Section */}

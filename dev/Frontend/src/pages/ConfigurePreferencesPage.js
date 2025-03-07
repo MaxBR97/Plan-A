@@ -2,29 +2,33 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useZPL } from '../context/ZPLContext';
 import './ConfigureConstraintsPage.css';
+import Checkbox from '../reusableComponents/Checkbox';
 
 const ConfigurePreferencesPage = () => {
     const navigate = useNavigate();
 
     // Fetch preferences & modules from ZPL context
-    const { preferences: jsonPreferences = [], preferenceModules = [], setPreferenceModules = () => {} } = useZPL();
+    const { preferences: jsonPreferences = [], preferenceModules = [], setPreferenceModules = () => {} , variables} = useZPL();
 
     // Local states
     const [availablePreferences, setAvailablePreferences] = useState([]);
     const [moduleName, setModuleName] = useState('');
     const [selectedModuleIndex, setSelectedModuleIndex] = useState(null);
+    const bannedSets = [...new Set(variables.flatMap(v => v.dep?.setDependencies || []))];
+    const bannedParams = [...new Set(variables.flatMap(v => v.dep?.paramDependencies || []))];
+    console.log(preferenceModules)
+    console.log(bannedParams)
 
     // Initialize available preferences dynamically from JSON
-    useEffect(() => {
-        setAvailablePreferences(jsonPreferences);
+useEffect(() => {
+        setAvailablePreferences(jsonPreferences.filter((p) => preferenceModules.every((module) => !module.preferences.includes(p))));
     }, [jsonPreferences]);
-
-    // Add a new module
+    
     const addPreferenceModule = () => {
         if (moduleName.trim() !== '') {
             setPreferenceModules((prevModules) => [
                 ...prevModules,
-                { name: moduleName, description: "", preferences: [], involvedSets: [], involvedParams: [] }
+                { name: moduleName, description: "", preferences: [], involvedSets: [], involvedParams: [], inputSets:[], inputParams:[] }
             ]);
             setModuleName('');
         }
@@ -54,8 +58,8 @@ const ConfigurePreferencesPage = () => {
                         return {
                             ...module,
                             preferences: [...module.preferences, preference],
-                            involvedSets: [...new Set([...module.involvedSets, ...(preference.dep?.setDependencies || [])])],
-                            involvedParams: [...new Set([...module.involvedParams, ...(preference.dep?.paramDependencies || [])])]
+                            involvedSets: [...new Set([...module.involvedSets, ...(preference.dep?.setDependencies || [])])].filter((set) => !bannedSets.includes(set)),
+                            involvedParams: [...new Set([...module.involvedParams, ...(preference.dep?.paramDependencies || [])])].filter((param) => !bannedParams.includes(param))
                         };
                     }
                 }
@@ -63,15 +67,105 @@ const ConfigurePreferencesPage = () => {
             });
         });
 
-        // Remove preference from the available list
-        setAvailablePreferences((prev) =>
-            prev.filter((p) => p.identifier !== preference.identifier)
+        setAvailablePreferences((prev) => {
+            const filteredPreferences = prev.filter((c) => c.identifier !== preference.identifier);
+            const uniquePreferences = Array.from(
+              new Map(filteredPreferences.map(item => [item.identifier, item])).values()
+            );
+            
+            return uniquePreferences;
+          });
+    };
+
+    const removePreferenceFromModule = (preference) => {
+        if (selectedModuleIndex === null) return;
+
+        setPreferenceModules((prevModules) =>
+            prevModules.map((module, idx) => {
+                if (idx === selectedModuleIndex) {
+                    const newPreferences = module.preferences.filter(c => c.identifier !== preference.identifier);
+
+                    const remainingSets = new Set();
+                    const remainingParams = new Set();
+                    
+                    const allSetDependencies = new Set(
+                        newPreferences.flatMap(c => c.dep?.setDependencies || [])
+                    );
+                    const allParamDependencies = new Set(
+                        newPreferences.flatMap(c => c.dep?.paramDependencies || [])
+                    );
+
+                    const filteredSets = [...allSetDependencies].filter(set => !bannedSets.includes(set));
+                    const filteredParams = [...allParamDependencies].filter(param => !bannedParams.includes(param));
+
+                    filteredSets.forEach(set => remainingSets.add(set));
+                    filteredParams.forEach(param => remainingParams.add(param));
+
+                    return {
+                        ...module,
+                        preferences: newPreferences,
+                        involvedSets: [...remainingSets],
+                        involvedParams: [...remainingParams]
+                    };
+                }
+                return module;
+            })
+        );
+        
+        setAvailablePreferences((prev) => prev.includes(preference) ? prev : [...prev, preference]);
+    };
+
+    const deleteModule = (index) => {
+        
+        preferenceModules[index].preferences.forEach((preference) => removePreferenceFromModule(preference))
+        setPreferenceModules((prevModules) => prevModules.filter((_, i) => i !== index));
+    
+        // Reset selection if the deleted module was selected
+        if (selectedModuleIndex === index) {
+            setSelectedModuleIndex(null);
+        } else if (selectedModuleIndex > index) {
+            setSelectedModuleIndex(selectedModuleIndex - 1); // Adjust index if needed
+        }
+    };
+
+    const handleToggleInvolvedSet = (setName) => {
+        setPreferenceModules((prevModules) =>
+            prevModules.map((module, idx) => {
+                if (idx === selectedModuleIndex) {
+                    // Check if the set is already in inputSets
+                    const isSetIncluded = module.inputSets.includes(setName);
+                    const updatedInputSets = isSetIncluded
+                        ? module.inputSets.filter((s) => s !== setName) // Remove if already included
+                        : [...module.inputSets, setName]; // Add if not included
+                    
+                    return { ...module, inputSets: updatedInputSets };
+                }
+                return module;
+            })
         );
     };
 
+    const handleToggleInvolvedParam = (paramName) => {
+        setPreferenceModules((prevModules) =>
+            prevModules.map((module, idx) => {
+                if (idx === selectedModuleIndex) {
+                    // Check if the param is already in involvedParams
+                    const isParamIncluded = module.inputParams.includes(paramName);
+                    const updatedParams = isParamIncluded
+                        ? module.inputParams.filter((p) => p !== paramName) // Remove if included
+                        : [...module.inputParams, paramName]; // Add if not included
+    
+                    return { ...module, inputParams: updatedParams };
+                }
+                return module;
+            })
+        );
+    };
+
+
     return (
         <div className="configure-constraints-page">
-            <h1 className="page-title">Configure High-Level Preferences</h1>
+            <h1 className="page-title">Configure Preference Modules</h1>
 
             <div className="constraints-layout">
                 {/* Preference Modules Section */}
@@ -92,6 +186,15 @@ const ConfigurePreferencesPage = () => {
                                     onClick={() => setSelectedModuleIndex(index)}
                                 >
                                     {module.name}
+                                </button>
+                                <button 
+                                    className="delete-module-button"
+                                    onClick={(e) => {
+                                        e.stopPropagation(); // Prevent selecting the module when clicking delete
+                                        deleteModule(index);
+                                    }}
+                                >
+                                    ❌
                                 </button>
                             </div>
                         ))}
@@ -119,7 +222,11 @@ const ConfigurePreferencesPage = () => {
                             <div className="module-drop-area">
                                 {preferenceModules[selectedModuleIndex]?.preferences?.length > 0 ? (
                                     preferenceModules[selectedModuleIndex].preferences.map((p, i) => (
-                                        <div key={i} className="dropped-constraint">
+                                        <div 
+                                            key={i} 
+                                            className="dropped-constraint constraint-box"
+                                            onClick={() => removePreferenceFromModule(p)}
+                                        >
                                             {p.identifier}
                                         </div>
                                     ))
@@ -127,18 +234,31 @@ const ConfigurePreferencesPage = () => {
                                     <p>No preferences added</p>
                                 )}
                             </div>
-                            <h3>Involved Sets</h3>
-                            <ul>
+                            <h3>Select input Sets:</h3>
+                            <div>
                                 {preferenceModules[selectedModuleIndex]?.involvedSets.map((set, i) => (
-                                    <li key={i}>{set}</li>
+                                    <div key={i}>
+                                        <Checkbox 
+                                            type="checkbox" 
+                                            checked={preferenceModules[selectedModuleIndex]?.inputSets.includes(set)} 
+                                            onChange={() => handleToggleInvolvedSet(set)}
+                                        /> {set}
+                                    </div>
                                 ))}
-                            </ul>
-                            <h3>Involved Parameters</h3>
-                            <ul>
+                            </div>
+
+                            <h3>Select input Parameters:</h3>
+                            <div>
                                 {preferenceModules[selectedModuleIndex]?.involvedParams.map((param, i) => (
-                                    <li key={i}>{param}</li>
+                                    <div key={i}>
+                                        <Checkbox 
+                                            type="checkbox" 
+                                            checked={preferenceModules[selectedModuleIndex]?.inputParams.includes(param)} 
+                                            onChange={() => handleToggleInvolvedParam(param)}
+                                        /> {param}
+                                    </div>
                                 ))}
-                            </ul>
+                            </div>
                         </>
                     )}
                 </div>

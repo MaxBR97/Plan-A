@@ -12,7 +12,8 @@ const UploadZPLPage = () => {
         paramTypes, setParamTypes, // ✅ Use correct setter
         varTypes, setVarTypes,
         constraints, setConstraints,
-        preferences, setPreferences
+        preferences, setPreferences,
+        resetAll
     } = useZPL();
 
     const [fileContent, setFileContent] = useState(`
@@ -64,7 +65,7 @@ minimize distributeShiftsEqually:
             });
 
             const responseData = response.data;
-
+            resetAll()
             // ✅ Store new data in the ZPL Context
             setImageId(responseData.imageId);
             setVariables(responseData.model.variables);
