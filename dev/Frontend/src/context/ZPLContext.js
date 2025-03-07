@@ -9,6 +9,7 @@ export const ZPLProvider = ({ children }) => {
     const [preferenceModules, setPreferenceModules] = useState([]);
     const [variables, setVariables] = useState([]);
     const [setTypes, setSetTypes] = useState({});
+    const [setTags, setSetTags] = useState({});
     const [paramTypes, setParamTypes] = useState({});
     const [varTypes, setVarTypes] = useState({});
     const [imageId, setImageId] = useState(null);
@@ -28,6 +29,7 @@ export const ZPLProvider = ({ children }) => {
             preferenceModules, setPreferenceModules,
             variables, setVariables,
             setTypes, setSetTypes,
+            setTags, setSetTags,
             paramTypes, setParamTypes,
             varTypes, setVarTypes,
             imageId, setImageId,

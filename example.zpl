@@ -1,8 +1,10 @@
 param restHours := 5;
 param shiftTime := 4;
-set People := {"Yoni","Denis","Nadav","Max"};
+set People := {"Yoni","Denis","Nadav","Max","er"};
 set Emdot := {"North", "South"};
 set Times := {0..20 by shiftTime};
+
+set invalidShifts := {<"Yoni","North",0,20>};
 
 set Mishmarot := Emdot * Times; # -> {<North,16>, <North,20>, ....}
 
@@ -23,6 +25,10 @@ subto drisha3:
 subto drisha4:
     forall <person> in People: 
         TotalMishmarot[person] == sum <person2,emda,zman> in People * Mishmarot | person ==person2 : Shibutsim[person2,emda,zman];
+
+subto enforceInvalidShifts:
+    forall <person , station , fromTime , toTime> in invalidShifts:
+        (sum <p,s,time> in People * Mishmarot | p == person and station == s and time >= fromTime and time <= toTime : Shibutsim[p,s,time]) == 0;
 
 minimize distributeShiftsEqually:
     sum <person> in People : (TotalMishmarot[person]**2);

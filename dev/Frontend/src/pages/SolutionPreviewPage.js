@@ -5,6 +5,9 @@ import "./SolutionPreviewPage.css";
 import SolutionResultsPage from "./SolutionResultsPage.js";
 import NumberInput from '../reusableComponents/NumberInput';
 import SetEntry from '../reusableComponents/SetEntry';
+import ModuleBox from '../reusableComponents/ModuleBox.js';
+import SetInputBox from '../reusableComponents/SetInputBox.js';
+import ParameterInputBox from "../reusableComponents/ParameterInputBox";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom"; // Import useNavigate
 
@@ -19,6 +22,7 @@ const SolutionPreviewPage = () => {
     imageId,
     setSolutionResponse,
     setTypes,
+    setTags,
     paramTypes,
     setSolutionData,
     variablesModule,
@@ -31,9 +35,11 @@ const SolutionPreviewPage = () => {
   const [paramValues, setParamValues] = useState({});
   const [selectedVariableValues, setSelectedVariableValues] = useState({});
   const [constraintsToggledOff, setConstraintsToggledOff] = useState([]);
+  const [preferencesToggledOff, setPreferencesToggledOff] = useState([]);
   const [showResults, setShowResults] = useState(true);
   const [timeout, setTimeout] = useState(10);
   const navigate = useNavigate(); // Initialize navigation
+
   const handleAddValue = (setName) => {
     setVariableValues((prev) => ({
       ...prev,
@@ -141,6 +147,10 @@ const SolutionPreviewPage = () => {
     });
   };
 
+  useEffect(() => {
+  }, [constraintsToggledOff, preferencesToggledOff]);
+
+
   const handleToggleConstraint = (moduleName) => {
     setConstraintsToggledOff((prev) =>
       prev.includes(moduleName)
@@ -148,7 +158,8 @@ const SolutionPreviewPage = () => {
         : [...prev, moduleName]
     );
   };
-  const [preferencesToggledOff, setPreferencesToggledOff] = useState([]);
+
+  
 
   const handleTogglePreference = (preferenceName) => {
     setPreferencesToggledOff(
@@ -268,8 +279,8 @@ const handleSolve = async () => {
         return acc;
       }, {}),
       paramsToValues: transformedParamValues,
-      constraintsToggledOff: constraintsToggledOff,
-      preferencesToggledOff: preferencesToggledOff,
+      constraintModulesToggledOff: constraintsToggledOff,
+      preferenceModulesToggledOff: preferencesToggledOff,
     },
     timeout: timeout,
   };
@@ -370,7 +381,6 @@ const handleSolve = async () => {
 
   const selectedParams = variablesModule?.variablesConfigurableParams ?? [];
 
-
   return (
     <div className="solution-preview-page">
       <h1 className="page-title">Solution Preview</h1>
@@ -379,62 +389,46 @@ const handleSolve = async () => {
         <div className="module-section">
           <h2 className="section-title">Constraints</h2>
           {modules.length > 0 ? (
-            modules.map((module, index) => (
-              <div key={index} className="module-box">
-                {/* Toggle Button Positioned Correctly */}
-                <div className="toggle-container">
-                  <label className="switch">
-                    <input
-                      type="checkbox"
-                      checked={!constraintsToggledOff.includes(module.name)}
-                      onChange={() => handleToggleConstraint(module.name)}
-                    />
-                    <span className="slider round"></span>
-                  </label>
-                </div>
+            modules.map((module, index) => {
+              let inputSets = {};
+              let inputParams = {}
 
-                <h3 className="module-title">{module.name}</h3>
-                <p className="module-description">
-                  <strong>Module Description:</strong> {module.description}
-                </p>
+              module.inputSets.forEach((setName) => {
+                const inputSet = {
+                  setName: setName,
+                  typeList: setTypes[setName],
+                  tupleTags: [],
+                  setValues: variableValues[setName],
+                };
 
-                <h4 className="module-subtitle">Constraints</h4>
-                {module.constraints.length > 0 ? (
-                  module.constraints.map((constraint, cIndex) => (
-                    <div key={cIndex} className="module-item">
-                      <p>{constraint.identifier}</p>{" "}
-                      {/* Only displaying the identifier value */}
-                    </div>
-                  ))
-                ) : (
-                  <p className="empty-message">
-                    No constraints in this module.
-                  </p>
-                )}
+                inputSets[setName] = inputSet; 
+              });
 
-                <h4 className="module-subtitle">Involved Sets</h4>
-                {module.involvedSets.length > 0 ? (
-                  module.involvedSets.map((set, sIndex) => (
-                    <div key={sIndex} className="module-item">
-                      {set}
-                    </div>
-                  ))
-                ) : (
-                  <p className="empty-message">No involved sets.</p>
-                )}
-
-                <h4 className="module-subtitle">Involved Parameters</h4>
-                {module.involvedParams.length > 0 ? (
-                  module.involvedParams.map((param, pIndex) => (
-                    <div key={pIndex} className="module-item">
-                      {param}
-                    </div>
-                  ))
-                ) : (
-                  <p className="empty-message">No involved parameters.</p>
-                )}
-              </div>
-            ))
+              module.inputParams.forEach((paramName) => {
+                const inputParam = {
+                  paramName: paramName,
+                  value: paramValues[paramName],
+                  type: paramTypes[paramName]
+                };
+                inputParams[paramName] = inputParam; 
+              });
+              
+              return (
+              <ModuleBox
+              key={index}
+              module={module}
+              checked={!constraintsToggledOff.includes(module.name)}
+              handleToggleModule={handleToggleConstraint}
+              handleAddTuple={handleAddVariable}
+              handleRemoveTuple={handleRemoveVariable}
+              handleTupleToggle={handleVariableToggle}
+              handleTupleChange={handleVariableChange}
+              handleParamChange={handleParamChange}
+              isRowSelected={isRowSelected}
+              inputSets={inputSets}
+              inputParams={inputParams}
+              />
+            )})
           ) : (
             <p className="empty-message">No constraint modules available.</p>
           )}
@@ -518,85 +512,40 @@ const handleSolve = async () => {
           ? setTypes[set]
           : [setTypes[set]]
         : ["Unknown"];
-
+      
       return (
-        <div key={index} className="module-box">
-          {/* Display Variable Name */}
-          <h3 className="module-title">{set}</h3>
-
-          {/* Display Type from setTypes */}
-          <p className="variable-type">
-            <strong>Type:</strong> {typeList.join(", ")}
-          </p>
-
-          {/* Add Button */}
-          <button
-            className="add-button"
-            onClick={() => handleAddVariable(set, typeList)}
-          ></button>
-
-          {/* Input Fields - Each type gets its own separate textbox */}
-          {variableValues[set]?.map((row, rowIndex) => (
-            <div key={rowIndex} className="input-row">
-              
-                  <SetEntry
-                    key={rowIndex}
-                    typeList={typeList}
-                    row={row}
-                    checked={isRowSelected(set, rowIndex)}
-                    onEdit={(e, typeIndex) => // Capture typeIndex here
-                      handleVariableChange(set, rowIndex, typeIndex, e.target.value)
-                    }
-                    onToggle={(e) =>
-                      handleVariableToggle(
-                        set,
-                        rowIndex,
-                      )
-                    }
-                    onDelete={(e) =>
-                      handleRemoveVariable(
-                        set,
-                        rowIndex,
-                      )
-                    }
-                    className="variable-input"
-                    
-                  />
-              
-              
-
-              {/* Add a divider after each row */}
-              <hr className="input-divider" />
-            </div>
-          ))}
-        </div>
+        <SetInputBox
+          index={index}
+          typeList={typeList}
+          tupleTags={setTags || []}
+          setName={set}
+          handleAddTuple={handleAddVariable}
+          handleTupleChange={handleVariableChange}
+          handleTupleToggle={handleVariableToggle}
+          handleRemoveTuple={handleRemoveVariable}
+          isRowSelected={isRowSelected}
+          setValues={variableValues[set]}
+        />
       );
     })}
-</div>
+    </div>
 
-        {/* Variable Parameters Section */}
-         {/* Parameters Section */}
+            {/* Variable Parameters Section */}
+            {/* Parameters Section */}
       <div className="module-section">
-        <h2 className="section-title">Parameters</h2>
-        {Object.keys(paramTypes)
-          .filter((param) => selectedParams.includes(param))
-          .map((param, index) => (
-            <div key={index} className="module-box">
-              <h3 className="module-title">{param}</h3>
-              <p className="variable-type">
-                <strong>Type:</strong> {paramTypes[param] || "Unknown"}
-              </p>
-              {/* Input field for each parameter */}
-              <input
-                type="text"
-                value={paramValues[param] || ""}
-                onChange={(e) => handleParamChange(param, e.target.value)}
-                className="variable-input"
-                placeholder={`Enter ${paramTypes[param] || "value"}...`}
-              />
-            </div>
-          ))}
-      </div>
+      <h2 className="section-title">Parameters</h2>
+      {Object.keys(paramTypes)
+        .filter((param) => selectedParams.includes(param))
+        .map((param, index) => (
+          <ParameterInputBox
+            key={index}
+            paramName={param}
+            type={paramTypes[param]}
+            value={paramValues[param]}
+            onChange={handleParamChange}
+          />
+        ))}
+    </div>
 
         {/* Error Message */}
         {errorMessage && (

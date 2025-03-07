@@ -6,11 +6,14 @@ import Checkbox from '../reusableComponents/Checkbox';
 
 const ConfigureConstraintsPage = () => {
     const navigate = useNavigate();
-    const { constraints: jsonConstraints = [], modules = [], setModules = () => {} } = useZPL();
+    const { constraints: jsonConstraints = [], modules = [], setModules = () => {} , variables} = useZPL();
 
     const [availableConstraints, setAvailableConstraints] = useState([]);
     const [moduleName, setModuleName] = useState('');
     const [selectedModuleIndex, setSelectedModuleIndex] = useState(null);
+    const bannedSets = [...new Set(variables.flatMap(v => v.dep?.setDependencies || []))];
+    const bannedParams = [...new Set(variables.flatMap(v => v.dep?.paramDependencies || []))];
+    console.log(modules)
 
     useEffect(() => {
         setAvailableConstraints(jsonConstraints);
@@ -47,8 +50,8 @@ const ConfigureConstraintsPage = () => {
                         return {
                             ...module,
                             constraints: [...module.constraints, constraint],
-                            involvedSets: [...new Set([...module.involvedSets, ...(constraint.dep?.setDependencies || [])])],
-                            involvedParams: [...new Set([...module.involvedParams, ...(constraint.dep?.paramDependencies || [])])]
+                            involvedSets: [...new Set([...module.involvedSets, ...(constraint.dep?.setDependencies || [])])].filter((set) => !bannedSets.includes(set)),
+                            involvedParams: [...new Set([...module.involvedParams, ...(constraint.dep?.paramDependencies || [])])].filter((param) => !bannedParams.includes(param))
                         };
                     }
                 }
@@ -71,10 +74,21 @@ const ConfigureConstraintsPage = () => {
 
                     const remainingSets = new Set();
                     const remainingParams = new Set();
-                    newConstraints.forEach(c => {
-                        (c.dep?.setDependencies || []).forEach(set => remainingSets.add(set));
-                        (c.dep?.paramDependencies || []).forEach(param => remainingParams.add(param));
-                    });
+                    
+                    const allSetDependencies = new Set(
+                        newConstraints.flatMap(c => c.dep?.setDependencies || [])
+                    );
+                    const allParamDependencies = new Set(
+                        newConstraints.flatMap(c => c.dep?.paramDependencies || [])
+                    );
+
+                    const filteredSets = [...allSetDependencies].filter(set => !bannedSets.includes(set));
+                    const filteredParams = [...allParamDependencies].filter(param => !bannedParams.includes(param));
+
+                    filteredSets.forEach(set => remainingSets.add(set));
+                    filteredParams.forEach(param => remainingParams.add(param));
+
+
 
                     return {
                         ...module,
