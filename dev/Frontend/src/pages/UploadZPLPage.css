@@ -1,81 +1,106 @@
-/* UploadZPLPage.css */
+/* ZPLUpload.css */
 .upload-zpl-page {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    padding: 20px;
-    background-color: #f5f5f5;
-}
-
-.upload-container {
-    width:100%;
-}
-
-.fixed-textarea {
-    width: 60%;
-    height: 70vh;
-    resize: none;
-    overflow: auto;
-    padding: 10px;
-    border: 1px solid #ccc;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem;
+    font-family: Arial, sans-serif;
+  }
+  
+  .page-title {
+    font-size: 2rem;
+    color: #333;
+    margin-bottom: 2rem;
+    text-align: center;
+  }
+  
+  .upload-container {
+    background-color: #f8f8f8;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  }
+  
+  .upload-container label {
+    display: block;
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 0.8rem;
+    color: #444;
+  }
+  
+  .fixed-textarea {
+    width: 100%;
+    height: 350px;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid #ddd;
     border-radius: 4px;
     font-family: monospace;
-}
-
-.page-title {
-    font-size: 36px;
-    font-weight: bold;
-    margin-bottom: 30px;
-}
-
-.file-input-container {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    align-items: center;
-}
-
-input[type='file'] {
-    padding: 10px;
-}
-
-.upload-button {
-    padding: 10px 20px;
-    font-size: 16px;
-    border: 1px solid #ccc;
-    border-radius: 10px;
-    background-color: #ffffff;
-    cursor: pointer;
-    transition: background-color 0.3s;
-}
-
-.upload-button:hover {
-    background-color: #e0e0e0;
-}
-
-.upload-message {
-    margin-top: 20px;
-    font-size: 16px;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    resize: vertical;
+    background-color: #fff;
     color: #333;
-}
-
-.back-button {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    padding: 10px 20px;
-    font-size: 14px;
-    text-decoration: none;
-    color: #000;
-    border: 1px solid #ccc;
-    border-radius: 10px;
-    background-color: #ffffff;
+  }
+  
+  .fixed-textarea:focus {
+    outline: none;
+    border-color: #4a90e2;
+    box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+  }
+  
+  .upload-button {
+    background-color: #27ae60;
+    color: white;
+    padding: 0.8rem 1.5rem;
+    border: none;
+    border-radius: 4px;
+    font-size: 1rem;
+    font-weight: 500;
     cursor: pointer;
-    transition: background-color 0.3s;
-}
-
-.back-button:hover {
-    background-color: #e0e0e0;
-}
+    transition: background-color 0.2s;
+    width: 100%;
+  }
+  
+  .upload-button:hover {
+    background-color: #219653;
+  }
+  
+  .upload-button:active {
+    background-color: #1e8449;
+  }
+  
+  .upload-message {
+    margin-top: 1.5rem;
+    padding: 1rem;
+    border-radius: 4px;
+    font-size: 1rem;
+    text-align: center;
+  }
+  
+  .upload-message.success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+  }
+  
+  .upload-message.error {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .upload-zpl-page {
+      padding: 1rem;
+    }
+    
+    .upload-container {
+      padding: 1.5rem;
+    }
+    
+    .fixed-textarea {
+      height: 250px;
+    }
+  }

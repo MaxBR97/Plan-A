@@ -1,18 +1,46 @@
 package DTO.Factories;
 
-import DTO.Records.Image.*;
-import DTO.Records.Model.ModelDefinition.*;
-import DTO.Records.Model.ModelData.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+
+import org.yaml.snakeyaml.util.Tuple;
+
+import DTO.Records.Image.ConstraintModuleDTO;
+import DTO.Records.Image.ImageDTO;
+import DTO.Records.Image.PreferenceModuleDTO;
+import DTO.Records.Image.SolutionDTO;
+import DTO.Records.Image.SolutionValueDTO;
+import DTO.Records.Image.SolutionVariable;
+import DTO.Records.Image.VariableModuleDTO;
+import DTO.Records.Model.ModelData.ParameterDTO;
+import DTO.Records.Model.ModelData.ParameterDefinitionDTO;
+import DTO.Records.Model.ModelData.SetDTO;
+import DTO.Records.Model.ModelData.SetDefinitionDTO;
+import DTO.Records.Model.ModelDefinition.ConstraintDTO;
+import DTO.Records.Model.ModelDefinition.DependenciesDTO;
+import DTO.Records.Model.ModelDefinition.ModelDTO;
+import DTO.Records.Model.ModelDefinition.PreferenceDTO;
+import DTO.Records.Model.ModelDefinition.VariableDTO;
 import DTO.Records.Requests.Commands.CreateImageFromFileDTO;
 import DTO.Records.Requests.Responses.CreateImageResponseDTO;
 import DTO.Records.Requests.Responses.ImageResponseDTO;
 import Image.Image;
 import Image.Modules.ConstraintModule;
 import Image.Modules.PreferenceModule;
-import Model.*;
-import org.yaml.snakeyaml.util.Tuple;
-
-import java.util.*;
+import Model.ModelConstraint;
+import Model.ModelInput;
+import Model.ModelInterface;
+import Model.ModelParameter;
+import Model.ModelPreference;
+import Model.ModelSet;
+import Model.ModelVariable;
+import Model.Solution;
 
 /**
  * DTOs should be created using this class only.
@@ -164,7 +192,7 @@ public class RecordFactory {
                     preferences.add(makeDTO(module));
                 }
                 
-                return new ImageDTO(variables, constraints, preferences);
+                return new ImageDTO(image.getId(),image.getName(), image.getDescription(), variables, constraints, preferences);
             }
         private static VariableModuleDTO makeDTO(List<ModelVariable> values) {
             Set<String> intr = new HashSet<>();
@@ -181,12 +209,12 @@ public class RecordFactory {
             }
             return new VariableModuleDTO(intr, sets, params);
         }
-            public static ImageResponseDTO makeDTO(UUID id, Image image){
-        return new ImageResponseDTO(id.toString(),makeDTO(image));
+            public static ImageResponseDTO makeDTO(String id, Image image){
+        return new ImageResponseDTO(id,makeDTO(image));
     }
 
-    public static CreateImageResponseDTO makeDTO(UUID id, ModelInterface md){
-        return new CreateImageResponseDTO(id.toString(), makeDTO(md));
+    public static CreateImageResponseDTO makeDTO(String id, ModelInterface md){
+        return new CreateImageResponseDTO(id, makeDTO(md));
     }
     
     private static ModelDTO makeDTO(ModelInterface modelInterface) {
@@ -244,8 +272,8 @@ public class RecordFactory {
         }
         return new DependenciesDTO(resS, resP);
     }
-    public static CreateImageFromFileDTO makeDTO(String code){
-        return new CreateImageFromFileDTO(code);
+    public static CreateImageFromFileDTO makeDTO(String name, String description , String code){
+        return new CreateImageFromFileDTO(name,description,code);
     }
 
 }

@@ -529,8 +529,10 @@ const handleSolve = async () => {
         <div className="results">
         {showResults && <SolutionResultsPage />}
         </div>
+      <button className="back-button" onClick={() => navigate("/")}>
+        ← Back to Home
+      </button>
       </div>
-
       <Link to="/configure-constraints" className="back-button">
         Back
       </Link>

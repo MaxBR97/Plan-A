@@ -3,17 +3,6 @@ package groupId;
 import java.io.IOException;
 import java.util.List;
 
-import DTO.Records.Requests.Commands.CreateImageFromFileDTO;
-import DTO.Records.Requests.Commands.CreateImageFromPathDTO;
-import DTO.Records.Requests.Commands.ImageConfigDTO;
-import DTO.Records.Requests.Commands.SolveCommandDTO;
-import DTO.Records.Image.ImageDTO;
-import DTO.Records.Image.SolutionDTO;
-import DTO.Records.Requests.Responses.CreateImageResponseDTO;
-import DTO.Records.Requests.Responses.ImageResponseDTO;
-
-import jakarta.validation.Valid;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
@@ -28,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import DTO.Records.Image.ImageDTO;
 import DTO.Records.Image.SolutionDTO;
 import DTO.Records.Model.ModelData.InputDTO;
 import DTO.Records.Requests.Commands.CreateImageFromFileDTO;
@@ -36,7 +26,7 @@ import DTO.Records.Requests.Commands.SolveCommandDTO;
 import DTO.Records.Requests.Responses.CreateImageResponseDTO;
 import jakarta.validation.Valid;
 
-//TODO: make all returned status codes to comply with best practices/REST conventions
+//TODO: make all returned status codes to comply with best practices/REST conventions including /api routes
 @RestController
 @RequestMapping("/")
 public class Service implements ServiceInterface {
@@ -57,7 +47,7 @@ public class Service implements ServiceInterface {
     
     @PostMapping("/images")
     public ResponseEntity<CreateImageResponseDTO> createImage(@Valid @RequestBody CreateImageFromFileDTO data) throws Exception {
-        CreateImageResponseDTO response = controller.createImageFromFile(data.code());
+        CreateImageResponseDTO response = controller.createImageFromFile(data);
         return ResponseEntity.ok(response);
     }
 

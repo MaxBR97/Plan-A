@@ -20,7 +20,6 @@ import DTO.Records.Model.ModelDefinition.PreferenceDTO;
 import Image.Modules.ConstraintModule;
 import Image.Modules.PreferenceModule;
 import Image.Modules.VariableModule;
-import Model.Model;
 import Model.ModelConstraint;
 import Model.ModelFactory;
 import Model.ModelInterface;
@@ -49,6 +48,12 @@ public class Image {
     @Id
     @Column(name = "image_id") 
     private String id;
+
+    @Column(name = "image_name") 
+    private String name;
+
+    @Column(name = "image_description") 
+    private String description;
 
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinColumn(name = "image_id",insertable=false, updatable=false)
@@ -89,8 +94,10 @@ public class Image {
         variables = new HashMap<>();
     }
     
-    public Image(String id) throws Exception {
+    public Image(String id, String name, String description) throws Exception {
         this.id = id;
+        this.name = name;
+        this.description = description;
         constraintsModules = new HashMap<>();
         preferenceModules = new HashMap<>();
         setVariableModule(new VariableModule(this, Map.of(), List.of(),List.of()));
@@ -115,6 +122,16 @@ public class Image {
     //     constraintsModules.put(module.getName(), module);
     // }
 
+    @Transactional
+    public String getName(){
+        return this.name;
+    }
+
+    @Transactional
+    public String getDescription(){
+        return this.description;
+    }
+    
     @Transactional
     public void addConstraintModule(String moduleName, String description) {
         constraintsModules.put( moduleName, new ConstraintModule(this, moduleName, description));

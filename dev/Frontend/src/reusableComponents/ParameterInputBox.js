@@ -1,4 +1,5 @@
 import React from "react";
+import "./ParameterInputBox.css"
 
 const ParameterInputBox = ({ paramName, type, value, onChange }) => {
   // Ensure the value is an array

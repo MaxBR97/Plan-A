@@ -13,6 +13,7 @@ const initialState = {
   setTags: {},
   paramTypes: {},
   varTypes: {},
+  imageName: null,
   imageId: null,
   solutionResponse: null,
   variablesModule: {
@@ -33,6 +34,7 @@ export const ZPLProvider = ({ children }) => {
   const [setTags, setSetTags] = useState(initialState.setTags);
   const [paramTypes, setParamTypes] = useState(initialState.paramTypes);
   const [varTypes, setVarTypes] = useState(initialState.varTypes);
+  const [imageName, setImageName] = useState(initialState.imageName);
   const [imageId, setImageId] = useState(initialState.imageId);
   const [solutionResponse, setSolutionResponse] = useState(initialState.solutionResponse);
   const [variablesModule, setVariablesModule] = useState(initialState.variablesModule);
@@ -48,6 +50,7 @@ export const ZPLProvider = ({ children }) => {
     setSetTags(initialState.setTags);
     setParamTypes(initialState.paramTypes);
     setVarTypes(initialState.varTypes);
+    setImageName(initialState.imageName);
     setImageId(initialState.imageId);
     setSolutionResponse(initialState.solutionResponse);
     setVariablesModule(initialState.variablesModule);
@@ -64,6 +67,7 @@ export const ZPLProvider = ({ children }) => {
       setTags, setSetTags,
       paramTypes, setParamTypes,
       varTypes, setVarTypes,
+      imageName, setImageName,
       imageId, setImageId,
       solutionResponse, setSolutionResponse,
       variablesModule, setVariablesModule,

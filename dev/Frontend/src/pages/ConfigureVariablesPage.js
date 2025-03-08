@@ -154,6 +154,7 @@ console.log("variables tags: ",variablesTags)
                     )}
                 </div>
                 <div className="tags-container">
+                    <h2>Tag Variables' Output Tuple</h2>
                     {selectedVars.map((value, key) => {
                         return <TagConfigure
                         key={key}

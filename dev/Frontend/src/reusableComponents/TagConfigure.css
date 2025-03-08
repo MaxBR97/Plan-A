@@ -1,69 +1,86 @@
 /* TagConfigure.css */
 .tag-configure-container {
-    margin-bottom: 16px;
-    padding: 12px;
-    border: 1px solid #e0e0e0;
-    border-radius: 4px;
-    background-color: #f9f9f9;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-  }
-  
-  .tag-header {
-    margin-bottom: 8px;
-  }
-  
-  .tag-label {
-    font-weight: 500;
-    color: #333;
-    font-size: 14px;
-  }
-  
-  .tag-identifier {
-    font-weight: 600;
-    color: #0066cc;
-  }
-  
+  background-color: #fff;
+  border-radius: 6px;
+  padding: 1rem;
+  margin-bottom: 1.2rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.tag-header {
+  margin-bottom: 0.8rem;
+}
+
+.tag-label {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #444;
+}
+
+.tag-identifier {
+  color: #4a90e2;
+  font-weight: 600;
+}
+
+.tag-inputs-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.tag-input-wrapper {
+  display: flex;
+  align-items: center;
+}
+
+.tag-input {
+  padding: 0.6rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  width: 180px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.tag-input:focus {
+  outline: none;
+  border-color: #4a90e2;
+  box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+}
+
+.tag-input-separator {
+  margin: 0 0.5rem;
+  color: #bbb;
+  font-size: 1.2rem;
+}
+
+.tag-empty-message {
+  padding: 0.8rem;
+  color: #888;
+  font-style: italic;
+  font-size: 0.9rem;
+  background-color: #f9f9f9;
+  border-radius: 4px;
+  width: 100%;
+}
+
+@media (max-width: 768px) {
   .tag-inputs-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    align-items: center;
+    flex-direction: column;
+    align-items: flex-start;
   }
   
   .tag-input-wrapper {
-    display: flex;
-    align-items: center;
+    width: 100%;
+    margin-bottom: 0.5rem;
   }
   
   .tag-input {
-    padding: 8px 10px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    font-size: 14px;
-    min-width: 120px;
-    transition: border-color 0.2s, box-shadow 0.2s;
-  }
-  
-  .tag-input:focus {
-    outline: none;
-    border-color: #0066cc;
-    box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.2);
+    width: 100%;
   }
   
   .tag-input-separator {
-    margin: 0 4px;
-    color: #999;
-    font-size: 12px;
+    display: none;
   }
-  
-  .tag-empty-message {
-    color: #999;
-    font-style: italic;
-    padding: 8px 0;
-    font-size: 14px;
-  }
-  
-  /* Container for multiple TagConfigure components */
-  div > .tag-configure-container:not(:last-child) {
-    margin-bottom: 16px;
-  }
+}

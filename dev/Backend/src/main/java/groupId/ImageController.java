@@ -1,46 +1,37 @@
 package groupId;
 
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.UUID;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.RestController;
+
 import DTO.Factories.RecordFactory;
 import DTO.Records.Image.ConstraintModuleDTO;
+import DTO.Records.Image.ImageDTO;
 import DTO.Records.Image.PreferenceModuleDTO;
+import DTO.Records.Image.SolutionDTO;
+import DTO.Records.Model.ModelData.InputDTO;
+import DTO.Records.Requests.Commands.CreateImageFromFileDTO;
 import DTO.Records.Requests.Commands.ImageConfigDTO;
 import DTO.Records.Requests.Commands.SolveCommandDTO;
-import DTO.Records.Image.ImageDTO;
-import DTO.Records.Image.SolutionDTO;
 import DTO.Records.Requests.Responses.CreateImageResponseDTO;
 import DataAccess.ImageRepository;
 import Exceptions.InternalErrors.BadRequestException;
 import Image.Image;
+import Model.ModelConstraint;
+import Model.ModelFactory;
 import Model.ModelInterface;
+import Model.ModelPreference;
 import Model.ModelType;
 import Model.ModelVariable;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.InputStream;
-import java.net.URI;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
-import java.util.*;
-
-import Model.Model;
-
-import org.springframework.web.bind.annotation.RestController;
-
-import DTO.Records.Model.ModelData.InputDTO;
-import DataAccess.ModelRepository;
-import Model.ModelFactory;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
-import Model.ModelConstraint;
-import Model.ModelPreference;
 
 @RestController
 public class ImageController {
@@ -60,17 +51,14 @@ public class ImageController {
 
     //TODO: ensure the code file received does not exceed 8KB
     @Transactional
-    public CreateImageResponseDTO createImageFromFile(String code) throws Exception {
-        UUID id = UUID.randomUUID();
-        String name = id.toString();
-        
-        modelFactory.uploadNewModel(name,code);
-        Image image = new Image(name);
+    public CreateImageResponseDTO createImageFromFile(CreateImageFromFileDTO command) throws Exception {
+        String id = UUID.randomUUID().toString();
+        modelFactory.uploadNewModel(id,command.code());
+        Image image = new Image(id,command.imageName(),command.description());
         imageRepository.save(image);
 
         return RecordFactory.makeDTO(id, image.getModel());
     }
-
 
     @Transactional
     public SolutionDTO solve(SolveCommandDTO command) throws Exception {

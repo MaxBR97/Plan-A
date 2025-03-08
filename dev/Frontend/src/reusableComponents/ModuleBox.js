@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import SetInputBox from '../reusableComponents/SetInputBox.js';
 import ParameterInputBox from '../reusableComponents/ParameterInputBox.js';
-
+import "./ModuleBox.css";
 const ModuleBox = ({ 
   key,
   module,

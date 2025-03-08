@@ -1,9 +1,30 @@
-.set-entry-container {
-    display: flex;
-    align-items: center;
-  }
-  
-.set-entry-element {
-margin-right: 10px;
-width: 120px;
+/* .set-entry-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 5px;
 }
+
+.set-entry-element {
+  padding: 5px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.variable-checkbox {
+  cursor: pointer;
+}
+
+.delete-button {
+  background: #ff4d4d;
+  color: white;
+  border: none;
+  padding: 5px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.delete-button:hover {
+  background: #cc0000;
+} */

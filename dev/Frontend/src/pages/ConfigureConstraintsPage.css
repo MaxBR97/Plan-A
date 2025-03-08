@@ -1,5 +1,4 @@
-/* ConfigureConstraintsPage.css */
-
+/* General Layout */
 .configure-constraints-page {
     display: flex;
     flex-direction: column;
@@ -9,9 +8,8 @@
 }
 
 .page-title {
-    font-size: 36px;
-    font-weight: bold;
-    margin-bottom: 30px;
+    font-size: 24px;
+    margin-bottom: 20px;
 }
 
 .constraints-layout {
@@ -19,133 +17,156 @@
     justify-content: space-between;
     width: 100%;
     max-width: 1200px;
-    min-height: 500px; /* Ensures the sections have a fixed height */
-    align-items: stretch;
+    gap: 20px;
 }
 
+/* Constraint Modules Section */
 .constraint-modules,
 .define-constraint-module,
 .available-constraints {
     flex: 1;
-    padding: 20px;
+    padding: 15px;
     border: 1px solid #ccc;
-    border-radius: 10px;
-    background-color: #f9f9f9;
-    margin: 10px;
-    text-align: center;
-    min-height: 450px; /* Ensuring each section stays at a fixed height */
-    max-height: 500px;
-    overflow-y: auto; /* Allows scrolling if content exceeds max height */
-}
-
-.constraint-modules {
-    background-color: #e3f2fd;
-}
-
-.define-constraint-module {
-    background-color: #e8f5e9;
-    min-height: 200px;
-}
-
-.available-constraints {
-    background-color: #ffebee;
-}
-
-.constraint-box {
-    display: inline-block;
-    background-color: #f0f0f0;
-    color: #333;
-    padding: 8px 12px;
     border-radius: 8px;
-    border: 1px solid #ccc;
-    margin: 5px;
-    cursor: pointer;
-    transition: all 0.2s ease-in-out;
+    background: #f9f9f9;
+    overflow: hidden;
 }
 
-.constraint-box:hover {
-    background-color: #e0e0e0;
-    border-color: #aaa;
+h2 {
+    font-size: 18px;
+    margin-bottom: 10px;
+}
+
+input[type="text"] {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+button {
+    padding: 8px 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    background-color: #007bff;
+    color: white;
+    transition: background 0.3s;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+.module-list {
+    margin-top: 10px;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.module-item-container {
+    display: flex;
+    align-items: center;
+    margin-bottom: 5px;
+    width: 100%;
+    overflow: hidden;
+}
+
+.module-item {
+    flex-grow: 1;
+    text-align: left;
+    padding: 8px;
+    border-radius: 4px;
+    background: #e9ecef;
+    border: none;
+    cursor: pointer;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: black;
+}
+
+.module-item:hover,
+.module-item.selected {
+    background: #007bff;
+    color: white;
 }
 
 .delete-module-button {
     margin-left: 10px;
-    background: none;
-    border: none;
+    background: transparent;
     color: red;
     font-size: 16px;
     cursor: pointer;
 }
 
-.delete-module-button:hover {
-    color: darkred;
+/* Define Constraint Module Section */
+textarea {
+    width: calc(100% - 20px);
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    resize: none;
+    max-width: calc(100% - 20px);
+    max-height: 150px;
+    overflow: hidden;
+    margin: 0 10px;
 }
-
 
 .module-drop-area {
+    padding: 10px;
+    background: #eef;
+    border-radius: 4px;
+    min-height: 50px;
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
-    padding: 10px;
-    border: 2px dashed #ccc;
-    border-radius: 10px;
-    min-height: 50px;
-    background-color: #fafafa;
+    gap: 5px;
 }
 
+.dropped-constraint {
+    background: #17a2b8;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+/* Available Constraints */
+.constraint-item-container {
+    margin-bottom: 5px;
+}
 
 .constraint-item {
-    padding: 10px;
-    margin: 5px;
-    border: 1px solid #aaa;
-    background-color: #fff;
-    cursor: grab;
-    border-radius: 5px;
+    background: #28a745;
+    color: white;
+    padding: 8px;
+    width: 100%;
+    text-align: left;
+    border-radius: 4px;
+    cursor: pointer;
 }
 
 .constraint-item:hover {
-    background-color: #f1f1f1;
+    background: #218838;
 }
 
-.continue-button, .add-button, .back-button {
-    padding: 10px 20px;
-    font-size: 16px;
-    border: 1px solid #ccc;
-    border-radius: 10px;
-    background-color: #ffffff;
-    cursor: pointer;
-    transition: background-color 0.3s;
+/* Buttons */
+.continue-button {
+    margin-top: 20px;
+    background: #28a745;
 }
 
-.continue-button:hover, .add-button:hover, .back-button:hover {
-    background-color: #e0e0e0;
-}
-
-.module-item-container {
-    margin: 5px 0;
-    display: flex;
-    justify-content: center;
-}
-
-.module-item {
-    background-color: white;
-    width: 100%;
-    padding: 10px;
-    border: 2px solid #20C4A4;
-    color: #20C4A4;
-    font-weight: bold;
-    font-size: 16px;
-    text-align: center;
-    cursor: pointer;
-    border-radius: 20px;
-    transition: all 0.3s ease;
-}
-
-.module-item:hover {
-    background-color: rgba(32, 196, 164, 0.2);
-}
-
-.module-item.selected {
-    background-color: #20C4A4;
+.back-button {
+    margin-top: 10px;
+    display: inline-block;
+    padding: 8px 12px;
     color: white;
+    background: #6c757d;
+    border-radius: 4px;
+    text-decoration: none;
+}
+
+.back-button:hover {
+    background: #5a6268;
 }

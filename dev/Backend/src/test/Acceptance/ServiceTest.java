@@ -68,6 +68,9 @@ public class ServiceTest {
           maximize myObjective:
               myVar[3];
             """;
+    
+    static String imageName="myImage";
+    static String imageDescription="desc";
     @Autowired
     private Service service;
     
@@ -81,7 +84,7 @@ public class ServiceTest {
         public void testCreateImage() {
             // sample Zimpl code
     
-            CreateImageFromFileDTO body = new CreateImageFromFileDTO(SimpleCodeExample);
+            CreateImageFromFileDTO body = new CreateImageFromFileDTO(imageName,imageDescription,SimpleCodeExample);
     
             
             HttpHeaders headers = new HttpHeaders();
@@ -125,7 +128,7 @@ public class ServiceTest {
             /**
              * SET UP
              */
-            CreateImageFromFileDTO body = new CreateImageFromFileDTO(SimpleCodeExample);
+            CreateImageFromFileDTO body = new CreateImageFromFileDTO(imageName,imageDescription,SimpleCodeExample);
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
             // Create http request with body and headers
@@ -168,7 +171,7 @@ public class ServiceTest {
                     new PreferenceModuleDTO("Test module","PeanutButter",
                             Set.of("myVar[3]"),Set.of(),Set.of()));
             VariableModuleDTO variableModuleDTO= new VariableModuleDTO(Set.of("myVar"),Set.of("mySet"),Set.of());
-            ImageDTO imageDTO= new ImageDTO(variableModuleDTO,constraintModuleDTOs,preferenceModuleDTOs);
+            ImageDTO imageDTO= new ImageDTO(response.getBody().imageId(),imageName,imageDescription,variableModuleDTO,constraintModuleDTOs,preferenceModuleDTOs);
             ImageConfigDTO configDTO= new ImageConfigDTO(response.getBody().imageId(),imageDTO);
             HttpEntity<ImageConfigDTO> request2 = new HttpEntity<>(configDTO, headers);
             // Send PATCH request with body
@@ -194,7 +197,7 @@ public class ServiceTest {
                 assertTrue(false);
             }
     
-            CreateImageFromFileDTO body = new CreateImageFromFileDTO(SimpleCodeExample);
+            CreateImageFromFileDTO body = new CreateImageFromFileDTO(imageName,imageDescription,SimpleCodeExample);
     
             
             HttpHeaders headers = new HttpHeaders();
@@ -248,7 +251,7 @@ public class ServiceTest {
                 /**
                  * SET UP IMAGE, MAKE SURE ITS VALID
                  */
-                CreateImageFromFileDTO body = new CreateImageFromFileDTO(SimpleCodeExample);
+                CreateImageFromFileDTO body = new CreateImageFromFileDTO(imageName,imageDescription,SimpleCodeExample);
     
     
                 HttpHeaders headers = new HttpHeaders();
@@ -288,7 +291,7 @@ public class ServiceTest {
                 /**
                  *  CONFIG IMAGE TO DISPLAY myVar
                  */
-                ImageDTO imageDTO=new ImageDTO(new VariableModuleDTO(Set.of("myVar"),Set.of(),Set.of()),Set.of(),Set.of());
+                ImageDTO imageDTO=new ImageDTO(response.getBody().imageId(),imageName,imageDescription,new VariableModuleDTO(Set.of("myVar"),Set.of(),Set.of()),Set.of(),Set.of());
                 ImageConfigDTO config= new ImageConfigDTO(response.getBody().imageId(),imageDTO);
                 HttpEntity<ImageConfigDTO> request2 = new HttpEntity<>(config, headers);
                 // Send PATCH request with body
@@ -335,7 +338,7 @@ public class ServiceTest {
                 new PreferenceModuleDTO("MyPref","desc",
                         Set.of("myVar[3]"),Set.of(),Set.of()));
         VariableModuleDTO variableModuleDTO= new VariableModuleDTO(Set.of("myVar"),Set.of("mySet"),Set.of());
-        ImageDTO imageDTO= new ImageDTO(variableModuleDTO,constraintModuleDTOs,preferenceModuleDTOs);
+        ImageDTO imageDTO= new ImageDTO(imageId,imageName,imageDescription,variableModuleDTO,constraintModuleDTOs,preferenceModuleDTOs);
         ImageConfigDTO configDTO= new ImageConfigDTO(imageId,imageDTO);
         configImage(configDTO);
     
@@ -425,7 +428,7 @@ public class ServiceTest {
                 /**
                  * SET UP IMAGE, MAKE SURE ITS VALID
                  */
-                CreateImageFromFileDTO body = new CreateImageFromFileDTO(SimpleCodeExample);
+                CreateImageFromFileDTO body = new CreateImageFromFileDTO(imageName,imageDescription,SimpleCodeExample);
     
     
                 HttpHeaders headers = new HttpHeaders();
@@ -465,7 +468,7 @@ public class ServiceTest {
                 /**
                  *  CONFIG IMAGE TO DISPLAY myVar
                  */
-                ImageDTO imageDTO=new ImageDTO(new VariableModuleDTO(Set.of("myVar"),Set.of(),Set.of())
+                ImageDTO imageDTO=new ImageDTO(response.getBody().imageId(),imageName,imageDescription,new VariableModuleDTO(Set.of("myVar"),Set.of(),Set.of())
                                                 ,Set.of(new ConstraintModuleDTO("constraintToRemove", "desc", Set.of("optionalConstraint"), Set.of(), Set.of())),
                                                 Set.of());
                 ImageConfigDTO config= new ImageConfigDTO(response.getBody().imageId(),imageDTO);
@@ -505,7 +508,7 @@ public class ServiceTest {
         
 
         private ResponseEntity<CreateImageResponseDTO> createImageCall(String code){
-            CreateImageFromFileDTO body = new CreateImageFromFileDTO(SimpleCodeExample);
+            CreateImageFromFileDTO body = new CreateImageFromFileDTO(imageName,imageDescription,SimpleCodeExample);
     
             
             HttpHeaders headers = new HttpHeaders();

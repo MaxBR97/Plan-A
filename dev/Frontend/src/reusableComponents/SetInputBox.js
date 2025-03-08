@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import SetEntry from '../reusableComponents/SetEntry';
-
+import "./SetInputBox.css";
 const SetInputBox = ({ 
     key,
     typeList,

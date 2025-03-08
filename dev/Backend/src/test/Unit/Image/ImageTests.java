@@ -88,7 +88,7 @@ public class ImageTests {
         InputStream inputStream = new ByteArrayInputStream(Files.readAllBytes(Path.of(TEST_FILE_PATH)));
         modelRepository.uploadDocument(sourceId, inputStream);
         inputStream.close();
-        image = new Image(sourceId);
+        image = new Image(sourceId, "myImage", "desc");
     }
 
     @Test

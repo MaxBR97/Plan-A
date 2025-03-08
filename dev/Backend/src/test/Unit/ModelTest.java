@@ -31,7 +31,6 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 
 import DataAccess.ModelRepository;
-import Model.Model;
 import Model.ModelConstraint;
 import Model.ModelFactory;
 import Model.ModelFunctionality;
@@ -52,10 +51,11 @@ import groupId.Main;
 //@ExtendWith(SpringExtension.class)
 //@ActiveProfiles("test") 
 //@Transactional
+@ActiveProfiles("H2mem")
 @TestMethodOrder(MethodOrderer.Alphanumeric.class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS) 
 
-public abstract class ModelTest {
+public class ModelTest {
     private ModelInterface model;
     private static String source = "src/test/Unit/TestFile.zpl";
     private static String TEST_FILE_PATH = "src/test/Unit/TestFileINSTANCE.zpl";
