@@ -13,8 +13,9 @@ const initialState = {
   setTags: {},
   paramTypes: {},
   varTypes: {},
-  imageName: null,
+  imageName: "My Image",
   imageId: null,
+  imageDescription:"default description",
   solutionResponse: null,
   variablesModule: {
     variablesOfInterest: [],
@@ -36,6 +37,7 @@ export const ZPLProvider = ({ children }) => {
   const [varTypes, setVarTypes] = useState(initialState.varTypes);
   const [imageName, setImageName] = useState(initialState.imageName);
   const [imageId, setImageId] = useState(initialState.imageId);
+  const [imageDescription, setImageDescription] = useState(initialState.imageDescription);
   const [solutionResponse, setSolutionResponse] = useState(initialState.solutionResponse);
   const [variablesModule, setVariablesModule] = useState(initialState.variablesModule);
 
@@ -52,6 +54,7 @@ export const ZPLProvider = ({ children }) => {
     setVarTypes(initialState.varTypes);
     setImageName(initialState.imageName);
     setImageId(initialState.imageId);
+    setImageDescription(initialState.imageDescription);
     setSolutionResponse(initialState.solutionResponse);
     setVariablesModule(initialState.variablesModule);
   };
@@ -69,6 +72,7 @@ export const ZPLProvider = ({ children }) => {
       varTypes, setVarTypes,
       imageName, setImageName,
       imageId, setImageId,
+      imageDescription, setImageDescription,
       solutionResponse, setSolutionResponse,
       variablesModule, setVariablesModule,
       resetAll // Add the reset function to the context

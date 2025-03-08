@@ -171,6 +171,9 @@ console.log("variables tags: ",variablesTags)
             <Link to="/configure-constraints" className="continue-button" onClick={handleContinue}>
                 Continue
             </Link>
+            <Link to="/" className="back-button">
+                Back
+            </Link>
         </div>
     );
 };

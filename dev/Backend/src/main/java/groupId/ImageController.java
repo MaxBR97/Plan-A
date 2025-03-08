@@ -54,7 +54,7 @@ public class ImageController {
     public CreateImageResponseDTO createImageFromFile(CreateImageFromFileDTO command) throws Exception {
         String id = UUID.randomUUID().toString();
         modelFactory.uploadNewModel(id,command.code());
-        Image image = new Image(id,command.imageName(),command.description());
+        Image image = new Image(id,command.imageName(),command.imageDescription());
         imageRepository.save(image);
 
         return RecordFactory.makeDTO(id, image.getModel());

@@ -24,7 +24,7 @@ function App() {
                     <Route path="/configure-constraints" element={<ConfigureConstraintsPage />} />
                     <Route path="/configure-preferences" element={<ConfigurePreferencesPage />} />
                     <Route path="/solution-preview" element={<SolutionPreviewPage />} />
-                    <Route path="/solution-results" element={<SolutionResultsPage />} />
+                    {/* <Route path="/solution-results" element={<SolutionResultsPage />} /> */}
                 </Routes>
             </DndProvider>
         </Router>

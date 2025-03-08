@@ -20,6 +20,8 @@ const SolutionPreviewPage = () => {
     variables,
     types,
     imageId,
+    imageName,
+    imageDescription,
     setSolutionResponse,
     setTypes,
     setTags,
@@ -207,6 +209,9 @@ const patchConfigurations = async () => {
   const patchRequestBody = {
     imageId,
     image: { // Wrap everything under "image"
+        imageId, 
+        imageName,
+        imageDescription,
         variablesModule, // Assumed to be available in context
         constraintModules: modules.map(module => ({
             moduleName: module.name,

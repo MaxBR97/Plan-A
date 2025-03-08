@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link ,useNavigate } from 'react-router-dom';
 import './MainPage.css';
 import axios from 'axios';
 
 const MainPage = () => {
+    const navigate = useNavigate();
     const [myImages, setMyImages] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [expandedDescriptions, setExpandedDescriptions] = useState({});
 
     // Fetch all images when component mounts
     useEffect(() => {
@@ -28,13 +30,29 @@ const MainPage = () => {
             setLoading(false);
         }
     };
+    console.log(myImages)
+    const navigateToImageDetails = (imageId) => {
+        const selectedImage = myImages.find(image => image.imageId == imageId)
+        console.log(selectedImage)
+        navigate(`/solution-preview`);
+    };
+
+    const toggleDescription = (imageId, event) => {
+        if (event) {
+            event.stopPropagation(); 
+        }
+        setExpandedDescriptions(prev => ({
+            ...prev,
+            [imageId]: !prev[imageId]
+        }));
+    };
 
     const handleDeleteImage = async (imageId) => {
         if (window.confirm('Are you sure you want to delete this image?')) {
             try {
                 await axios.delete(`/images/${imageId}`);
                 // Remove the deleted image from state
-                setMyImages(myImages.filter(image => image.id !== imageId));
+                setMyImages(myImages.filter(image => image.imageId !== imageId));
             } catch (err) {
                 console.error('Error deleting image:', err);
                 alert('Failed to delete the image. Please try again.');
@@ -57,7 +75,7 @@ const MainPage = () => {
                         Refresh
                     </button>
                 </div>
-
+    
                 {loading && <div className="loading-spinner">Loading images...</div>}
                 
                 {error && <div className="error-message">{error}</div>}
@@ -67,15 +85,23 @@ const MainPage = () => {
                         No images found. Create your first image by clicking the button below.
                     </div>
                 )}
-
+    
                 <div className="images-grid">
                     {myImages.map((image, index) => (
-                        <div className="image-card" key={image.id || index}>
+                        <div 
+                            className="image-card" 
+                            key={image.imageId || index}
+                            onClick={() => navigateToImageDetails(image.imageId)}
+                            style={{ cursor: 'pointer' }}
+                        >
                             <div className="image-card-header">
-                                <h3>Image {index + 1}</h3>
+                                <h3>{image.imageName}</h3>
                                 <button 
                                     className="delete-button"
-                                    onClick={() => handleDeleteImage(image.id)}
+                                    onClick={(e) => {
+                                        e.stopPropagation(); // Prevent card click event
+                                        handleDeleteImage(image.imageId);
+                                    }}
                                     aria-label="Delete image"
                                 >
                                     ×
@@ -83,14 +109,25 @@ const MainPage = () => {
                             </div>
                             <div className="image-card-content">
                                 <div className="image-info">
-                                    <p><strong>Variables:</strong> {image.variablesModule.variables?.length || 0}</p>
-                                    <p><strong>Constraints:</strong> {image.constraintModules?.length || 0}</p>
-                                    <p><strong>Preferences:</strong> {image.preferenceModules?.length || 0}</p>
+                                    <div className={`description-container ${expandedDescriptions[image.imageId] ? 'expanded' : ''}`}>
+                                        <p>{image.imageDescription}</p>
+                                    </div>
+                                    {image.imageDescription && image.imageDescription.length > 150 && (
+                                        <button 
+                                            className="read-more-button"
+                                            onClick={(e) => {
+                                                e.stopPropagation(); // Prevent card click event
+                                                toggleDescription(image.imageId);
+                                            }}
+                                        >
+                                            {expandedDescriptions[image.imageId] ? 'Show less' : 'Read more'}
+                                        </button>
+                                    )}
                                 </div>
-                                <div className="image-actions">
+                                {/* <div className="image-actions">
                                     <button className="view-button">View Details</button>
                                     <button className="edit-button">Edit</button>
-                                </div>
+                                </div> */}
                             </div>
                         </div>
                     ))}
