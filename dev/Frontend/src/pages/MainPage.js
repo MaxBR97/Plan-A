@@ -2,8 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { Link ,useNavigate } from 'react-router-dom';
 import './MainPage.css';
 import axios from 'axios';
+import { useZPL } from "../context/ZPLContext";
 
 const MainPage = () => {
+    const {
+        updateImage,
+        image
+      } = useZPL();
     const navigate = useNavigate();
     const [myImages, setMyImages] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -30,10 +35,10 @@ const MainPage = () => {
             setLoading(false);
         }
     };
-    console.log(myImages)
     const navigateToImageDetails = (imageId) => {
         const selectedImage = myImages.find(image => image.imageId == imageId)
-        console.log(selectedImage)
+        console.log("selected: ",selectedImage)
+        updateImage(selectedImage)
         navigate(`/solution-preview`);
     };
 

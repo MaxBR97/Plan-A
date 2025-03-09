@@ -14,10 +14,8 @@ const SetEntry = ({
 }) => {
   
   return (
-    <div className="set-entry-container">
-       <input 
-        type="checkbox"
-        className="variable-checkbox set-entry-element"
+    <div className="set-entry">
+       <Checkbox 
         onChange={onToggle}
         checked={checked}
         />
@@ -29,7 +27,7 @@ const SetEntry = ({
             value={value}
             onChange={(e) => onEdit(e, typeIndex)} // Pass typeIndex here
             placeholder={`Enter ${typeList[typeIndex] || "value"}:`}
-            className="set-entry-element"
+            className="set-entry-atom"
           />
         );
       })}

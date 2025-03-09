@@ -6,14 +6,24 @@ import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import Checkbox from "../reusableComponents/Checkbox.js";
 
 const SolutionResultsPage = () => {
-  const { variablesModule, solutionResponse } = useZPL();
+  const {
+    image,
+    model,
+    solutionResponse,
+    updateImage,
+    updateImageField,
+    updateModel,
+    updateSolutionResponse,
+    initialImageState
+  } = useZPL();
   const [selectedVariable, setSelectedVariable] = useState(null);
   const [displayValue, setDisplayValue] = useState(true);
   const [displayStructure, setDisplayStructure] = useState([]);
   // Use useEffect to update selectedVariable when solutionResponse becomes available
 
   const getSetStructure = (variable) => {
-    return variablesModule.variablesTags[variable] || solutionResponse.solution[variable]?.setStructure || [];
+    // return image.variablesModule.variableTags[variable] ||
+    return solutionResponse.solution[variable]?.setStructure || [];
   }
   
   useEffect(() => {

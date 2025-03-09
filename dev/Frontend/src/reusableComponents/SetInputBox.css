@@ -1,36 +1,77 @@
-/* .module-box {
-    background: #fff;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    padding: 15px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  }
-  
-  .add-button {
-    display: inline-block;
-    background: #007bff;
-    color: white;
-    padding: 6px 10px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 14px;
-  }
-  
-  .add-button:hover {
-    background: #0056b3;
-  }
-  
-  .input-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  
-  .input-divider {
-    border: 0;
-    height: 1px;
-    background: #ddd;
-    margin: 8px 0;
-  }
-   */
+.set-input {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 800px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 15px;
+  margin: 15px 0;
+  background-color: white;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.set-name {
+  font-size: 18px;
+  margin: 0 0 5px 0;
+  color: #333;
+}
+
+.set-type {
+  font-size: 14px;
+  margin: 0 0 15px 0;
+  color: #666;
+}
+
+.add-set-entry-button {
+  align-self: flex-start;
+  background-color: #1890ff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 16px;
+  margin-bottom: 15px;
+  cursor: pointer;
+  min-width: 120px;
+  height: 36px;
+  font-size: 14px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.add-set-entry-button:hover {
+  background-color: #40a9ff;
+}
+
+/* Container for the scrollable entries */
+.entries-container {
+  max-height: 350px; /* Height to show approximately 6 entries */
+  overflow-y: auto;
+  padding-right: 5px;
+}
+
+.set-input > div > div {
+  margin-bottom: 8px;
+}
+
+/* For Firefox */
+.entries-container {
+  scrollbar-width: thin;
+  scrollbar-color: #ddd transparent;
+}
+
+/* For Chrome, Edge, and Safari */
+.entries-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.entries-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.entries-container::-webkit-scrollbar-thumb {
+  background-color: #ddd;
+  border-radius: 4px;
+}

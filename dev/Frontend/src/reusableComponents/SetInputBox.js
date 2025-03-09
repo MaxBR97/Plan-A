@@ -14,55 +14,51 @@ const SetInputBox = ({
     setValues
 }) => {
 
-  return (
-    <div key={key} className="module-box">
-          {/* Display Variable Name */}
-          <h3 className="module-title">{setName}</h3>
+  // In SetInputBox.jsx
+// In SetInputBox.jsx
+return (
+  <div key={key} className="set-input">
+    <h3 className="set-name">{setName}</h3>
+    <p className="set-type">
+      <strong>Type:</strong> {typeList.join(", ")}
+    </p>
+    <button
+      className="add-set-entry-button"
+      onClick={() => handleAddTuple(setName, typeList)}
+    >
+      Add Entry
+    </button>
 
-          {/* Display Type from setTypes */}
-          <p className="variable-type">
-            <strong>Type:</strong> {typeList.join(", ")}
-          </p>
-
-          {/* Add Button */}
-          <button
-            className="add-button"
-            onClick={() => handleAddTuple(setName, typeList)}
-          ></button>
-
-          {/* Input Fields - Each type gets its own separate textbox */}
-          {setValues?.map((row, rowIndex) => (
-            <div key={rowIndex} className="input-row">
-              
-                  <SetEntry
-                    key={rowIndex}
-                    typeList={typeList}
-                    row={row}
-                    checked={isRowSelected(setName, rowIndex)}
-                    onEdit={(e, typeIndex) => // Capture typeIndex here
-                      handleTupleChange(setName, rowIndex, typeIndex, e.target.value)
-                    }
-                    onToggle={(e) =>
-                      handleTupleToggle(
-                        setName,
-                        rowIndex,
-                      )
-                    }
-                    onDelete={(e) =>
-                      handleRemoveTuple(
-                        setName,
-                        rowIndex,
-                      )
-                    }
-                    className="variable-input"
-                    
-                  />
-              {/* Add a divider after each row */}
-              <hr className="input-divider" />
-            </div>
-          ))}
+    {/* Wrap all entries in a scrollable container div */}
+    <div className="entries-container">
+      {setValues?.map((row, rowIndex) => (
+        <div key={rowIndex}>
+          <SetEntry
+            key={rowIndex}
+            typeList={typeList}
+            row={row}
+            checked={isRowSelected(setName, rowIndex)}
+            onEdit={(e, typeIndex) =>
+              handleTupleChange(setName, rowIndex, typeIndex, e.target.value)
+            }
+            onToggle={(e) =>
+              handleTupleToggle(
+                setName,
+                rowIndex,
+              )
+            }
+            onDelete={(e) =>
+              handleRemoveTuple(
+                setName,
+                rowIndex,
+              )
+            }
+          />
         </div>
-  );
+      ))}
+    </div>
+  </div>
+);
 };
 
 export default SetInputBox;

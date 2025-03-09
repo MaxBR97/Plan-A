@@ -105,16 +105,16 @@ public class ImageController {
         Objects.requireNonNull(image,"Invalid imageId in image config/override image");
         Map<String, ModelVariable> variables = new HashMap<>();
         ModelInterface model= image.getModel();
+        BadRequestException.requireNotNull(imgConfig.image().variablesModule().variablesOfInterest(),"Bad DTO during image config, field in variables in image is null");
+        BadRequestException.requireNotNull(imgConfig.image().variablesModule().inputParams(),"Bad DTO during image config, field in variables in image is null");
+        BadRequestException.requireNotNull(imgConfig.image().variablesModule().inputSets(),"Bad DTO during image config, field in variables in image is null");
         for(String variable:imageDTO.variablesModule().variablesOfInterest()){
-            BadRequestException.requireNotNull(imgConfig.image().variablesModule().variablesOfInterest(),"Bad DTO during image config, field in variables in image is null");
-            BadRequestException.requireNotNull(imgConfig.image().variablesModule().variablesConfigurableParams(),"Bad DTO during image config, field in variables in image is null");
-            BadRequestException.requireNotNull(imgConfig.image().variablesModule().variablesConfigurableSets(),"Bad DTO during image config, field in variables in image is null");
-
+            
             ModelVariable modelVariable=model.getVariable(variable);
             Objects.requireNonNull(modelVariable,"Invalid variable name in config/override image");
             variables.put(variable,modelVariable);
         }
-        image.reset(variables, imageDTO.variablesModule().variablesConfigurableSets(),imageDTO.variablesModule().variablesConfigurableParams());
+        image.reset(variables, imageDTO.variablesModule().inputSets(),imageDTO.variablesModule().inputParams());
         for(ConstraintModuleDTO constraintModule:imageDTO.constraintModules()){
             image.addConstraintModule(constraintModule.moduleName(),constraintModule.description(),
                     constraintModule.constraints(),constraintModule.inputSets(),constraintModule.inputParams());

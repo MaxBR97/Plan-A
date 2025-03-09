@@ -6,7 +6,7 @@ const Checkbox = ({
   checked = false,
   disabled = false,
   onChange,
-  name
+  name="checkbox"
 }) => {
   return (
     <label className="checkbox-label" style={{

@@ -6,36 +6,54 @@ import Checkbox from '../reusableComponents/Checkbox';
 
 const ConfigureConstraintsPage = () => {
     const navigate = useNavigate();
-    const { constraints: jsonConstraints = [], modules = [], setModules = () => {} , variables} = useZPL();
+    const {
+        image,
+        model,
+        solutionResponse,
+        updateImage,
+        updateImageField,
+        updateModel,
+        updateSolutionResponse,
+        initialImageState
+      } = useZPL();
 
     const [availableConstraints, setAvailableConstraints] = useState([]);
     const [moduleName, setModuleName] = useState('');
     const [selectedModuleIndex, setSelectedModuleIndex] = useState(null);
-    const bannedSets = [...new Set(variables.flatMap(v => v.dep?.setDependencies || []))];
-    const bannedParams = [...new Set(variables.flatMap(v => v.dep?.paramDependencies || []))];
-    console.log(modules)
+    const bannedSets = [...new Set(Array.from(model.variables).flatMap(v => v.dep?.setDependencies || []))];
+    const bannedParams = [...new Set(Array.from(model.variables).flatMap(v => v.dep?.paramDependencies || []))];
+    console.log(image.constraintModules)
     console.log(bannedParams)
     
     useEffect(() => {
-        setAvailableConstraints(jsonConstraints.filter((c) => modules.every((module) => !module.constraints.includes(c))));
-    }, [jsonConstraints]);
+        setAvailableConstraints(Array.from(model.constraints).filter((c) => image.constraintModules.every((module) => !module.constraints.includes(c))));
+    }, [model.constraints]);
 
     const addConstraintModule = () => {
         if (moduleName.trim() !== '') {
-            setModules((prevModules) => [
-                ...prevModules,
-                { name: moduleName, description: "", constraints: [], involvedSets: [], involvedParams: [] , inputSets:[], inputParams:[]}
+            updateImageField("constraintModules", 
+            [ ... image.constraintModules,
+                {   
+                    name: moduleName, 
+                    description: "", 
+                    constraints: [], 
+                    involvedSets: [], 
+                    involvedParams: [] , 
+                    inputSets:[], 
+                    inputParams:[]
+                }
             ]);
             setModuleName('');
         }
     };
 
     const updateModuleDescription = (newDescription) => {
-        setModules((prevModules) =>
-            prevModules.map((module, idx) =>
+        updateImageField("constraintModules",
+            image.constraintModules.map((module, idx) =>
                 idx === selectedModuleIndex ? { ...module, description: newDescription } : module
             )
-        );
+        )
+        
     };
 
     const addConstraintToModule = (constraint) => {
@@ -44,8 +62,8 @@ const ConfigureConstraintsPage = () => {
             return;
         }
 
-        setModules((prevModules) => {
-            return prevModules.map((module, idx) => {
+        updateImageField("constraintModules",
+            image.constraintModules.map((module, idx) => {
                 if (idx === selectedModuleIndex) {
                     if (!module.constraints.some(c => c.identifier === constraint.identifier)) {
                         return {
@@ -57,8 +75,9 @@ const ConfigureConstraintsPage = () => {
                     }
                 }
                 return module;
-            });
-        });
+            })
+        );
+        
         
         setAvailableConstraints((prev) => {
             const filteredConstraints = prev.filter((c) => c.identifier !== constraint.identifier);
@@ -73,8 +92,8 @@ const ConfigureConstraintsPage = () => {
     const removeConstraintFromModule = (constraint) => {
         if (selectedModuleIndex === null) return;
 
-        setModules((prevModules) =>
-            prevModules.map((module, idx) => {
+        updateImageField("constraintModules",
+            image.constraintModules.map((module, idx) => {
                 if (idx === selectedModuleIndex) {
                     const newConstraints = module.constraints.filter(c => c.identifier !== constraint.identifier);
 
@@ -94,8 +113,6 @@ const ConfigureConstraintsPage = () => {
                     filteredSets.forEach(set => remainingSets.add(set));
                     filteredParams.forEach(param => remainingParams.add(param));
 
-
-
                     return {
                         ...module,
                         constraints: newConstraints,
@@ -112,8 +129,8 @@ const ConfigureConstraintsPage = () => {
 
     const deleteModule = (index) => {
         
-        modules[index].constraints.forEach((constraint) => removeConstraintFromModule(constraint))
-        setModules((prevModules) => prevModules.filter((_, i) => i !== index));
+        image.constraintModules[index].constraints.forEach((constraint) => removeConstraintFromModule(constraint))
+        updateImageField("constraintModules", image.constraintModules.filter((_, i) => i !== index));
     
         // Reset selection if the deleted module was selected
         if (selectedModuleIndex === index) {
@@ -125,8 +142,8 @@ const ConfigureConstraintsPage = () => {
 
     //console.log(modules)
     const handleToggleInvolvedSet = (setName) => {
-        setModules((prevModules) =>
-            prevModules.map((module, idx) => {
+        updateImageField("constraintModules", 
+            image.constraintModules.map((module, idx) => {
                 if (idx === selectedModuleIndex) {
                     // Check if the set is already in inputSets
                     const isSetIncluded = module.inputSets.includes(setName);
@@ -143,8 +160,8 @@ const ConfigureConstraintsPage = () => {
     
     const handleToggleInvolvedParam = (paramName) => {
         
-        setModules((prevModules) =>
-            prevModules.map((module, idx) => {
+        updateImageField("constraintModules",
+            image.constraintModules.map((module, idx) => {
                 if (idx === selectedModuleIndex) {
                     // Check if the param is already in involvedParams
                     const isParamIncluded = module.inputParams.includes(paramName);
@@ -178,7 +195,7 @@ const ConfigureConstraintsPage = () => {
                     />
                     <button onClick={addConstraintModule}>Add Constraint Module</button>
                     <div className="module-list">
-                        {modules.map((module, index) => (
+                        {image.constraintModules.map((module, index) => (
                             <div key={index} className="module-item-container">
                                 <button 
                                     className={`module-item ${selectedModuleIndex === index ? 'selected' : ''}`} 
@@ -207,11 +224,11 @@ const ConfigureConstraintsPage = () => {
                         <p>Select a module</p>
                     ) : (
                         <>
-                            <h3>{modules[selectedModuleIndex]?.name || 'Unnamed Module'}</h3>
+                            <h3>{image.constraintModules[selectedModuleIndex]?.name || 'Unnamed Module'}</h3>
                             <label>Description:</label>
                             <hr />
                             <textarea
-                                value={modules[selectedModuleIndex]?.description || ""}
+                                value={image.constraintModules[selectedModuleIndex]?.description || ""}
                                 onChange={(e) => updateModuleDescription(e.target.value)}
                                 placeholder="Enter module description..."
                                 style={{ resize: "none", width: "100%", height: "80px" }}
@@ -219,8 +236,8 @@ const ConfigureConstraintsPage = () => {
                             <p>This module's constraints:</p>
                             <hr />
                             <div className="module-drop-area">
-                                {modules[selectedModuleIndex]?.constraints?.length > 0 ? (
-                                    modules[selectedModuleIndex].constraints.map((c, i) => (
+                                {image.constraintModules[selectedModuleIndex]?.constraints?.length > 0 ? (
+                                    image.constraintModules[selectedModuleIndex].constraints.map((c, i) => (
                                         <div 
                                             key={i} 
                                             className="dropped-constraint constraint-box"
@@ -236,11 +253,11 @@ const ConfigureConstraintsPage = () => {
 
                             <h3>Select input Sets:</h3>
                             <div>
-                                {modules[selectedModuleIndex]?.involvedSets.map((set, i) => (
+                                {image.constraintModules[selectedModuleIndex]?.involvedSets.map((set, i) => (
                                     <div key={i}>
                                         <Checkbox 
                                             type="checkbox" 
-                                            checked={modules[selectedModuleIndex]?.inputSets.includes(set)} 
+                                            checked={image.constraintModules[selectedModuleIndex]?.inputSets.includes(set)} 
                                             onChange={() => handleToggleInvolvedSet(set)}
                                         /> {set}
                                     </div>
@@ -249,11 +266,11 @@ const ConfigureConstraintsPage = () => {
 
                             <h3>Select input Parameters:</h3>
                             <div>
-                                {modules[selectedModuleIndex]?.involvedParams.map((param, i) => (
+                                {image.constraintModules[selectedModuleIndex]?.involvedParams.map((param, i) => (
                                     <div key={i}>
                                         <Checkbox 
                                             type="checkbox" 
-                                            checked={modules[selectedModuleIndex]?.inputParams.includes(param)} 
+                                            checked={image.constraintModules[selectedModuleIndex]?.inputParams.includes(param)} 
                                             onChange={() => handleToggleInvolvedParam(param)}
                                         /> {param}
                                     </div>

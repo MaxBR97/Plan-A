@@ -6,12 +6,10 @@ import "./UploadZPLPage.css";
 
 const UploadZPLPage = () => {
     const {
-        imageName, setImageName,
-        setImageId, setVariables,
-        imageDescription, setImageDescription,
-        setConstraints, setPreferences,
-        setSetTypes, setParamTypes,
-        setVarTypes, resetAll
+        image,
+        model,
+        updateImageField,
+        updateModel
     } = useZPL();
 
     const [fileContent, setFileContent] = useState(`
@@ -56,14 +54,14 @@ set indexSetOfPeople := {<i,p> in {1.. card(People)} * People | ord(People,i,1) 
 minimize distributeShiftsEqually:
     sum <person> in People : ((TotalMishmarot[person]+1)**2)
     + (sum <i,person,station,time> in  indexSetOfPeople*Mishmarot | time <= card(People)/card(Emdot)*shiftTime: (Shibutsim[person,station,time]*bias*i*time));
+`);
 
-    `);
     const [message, setMessage] = useState("");
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
 
     const handleUpload = async () => {
-        if (!imageName.trim()) {
+        if (!image.imageName.trim()) {
             setMessage("Error: Image name cannot be empty.");
             return;
         }
@@ -73,30 +71,28 @@ minimize distributeShiftsEqually:
 
         const requestData = {
             code: fileContent,
-            imageName: imageName.trim(),
-            imageDescription: imageDescription, // Include description in request
+            imageName: image.imageName.trim(),
+            imageDescription: image.imageDescription,
         };
-        console.log("Sending POST request: ",requestData)
+
+        console.log("Sending POST request:", requestData);
 
         try {
             const response = await axios.post("/images", requestData, {
                 headers: { "Content-Type": "application/json" },
             });
 
-            console.log("response: ",response)
+            console.log("Response:", response);
 
             const { imageId, model } = response.data;
-            resetAll();
-            
-            setImageName(imageName.trim());
-            setImageId(imageId);
-            setImageDescription(imageDescription);
-            setVariables(model.variables);
-            setConstraints(model.constraints);
-            setPreferences(model.preferences);
-            setSetTypes(model.setTypes);
-            setParamTypes(model.paramTypes);
-            setVarTypes(model.varTypes);
+
+            // Update image state
+            updateImageField("imageId", imageId);
+            updateImageField("imageName", image.imageName.trim());
+            updateImageField("imageDescription", image.imageDescription);
+
+            // Update model state
+            updateModel(model);
 
             setMessage("File uploaded successfully!");
             navigate("/configure-variables");
@@ -120,8 +116,8 @@ minimize distributeShiftsEqually:
                 <label>Image Name:</label>
                 <input
                     type="text"
-                    value={imageName}
-                    onChange={(e) => setImageName(e.target.value)}
+                    value={image.imageName}
+                    onChange={(e) => updateImageField("imageName", e.target.value)}
                     className="image-name-input"
                     placeholder="Enter image name..."
                 />
@@ -133,10 +129,10 @@ minimize distributeShiftsEqually:
                     className="fixed-textarea code"
                 />
 
-                <label>Image Description:</label> {/* New label */}
+                <label>Image Description:</label>
                 <textarea
-                    value={imageDescription}
-                    onChange={(e) => setImageDescription(e.target.value)}
+                    value={image.imageDescription}
+                    onChange={(e) => updateImageField("imageDescription", e.target.value)}
                     className="fixed-textarea"
                     placeholder="Enter image description..."
                 />

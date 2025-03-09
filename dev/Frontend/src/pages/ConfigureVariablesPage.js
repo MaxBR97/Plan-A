@@ -6,15 +6,24 @@ import Checkbox from "../reusableComponents/Checkbox.js";
 import TagConfigure from "../reusableComponents/TagConfigure.js";
 
 const ConfigureVariablesPage = () => {
-    const { variables, varTypes, variablesModule, setVariablesModule } = useZPL();
+    const {
+        image,
+        model,
+        solutionResponse,
+        updateImage,
+        updateImageField,
+        updateModel,
+        updateSolutionResponse,
+        initialImageState
+      } = useZPL();
 
-    const [selectedVars, setSelectedVars] = useState((variables || []));  // Stores selected variables
+    const [selectedVars, setSelectedVars] = useState(Array.from(model.variables || []));  // Stores selected variables
     const [displaySets, setDisplaySets] = useState([]);    // Stores sets that should be displayed
     const [displayParams, setDisplayParams] = useState([]); // Stores params that should be displayed
     const [selectedSets, setSelectedSets] = useState([]);  // Stores selected sets
     const [selectedParams, setSelectedParams] = useState([]); // Stores selected params
     const [hasInitialized, setHasInitialized] = useState(false);
-    const [variablesTags, setVariablesTags] = useState(varTypes)
+    const [variablesTags, setVariablesTags] = useState(model.varTypes)
    
     useEffect(() => {
         // First, update the displayed sets and params
@@ -81,10 +90,10 @@ const ConfigureVariablesPage = () => {
 
     // Save selected variables, sets, and parameters in context when navigating
     const handleContinue = () => {
-        setVariablesModule({
+        updateImageField("variablesModule",{
             variablesOfInterest: selectedVars.map(v => v.identifier),
-            variablesConfigurableSets: selectedSets,
-            variablesConfigurableParams: selectedParams,
+            inputSets: selectedSets,
+            inputParams: selectedParams,
             variablesTags: variablesTags
         });
     };
@@ -109,8 +118,8 @@ console.log("variables tags: ",variablesTags)
                 {/* Variables Section */}
                 <div className="available-variables">
                     <h2>Available Variables</h2>
-                    {variables.length > 0 ? (
-                        variables.map((variable, index) => (
+                    {model.variables.length > 0 ? (
+                        model.variables.map((variable, index) => (
                             <Checkbox
                                 key={index}
                                 label={variable.identifier}
@@ -160,7 +169,7 @@ console.log("variables tags: ",variablesTags)
                         key={key}
                         label="s"
                         variable={value}
-                        types={varTypes[value.identifier]}
+                        types={model.varTypes[value.identifier]}
                         values={variablesTags[value.identifier] || []}
                         onChange={(e, index) => handleTagValueChange(e, value.identifier, index)}
                         />

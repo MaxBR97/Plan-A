@@ -1,85 +1,95 @@
-import React, { createContext, useContext, useState } from "react";
+import { createContext, useContext, useState } from "react";
 
-const ZPLContext = createContext();
+const ZPLContext = createContext(null);
 
-// Define initial states outside the component to reuse them in the reset function
-const initialState = {
-  constraints: [],
-  preferences: [],
-  modules: [],
-  preferenceModules: [],
-  variables: [],
-  setTypes: {},
-  setTags: {},
-  paramTypes: {},
-  varTypes: {},
+const initialImageState = {
   imageName: "My Image",
+  imageDescription: "default description",
   imageId: null,
-  imageDescription:"default description",
-  solutionResponse: null,
-  variablesModule: {
-    variablesOfInterest: [],
-    variablesConfigurableSets: [],
-    variablesConfigurableParams: [],
-    variablesTags: [],
-  }
+  constraintModules: [],
+  preferenceModules: [],
+  // variables: [],
+  // setTypes: [],
+  // setTags: [],
+  // paramTypes: [],
+  // varTypes: [],
+  variablesModule: null,
 };
 
 export const ZPLProvider = ({ children }) => {
-  const [constraints, setConstraints] = useState(initialState.constraints);
-  const [preferences, setPreferences] = useState(initialState.preferences);
-  const [modules, setModules] = useState(initialState.modules);
-  const [preferenceModules, setPreferenceModules] = useState(initialState.preferenceModules);
-  const [variables, setVariables] = useState(initialState.variables);
-  const [setTypes, setSetTypes] = useState(initialState.setTypes);
-  const [setTags, setSetTags] = useState(initialState.setTags);
-  const [paramTypes, setParamTypes] = useState(initialState.paramTypes);
-  const [varTypes, setVarTypes] = useState(initialState.varTypes);
-  const [imageName, setImageName] = useState(initialState.imageName);
-  const [imageId, setImageId] = useState(initialState.imageId);
-  const [imageDescription, setImageDescription] = useState(initialState.imageDescription);
-  const [solutionResponse, setSolutionResponse] = useState(initialState.solutionResponse);
-  const [variablesModule, setVariablesModule] = useState(initialState.variablesModule);
+  // State for image-related data
+  const [image, setImage] = useState(initialImageState);
 
-  // Reset function that sets all states back to their initial values
-  const resetAll = () => {
-    setConstraints(initialState.constraints);
-    setPreferences(initialState.preferences);
-    setModules(initialState.modules);
-    setPreferenceModules(initialState.preferenceModules);
-    setVariables(initialState.variables);
-    setSetTypes(initialState.setTypes);
-    setSetTags(initialState.setTags);
-    setParamTypes(initialState.paramTypes);
-    setVarTypes(initialState.varTypes);
-    setImageName(initialState.imageName);
-    setImageId(initialState.imageId);
-    setImageDescription(initialState.imageDescription);
-    setSolutionResponse(initialState.solutionResponse);
-    setVariablesModule(initialState.variablesModule);
+  // State for model-related data (from ModelDTO)
+  const [model, setModel] = useState({
+    constraints: new Set(),
+    preferences: new Set(),
+    variables: new Set(),
+    setTypes: {},
+    paramTypes: {},
+    varTypes: {},
+  });
+
+  // State for solution response (from SolutionDTO)
+  const [solutionResponse, setSolutionResponse] = useState({
+    solved: false,
+    solvingTime: -2,
+    objectiveValue: 0,
+    errorMsg: "",
+    solution: {},
+  });
+
+  const updateImage = (imageDTO) => {
+     setImage(imageDTO)
+  }
+
+  // Function to update image fields dynamically
+  const updateImageField = (field, value) => {  
+    setImage((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
+
+  // Function to update model state
+  const updateModel = (newModelData) => {
+    setModel({
+      constraints: new Set(newModelData.constraints || []),
+      preferences: new Set(newModelData.preferences || []),
+      variables: new Set(newModelData.variables || []),
+      setTypes: newModelData.setTypes || {},
+      paramTypes: newModelData.paramTypes || {},
+      varTypes: newModelData.varTypes || {},
+    });
+  };
+
+  // Function to update solution response
+  const updateSolutionResponse = (response) => {
+    setSolutionResponse(response);
   };
 
   return (
-    <ZPLContext.Provider value={{
-      constraints, setConstraints,
-      preferences, setPreferences,
-      modules, setModules,
-      preferenceModules, setPreferenceModules,
-      variables, setVariables,
-      setTypes, setSetTypes,
-      setTags, setSetTags,
-      paramTypes, setParamTypes,
-      varTypes, setVarTypes,
-      imageName, setImageName,
-      imageId, setImageId,
-      imageDescription, setImageDescription,
-      solutionResponse, setSolutionResponse,
-      variablesModule, setVariablesModule,
-      resetAll // Add the reset function to the context
-    }}>
+    <ZPLContext.Provider
+      value={{
+        image,
+        model,
+        solutionResponse,
+        updateImage,
+        updateImageField,
+        updateModel,
+        updateSolutionResponse,
+        initialImageState
+      }}
+    >
       {children}
     </ZPLContext.Provider>
   );
 };
 
-export const useZPL = () => useContext(ZPLContext);
+export const useZPL = () => {
+  const context = useContext(ZPLContext);
+  if (!context) {
+    throw new Error("useZPL must be used within a ZPLProvider");
+  }
+  return context;
+};

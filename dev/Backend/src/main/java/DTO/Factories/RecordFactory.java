@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.yaml.snakeyaml.util.Tuple;
 
@@ -33,6 +34,7 @@ import DTO.Records.Requests.Responses.ImageResponseDTO;
 import Image.Image;
 import Image.Modules.ConstraintModule;
 import Image.Modules.PreferenceModule;
+import Image.Modules.VariableModule;
 import Model.ModelConstraint;
 import Model.ModelInput;
 import Model.ModelInterface;
@@ -98,14 +100,10 @@ public class RecordFactory {
             constraints.add(constraint.getIdentifier());
         }
 
-        Set<String> sets = new HashSet<>();
-        for(ModelSet s:module.getInvolvedSets()){
-            sets.add(s.getIdentifier());
-        }
-        Set<String> param = new HashSet<>();
-        for(ModelParameter p:module.getInvolvedParameters()){
-            param.add(p.getIdentifier());
-        }
+        Set<String> sets = module.getInputSets();
+        
+        Set<String> param = module.getInputParams();
+        
         return new ConstraintModuleDTO(module.getName(), module.getDescription(),
                 constraints, sets, param);
     }
@@ -117,15 +115,10 @@ public class RecordFactory {
             preferences.add(pref.getIdentifier());
         }
 
-        Set<String> sets = new HashSet<>();
-        for(ModelSet s:module.getInvolvedSets()){
-            sets.add(s.getIdentifier());
-        }
+        Set<String> sets = module.getInputSets();
 
-        Set<String> param = new HashSet<>();
-        for(ModelParameter p:module.getInvolvedParameters()){
-            param.add(p.getIdentifier());
-        }
+        Set<String> param = module.getInputParams();
+        
         return new PreferenceModuleDTO(module.getName(), module.getDescription(),
                 preferences, sets, param);
     }
@@ -184,7 +177,7 @@ public class RecordFactory {
             throw new NullPointerException("Null image in DTO mapping");
         Set< ConstraintModuleDTO> constraints = new HashSet<>();
         Set<PreferenceModuleDTO> preferences = new HashSet<>();
-        VariableModuleDTO variables = makeDTO(image.getVariables().values().stream().toList());
+        VariableModuleDTO variables = makeDTO(image.getVariableModule());
                 for(ConstraintModule module: image.getConstraintsModules().values()){
                     constraints.add(makeDTO(module));
                 }
@@ -193,22 +186,19 @@ public class RecordFactory {
                 }
                 
                 return new ImageDTO(image.getId(),image.getName(), image.getDescription(), variables, constraints, preferences);
-            }
-        private static VariableModuleDTO makeDTO(List<ModelVariable> values) {
-            Set<String> intr = new HashSet<>();
-            Set<String> params = new HashSet<>();
-            Set<String> sets = new HashSet<>();
-            for(ModelVariable mv : values){
-                intr.add(mv.getIdentifier());
-                for(ModelSet set : mv.getSetDependencies()){
-                    sets.add(set.getIdentifier());
-                }
-                for(ModelParameter param : mv.getParamDependencies()){
-                    params.add(param.getIdentifier());
-                }
-            }
+        }
+        private static VariableModuleDTO makeDTO(VariableModule module) {
+            Set<String> intr = module.getVariables().values()
+                         .stream()
+                         .map(ModelVariable::getIdentifier)
+                         .collect(Collectors.toSet());
+
+            Set<String> params = module.getInputParams();
+            Set<String> sets = module.getInputSets();
+        
             return new VariableModuleDTO(intr, sets, params);
         }
+
             public static ImageResponseDTO makeDTO(String id, Image image){
         return new ImageResponseDTO(id,makeDTO(image));
     }

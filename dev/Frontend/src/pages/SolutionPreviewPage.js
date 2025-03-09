@@ -13,25 +13,19 @@ import { useNavigate } from "react-router-dom"; // Import useNavigate
 
 const SolutionPreviewPage = () => {
   const {
-    constraints,
-    preferences,
-    modules,
-    preferenceModules,
-    variables,
-    types,
-    imageId,
-    imageName,
-    imageDescription,
-    setSolutionResponse,
-    setTypes,
-    setTags,
-    paramTypes,
-    setSolutionData,
-    variablesModule,
+    image,
+    model,
+    solutionResponse,
+    updateImage,
+    updateImageField,
+    updateModel,
+    updateSolutionResponse,
+    initialImageState
   } = useZPL();
 
-  const allSets = variables.flatMap(
-    (variable) => variable.dep?.setDependencies ?? []
+console.log("operatinng on image: ", image)
+  const allSets = Array.from(image.variablesModule).flatMap(
+    (variable) => variable.dep?.inputSets ?? []
   );
   const [variableValues, setVariableValues] = useState({});
   const [paramValues, setParamValues] = useState({});
@@ -73,14 +67,14 @@ const SolutionPreviewPage = () => {
 
   const handleAddVariable = (setName) => {
     console.log("Adding Variable for:", setName);
-    console.log("Available setTypes:", setTypes);
+    console.log("Available setTypes:", model.setTypes);
   
-    if (!setTypes[setName]) {
+    if (!model.setTypes[setName]) {
       console.error(`❌ Error: setTypes does not contain ${setName}`);
       return; // Prevent further execution
     }
   
-    const numTypes = getNumTypes(setTypes[setName]); // Function to extract type count
+    const numTypes = getNumTypes(model.setTypes[setName]); // Function to extract type count
   
     setVariableValues((prev) => {
       const newRow = new Array(numTypes).fill("");
@@ -176,18 +170,18 @@ const SolutionPreviewPage = () => {
 
 const loadInputs = async () => {
   try {
-      const response = await fetch(`/images/${imageId}/inputs`, {
+      console.log("fetching inputs from: ", image.imageId)
+      const response = await fetch(`/images/${image.imageId}/inputs`, {
           method: "GET",
           headers: { "Content-Type": "application/json" },
       });
 
-      if (!response.ok) {
-          throw new Error(`load inputs request failed! Status: ${response.status}`);
-      }
-
       const responseText = await response.text(); // Wait for response body
       const data = JSON.parse(responseText);
 
+      if (!response.ok) {
+        throw new Error(`load inputs request failed! Status: ${responseText}`);
+    }
      
       setVariableValues(data.setsToValues);
       setParamValues(data.paramsToValues);
@@ -205,61 +199,16 @@ const loadInputs = async () => {
   }
 };
 
-const patchConfigurations = async () => {
-  const patchRequestBody = {
-    imageId,
-    image: { // Wrap everything under "image"
-        imageId, 
-        imageName,
-        imageDescription,
-        variablesModule, // Assumed to be available in context
-        constraintModules: modules.map(module => ({
-            moduleName: module.name,
-            constraints: module.constraints.map(c => c.identifier),
-            inputSets: module.involvedSets,
-            inputParams: module.involvedParams,
-            moduleDescription: module.description
-        })),
-        preferenceModules: preferenceModules.map(module => ({
-            moduleName: module.name,
-            preferences: module.preferences.map(p => p.identifier),
-            inputSets: module.involvedSets,
-            inputParams: module.involvedParams,
-            moduleDescription: module.description
-        }))
-    }
-};
-
-console.log("Sending PATCH request:", JSON.stringify(patchRequestBody, null, 2));
-
-try {
-    // PATCH request to /Images
-    const patchResponse = await fetch("/images", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(patchRequestBody)
-    });
-
-    if (!patchResponse.ok) {
-        throw new Error(`PATCH request failed! Status: ${patchResponse.status}`);
-    }
-
-    console.log("✅ PATCH request successful!");
-
-} catch (error) {
-    console.error("Error sending PATCH request:", error);
-    setErrorMessage(`Failed to update image metadata: ${error.message}`);
-    return; // Stop execution if PATCH fails
-}
-}
 
 useEffect(() => {
   (async () => {
-    await patchConfigurations();
-    await loadInputs();
-    console.log("Inputs loaded, now user can proceed.");
+    console.log("afds",image.imageId)
+    if(image.imageId) {
+      await loadInputs();
+      console.log("Inputs loaded, now user can proceed.");
+      }
   })();
-}, []);
+}, [image.imageId]);
 const handleSolve = async () => {
   setErrorMessage(null);
   setResponseData(null);
@@ -272,7 +221,7 @@ const handleSolve = async () => {
       ])
   );
   const requestBody = {
-    imageId,
+    imageId: image.imageId,
     input: {
       setsToValues: Object.entries(variableValues).reduce((acc, [setName, rows]) => {
         if (selectedVariableValues[setName]) {
@@ -311,7 +260,7 @@ const handleSolve = async () => {
       const data = JSON.parse(responseText);
       console.log(responseText);
       console.log(data);
-      setSolutionResponse(data);
+      updateSolutionResponse(data);
       //navigate("/solution-results");\
       setShowResults(true)
   } catch (error) {
@@ -325,24 +274,24 @@ const handleSolve = async () => {
   const [showModal, setShowModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState(null);
 
-  const selectedParams = variablesModule?.variablesConfigurableParams ?? [];
+  const selectedParams = image.variablesModule?.inputParams ?? [];
 
   return (
     <div className="solution-preview-page">
-      <h1 className="page-title">Solution Preview</h1>
+      <h1 className="page-title">{image.imageName}</h1>
       <div className="modules-container">
         {/* Constraints Section */}
         <div className="module-section">
           <h2 className="section-title">Constraints</h2>
-          {modules.length > 0 ? (
-            modules.map((module, index) => {
+          {image.constraintModules.length > 0 ? (
+            image.constraintModules.map((module, index) => {
               let inputSets = {};
               let inputParams = {}
 
               module.inputSets.forEach((setName) => {
                 const inputSet = {
                   setName: setName,
-                  typeList: setTypes[setName],
+                  typeList: model.setTypes[setName],
                   tupleTags: [],
                   setValues: variableValues[setName],
                 };
@@ -354,7 +303,7 @@ const handleSolve = async () => {
                 const inputParam = {
                   paramName: paramName,
                   value: paramValues[paramName],
-                  type: paramTypes[paramName]
+                  type: model.paramTypes[paramName]
                 };
                 inputParams[paramName] = inputParam;
               });
@@ -383,8 +332,8 @@ const handleSolve = async () => {
         {/* Preferences Section */}
         <div className="module-section">
           <h2 className="section-title">Preferences</h2>
-          {preferenceModules.length > 0 ? (
-            preferenceModules.map((module, index) => (
+          {image.preferenceModules.length > 0 ? (
+            image.preferenceModules.map((module, index) => (
               <div key={index} className="module-box">
                 {/* Toggle Button Positioned Correctly */}
                 <div className="toggle-container">
@@ -449,21 +398,21 @@ const handleSolve = async () => {
         {/* Variable Sets Section */}
 <div className="module-section">
   <h2 className="section-title">Variable Sets</h2>
-  {Array.from(new Set(Object.keys(setTypes)))
-    .filter((set) => variablesModule?.variablesConfigurableSets.includes(set))
+  {Array.from(new Set(Object.keys(model.setTypes)))
+    .filter((set) => image.variablesModule?.inputSets.includes(set))
     .map((set, index) => {
       // Fetch type from setTypes
-      const typeList = setTypes[set]
-        ? Array.isArray(setTypes[set])
-          ? setTypes[set]
-          : [setTypes[set]]
+      const typeList = model.setTypes[set]
+        ? Array.isArray(model.setTypes[set])
+          ? model.setTypes[set]
+          : [model.setTypes[set]]
         : ["Unknown"];
       
       return (
         <SetInputBox
           index={index}
           typeList={typeList}
-          tupleTags={setTags || []}
+          tupleTags={[]}
           setName={set}
           handleAddTuple={handleAddVariable}
           handleTupleChange={handleVariableChange}
@@ -480,13 +429,13 @@ const handleSolve = async () => {
             {/* Parameters Section */}
       <div className="module-section">
       <h2 className="section-title">Parameters</h2>
-      {Object.keys(paramTypes)
+      {Object.keys(model.paramTypes)
         .filter((param) => selectedParams.includes(param))
         .map((param, index) => (
           <ParameterInputBox
             key={index}
             paramName={param}
-            type={paramTypes[param]}
+            type={model.paramTypes[param]}
             value={paramValues[param]}
             onChange={handleParamChange}
           />
