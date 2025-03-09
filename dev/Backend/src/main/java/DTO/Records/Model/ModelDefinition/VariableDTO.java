@@ -8,5 +8,7 @@ import java.util.List;
 
 public record VariableDTO(
     @NotBlank String identifier,
+    List<String> tags,
+    List<String> type,
     @Valid @NotNull DependenciesDTO dep
 ) {}

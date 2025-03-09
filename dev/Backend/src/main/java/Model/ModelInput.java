@@ -12,6 +12,8 @@ public abstract class ModelInput extends ModelComponent {
     protected ModelType myType;
     @Transient
     protected StructureBlock[] myStruct;
+    @Transient
+    protected String[] tags;
 
     public ModelInput(String imageId, String identifier, ModelType type) {
         super(imageId, identifier);
@@ -79,6 +81,13 @@ public abstract class ModelInput extends ModelComponent {
             }
         }
         return false;
+    }
+
+    public String[] getTags(){
+        if(tags == null){
+            tags = myType.typeList().toArray(new String[0]);
+        }
+        return tags;
     }
     
     // param w := 20;

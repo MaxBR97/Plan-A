@@ -35,6 +35,8 @@ import DTO.Records.Image.SolutionDTO;
 import DTO.Records.Image.SolutionValueDTO;
 import DTO.Records.Image.VariableModuleDTO;
 import DTO.Records.Model.ModelData.InputDTO;
+import DTO.Records.Model.ModelData.ParameterDefinitionDTO;
+import DTO.Records.Model.ModelData.SetDefinitionDTO;
 import DTO.Records.Model.ModelDefinition.ConstraintDTO;
 import DTO.Records.Model.ModelDefinition.DependenciesDTO;
 import DTO.Records.Model.ModelDefinition.ModelDTO;
@@ -79,6 +81,7 @@ public class ServiceTest {
 
     @Autowired
     private ModelRepository modelRepository;
+
     
         @Test
         public void testCreateImage() {
@@ -108,7 +111,7 @@ public class ServiceTest {
                   Set.of(new ConstraintDTO("sampleConstraint", new DependenciesDTO(Set.of(),Set.of("x"))),
                         new ConstraintDTO("optionalConstraint", new DependenciesDTO(Set.of(),Set.of()))),
                     Set.of(new PreferenceDTO("myVar[3]", new DependenciesDTO(Set.of(),Set.of()))),
-                    Set.of(new VariableDTO("myVar", new DependenciesDTO(Set.of("mySet"),Set.of()))),
+                    Set.of(new VariableDTO("myVar",List.of("INT"),List.of("INT"), new DependenciesDTO(Set.of("mySet"),Set.of()))),
                     Map.of("mySet",List.of("INT")),
                     Map.of("x","INT"),
                     Map.of("myVar",List.of("INT"))));
@@ -147,7 +150,7 @@ public class ServiceTest {
                     Set.of(new ConstraintDTO("sampleConstraint", new DependenciesDTO(Set.of(),Set.of("x"))),
                             new ConstraintDTO("optionalConstraint", new DependenciesDTO(Set.of(),Set.of()))),
                     Set.of(new PreferenceDTO("myVar[3]", new DependenciesDTO(Set.of(),Set.of()))),
-                    Set.of(new VariableDTO("myVar", new DependenciesDTO(Set.of("mySet"),Set.of()))),
+                    Set.of(new VariableDTO("myVar",List.of("INT"),List.of("INT"), new DependenciesDTO(Set.of("mySet"),Set.of()))),
                     Map.of("mySet",List.of("INT")),
                     Map.of("x","INT"),
                     Map.of("myVar",List.of("INT"))
@@ -165,12 +168,12 @@ public class ServiceTest {
              * TEST
              */
             Set<ConstraintModuleDTO> constraintModuleDTOs=Set.of(
-                    new ConstraintModuleDTO("Test module","PeanutButter",
-                            Set.of("sampleConstraint"),Set.of("mySet"),Set.of("x")));
+                    new ConstraintModuleDTO("Test module const","PeanutButter",
+                            Set.of("sampleConstraint"),Set.of(new SetDefinitionDTO("mySet", List.of("INT"),List.of("INT"))),Set.of(new ParameterDefinitionDTO("x","INT","INT"))));
             Set<PreferenceModuleDTO> preferenceModuleDTOs=Set.of(
-                    new PreferenceModuleDTO("Test module","PeanutButter",
+                    new PreferenceModuleDTO("Test module pref","PeanutButter",
                             Set.of("myVar[3]"),Set.of(),Set.of()));
-            VariableModuleDTO variableModuleDTO= new VariableModuleDTO(Set.of("myVar"),Set.of("mySet"),Set.of());
+            VariableModuleDTO variableModuleDTO= new VariableModuleDTO(Set.of(new VariableDTO("myVar",List.of("INT"),List.of("INT"), new DependenciesDTO(Set.of("mySet"),Set.of()))),Set.of(new SetDefinitionDTO("mySet", List.of("INT"),List.of("INT"))),Set.of());
             ImageDTO imageDTO= new ImageDTO(response.getBody().imageId(),imageName,imageDescription,variableModuleDTO,constraintModuleDTOs,preferenceModuleDTOs);
             ImageConfigDTO configDTO= new ImageConfigDTO(response.getBody().imageId(),imageDTO);
             HttpEntity<ImageConfigDTO> request2 = new HttpEntity<>(configDTO, headers);
@@ -223,8 +226,8 @@ public class ServiceTest {
                   new ConstraintDTO("drisha3", new DependenciesDTO(Set.of("People","Emdot"),Set.of("shiftTime","restHours"))),
                   new ConstraintDTO("drisha4", new DependenciesDTO(Set.of("Emdot","People"),Set.of("shiftTime")))),
                     Set.of(new PreferenceDTO("sum<person>inPeople:(TotalMishmarot[person]**2)", new DependenciesDTO(Set.of("People"),Set.of()))),
-                    Set.of(new VariableDTO("Shibutsim", new DependenciesDTO(Set.of("People","Emdot"),Set.of("shiftTime"))),
-                            new VariableDTO("TotalMishmarot", new DependenciesDTO(Set.of("People"),Set.of()))),
+                    Set.of(new VariableDTO("Shibutsim",List.of("TEXT","TEXT","INT"),List.of("TEXT","TEXT","INT") , new DependenciesDTO(Set.of("People","Emdot"),Set.of("shiftTime"))),
+                            new VariableDTO("TotalMishmarot", List.of("TEXT"),List.of("TEXT"),new DependenciesDTO(Set.of("People"),Set.of()))),
                   Map.of(
                     "People",List.of("TEXT"),
                     "Emdot",List.of("TEXT")),
@@ -275,7 +278,7 @@ public class ServiceTest {
                         Set.of(new ConstraintDTO("sampleConstraint", new DependenciesDTO(Set.of(),Set.of("x"))),
                                 new ConstraintDTO("optionalConstraint", new DependenciesDTO(Set.of(),Set.of()))),
                         Set.of(new PreferenceDTO("myVar[3]", new DependenciesDTO(Set.of(),Set.of()))),
-                        Set.of(new VariableDTO("myVar", new DependenciesDTO(Set.of("mySet"),Set.of()))),
+                        Set.of(new VariableDTO("myVar", List.of("INT"),List.of("INT"),new DependenciesDTO(Set.of("mySet"),Set.of()))),
                         Map.of("mySet",List.of("INT")),
                         Map.of("x","INT"),
                         Map.of("myVar",List.of("INT"))));
@@ -291,7 +294,7 @@ public class ServiceTest {
                 /**
                  *  CONFIG IMAGE TO DISPLAY myVar
                  */
-                ImageDTO imageDTO=new ImageDTO(response.getBody().imageId(),imageName,imageDescription,new VariableModuleDTO(Set.of("myVar"),Set.of(),Set.of()),Set.of(),Set.of());
+                ImageDTO imageDTO=new ImageDTO(response.getBody().imageId(),imageName,imageDescription,new VariableModuleDTO(Set.of(new VariableDTO("myVar",List.of("INT"),List.of("INT"), new DependenciesDTO(Set.of("mySet"),Set.of()))),Set.of(),Set.of()),Set.of(),Set.of());
                 ImageConfigDTO config= new ImageConfigDTO(response.getBody().imageId(),imageDTO);
                 HttpEntity<ImageConfigDTO> request2 = new HttpEntity<>(config, headers);
                 // Send PATCH request with body
@@ -333,11 +336,11 @@ public class ServiceTest {
         String imageId = imageCreated.imageId();
         Set<ConstraintModuleDTO> constraintModuleDTOs=Set.of(
                 new ConstraintModuleDTO("MyConst","description",
-                        Set.of("sampleConstraint"),Set.of(),Set.of("x")));
+                        Set.of("sampleConstraint"),Set.of(),Set.of(new ParameterDefinitionDTO("x","INT","INT"))));
         Set<PreferenceModuleDTO> preferenceModuleDTOs=Set.of(
                 new PreferenceModuleDTO("MyPref","desc",
                         Set.of("myVar[3]"),Set.of(),Set.of()));
-        VariableModuleDTO variableModuleDTO= new VariableModuleDTO(Set.of("myVar"),Set.of("mySet"),Set.of());
+        VariableModuleDTO variableModuleDTO= new VariableModuleDTO(Set.of(new VariableDTO("myVar",List.of("INT"),List.of("INT"), new DependenciesDTO(Set.of("mySet"),Set.of()))),Set.of(new SetDefinitionDTO("mySet", List.of("INT"),List.of("INT"))),Set.of());
         ImageDTO imageDTO= new ImageDTO(imageId,imageName,imageDescription,variableModuleDTO,constraintModuleDTOs,preferenceModuleDTOs);
         ImageConfigDTO configDTO= new ImageConfigDTO(imageId,imageDTO);
         configImage(configDTO);
@@ -452,7 +455,7 @@ public class ServiceTest {
                         Set.of(new ConstraintDTO("sampleConstraint", new DependenciesDTO(Set.of(),Set.of("x"))),
                                 new ConstraintDTO("optionalConstraint", new DependenciesDTO(Set.of(),Set.of()))),
                         Set.of(new PreferenceDTO("myVar[3]", new DependenciesDTO(Set.of(),Set.of()))),
-                        Set.of(new VariableDTO("myVar", new DependenciesDTO(Set.of("mySet"),Set.of()))),
+                        Set.of(new VariableDTO("myVar",List.of("INT"),List.of("INT"), new DependenciesDTO(Set.of("mySet"),Set.of()))),
                         Map.of("mySet",List.of("INT")),
                         Map.of("x","INT"),
                         Map.of("myVar",List.of("INT"))));
@@ -468,7 +471,7 @@ public class ServiceTest {
                 /**
                  *  CONFIG IMAGE TO DISPLAY myVar
                  */
-                ImageDTO imageDTO=new ImageDTO(response.getBody().imageId(),imageName,imageDescription,new VariableModuleDTO(Set.of("myVar"),Set.of(),Set.of())
+                ImageDTO imageDTO=new ImageDTO(response.getBody().imageId(),imageName,imageDescription,new VariableModuleDTO(Set.of(new VariableDTO("myVar",List.of("INT"),List.of("INT"), new DependenciesDTO(Set.of("mySet"),Set.of()))),Set.of(),Set.of())
                                                 ,Set.of(new ConstraintModuleDTO("constraintToRemove", "desc", Set.of("optionalConstraint"), Set.of(), Set.of())),
                                                 Set.of());
                 ImageConfigDTO config= new ImageConfigDTO(response.getBody().imageId(),imageDTO);

@@ -43,7 +43,7 @@ public class ConstraintModule extends Module{
         super(image, name, description);
         this.constraints = new HashMap<>();
     }
-    public ConstraintModule(Image image ,String name, String description, Collection<ModelConstraint> constraints, Collection<String> inputSets, Collection<String> inputParams) {
+    public ConstraintModule(Image image ,String name, String description, Collection<ModelConstraint> constraints, Collection<ModelSet> inputSets, Collection<ModelParameter> inputParams) {
         super(image, name, description, inputSets, inputParams);
         this.constraints = new HashMap<>();
         for (ModelConstraint constraint : constraints) {

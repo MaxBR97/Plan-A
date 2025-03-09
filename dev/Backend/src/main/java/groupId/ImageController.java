@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
@@ -17,6 +18,9 @@ import DTO.Records.Image.ImageDTO;
 import DTO.Records.Image.PreferenceModuleDTO;
 import DTO.Records.Image.SolutionDTO;
 import DTO.Records.Model.ModelData.InputDTO;
+import DTO.Records.Model.ModelData.ParameterDefinitionDTO;
+import DTO.Records.Model.ModelData.SetDefinitionDTO;
+import DTO.Records.Model.ModelDefinition.VariableDTO;
 import DTO.Records.Requests.Commands.CreateImageFromFileDTO;
 import DTO.Records.Requests.Commands.ImageConfigDTO;
 import DTO.Records.Requests.Commands.SolveCommandDTO;
@@ -108,20 +112,25 @@ public class ImageController {
         BadRequestException.requireNotNull(imgConfig.image().variablesModule().variablesOfInterest(),"Bad DTO during image config, field in variables in image is null");
         BadRequestException.requireNotNull(imgConfig.image().variablesModule().inputParams(),"Bad DTO during image config, field in variables in image is null");
         BadRequestException.requireNotNull(imgConfig.image().variablesModule().inputSets(),"Bad DTO during image config, field in variables in image is null");
-        for(String variable:imageDTO.variablesModule().variablesOfInterest()){
+        for(VariableDTO variable:imageDTO.variablesModule().variablesOfInterest()){
             
-            ModelVariable modelVariable=model.getVariable(variable);
+            ModelVariable modelVariable=model.getVariable(variable.identifier());
             Objects.requireNonNull(modelVariable,"Invalid variable name in config/override image");
-            variables.put(variable,modelVariable);
+            variables.put(variable.identifier(),modelVariable);
         }
-        image.reset(variables, imageDTO.variablesModule().inputSets(),imageDTO.variablesModule().inputParams());
+        image.reset(variables, imageDTO.variablesModule().inputSets().stream().map(SetDefinitionDTO::name).collect(Collectors.toSet()),
+                                imageDTO.variablesModule().inputParams().stream().map(ParameterDefinitionDTO::name).collect(Collectors.toSet()));
         for(ConstraintModuleDTO constraintModule:imageDTO.constraintModules()){
             image.addConstraintModule(constraintModule.moduleName(),constraintModule.description(),
-                    constraintModule.constraints(),constraintModule.inputSets(),constraintModule.inputParams());
+                    constraintModule.constraints(),
+                    constraintModule.inputSets().stream().map(SetDefinitionDTO::name).collect(Collectors.toSet()),
+                    constraintModule.inputParams().stream().map(ParameterDefinitionDTO::name).collect(Collectors.toSet()));
         }
         for (PreferenceModuleDTO preferenceModule:imageDTO.preferenceModules()){
             image.addPreferenceModule(preferenceModule.moduleName(), preferenceModule.description(),
-                    preferenceModule.preferences(),preferenceModule.inputSets(),preferenceModule.inputParams());
+                    preferenceModule.preferences(),
+                    preferenceModule.inputSets().stream().map(SetDefinitionDTO::name).collect(Collectors.toSet()),
+                    preferenceModule.inputParams().stream().map(ParameterDefinitionDTO::name).collect(Collectors.toSet()));
         }
         entityManager.merge(image);
     }

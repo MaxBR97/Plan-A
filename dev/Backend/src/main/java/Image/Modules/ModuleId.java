@@ -9,7 +9,7 @@ import jakarta.persistence.Embeddable;
 @Embeddable
 public class ModuleId implements Serializable {
     
-    @Column(name = "image_id",insertable=false, updatable=false)
+    @Column(name = "image_id", insertable=false, updatable=false)
     private String id;
 
     @Column(name = "name",insertable=false, updatable=false)

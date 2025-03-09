@@ -7,9 +7,9 @@ import jakarta.persistence.Embeddable;
 
 @Embeddable
 public class ModelComponentId implements Serializable {
-    @Column(name="name",insertable=false, updatable=false)
+    @Column(name="name")
     private String identifier;
-    @Column(name="image_id",insertable=false, updatable=false)
+    @Column(name="image_id", insertable=false, updatable=false)
     private String imageId;
 
     // Default constructor (required by Hibernate)

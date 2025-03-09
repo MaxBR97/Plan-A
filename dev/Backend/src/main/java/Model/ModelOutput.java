@@ -13,6 +13,8 @@ public abstract class ModelOutput extends ModelComponent {
     protected boolean isComplex;
     @Transient
     protected ModelType myType;
+    @Transient
+    protected String[] tags;
 
     public ModelOutput(String imageId, String identifier) {
         super(imageId, identifier);
@@ -26,6 +28,13 @@ public abstract class ModelOutput extends ModelComponent {
 
     protected ModelOutput(){
         super();
+    }
+
+    public String[] getTags(){
+        if(tags == null){
+            tags = myType.typeList().toArray(new String[0]);
+        }
+        return tags;
     }
 
 

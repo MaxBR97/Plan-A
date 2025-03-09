@@ -55,19 +55,19 @@ public class Image {
     @Column(name = "image_description") 
     private String description;
 
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
     @JoinColumn(name = "image_id",insertable=false, updatable=false)
     @MapKey(name = "id.name")
     //@Transient
     private Map<String,ConstraintModule> constraintsModules;
 
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER , orphanRemoval = true)
     @JoinColumn(name = "image_id",insertable=false, updatable=false)
     @MapKey(name = "id.name")
-    @Transient
+    //@Transient
     private Map<String,PreferenceModule> preferenceModules;
 
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER,orphanRemoval = true)
     @JoinColumn(name = "image_id",insertable=false, updatable=false)
     @MapKey(name = "id.name")
     //@Transient
@@ -140,12 +140,20 @@ public class Image {
     @Transactional
     public void addConstraintModule(String moduleName, String description, Collection<String> constraints, Collection<String> inputSets, Collection<String> inputParams) {
         HashSet<ModelConstraint> modelConstraints = new HashSet<>();
+        HashSet<ModelSet> sets = new HashSet<>();
+        HashSet<ModelParameter> params = new HashSet<>();
         for (String name : constraints) {
             ModelConstraint constraint = model.getConstraint(name);
             Objects.requireNonNull(constraint,"Invalid constraint name in add constraint in image");
             modelConstraints.add(constraint);
         }
-        constraintsModules.put(moduleName, new ConstraintModule(this, moduleName, description, modelConstraints, inputSets, inputParams));
+        for(String set : inputSets){
+            sets.add(model.getSet(set));
+        }
+        for(String param : inputParams){
+            params.add(model.getParameter(param));
+        }
+        constraintsModules.put(moduleName, new ConstraintModule(this, moduleName, description, modelConstraints, sets, params));
     }
     @Transactional
     public void setConstraintsModules(HashMap<String,ConstraintModule> constraintsModules){
@@ -169,12 +177,20 @@ public class Image {
     @Transactional
     public void addPreferenceModule(String moduleName, String description, Collection<String> preferences, Collection<String> inputSets, Collection<String> inputParams) {
         HashSet<ModelPreference> modelPreferences = new HashSet<>();
+        HashSet<ModelSet> sets = new HashSet<>();
+        HashSet<ModelParameter> params = new HashSet<>();
         for (String name : preferences) {
             ModelPreference preference = model.getPreference(name);
            Objects.requireNonNull(preference,"Invalid preference name in add preference module");
            modelPreferences.add(preference);
         }
-        preferenceModules.put(moduleName, new PreferenceModule(this, moduleName, description, modelPreferences,inputSets,inputParams));
+        for(String set : inputSets){
+            sets.add(model.getSet(set));
+        }
+        for(String param : inputParams){
+            params.add(model.getParameter(param));
+        }
+        preferenceModules.put(moduleName, new PreferenceModule(this, moduleName, description, modelPreferences,sets,params));
     }
     @Transactional
     public ConstraintModule getConstraintsModule(String name) {
@@ -217,7 +233,15 @@ public class Image {
 
     @Transactional
     public void setVariablesModule(Set<ModelVariable> map1, Collection<String> sets, Collection<String> params ){
-        setVariableModule(new VariableModule(this, map1, sets, params));
+        HashSet<ModelSet> inputSets = new HashSet<>();
+        HashSet<ModelParameter> inputParams = new HashSet<>();
+        for(String set : sets){
+            inputSets.add(model.getSet(set));
+        }
+        for(String param : params){
+            inputParams.add(model.getParameter(param));
+        }
+        setVariableModule(new VariableModule(this, map1, inputSets, inputParams));
     }
 
     @Transactional
@@ -305,9 +329,17 @@ public class Image {
 
     @Transactional
     public void reset(Map<String,ModelVariable> variables, Collection<String> sets, Collection<String> params) {
+        HashSet<ModelSet> inputSets = new HashSet<>();
+        HashSet<ModelParameter> inputParams = new HashSet<>();
+        for(String set : sets){
+            inputSets.add(model.getSet(set));
+        }
+        for(String param : params){
+            inputParams.add(model.getParameter(param));
+        }
         constraintsModules.clear();
         preferenceModules.clear();
-        getVariableModule().override(variables,sets,params);
+        getVariableModule().override(variables,inputSets,inputParams);
     }
 
     public Set<String> getAllInvolvedSets() {

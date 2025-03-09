@@ -6,6 +6,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -96,11 +97,21 @@ public class ImageTests {
         assertTrue(true);
     }
 
-    private void printAllTables() {
+    public void printAllTableRows() {
+        List<Map<String, Object>> tableNamesResult = getAllTableNames();
+
+        for (Map<String, Object> tableNameRow : tableNamesResult) {
+            String tableName = (String) tableNameRow.get("TABLE_NAME"); // Assuming "TABLE_NAME" is the key
+            if (tableName != null) {
+                System.out.println("\n--- Table: " + tableName + " ---");
+                printTable(tableName);
+            }
+        }
+    }
+
+    private List<Map<String, Object>> getAllTableNames() {
         String sql = "SHOW TABLES;";
-        jdbcTemplate.queryForList(sql).forEach(row -> {
-            System.out.println("ROW:"+row);
-        });
+        return jdbcTemplate.queryForList(sql);
     }
 
     private void printTable(String tableName) {
@@ -135,6 +146,10 @@ public class ImageTests {
         .collect(Collectors.toSet());
 
         image.setVariablesModule(vars,sets,params);
+        imageRepository.save(image);
+        commit();
+        imageRepository.deleteById(image.getId());
+        commit();
         imageRepository.save(image);
         commit();
         Image fetchedIm = imageRepository.findById(sourceId).get();

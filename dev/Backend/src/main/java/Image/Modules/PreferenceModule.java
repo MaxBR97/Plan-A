@@ -50,11 +50,12 @@ public class PreferenceModule extends Module{
         preferences = new HashMap<>();
 
     }
-    public PreferenceModule(Image image ,String name, String description, Collection<ModelPreference> preferences, Collection<String> inputSets, Collection<String> inputParams) {
+    public PreferenceModule(Image image ,String name, String description, Collection<ModelPreference> preferences, Collection<ModelSet> inputSets, Collection<ModelParameter> inputParams) {
         super(image , name, description,inputSets,inputParams);
         this.preferences = new HashMap<>();
         for (ModelPreference constraint : preferences) {
             this.preferences.put(constraint.getIdentifier(), constraint);
+            constraint.setModuleName(this.getName());
         }
 
     }

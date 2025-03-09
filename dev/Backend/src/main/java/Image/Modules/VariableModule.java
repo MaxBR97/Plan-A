@@ -5,23 +5,18 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import Image.Image;
-import Model.ModelConstraint;
 import Model.ModelParameter;
-import Model.ModelPreference;
 import Model.ModelSet;
 import Model.ModelVariable;
 import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinColumns;
 import jakarta.persistence.MapKey;
 import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
 import jakarta.transaction.Transactional;
 
@@ -45,29 +40,22 @@ public class VariableModule extends Module {
             return variables;
         }
     
-        public Set<String> getInputSets() {
-            return inputSets;
-        }
-    
-        public Set<String> getInputParams() {
-            return inputParams;
-        }
-    
         public VariableModule() {
            super();
            variables = new HashMap<>();
         }
     
-    public VariableModule(Image image, Map<String, ModelVariable> variables, Collection<String> inputSets, Collection<String> inputParams) {
+    public VariableModule(Image image, Map<String, ModelVariable> variables, Collection<ModelSet> inputSets, Collection<ModelParameter> inputParams) {
        super(image,getVariableModuleName(),"NO DESCRIPTION", inputSets, inputParams);
        this.variables = new HashMap<>();
     }
 
-    public VariableModule(Image image, Set<ModelVariable> variables, Collection<String> inputSets, Collection<String> inputParams) {
+    public VariableModule(Image image, Set<ModelVariable> variables, Collection<ModelSet> inputSets, Collection<ModelParameter> inputParams) {
         super(image,getVariableModuleName(),"NO DESCRIPTION",inputSets,inputParams);
         this.variables = new HashMap<>();
         for(ModelVariable variable: variables) {
             this.variables.put(variable.getIdentifier(),variable);
+            //TODO: set module name for the added variable, do so also for preferences and constraints
         }
     }
 
@@ -82,7 +70,7 @@ public class VariableModule extends Module {
         inputParams.clear();
     }
     
-    public void override(Map<String, ModelVariable> variables, Collection<String> inputSets, Collection<String> inputParams) {
+    public void override(Map<String, ModelVariable> variables, Collection<ModelSet> inputSets, Collection<ModelParameter> inputParams) {
         this.variables.clear();
         this.inputSets.clear();
         this.inputParams.clear();
@@ -104,25 +92,7 @@ public class VariableModule extends Module {
         variables.put(variable.getIdentifier(),variable);
     }
 
-    @Transactional
-    public void addParam(String name){
-                inputParams.add(name);
-    }
 
-    @Transactional
-    public void addSet(String name){
-        inputParams.add(name);
-    }
-
-    @Transactional
-    public void removeSet(String name){
-        inputSets.remove(name);
-    }
-
-    @Transactional
-    public void removeParam(String name){
-                inputSets.remove(name);
-    }
 
     @Override
     public Set<ModelSet> getInvolvedSets() {

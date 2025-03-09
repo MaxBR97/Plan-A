@@ -17,7 +17,7 @@ public abstract class ModelComponent {
     @EmbeddedId
     protected ModelComponentId id;
 
-    @Column(name="module_name",insertable=false, updatable=false)
+    @Column(name="module_name", insertable=false, updatable=false)
     protected String module_name;
 
     @Transient
@@ -148,6 +148,10 @@ public ModelComponent(String imageId, String identifier, List<ModelSet> setDep, 
     }
     void removeParamDependency(ModelParameter dependency) {
         paramDependencies.remove(dependency);
+    }
+
+    public void setModuleName(String name){
+        this.module_name = name;
     }
 
 }

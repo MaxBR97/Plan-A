@@ -14,8 +14,8 @@ import java.util.Set;
 
 
 public record PreferenceModuleDTO(@NotBlank String moduleName, @NotNull String description, @Valid Set<@NotBlank String> preferences,
-                                  @Valid Set<@NotBlank String> inputSets,
-                                  @Valid Set<@NotBlank String> inputParams) {
+                                  @Valid Set<SetDefinitionDTO> inputSets,
+                                  @Valid Set<ParameterDefinitionDTO> inputParams) {
                                     public PreferenceModuleDTO {
                                         if (description == null) {
                                             description = "";
