@@ -9,9 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Collectors;
 
-import org.hibernate.validator.internal.engine.messageinterpolation.el.VariablesELContext;
 import org.yaml.snakeyaml.util.Tuple;
 
 import DTO.Records.Image.ConstraintModuleDTO;
@@ -38,7 +36,6 @@ import Image.Modules.ConstraintModule;
 import Image.Modules.PreferenceModule;
 import Image.Modules.VariableModule;
 import Model.ModelConstraint;
-import Model.ModelInput;
 import Model.ModelInterface;
 import Model.ModelParameter;
 import Model.ModelPreference;
@@ -84,6 +81,7 @@ public class RecordFactory {
         preference.getPrimitiveParameters(parameters);
         return new PreferenceDTO(preference.getIdentifier(),makeDTO(sets,parameters));
     }
+    
     public static ConstraintDTO makeDTO(ModelConstraint constraint) {
         if(constraint == null)
             throw new NullPointerException("Null constraint in DTO mapping");
@@ -102,10 +100,17 @@ public class RecordFactory {
             constraints.add(constraint.getIdentifier());
         }
 
-        Set<SetDefinitionDTO> sets = module.getInputSets().stream().map(RecordFactory::makeDTO).collect(Collectors.toSet());
+        Set<SetDefinitionDTO> sets = new HashSet<>();
         
-        Set<ParameterDefinitionDTO> param = module.getInputParams().stream().map(RecordFactory::makeDTO).collect(Collectors.toSet());
+        Set<ParameterDefinitionDTO> param = new HashSet<>();
         
+        for(ModelSet s: module.getInputSets()){
+            sets.add(makeDTO(s));
+        }
+        for(ModelParameter p: module.getInputParams()){
+            param.add(makeDTO(p));
+        }
+
         return new ConstraintModuleDTO(module.getName(), module.getDescription(),
                 constraints, sets, param);
     }
@@ -117,20 +122,27 @@ public class RecordFactory {
             preferences.add(pref.getIdentifier());
         }
 
-        Set<SetDefinitionDTO> sets = module.getInputSets().stream().map(RecordFactory::makeDTO).collect(Collectors.toSet());
-        Set<ParameterDefinitionDTO> param = module.getInputParams().stream().map(RecordFactory::makeDTO).collect(Collectors.toSet());
+        Set<SetDefinitionDTO> sets = new HashSet<>();
+        Set<ParameterDefinitionDTO> param = new HashSet<>();
         
+        for(ModelSet s: module.getInputSets()){
+            sets.add(makeDTO(s));
+        }
+        for(ModelParameter p: module.getInputParams()){
+            param.add(makeDTO(p));
+        }
+
         return new PreferenceModuleDTO(module.getName(), module.getDescription(),
                 preferences, sets, param);
     }
 
     public static SetDefinitionDTO makeDTO(ModelSet set){
-        LinkedList<String> dependencies = new LinkedList<>();
-        for(ModelSet dependency: set.getSetDependencies()){
-            for(ModelInput.StructureBlock block:dependency.getStructure()){
-                dependencies.add(block.dependency.getIdentifier());
-            }
-        }
+        //LinkedList<String> dependencies = new LinkedList<>();
+        // for(ModelSet dependency: set.getSetDependencies()){
+        //     for(ModelInput.StructureBlock block:dependency.getStructure()){
+        //         dependencies.add(block.dependency.getIdentifier());
+        //     }
+        // }
         return new SetDefinitionDTO(set.getIdentifier(), Arrays.asList(set.getTags()), set.getType().typeList());
     }
 
@@ -189,29 +201,25 @@ public class RecordFactory {
                 return new ImageDTO(image.getId(),image.getName(), image.getDescription(), variables, constraints, preferences);
         }
         private static VariableModuleDTO makeDTO(VariableModule module) {
-            // Set<VariableDTO> intr = module.getVariables().values()
-            //              .stream()
-            //              .map(RecordFactory::makeDTO)
-            //              .collect(Collectors.toSet());
-
-            // Set<String> params = module.getInputParams();
-            // Set<String> sets = module.getInputSets();
-
             Set<VariableDTO> vars = new HashSet<>();
             Set<SetDefinitionDTO> sets = new HashSet<>();
             Set<ParameterDefinitionDTO> params = new HashSet<>();
             for(ModelVariable var : module.getVariables().values()){
                 vars.add(makeDTO(var));
             }
-            sets = module.getInputSets().stream().map(RecordFactory::makeDTO).collect(Collectors.toSet());
-            params = module.getInputParams().stream().map(RecordFactory::makeDTO).collect(Collectors.toSet());
+            for(ModelSet s: module.getInputSets()){
+                sets.add(makeDTO(s));
+            }
+            for(ModelParameter p: module.getInputParams()){
+                params.add(makeDTO(p));
+            }
         
             return new VariableModuleDTO(vars, sets, params);
         }
 
-            public static ImageResponseDTO makeDTO(String id, Image image){
-        return new ImageResponseDTO(id,makeDTO(image));
-    }
+        public static ImageResponseDTO makeDTO(String id, Image image){
+            return new ImageResponseDTO(id,makeDTO(image));
+        }
 
     public static CreateImageResponseDTO makeDTO(String id, ModelInterface md){
         return new CreateImageResponseDTO(id, makeDTO(md));

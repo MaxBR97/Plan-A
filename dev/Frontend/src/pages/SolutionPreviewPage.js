@@ -157,8 +157,6 @@ console.log("operatinng on image: ", image)
     );
   };
 
-  
-
   const handleTogglePreference = (preferenceName) => {
     setPreferencesToggledOff(
       (prev) =>
@@ -167,6 +165,27 @@ console.log("operatinng on image: ", image)
           : [...prev, preferenceName] // Add if not exists
     );
   };
+
+  
+  const loadImage = async () => {
+    try {
+      const response = await fetch(`/images/${image.imageId}`, {
+        method: "GET",
+      });
+  
+      if (!response.ok) {
+        const errorText = await response.text(); // Get error message
+        throw new Error(`Load image request failed! Status: ${response.status}, Response: ${errorText}`);
+      }
+  
+    const data = await response.json(); // Parse JSON **after** checking response.ok
+    updateImage(data); // Pass parsed data instead of raw response
+  
+    } catch (error) {
+      console.error("Error fetching image:", error);
+      setErrorMessage(`Failed to fetch image: ${error.message}`);
+    }
+  };  
 
 const loadInputs = async () => {
   try {
@@ -202,13 +221,16 @@ const loadInputs = async () => {
 
 useEffect(() => {
   (async () => {
-    console.log("afds",image.imageId)
-    if(image.imageId) {
-      await loadInputs();
-      console.log("Inputs loaded, now user can proceed.");
-      }
+    await loadImage();
   })();
-}, [image.imageId]);
+}, []);
+console.log("Fetched image: ", image)
+useEffect(() => {
+  (async () => {
+    await loadInputs();
+  })();
+}, [image]);
+
 const handleSolve = async () => {
   setErrorMessage(null);
   setResponseData(null);

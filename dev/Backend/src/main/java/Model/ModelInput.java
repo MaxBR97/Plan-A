@@ -3,12 +3,15 @@ package Model;
 import java.util.LinkedList;
 import java.util.List;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.MappedSuperclass;
 import jakarta.persistence.Transient;
 
 @MappedSuperclass
 public abstract class ModelInput extends ModelComponent {
-    @Transient
+    @Column(name = "my_type")
+    @Convert(converter = ModelTypeConverter.class)
     protected ModelType myType;
     @Transient
     protected StructureBlock[] myStruct;

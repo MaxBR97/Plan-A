@@ -15,32 +15,78 @@ const ConfigureConstraintsPage = () => {
         updateModel,
         updateSolutionResponse,
         initialImageState
-      } = useZPL();
+    } = useZPL();
 
     const [availableConstraints, setAvailableConstraints] = useState([]);
     const [moduleName, setModuleName] = useState('');
     const [selectedModuleIndex, setSelectedModuleIndex] = useState(null);
     const bannedSets = [...new Set(Array.from(model.variables).flatMap(v => v.dep?.setDependencies || []))];
     const bannedParams = [...new Set(Array.from(model.variables).flatMap(v => v.dep?.paramDependencies || []))];
-    console.log(image.constraintModules)
-    console.log(bannedParams)
-    
+    const [allModules, setAllModules] = useState(Array.from(image.constraintModules) || []);
+    const [involvedSets, setInvolvedSets] = useState([]);
+    const [involvedParams, setInvolvedParams] = useState([]);
     useEffect(() => {
-        setAvailableConstraints(Array.from(model.constraints).filter((c) => image.constraintModules.every((module) => !module.constraints.includes(c))));
-    }, [model.constraints]);
+        setAvailableConstraints(Array.from(model.constraints).filter((c) => 
+            allModules.every((module) => 
+                !module.constraints.some(constraint => 
+                    typeof constraint === 'string' 
+                        ? constraint === c.identifier 
+                        : constraint.identifier === c.identifier
+                )
+            )
+        ));
+        if(selectedModuleIndex != null && allModules.length > 0){
+            setInvolvedSets(
+                Array.from(
+                  new Set(
+                    Array.from(model.constraints)
+                      .flatMap((constraint) => 
+                        Array.from(allModules[selectedModuleIndex].constraints).includes(constraint.identifier) 
+                          ? Array.from(constraint.dep?.setDependencies || []).filter(setDep => {
+                              // Check if this setDep doesn't appear in any variable's setDependencies
+                              return !Array.from(model.variables || []).some(variable => 
+                                variable.dep?.setDependencies?.includes(setDep) || 
+                                (Array.isArray(variable.dep?.setDependencies) && 
+                                 variable.dep.setDependencies.includes(setDep))
+                              );
+                            })
+                          : []
+                      )
+                  )
+                )
+              );
+              setInvolvedParams(
+                Array.from(
+                  new Set(
+                    Array.from(model.constraints)
+                      .flatMap((constraint) => 
+                        Array.from(allModules[selectedModuleIndex].constraints).includes(constraint.identifier) 
+                          ? Array.from(constraint.dep?.paramDependencies || []).filter(paramDep => {
+                              // Check if this paramDep doesn't appear in any variable's paramDependencies
+                              return !Array.from(model.variables || []).some(variable => 
+                                variable.dep?.paramDependencies?.includes(paramDep) || 
+                                (Array.isArray(variable.dep?.paramDependencies) && 
+                                 variable.dep.paramDependencies.includes(paramDep))
+                              );
+                            })
+                          : []
+                      )
+                  )
+                )
+              );
+            }
+    }, [model.constraints, allModules, selectedModuleIndex]);
 
     const addConstraintModule = () => {
         if (moduleName.trim() !== '') {
-            updateImageField("constraintModules", 
-            [ ... image.constraintModules,
+            setAllModules(
+            [ ...allModules,
                 {   
-                    name: moduleName, 
+                    moduleName: moduleName,
                     description: "", 
                     constraints: [], 
-                    involvedSets: [], 
-                    involvedParams: [] , 
-                    inputSets:[], 
-                    inputParams:[]
+                    inputSets: [],
+                    inputParams: []
                 }
             ]);
             setModuleName('');
@@ -48,12 +94,11 @@ const ConfigureConstraintsPage = () => {
     };
 
     const updateModuleDescription = (newDescription) => {
-        updateImageField("constraintModules",
-            image.constraintModules.map((module, idx) =>
+        setAllModules(
+            allModules.map((module, idx) =>
                 idx === selectedModuleIndex ? { ...module, description: newDescription } : module
             )
-        )
-        
+        );
     };
 
     const addConstraintToModule = (constraint) => {
@@ -62,15 +107,56 @@ const ConfigureConstraintsPage = () => {
             return;
         }
 
-        updateImageField("constraintModules",
-            image.constraintModules.map((module, idx) => {
+        setAllModules(
+            allModules.map((module, idx) => {
                 if (idx === selectedModuleIndex) {
-                    if (!module.constraints.some(c => c.identifier === constraint.identifier)) {
+                    if (!module.constraints.some(c => typeof c === 'string' ? c === constraint.identifier : c.identifier === constraint.identifier)) {
+                        // Get sets and params from this constraint
+                        const constraintSets = constraint.dep?.setDependencies || [];
+                        const constraintParams = constraint.dep?.paramDependencies || [];
+                        
+                        // Filter out banned sets and params
+                        const newSets = constraintSets.filter(set => !bannedSets.includes(set));
+                        const newParams = constraintParams.filter(param => !bannedParams.includes(param));
+                        
+                        // Convert sets to SetDefinitionDTO format
+                        const newSetDTOs = newSets.map(setName => ({
+                            name: setName,
+                            tags: model.setTypes?.[setName] || [],
+                            type: model.setTypes?.[setName] || []
+                        }));
+                        
+                        // Convert params to ParameterDefinitionDTO format
+                        const newParamDTOs = newParams.map(paramName => ({
+                            name: paramName,
+                            tag: model.paramTypes?.[paramName] ,
+                            type: model.paramTypes?.[paramName] 
+                        }));
+                        
+                        // Add new sets and params without duplicates
+                        const updatedInputSets = [
+                            ...module.inputSets,
+                            ...newSetDTOs.filter(newSet => 
+                                !module.inputSets.some(existingSet => 
+                                    existingSet.name === newSet.name
+                                )
+                            )
+                        ];
+                        
+                        const updatedInputParams = [
+                            ...module.inputParams,
+                            ...newParamDTOs.filter(newParam => 
+                                !module.inputParams.some(existingParam => 
+                                    existingParam.name === newParam.name
+                                )
+                            )
+                        ];
+                        
                         return {
                             ...module,
-                            constraints: [...module.constraints, constraint],
-                            involvedSets: [...new Set([...module.involvedSets, ...(constraint.dep?.setDependencies || [])])].filter((set) => !bannedSets.includes(set)),
-                            involvedParams: [...new Set([...module.involvedParams, ...(constraint.dep?.paramDependencies || [])])].filter((param) => !bannedParams.includes(param))
+                            constraints: [...module.constraints, constraint.identifier], // Just store the identifier
+                            inputSets: updatedInputSets,
+                            inputParams: updatedInputParams
                         };
                     }
                 }
@@ -78,59 +164,96 @@ const ConfigureConstraintsPage = () => {
             })
         );
         
-        
         setAvailableConstraints((prev) => {
             const filteredConstraints = prev.filter((c) => c.identifier !== constraint.identifier);
             const uniqueConstraints = Array.from(
-              new Map(filteredConstraints.map(item => [item.identifier, item])).values()
+                new Map(filteredConstraints.map(item => [item.identifier, item])).values()
             );
             
             return uniqueConstraints;
-          });
+        });
     };
 
     const removeConstraintFromModule = (constraint) => {
         if (selectedModuleIndex === null) return;
 
-        updateImageField("constraintModules",
-            image.constraintModules.map((module, idx) => {
+        const constraintId = typeof constraint === 'string' ? constraint : constraint.identifier;
+
+        setAllModules(
+            allModules.map((module, idx) => {
                 if (idx === selectedModuleIndex) {
-                    const newConstraints = module.constraints.filter(c => c.identifier !== constraint.identifier);
-
-                    const remainingSets = new Set();
-                    const remainingParams = new Set();
+                    const newConstraints = module.constraints.filter(c => 
+                        typeof c === 'string' ? c !== constraintId : c.identifier !== constraintId
+                    );
                     
-                    const allSetDependencies = new Set(
-                        newConstraints.flatMap(c => c.dep?.setDependencies || [])
+                    // Recalculate all needed sets and params from remaining constraints
+                    const remainingConstraintObjects = newConstraints.map(c => {
+                        if (typeof c === 'string') {
+                            // Find the full constraint object from available constraints or model
+                            return availableConstraints.find(ac => ac.identifier === c) || 
+                                   Array.from(model.constraints).find(mc => mc.identifier === c);
+                        }
+                        return c;
+                    }).filter(Boolean); // Remove any undefined values
+                    
+                    const allSetDependencies = new Set();
+                    const allParamDependencies = new Set();
+                    
+                    // Collect all dependencies from remaining constraints
+                    remainingConstraintObjects.forEach(c => {
+                        (c.dep?.setDependencies || [])
+                            .filter(set => !bannedSets.includes(set))
+                            .forEach(set => allSetDependencies.add(set));
+                            
+                        (c.dep?.paramDependencies || [])
+                            .filter(param => !bannedParams.includes(param))
+                            .forEach(param => allParamDependencies.add(param));
+                    });
+                    
+                    // Filter existing DTOs to only keep relevant ones
+                    const updatedInputSets = module.inputSets.filter(
+                        setDTO => allSetDependencies.has(setDTO.name)
                     );
-                    const allParamDependencies = new Set(
-                        newConstraints.flatMap(c => c.dep?.paramDependencies || [])
+                    
+                    const updatedInputParams = module.inputParams.filter(
+                        paramDTO => allParamDependencies.has(paramDTO.name)
                     );
-
-                    const filteredSets = [...allSetDependencies].filter(set => !bannedSets.includes(set));
-                    const filteredParams = [...allParamDependencies].filter(param => !bannedParams.includes(param));
-
-                    filteredSets.forEach(set => remainingSets.add(set));
-                    filteredParams.forEach(param => remainingParams.add(param));
-
+                    
                     return {
                         ...module,
                         constraints: newConstraints,
-                        involvedSets: [...remainingSets],
-                        involvedParams: [...remainingParams]
+                        inputSets: updatedInputSets,
+                        inputParams: updatedInputParams
                     };
                 }
                 return module;
             })
         );
         
-        setAvailableConstraints((prev) => prev.includes(constraint) ? prev : [...prev, constraint]);
+        setAvailableConstraints((prev) => prev.some(c => c.identifier === constraintId) ? prev : [...prev, constraint]);
     };
 
     const deleteModule = (index) => {
+        // Get all constraints from the module being deleted
+        const moduleConstraints = allModules[index].constraints;
         
-        image.constraintModules[index].constraints.forEach((constraint) => removeConstraintFromModule(constraint))
-        updateImageField("constraintModules", image.constraintModules.filter((_, i) => i !== index));
+        // Add them back to available constraints
+        moduleConstraints.forEach(constraint => {
+            const constraintObj = typeof constraint === 'string' 
+                ? Array.from(model.constraints).find(c => c.identifier === constraint)
+                : constraint;
+                
+            if (constraintObj) {
+                setAvailableConstraints(prev => 
+                    prev.some(c => c.identifier === constraintObj.identifier) 
+                        ? prev 
+                        : [...prev, constraintObj]
+                );
+            }
+        });
+        
+        // Remove the module
+        setAllModules(allModules.filter((_, i) => i !== index));
     
         // Reset selection if the deleted module was selected
         if (selectedModuleIndex === index) {
@@ -140,16 +263,26 @@ const ConfigureConstraintsPage = () => {
         }
     };
 
-    //console.log(modules)
     const handleToggleInvolvedSet = (setName) => {
-        updateImageField("constraintModules", 
-            image.constraintModules.map((module, idx) => {
+        setAllModules(
+            allModules.map((module, idx) => {
                 if (idx === selectedModuleIndex) {
                     // Check if the set is already in inputSets
-                    const isSetIncluded = module.inputSets.includes(setName);
-                    const updatedInputSets = isSetIncluded
-                        ? module.inputSets.filter((s) => s !== setName) // Remove if already included
-                        : [...module.inputSets, setName]; // Add if not included
+                    const isSetIncluded = module.inputSets.some(s => s.name === setName);
+                    let updatedInputSets;
+                    
+                    if (isSetIncluded) {
+                        // Remove if already included
+                        updatedInputSets = module.inputSets.filter(s => s.name !== setName);
+                    } else {
+                        // Add if not included
+                        const newSetDTO = {
+                            name: setName,
+                            tags: model.setTypes?.[setName] || [],
+                            type: model.setTypes?.[setName] || []
+                        };
+                        updatedInputSets = [...module.inputSets, newSetDTO];
+                    }
                     
                     return { ...module, inputSets: updatedInputSets };
                 }
@@ -159,15 +292,25 @@ const ConfigureConstraintsPage = () => {
     };
     
     const handleToggleInvolvedParam = (paramName) => {
-        
-        updateImageField("constraintModules",
-            image.constraintModules.map((module, idx) => {
+        setAllModules(
+            allModules.map((module, idx) => {
                 if (idx === selectedModuleIndex) {
-                    // Check if the param is already in involvedParams
-                    const isParamIncluded = module.inputParams.includes(paramName);
-                    const updatedParams = isParamIncluded
-                        ? module.inputParams.filter((p) => p !== paramName) // Remove if included
-                        : [...module.inputParams, paramName]; // Add if not included
+                    // Check if the param is already in inputParams
+                    const isParamIncluded = module.inputParams.some(p => p.name === paramName);
+                    let updatedParams;
+                    
+                    if (isParamIncluded) {
+                        // Remove if included
+                        updatedParams = module.inputParams.filter(p => p.name !== paramName);
+                    } else {
+                        // Add if not included
+                        const newParamDTO = {
+                            name: paramName,
+                            tag: model.paramTypes?.[paramName] ,
+                            type: model.paramTypes?.[paramName] 
+                        };
+                        updatedParams = [...module.inputParams, newParamDTO];
+                    }
     
                     return { ...module, inputParams: updatedParams };
                 }
@@ -175,9 +318,22 @@ const ConfigureConstraintsPage = () => {
             })
         );
     };
+
+    const saveCurrentState = () => {
+        updateImageField("constraintModules", allModules)
+    }
     
+    const handleContinue = () => {
+        console.log("Leaving constraint config with: ", allModules);
+        saveCurrentState();
+        navigate('/configure-preferences');
+    };
     
-    
+    const handleBack = () => {
+        console.log("Leaving constraint config with: ", allModules);
+        saveCurrentState();
+        navigate('/');
+    };
 
     return (
         <div className="configure-constraints-page">
@@ -195,13 +351,13 @@ const ConfigureConstraintsPage = () => {
                     />
                     <button onClick={addConstraintModule}>Add Constraint Module</button>
                     <div className="module-list">
-                        {image.constraintModules.map((module, index) => (
+                        {allModules.map((module, index) => (
                             <div key={index} className="module-item-container">
                                 <button 
                                     className={`module-item ${selectedModuleIndex === index ? 'selected' : ''}`} 
                                     onClick={() => setSelectedModuleIndex(index)}
                                 >
-                                    {module.name}
+                                    {module.moduleName}
                                 </button>
                                 <button 
                                     className="delete-module-button"
@@ -224,11 +380,11 @@ const ConfigureConstraintsPage = () => {
                         <p>Select a module</p>
                     ) : (
                         <>
-                            <h3>{image.constraintModules[selectedModuleIndex]?.name || 'Unnamed Module'}</h3>
+                            <h3>{allModules[selectedModuleIndex]?.name || 'Unnamed Module'}</h3>
                             <label>Description:</label>
                             <hr />
                             <textarea
-                                value={image.constraintModules[selectedModuleIndex]?.description || ""}
+                                value={allModules[selectedModuleIndex]?.description || ""}
                                 onChange={(e) => updateModuleDescription(e.target.value)}
                                 placeholder="Enter module description..."
                                 style={{ resize: "none", width: "100%", height: "80px" }}
@@ -236,14 +392,14 @@ const ConfigureConstraintsPage = () => {
                             <p>This module's constraints:</p>
                             <hr />
                             <div className="module-drop-area">
-                                {image.constraintModules[selectedModuleIndex]?.constraints?.length > 0 ? (
-                                    image.constraintModules[selectedModuleIndex].constraints.map((c, i) => (
+                                {allModules[selectedModuleIndex]?.constraints?.length > 0 ? (
+                                    allModules[selectedModuleIndex].constraints.map((c, i) => (
                                         <div 
                                             key={i} 
                                             className="dropped-constraint constraint-box"
                                             onClick={() => removeConstraintFromModule(c)}
                                         >
-                                            {c.identifier}
+                                            {c}
                                         </div>
                                     ))
                                 ) : (
@@ -253,11 +409,11 @@ const ConfigureConstraintsPage = () => {
 
                             <h3>Select input Sets:</h3>
                             <div>
-                                {image.constraintModules[selectedModuleIndex]?.involvedSets.map((set, i) => (
+                                {involvedSets.map((set, i) => (
                                     <div key={i}>
                                         <Checkbox 
                                             type="checkbox" 
-                                            checked={image.constraintModules[selectedModuleIndex]?.inputSets.includes(set)} 
+                                            checked={allModules[selectedModuleIndex]?.inputSets.some(inputSet => inputSet.name === set)} 
                                             onChange={() => handleToggleInvolvedSet(set)}
                                         /> {set}
                                     </div>
@@ -266,11 +422,11 @@ const ConfigureConstraintsPage = () => {
 
                             <h3>Select input Parameters:</h3>
                             <div>
-                                {image.constraintModules[selectedModuleIndex]?.involvedParams.map((param, i) => (
+                                {involvedParams.map((param, i) => (
                                     <div key={i}>
                                         <Checkbox 
                                             type="checkbox" 
-                                            checked={image.constraintModules[selectedModuleIndex]?.inputParams.includes(param)} 
+                                            checked={allModules[selectedModuleIndex]?.inputParams.some(inputParams => inputParams.name === param)} 
                                             onChange={() => handleToggleInvolvedParam(param)}
                                         /> {param}
                                     </div>
@@ -299,15 +455,18 @@ const ConfigureConstraintsPage = () => {
             </div>
 
             <button
-                className="continue-button"
-                onClick={() => navigate('/configure-preferences')}
-            >
-                Continue
-            </button>
+    className="continue-button"
+    onClick={handleContinue}
+>
+    Continue
+</button>
 
-            <Link to="/" className="back-button">
-                Back
-            </Link>
+<button
+    className="back-button"
+    onClick={handleBack}
+>
+    Back
+</button>
         </div>
     );
 };

@@ -2,8 +2,9 @@ package Model;
 
 import java.util.LinkedList;
 import java.util.List;
-
 import Model.ModelInput.StructureBlock;
+import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.MappedSuperclass;
 import jakarta.persistence.Transient;
 
@@ -11,7 +12,8 @@ import jakarta.persistence.Transient;
 public abstract class ModelOutput extends ModelComponent {
     @Transient
     protected boolean isComplex;
-    @Transient
+    @Column(name = "my_type")
+    @Convert(converter = ModelTypeConverter.class)
     protected ModelType myType;
     @Transient
     protected String[] tags;

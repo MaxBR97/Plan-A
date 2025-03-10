@@ -115,6 +115,8 @@ public ModelComponent(String imageId, String identifier, List<ModelSet> setDep, 
      * @param parameters list given to the function and passed down the recursion
      */
     public void getPrimitiveParameters(Set<ModelParameter> parameters) {
+        if(this.paramDependencies == null)
+            return;
         for(ModelSet set : setDependencies){
             if(!set.isPrimitive())
              set.getPrimitiveParameters(parameters);
@@ -134,6 +136,8 @@ public ModelComponent(String imageId, String identifier, List<ModelSet> setDep, 
      * @param sets list given to the function and passed down the recursion
      */
     public void getPrimitiveSets(Set<ModelSet> sets) {
+        if(this.setDependencies == null)
+            return;
         for(ModelSet set : setDependencies){
             if(!sets.contains(set)) {
                 if (set.isPrimitive())

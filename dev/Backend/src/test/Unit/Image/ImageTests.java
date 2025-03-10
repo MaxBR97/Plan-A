@@ -97,7 +97,7 @@ public class ImageTests {
         assertTrue(true);
     }
 
-    public void printAllTableRows() {
+    public void printAllTables() {
         List<Map<String, Object>> tableNamesResult = getAllTableNames();
 
         for (Map<String, Object> tableNameRow : tableNamesResult) {
@@ -154,8 +154,7 @@ public class ImageTests {
         commit();
         Image fetchedIm = imageRepository.findById(sourceId).get();
         assertFalse(fetchedIm == image); // check not same runtime instance, but a deep copy
-        printTable("images");
-        printTable("modules");
+        printAllTables();
         
         assertTrue(fetchedIm.getVariables().keySet().stream().collect(Collectors.toSet()).size() > 0);
 

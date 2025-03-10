@@ -61,10 +61,13 @@ const ConfigurePreferencesPage = () => {
       }
     }
       
-      const handleContinue = () => {
-        if(patchConfigurations())
-            navigate("/solution-preview")
-      }
+    const handleContinue = async () => {
+        const success = await patchConfigurations(); // Wait for PATCH to complete
+        if (success) {
+            navigate("/solution-preview"); // Navigate only if successful
+        }
+    };
+    
 
     // Initialize available preferences dynamically from JSON
     useEffect(() => {

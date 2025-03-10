@@ -90,11 +90,35 @@ const ConfigureVariablesPage = () => {
 
     // Save selected variables, sets, and parameters in context when navigating
     const handleContinue = () => {
-        updateImageField("variablesModule",{
-            variablesOfInterest: selectedVars.map(v => v.identifier),
-            inputSets: selectedSets,
-            inputParams: selectedParams,
-            variablesTags: variablesTags
+        // Transform selectedVars from identifiers to VariableDTO objects
+        const variablesOfInterestObjects = selectedVars.map(v => ({
+            identifier: v.identifier,
+            tags: variablesTags[v.identifier] || model.varTypes[v.identifier] || [],
+            type: model.varTypes[v.identifier] || [],
+            // dep: {
+            //     setDependencies: v.dep?.setDependencies || [],
+            //     paramDependencies: v.dep?.paramDependencies || []
+            // }
+        }));
+    
+        // Transform selectedSets from strings to SetDefinitionDTO objects
+        const inputSetsObjects = selectedSets.map(setName => ({
+            name: setName,
+            tags: model.setTypes?.[setName] || [],
+            type: model.setTypes?.[setName] || []
+        }));
+    
+        // Transform selectedParams from strings to ParameterDefinitionDTO objects
+        const inputParamsObjects = selectedParams.map(paramName => ({
+            name: paramName,
+            type: model.paramTypes?.[paramName] ,
+            tag: model.paramTypes?.[paramName]
+        }));
+    
+        updateImageField("variablesModule", {
+            variablesOfInterest: variablesOfInterestObjects,
+            inputSets: inputSetsObjects,
+            inputParams: inputParamsObjects
         });
     };
 
@@ -118,15 +142,17 @@ console.log("variables tags: ",variablesTags)
                 {/* Variables Section */}
                 <div className="available-variables">
                     <h2>Available Variables</h2>
-                    {model.variables.length > 0 ? (
-                        model.variables.map((variable, index) => (
+                    {Array.from(model.variables).length > 0 ? (
+                        Array.from(model.variables).map((variable, index) => {
+                            
+                            return (
                             <Checkbox
                                 key={index}
                                 label={variable.identifier}
                                 checked={selectedVars.includes(variable)}
                                 onChange={() => handleVarCheckboxChange(variable)}
                             />
-                        ))
+                        )})
                     ) : (
                         <p>No variables available.</p>
                     )}

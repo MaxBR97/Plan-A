@@ -6,12 +6,22 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+
 public class Tuple implements ModelType {
     private List<ModelPrimitives> val;
 
+     @JsonCreator
+    public Tuple(@JsonProperty("types") List<ModelPrimitives> val) {
+        this.val = val;
+    }
+    
     public Tuple(ModelPrimitives[] val){
         this.val = new ArrayList<>(Arrays.asList(val));
     }
+    
 
     Tuple() {
         val = new LinkedList();
