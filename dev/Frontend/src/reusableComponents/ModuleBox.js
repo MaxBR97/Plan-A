@@ -2,9 +2,11 @@ import React, { useState } from 'react';
 import SetInputBox from '../reusableComponents/SetInputBox.js';
 import ParameterInputBox from '../reusableComponents/ParameterInputBox.js';
 import "./ModuleBox.css";
-const ModuleBox = ({ 
+
+const ModuleBox = ({
   key,
   module,
+  prefcons,
   checked,
   handleToggleModule,
   handleAddTuple,
@@ -14,79 +16,89 @@ const ModuleBox = ({
   handleParamChange,
   isRowSelected,
   inputSets,
-  inputParams,
+  inputParams
 }) => {
-  
+  // Add state for minimized status
+  const [minimized, setMinimized] = useState(false);
+
+  // Toggle minimize/maximize
+  const toggleMinimize = () => {
+    setMinimized(!minimized);
+  };
 
   return (
-    <div key={key} className="module-box">
-                {/* Toggle Button Positioned Correctly */}
-                <div className="toggle-container">
-                  <label className="switch">
-                    <input
-                      type="checkbox"
-                      checked={checked}
-                      onChange={() => handleToggleModule(module.name)}
-                    />
-                    <span className="slider round"></span>
-                  </label>
-                </div>
+    <div key={key} className={`module-box ${minimized ? 'minimized' : ''}`}>
+      <div className="module-header">
+        {/* Toggle Button */}
+        <div className="toggle-container">
+          <label>
+            <input
+              type="checkbox"
+              checked={checked}
+              onChange={() => handleToggleModule(module.moduleName)}
+            />
+            <span></span>
+          </label>
+        </div>
 
-                <h3 className="module-title">{module.name}</h3>
-                <p className="module-description">
-                  <strong>Module Description:</strong> {module.description}
-                </p>
+        <h2 className="module-title">{module.moduleName}</h2>
 
-                <h4 className="module-subtitle">Constraints</h4>
-                {module.constraints.length > 0 ? (
-                  module.constraints.map((constraint, cIndex) => (
-                    <div key={cIndex} className="module-item">
-                      <p>{constraint.identifier}</p>{" "}
-                      {/* Only displaying the identifier value */}
-                    </div>
-                  ))
-                ) : (
-                  <p className="empty-message">
-                    No constraints in this module.
-                  </p>
-                )}
+        {/* Minimize/Maximize Button */}
+        <button 
+          className="minimize-button" 
+          onClick={toggleMinimize}
+          aria-label={minimized ? "Maximize" : "Minimize"}
+        >
+          {minimized ? "+" : "−"}
+        </button>
+      </div>
 
-                <h4 className="module-subtitle">Input Sets:</h4>
-                {module.inputSets.length > 0 ? (
-                  module.inputSets.map((set, sIndex) => (
-                    <SetInputBox
-                    index={sIndex}
-                    typeList={inputSets[set].typeList}
-                    tupleTags={inputSets[set].tupleTags || []}
-                    setName={set}
-                    handleAddTuple={handleAddTuple}
-                    handleTupleChange={handleTupleChange}
-                    handleTupleToggle={handleTupleToggle}
-                    handleRemoveTuple={handleRemoveTuple}
-                    isRowSelected={isRowSelected}
-                    setValues={inputSets[set].setValues}
-                    />
-                  ))
-                ) : (
-                  <p className="empty-message">No Input Sets</p>
-                )}
+      {/* Content that gets hidden when minimized */}
+      <div className="module-content">
+        <p className="module-description">
+          {module.description}
+        </p>
 
-                <h4 className="module-subtitle">Input Parameters</h4>
-                {module.inputParams.length > 0 ? (
-                  module.inputParams.map((param, pIndex) => (
-                    <ParameterInputBox
-                        key={pIndex}
-                        paramName={param}
-                        type={inputParams[param].type}
-                        value={inputParams[param].value}
-                        onChange={handleParamChange}
-                    />
-                  ))
-                ) : (
-                  <p className="empty-message">No Input     Parameters.</p>
-                )}
-              </div>
-        );
-    };
+        {/* Only render input sets section if there are input sets */}
+        {inputSets && inputSets.length > 0 && (
+          <div className="module-set-inputs">
+            <h4>Input Sets:</h4>
+            {inputSets.map((set, sIndex) => (
+              <SetInputBox
+                key={sIndex}
+                index={sIndex}
+                typeList={set.type}
+                tupleTags={set.tags || []}
+                setName={set.setName}
+                handleAddTuple={handleAddTuple}
+                handleTupleChange={handleTupleChange}
+                handleTupleToggle={handleTupleToggle}
+                handleRemoveTuple={handleRemoveTuple}
+                isRowSelected={isRowSelected}
+                setValues={set.setValues}
+              />
+            ))}
+          </div>
+        )}
+
+        {/* Only render input parameters section if there are input parameters */}
+        {inputParams && inputParams.length > 0 && (
+          <div className="module-parameter-inputs">
+            <h4>Input Parameters</h4>
+            {inputParams.map((param, pIndex) => (
+              <ParameterInputBox
+                key={pIndex}
+                paramName={param.paramName}
+                type={param.type}
+                value={param.value}
+                onChange={handleParamChange}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
 
 export default ModuleBox;

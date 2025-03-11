@@ -9,7 +9,9 @@ const UploadZPLPage = () => {
         image,
         model,
         updateImageField,
-        updateModel
+        updateModel,
+        resetImage,
+        resetModel
     } = useZPL();
 
     const [fileContent, setFileContent] = useState(`
@@ -19,7 +21,7 @@ param totalShiftsPerStation := 5;
 param shiftsUntil := shiftTime * totalShiftsPerStation;
 param bias := 500;
 
-set People := {"Yoni","Denis","Nadav","Max","er"};
+set People := {"Yoni","Denis","Nadav","Max"};
 set Emdot := {"North", "South"};
 set Times := {0.. shiftsUntil by shiftTime};
 
@@ -85,7 +87,8 @@ minimize distributeShiftsEqually:
             console.log("Response:", response);
 
             const { imageId, model } = response.data;
-
+            resetImage()
+            resetModel()
             // Update image state
             updateImageField("imageId", imageId);
             updateImageField("imageName", image.imageName.trim());

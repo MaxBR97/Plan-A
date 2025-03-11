@@ -22,6 +22,10 @@ return (
     <p className="set-type">
       <strong>Type:</strong> {typeList.join(", ")}
     </p>
+    <p className="total">Entries:{" "}
+      {setValues?.filter((_, rowIndex) => isRowSelected(setName, rowIndex))
+        .length || 0}
+    </p>
     <button
       className="add-set-entry-button"
       onClick={() => handleAddTuple(setName, typeList)}

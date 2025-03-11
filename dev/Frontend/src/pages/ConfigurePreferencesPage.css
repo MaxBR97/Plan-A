@@ -1,17 +1,14 @@
-/* ConfigurePreferencesPage.css */
-
+/* General Layout */
 .configure-preferences-page {
     display: flex;
     flex-direction: column;
     align-items: center;
     padding: 20px;
-    background-color: #f4f4f4;
-    min-height: 100vh;
+    font-family: Arial, sans-serif;
 }
 
 .page-title {
-    font-size: 28px;
-    font-weight: bold;
+    font-size: 24px;
     margin-bottom: 20px;
 }
 
@@ -23,43 +20,153 @@
     gap: 20px;
 }
 
-.preference-modules, .define-preference-module, .available-preferences {
-    background: #C4F4C7;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+/* preference Modules Section */
+.preference-modules,
+.define-preference-module,
+.available-preferences {
     flex: 1;
+    padding: 15px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    background: #f9f9f9;
+    overflow: hidden;
 }
 
-.module-drop-area {
-    background: white;
-    padding: 10px;
-    min-height: 50px;
-    border-radius: 5px;
-    border: 1px solid #007BFF;
+h2 {
+    font-size: 18px;
+    margin-bottom: 10px;
 }
 
-.preference-item {
-    background: white;
-    padding: 10px;
-    border-radius: 5px;
-    margin-top: 5px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border: 1px solid #007BFF;
+input[type="text"] {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
 }
 
 button {
-    background-color: #007BFF;
-    color: white;
+    padding: 8px 12px;
     border: none;
-    padding: 10px 15px;
+    border-radius: 4px;
     cursor: pointer;
-    border-radius: 5px;
-    transition: background-color 0.3s;
+    background-color: #007bff;
+    color: white;
+    transition: background 0.3s;
 }
 
 button:hover {
     background-color: #0056b3;
+}
+
+.module-list {
+    margin-top: 10px;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.module-item-container {
+    display: flex;
+    align-items: center;
+    margin-bottom: 5px;
+    width: 100%;
+    overflow: hidden;
+}
+
+.module-item {
+    flex-grow: 1;
+    text-align: left;
+    padding: 8px;
+    border-radius: 4px;
+    background: #e9ecef;
+    border: none;
+    cursor: pointer;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: black;
+}
+
+.module-item:hover,
+.module-item.selected {
+    background: #007bff;
+    color: white;
+}
+
+.delete-module-button {
+    margin-left: 10px;
+    background: transparent;
+    color: red;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+/* Define preference Module Section */
+textarea {
+    width: calc(100% - 20px);
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    resize: none;
+    max-width: calc(100% - 20px);
+    max-height: 150px;
+    overflow: hidden;
+    margin: 0 10px;
+}
+
+.module-drop-area {
+    padding: 10px;
+    background: #eef;
+    border-radius: 4px;
+    min-height: 50px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
+.dropped-preference {
+    background: #17a2b8;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+/* Available preferences */
+.preference-item-container {
+    margin-bottom: 5px;
+}
+
+.preference-item {
+    background: #28a745;
+    color: white;
+    padding: 8px;
+    width: 100%;
+    text-align: left;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.preference-item:hover {
+    background: #218838;
+}
+
+/* Buttons */
+.continue-button {
+    margin-top: 20px;
+    background: #28a745;
+}
+
+.back-button {
+    margin-top: 10px;
+    display: inline-block;
+    padding: 8px 12px;
+    color: white;
+    background: #6c757d;
+    border-radius: 4px;
+    text-decoration: none;
+}
+
+.back-button:hover {
+    background: #5a6268;
 }

@@ -146,6 +146,7 @@ public class ImageTests {
         .collect(Collectors.toSet());
 
         image.setVariablesModule(vars,sets,params);
+        image.getVariableModule().getVariables().get("edge").getTags();
         imageRepository.save(image);
         commit();
         imageRepository.deleteById(image.getId());

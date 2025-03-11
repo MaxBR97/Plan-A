@@ -22,8 +22,15 @@ const SolutionResultsPage = () => {
   // Use useEffect to update selectedVariable when solutionResponse becomes available
 
   const getSetStructure = (variable) => {
-    // return image.variablesModule.variableTags[variable] ||
-    return solutionResponse.solution[variable]?.setStructure || [];
+    console.log("example: ",image.variablesModule.variablesOfInterest.find((varObj) => varObj.identifier == variable))
+    const varObj = image.variablesModule?.variablesOfInterest?.find((varObj) => varObj.identifier == variable)
+    
+    if(varObj?.tags && varObj?.tags?.length == varObj.type.length){
+      console.log(varObj.tags)
+      return varObj.tags
+    }
+    else
+      return solutionResponse.solution[variable]?.setStructure || [];
   }
   
   useEffect(() => {
@@ -38,6 +45,7 @@ const SolutionResultsPage = () => {
         
         // Initialize displayStructure with the first variable's set structure
         //const initialSetStructure = solutionResponse.solution[firstVariable]?.setStructure || [];
+        
         const initialSetStructure = getSetStructure(firstVariable);
         // Only set initial state if displayValue hasn't been set yet
         if (displayValue === null) {
@@ -140,9 +148,9 @@ const SolutionResultsPage = () => {
       </div>
 
       {/* Draggable Set Structure Box */}
-      <div className="w-1/3 pl-4">
-        <div className="border rounded p-4">
-          <h2 className="text-xl font-semibold mb-4">Result Representation Order</h2>
+      
+        <div>
+          <h2>Result Representation Order</h2>
           <DragDropContext onDragEnd={onDragEnd}>
             <Droppable droppableId="set-structure-list">
               {(provided) => (
@@ -182,7 +190,7 @@ const SolutionResultsPage = () => {
             name="Display Value"
             />
         </div>
-      </div>
+      
     </div>
   );
 };

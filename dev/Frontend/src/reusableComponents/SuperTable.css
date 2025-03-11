@@ -1,0 +1,34 @@
+/* SolutionTable.css */
+
+.solution-table-container {
+    overflow-x: auto;
+  }
+  
+  .solution-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .solution-table th,
+  .solution-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+  }
+  
+  .solution-table th {
+    background-color: #f2f2f2;
+  }
+  
+  .clickable-cell {
+    cursor: pointer;
+    user-select: none;
+  }
+  
+  .clickable-cell:hover {
+    background-color: #e0e0e0;
+  }
+  
+  .row-header {
+      background-color: #f9f9f9;
+  }

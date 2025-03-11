@@ -99,7 +99,7 @@ public class ImageController {
     }
 
     @Transactional
-    public void overrideImage(ImageConfigDTO imgConfig) {
+    public void overrideImage(ImageConfigDTO imgConfig) throws Exception{
         ImageDTO imageDTO= imgConfig.image();
         Image image = imageRepository.findById(imgConfig.imageId()).get();
         entityManager.merge(image);
@@ -113,8 +113,8 @@ public class ImageController {
         BadRequestException.requireNotNull(imgConfig.image().variablesModule().inputParams(),"Bad DTO during image config, field in variables in image is null");
         BadRequestException.requireNotNull(imgConfig.image().variablesModule().inputSets(),"Bad DTO during image config, field in variables in image is null");
         for(VariableDTO variable:imageDTO.variablesModule().variablesOfInterest()){
-            
             ModelVariable modelVariable=model.getVariable(variable.identifier());
+            modelVariable.setTags(variable.tags().toArray(new String[0]));
             Objects.requireNonNull(modelVariable,"Invalid variable name in config/override image");
             variables.put(variable.identifier(),modelVariable);
         }

@@ -23,18 +23,20 @@ const SolutionPreviewPage = () => {
     initialImageState
   } = useZPL();
 
-console.log("operatinng on image: ", image)
-  const allSets = Array.from(image.variablesModule).flatMap(
-    (variable) => variable.dep?.inputSets ?? []
-  );
   const [variableValues, setVariableValues] = useState({});
   const [paramValues, setParamValues] = useState({});
   const [selectedVariableValues, setSelectedVariableValues] = useState({});
   const [constraintsToggledOff, setConstraintsToggledOff] = useState([]);
   const [preferencesToggledOff, setPreferencesToggledOff] = useState([]);
-  const [showResults, setShowResults] = useState(true);
+  const [sets, setSets] = useState(new Map());
+  const [params, setParams] = useState(new Map());
+  const [constraintModules, setConstraintModules] = useState(Array.from(image.constraintModules));
+  const [preferenceModules, setPreferenceModules] = useState(Array.from(image.preferenceModules));
+  const [variablesModule, setVariablesModule] = useState(image.variablesModule);
+  const [variables, setVariables] = useState([]);
+  const [showResults, setShowResults] = useState(false);
   const [timeout, setTimeout] = useState(10);
-  const navigate = useNavigate(); // Initialize navigation
+  const navigate = useNavigate(); 
 
   const handleAddValue = (setName) => {
     setVariableValues((prev) => ({
@@ -67,14 +69,13 @@ console.log("operatinng on image: ", image)
 
   const handleAddVariable = (setName) => {
     console.log("Adding Variable for:", setName);
-    console.log("Available setTypes:", model.setTypes);
   
-    if (!model.setTypes[setName]) {
+    if (!sets.get(setName)) {
       console.error(`❌ Error: setTypes does not contain ${setName}`);
       return; // Prevent further execution
     }
   
-    const numTypes = getNumTypes(model.setTypes[setName]); // Function to extract type count
+    const numTypes = getNumTypes(sets.get(setName).type); // Function to extract type count
   
     setVariableValues((prev) => {
       const newRow = new Array(numTypes).fill("");
@@ -146,6 +147,8 @@ console.log("operatinng on image: ", image)
   };
 
   useEffect(() => {
+    console.log(constraintsToggledOff)
+    
   }, [constraintsToggledOff, preferencesToggledOff]);
 
 
@@ -201,9 +204,25 @@ const loadInputs = async () => {
       if (!response.ok) {
         throw new Error(`load inputs request failed! Status: ${responseText}`);
     }
-     
-      setVariableValues(data.setsToValues);
-      setParamValues(data.paramsToValues);
+      
+      console.log("get input response: ", data)
+      const filteredParamsToValues = Object.keys(data.paramsToValues)
+          .filter((paramKey) => params.has(paramKey))
+          .reduce((filteredObject, paramKey) => {
+            filteredObject[paramKey] = data.paramsToValues[paramKey];
+            return filteredObject;
+          }, {});
+      const filteredSetsToValues = Object.keys(data.setsToValues)
+          .filter((setKey) => sets.has(setKey))
+          .reduce((filteredObject, setKey) => {
+            filteredObject[setKey] = data.setsToValues[setKey];
+            return filteredObject;
+          }, {});
+
+      setVariableValues(filteredSetsToValues);
+      setParamValues(filteredParamsToValues);
+      
+
         
       const preSelectedVariables = {};
       Object.keys(data.setsToValues).forEach((setName) => {
@@ -218,14 +237,53 @@ const loadInputs = async () => {
   }
 };
 
-
 useEffect(() => {
   (async () => {
     await loadImage();
   })();
 }, []);
 console.log("Fetched image: ", image)
+
+
 useEffect(() => {
+  // Check if image data is available
+  if (image) {
+    const newSets = new Map();
+    const newParams = new Map();
+    const newConstraintModules = Array.from(image.constraintModules);
+    const newPreferenceModules = Array.from(image.preferenceModules);
+    const newVariablesModule = image.variablesModule;
+    const newVariables = image.variablesModule?.variablesOfInterest ? Array.from(image.variablesModule.variablesOfInterest) : [];
+
+    const processModuleSetsAndParams = (module) => {
+      if (module && module.inputSets) {
+        module.inputSets.forEach(set => newSets.set(set.name, set));
+      }
+      if (module && module.inputParams) {
+        module.inputParams.forEach(param => newParams.set(param.name, param));
+      }
+    };
+
+    newConstraintModules.forEach(processModuleSetsAndParams);
+    newPreferenceModules.forEach(processModuleSetsAndParams);
+    if(newVariablesModule){
+        processModuleSetsAndParams(newVariablesModule);
+    }
+    console.log("-----")
+    console.log(newSets)
+    console.log(newParams)
+    console.log(newConstraintModules)
+    console.log(newPreferenceModules)
+    console.log(newVariablesModule)
+    console.log(newVariables)
+    setSets(newSets);
+    setParams(newParams);
+    setConstraintModules(newConstraintModules);
+    setPreferenceModules(newPreferenceModules);
+    setVariablesModule(newVariablesModule);
+    setVariables(newVariables);
+  } 
+
   (async () => {
     await loadInputs();
   })();
@@ -263,7 +321,7 @@ const handleSolve = async () => {
     timeout: timeout,
   };
 
-  console.log("Sending POST request:", JSON.stringify(requestBody, null, 2));
+  console.log("Sending SOLVE request:", JSON.stringify(requestBody, null, 2));
 
   try {
       const response = await fetch("/solve", {
@@ -296,45 +354,48 @@ const handleSolve = async () => {
   const [showModal, setShowModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState(null);
 
-  const selectedParams = image.variablesModule?.inputParams ?? [];
+  // const selectedParams = image.variablesModule?.inputParams ?? [];
 
   return (
     <div className="solution-preview-page">
       <h1 className="page-title">{image.imageName}</h1>
+      <p className="image-description">{image.imageDescription}</p>
       <div className="modules-container">
         {/* Constraints Section */}
         <div className="module-section">
           <h2 className="section-title">Constraints</h2>
-          {image.constraintModules.length > 0 ? (
-            image.constraintModules.map((module, index) => {
-              let inputSets = {};
-              let inputParams = {}
+          {constraintModules.length > 0 ? (
+            constraintModules.map((module, index) => {
+              let inputSets = [];
+              let inputParams = []
 
-              module.inputSets.forEach((setName) => {
+              module.inputSets.forEach((setDef) => {
                 const inputSet = {
-                  setName: setName,
-                  typeList: model.setTypes[setName],
-                  tupleTags: [],
-                  setValues: variableValues[setName],
+                  setName: setDef.name,
+                  type: setDef.type,
+                  tags: setDef.type,
+                  setValues: variableValues[setDef.name] || [] ,
                 };
 
-                inputSets[setName] = inputSet; 
+                inputSets =  [...inputSets, inputSet];
               });
-
-              module.inputParams.forEach((paramName) => {
+              
+              module.inputParams.forEach((paramDef) => {
+                
                 const inputParam = {
-                  paramName: paramName,
-                  value: paramValues[paramName],
-                  type: model.paramTypes[paramName]
+                  paramName: paramDef.name,
+                  value: paramValues[paramDef.name] || "",
+                  type: paramDef.type
                 };
-                inputParams[paramName] = inputParam;
+                inputParams =[...inputParams, inputParam];
               });
               
               return (
               <ModuleBox
               key={index}
               module={module}
-              checked={!constraintsToggledOff.includes(module.name)}
+              prefcons={module.constraints}
+              checked={!constraintsToggledOff.includes(module.moduleName)}
               handleToggleModule={handleToggleConstraint}
               handleAddTuple={handleAddVariable}
               handleRemoveTuple={handleRemoveVariable}
@@ -347,118 +408,92 @@ const handleSolve = async () => {
               />
             )})
           ) : (
-            <p className="empty-message">No constraint modules available.</p>
+            <p className="empty-message">No constraints modules available.</p>
           )}
         </div>
 
         {/* Preferences Section */}
         <div className="module-section">
           <h2 className="section-title">Preferences</h2>
-          {image.preferenceModules.length > 0 ? (
-            image.preferenceModules.map((module, index) => (
-              <div key={index} className="module-box">
-                {/* Toggle Button Positioned Correctly */}
-                <div className="toggle-container">
-                  <label className="switch">
-                    <input
-                      type="checkbox"
-                      checked={!preferencesToggledOff.includes(module.name)}
-                      onChange={() => handleTogglePreference(module.name)}
-                    />
-                    <span className="slider round"></span>
-                  </label>
-                </div>
+          {preferenceModules.length > 0 ? (
+            preferenceModules.map((module, index) => {
+              let inputSets = [];
+              let inputParams = []
 
-                <h3 className="module-title">{module.name}</h3>
-                <p className="module-description">
-                  <strong>Module Description:</strong> {module.description}
-                </p>
+              module.inputSets.forEach((setDef) => {
+                const inputSet = {
+                  setName: setDef.name,
+                  type: setDef.type,
+                  tags: setDef.type,
+                  setValues: variableValues[setDef.name] || [] ,
+                };
 
-                <h4 className="module-subtitle">Preferences</h4>
-                {module.preferences.length > 0 ? (
-                  module.preferences.map((preference, pIndex) => (
-                    <div key={pIndex} className="module-item">
-                      <p>{preference.identifier}</p>{" "}
-                      {/* Removed "Identifier:" */}
-                    </div>
-                  ))
-                ) : (
-                  <p className="empty-message">
-                    No preferences in this module.
-                  </p>
-                )}
-
-                <h4 className="module-subtitle">Involved Sets</h4>
-                {module.involvedSets.length > 0 ? (
-                  module.involvedSets.map((set, sIndex) => (
-                    <div key={sIndex} className="module-item">
-                      {set}
-                    </div>
-                  ))
-                ) : (
-                  <p className="empty-message">No involved sets.</p>
-                )}
-
-                <h4 className="module-subtitle">Involved Parameters</h4>
-                {module.involvedParams.length > 0 ? (
-                  module.involvedParams.map((param, pIndex) => (
-                    <div key={pIndex} className="module-item">
-                      {param}
-                    </div>
-                  ))
-                ) : (
-                  <p className="empty-message">No involved parameters.</p>
-                )}
-              </div>
-            ))
+                inputSets =  [...inputSets, inputSet];
+              });
+              
+              module.inputParams.forEach((paramDef) => {
+                
+                const inputParam = {
+                  paramName: paramDef.name,
+                  value: paramValues[paramDef.name] || "",
+                  type: paramDef.type
+                };
+                inputParams =[...inputParams, inputParam];
+              });
+              
+              return (
+              <ModuleBox
+              key={index}
+              module={module}
+              prefcons={module.preferences}
+              checked={!preferencesToggledOff.includes(module.moduleName)}
+              handleToggleModule={handleTogglePreference}
+              handleAddTuple={handleAddVariable}
+              handleRemoveTuple={handleRemoveVariable}
+              handleTupleToggle={handleVariableToggle}
+              handleTupleChange={handleVariableChange}
+              handleParamChange={handleParamChange}
+              isRowSelected={isRowSelected}
+              inputSets={inputSets}
+              inputParams={inputParams}
+              />
+            )})
           ) : (
             <p className="empty-message">No preference modules available.</p>
           )}
         </div>
 
         {/* Variable Sets Section */}
-        {/* Variable Sets Section */}
+        
 <div className="module-section">
   <h2 className="section-title">Variable Sets</h2>
-  {Array.from(new Set(Object.keys(model.setTypes)))
-    .filter((set) => image.variablesModule?.inputSets.includes(set))
-    .map((set, index) => {
-      // Fetch type from setTypes
-      const typeList = model.setTypes[set]
-        ? Array.isArray(model.setTypes[set])
-          ? model.setTypes[set]
-          : [model.setTypes[set]]
-        : ["Unknown"];
-      
-      return (
-        <SetInputBox
-          index={index}
-          typeList={typeList}
-          tupleTags={[]}
-          setName={set}
-          handleAddTuple={handleAddVariable}
-          handleTupleChange={handleVariableChange}
-          handleTupleToggle={handleVariableToggle}
-          handleRemoveTuple={handleRemoveVariable}
-          isRowSelected={isRowSelected}
-          setValues={variableValues[set]}
-        />
-      );
-    })}
+  {variablesModule.inputSets.map((setDef, index) => (
+  <SetInputBox
+    index={index}
+    typeList={setDef.type}
+    tupleTags={[]}
+    setName={setDef.name}
+    handleAddTuple={handleAddVariable}
+    handleTupleChange={handleVariableChange}
+    handleTupleToggle={handleVariableToggle}
+    handleRemoveTuple={handleRemoveVariable}
+    isRowSelected={isRowSelected}
+    setValues={variableValues[setDef.name]}
+    key={index} //added key prop.
+  />
+))}
     </div>
 
             {/* Variable Parameters Section */}
             {/* Parameters Section */}
       <div className="module-section">
       <h2 className="section-title">Parameters</h2>
-      {Object.keys(model.paramTypes)
-        .filter((param) => selectedParams.includes(param))
-        .map((param, index) => (
+      {variablesModule.inputParams.map((paramDef, index) => (
           <ParameterInputBox
             key={index}
-            paramName={param}
-            type={model.paramTypes[param]}
-            value={paramValues[param]}
+            paramName={paramDef.name}
+            type={paramDef.type}
+            value={paramValues[paramDef.name]}
             onChange={handleParamChange}
           />
         ))}
@@ -505,7 +540,7 @@ const handleSolve = async () => {
         <div className="results">
         {showResults && <SolutionResultsPage />}
         </div>
-      <button className="back-button" onClick={() => navigate("/")}>
+      <button className="home-button" onClick={() => navigate("/")}>
         ← Back to Home
       </button>
       </div>

@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import "./SuperTable.css";
 
 const SuperTable = ({ solutions, setStructure, displayStructure, isDisplayBinary , valueSetName }) => {
   const [editingCell, setEditingCell] = useState(null); // Track which cell is being edited
@@ -159,7 +160,7 @@ const SuperTable = ({ solutions, setStructure, displayStructure, isDisplayBinary
       <table className="solution-table">
         <thead>
           <tr>
-            <th>{nextSet} \ {currentSet}</th> 
+            <th>{currentSet} \ {nextSet}</th> 
             {nextSet &&
               nextUniqueValues.map((col, index) => <th key={index}>{col}</th>)}
           </tr>

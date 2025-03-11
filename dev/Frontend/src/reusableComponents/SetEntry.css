@@ -10,6 +10,7 @@
 }
 
 .set-entry-atom {
+  max-width: 150px;
   flex: 1;
   margin: 0 5px;
   padding: 8px;

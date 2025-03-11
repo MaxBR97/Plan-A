@@ -16,19 +16,21 @@ const initialImageState = {
   variablesModule: null,
 };
 
+const initialModelState = {
+  constraints: new Set(),
+  preferences: new Set(),
+  variables: new Set(),
+  setTypes: {},
+  paramTypes: {},
+  varTypes: {},
+}
+
 export const ZPLProvider = ({ children }) => {
   // State for image-related data
   const [image, setImage] = useState(initialImageState);
 
   // State for model-related data (from ModelDTO)
-  const [model, setModel] = useState({
-    constraints: new Set(),
-    preferences: new Set(),
-    variables: new Set(),
-    setTypes: {},
-    paramTypes: {},
-    varTypes: {},
-  });
+  const [model, setModel] = useState(initialModelState);
 
   // State for solution response (from SolutionDTO)
   const [solutionResponse, setSolutionResponse] = useState({
@@ -51,6 +53,15 @@ export const ZPLProvider = ({ children }) => {
     }));
   };
 
+  const updateImageFieldWithCallBack = (field, value, callback) => {  
+    setImage((prev) => ({
+      ...prev,
+      [field]: value,
+    }), callback);
+  };
+
+
+
   // Function to update model state
   const updateModel = (newModelData) => {
     setModel({
@@ -68,6 +79,14 @@ export const ZPLProvider = ({ children }) => {
     setSolutionResponse(response);
   };
 
+  const resetImage = () => {
+    setImage(initialImageState)
+  }
+
+  const resetModel = () => {
+    setModel(initialModelState)
+  }
+
   return (
     <ZPLContext.Provider
       value={{
@@ -76,9 +95,11 @@ export const ZPLProvider = ({ children }) => {
         solutionResponse,
         updateImage,
         updateImageField,
+        updateImageFieldWithCallBack,
         updateModel,
         updateSolutionResponse,
-        initialImageState
+        resetImage,
+        resetModel
       }}
     >
       {children}

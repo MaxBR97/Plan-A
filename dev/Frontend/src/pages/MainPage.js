@@ -141,7 +141,7 @@ const MainPage = () => {
             
             <div className="footer-button-container">
                 <Link to="/upload-zpl" className="footer-button create-button">
-                    Create new environment (For developers)
+                    Create new image
                 </Link>
             </div>
         </div>

@@ -25,6 +25,7 @@ const ConfigureConstraintsPage = () => {
     const [allModules, setAllModules] = useState(Array.from(image.constraintModules) || []);
     const [involvedSets, setInvolvedSets] = useState([]);
     const [involvedParams, setInvolvedParams] = useState([]);
+    
     useEffect(() => {
         setAvailableConstraints(Array.from(model.constraints).filter((c) => 
             allModules.every((module) => 

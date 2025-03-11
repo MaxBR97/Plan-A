@@ -1,26 +1,30 @@
 .set-input {
   display: flex;
   flex-direction: column;
-  width: 100%;
-  max-width: 800px;
+  width: auto; /* Changed from 100% to auto to allow sizing to content */
+  min-width: 250px; /* Minimum width to prevent too narrow boxes */
+  max-width: 800px; /* Keep the max-width constraint */
   border: 1px solid #ddd;
   border-radius: 8px;
   padding: 15px;
   margin: 15px 0;
   background-color: white;
   box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  flex: 0 1 auto; /* Don't grow, can shrink, size to content */
 }
 
 .set-name {
   font-size: 18px;
   margin: 0 0 5px 0;
   color: #333;
+  width: fit-content; /* Size to content */
 }
 
 .set-type {
   font-size: 14px;
   margin: 0 0 15px 0;
   color: #666;
+  width: fit-content; /* Size to content */
 }
 
 .add-set-entry-button {
@@ -50,6 +54,7 @@
   max-height: 350px; /* Height to show approximately 6 entries */
   overflow-y: auto;
   padding-right: 5px;
+  width: 100%; /* Ensure entries container uses available width */
 }
 
 .set-input > div > div {
@@ -74,4 +79,16 @@
 .entries-container::-webkit-scrollbar-thumb {
   background-color: #ddd;
   border-radius: 4px;
+}
+
+/* Additional styles to make the container fit its content */
+.set-input .total {
+  margin: 0 0 10px 0;
+  width: fit-content;
+}
+
+/* This helps when used in a flexbox layout like your module-section */
+.module-section .set-input {
+  flex: 0 1 auto;
+  align-self: flex-start;
 }

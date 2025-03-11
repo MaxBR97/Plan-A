@@ -1,306 +1,89 @@
-SolutionResultsPage.css
+/* SolutionResultsPage.css */
 
-/* Page container */
-.solution-results-container {
+.solution-results-page {
     display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 40px;
-    background-color: #f4f4f4;
-    min-height: 100vh;
-}
-
-/* Page title */
-.page-title {
-    font-size: 32px;
-    font-weight: bold;
-    margin-bottom: 20px;
-}
-
-/* Dropdown container */
-.variable-selector {
-    margin-bottom: 20px;
-    font-size: 18px;
-}
-
-/* Dropdown styling */
-.variable-dropdown {
-    font-size: 18px;
-    padding: 8px;
-    border-radius: 5px;
-    border: 2px solid #007BFF;
-    background-color: white;
-    cursor: pointer;
-}
-
-/* Main table container */
-.results-table {
-    border-collapse: collapse;
-    width: 80%;
-    max-width: 1000px;
-    background: white;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    margin-top: 20px;
-}
-
-/* Table header styling */
-.results-table th {
-    background-color: #00AFB9;
-    color: white;
-    padding: 12px;
-    text-align: center;
-    border: 3px solid black;
-    font-size: 18px;
-}
-
-/* Table cell styling */
-.results-table td {
-    border: 3px solid black;  /* Ensure black grid lines */
-    padding: 10px;
-    text-align: center;
-    font-size: 18px;
-}
-
-/* Mini table container */
-.mini-table-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-/* Mini table styling */
-.mini-table {
-    border-collapse: collapse;
     width: 100%;
-    margin-top: 10px;
-}
-
-.mini-table th, .mini-table td {
-    border: 3px solid black; /* Make sure mini tables also follow the grid */
-    padding: 6px;
-    text-align: center;
-    font-size: 16px;
-}
-
-/* Mini table header styling */
-.mini-table th {
-    background-color: #FFD166;
-    font-weight: bold;
-}
-
-/* Objective value highlighting */
-.objective-value {
-    font-weight: bold;
-    color: #FF006E;
-    font-size: 18px;
-}
-
-/* Back button styling */
-.back-button {
-    margin-top: 30px;
-    padding: 12px 25px;
-    font-size: 18px;
-    background-color: #007BFF;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    text-decoration: none;
-    cursor: pointer;
-    transition: background-color 0.3s;
-}
-
-.back-button:hover {
-    background-color: #0056b3;
-}
-
-/* Styling for binary values (V and X) */
-.binary-value {
-    font-size: 1.2rem;
-    font-weight: bold;
-    text-align: center;
-    display: inline-block;
-    width: 25px;
-    height: 25px;
-    line-height: 25px;
-    border-radius: 5px;
-    border: 2px solid black;
-}
-
-/* Green for V */
-.binary-value.v {
-    background-color: #4CAF50; /* Green */
-    color: white;
-}
-
-/* Red for X */
-.binary-value.x {
-    background-color: #F44336; /* Red */
-    color: white;
-}
-
-/* Dropdown Container */
-.solution-dropdown {
-    position: relative;
-    display: inline-block;
-    font-family: Arial, sans-serif;
-    width: 220px;
-}
-
-/* Styled Dropdown */
-.solution-dropdown select {
-    appearance: none;
-    background-color: #ffffff;
-    border: 2px solid #00AFB9;
-    border-radius: 25px;
-    padding: 10px 15px;
-    font-size: 16px;
-    cursor: pointer;
-    color: #333;
-    font-weight: bold;
-    outline: none;
-    transition: all 0.3s ease;
-    width: 100%;
-}
-
-/* Add Dropdown Arrow */
-.solution-dropdown::after {
-    content: '▼';
-    font-size: 14px;
-    color: #00AFB9;
-    position: absolute;
-    top: 50%;
-    right: 15px;
-    transform: translateY(-50%);
-    pointer-events: none;
-}
-
-/* Hover and Focus Effects */
-.solution-dropdown select:hover,
-.solution-dropdown select:focus {
-    background-color: #e6f7f9;
-    border-color: #007a82;
-}
-
-/* Options Styling */
-.solution-dropdown select option {
-    background-color: #ffffff;
-    padding: 10px;
-    font-size: 14px;
-    cursor: pointer;
-}
-
-/* When Option is Selected */
-.solution-dropdown select option:checked {
-    background-color: #00AFB9;
-    color: white;
-}
-
-/* Center the dropdown container */
-.solution-dropdown-container {
+    justify-content: space-between; /* Distribute space evenly */
+  }
+  
+  .result-table-container {
+    width: 66.666667%; /* 2/3 width for table */
+    padding-right: 1rem;
+    order: -1; /* Move to the far left */
+  }
+  
+  .result-representation-container {
+    width: 33.333333%; /* 1/3 width for representation */
+    padding-left: 1rem;
+    order: 1; /* Move to the far right */
+  }
+  
+  .page-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+  }
+  
+  .solution-dropdown-container {
+    margin-bottom: 1rem;
+  }
+  
+  .solution-dropdown {
     display: flex;
-    justify-content: center;
     align-items: center;
-    margin-top: 20px;
-    width: 100%;
-}
-
-/* Center the table container */
-.solution-table-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 10%;
-    margin-top: 30px; /* Adjust spacing as needed */
-}
-
-/* Ensure table has a defined max-width and is centered */
-.solution-table {
-    border-collapse: collapse;
-    width: auto; /* Adjusts to content */
-    max-width: 80%; /* Prevents the table from being too wide */
-    text-align: center;
-}
-
-/* Style the table headers */
-.solution-table th {
-    background-color: #007BFF; /* Blue header */
-    color: white;
-    padding: 5px;
-    text-align: center;
-    border: 3px solid black;
-    font-size: 10px;
-    font-weight: bold;
-    text-transform: uppercase;
-}
-
-/* Column headers styling */
-.solution-table th:first-child {
-    background-color: #007BFF;
-    color: white;
-    font-size: 14px;
-    text-align: center;
-}
-
-/* Adjust font size and boldness for column headers */
-.solution-table th:not(:first-child) {
-    font-size: 14px;
-    font-weight: bold;
-}
-
-/* Styling for inner headers (inside the mini-tables) */
-.mini-table th {
-    background-color: #0056b3; /* Darker blue */
-    color: white;
-    font-weight: bold;
-    padding: 8px;
-    border: 2px solid black;
-    font-size: 14px;
-}
-
-/* Improved Row Header Styling */
-.row-header {
-    font-weight: bold;
-    font-size: 18px;
-    text-align: center;
-    padding: 15px 20px;
-    color: white;
-    background: linear-gradient(to right, #00AFB9, #007a82); /* Gradient effect */
-    border: 2px solid black;
-    border-radius: 0px;
-    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
-    text-transform: capitalize; /* Capitalizes first letters */
-    white-space: nowrap;
-}
-
-/* Adjust table cell spacing */
-.solution-table td {
-    padding: 3px;
-}
-
-/* Ensure the row headers don't look oversized */
-.solution-table .row-header {
-    min-width: 12px; /* Prevents them from stretching too much */
-}
-
-/* Ensure all table cells, including headers, have black borders */
-.solution-table, .solution-table th, .solution-table td {
-    border: 3px solid black; /* Set border color and thickness */
-    border-collapse: collapse; /* Ensure no spacing between borders */
-}
-
-/* Ensure mini-table cells have black borders */
-.mini-table, .mini-table th, .mini-table td {
-    border: 3px solid black;
-    border-collapse: collapse;
-}
-
-/* Ensure row headers also have the same styling */
-.row-header {
-    background-color: #00AFB9; /* Keep existing background */
-    font-weight: bold;
-    text-align: center;
-    color: white;
-    border: 3px solid black;
-}
-
+  }
+  
+  .solution-dropdown label {
+    margin-right: 0.5rem;
+  }
+  
+  .solution-dropdown select {
+    border: 1px solid #ddd;
+    border-radius: 0.25rem;
+    padding: 0.25rem;
+  }
+  
+  /* Drag and Drop Styling */
+  .border {
+    border: 1px solid #ddd;
+  }
+  
+  .rounded {
+    border-radius: 0.25rem;
+  }
+  
+  .p-4 {
+    padding: 1rem;
+  }
+  
+  .text-xl {
+    font-size: 1.25rem;
+  }
+  
+  .font-semibold {
+    font-weight: 600;
+  }
+  
+  .mb-4 {
+    margin-bottom: 1rem;
+  }
+  
+  .space-y-2 > * + * {
+    margin-top: 0.5rem;
+  }
+  
+  .p-2 {
+    padding: 0.5rem;
+  }
+  
+  .bg-gray-100 {
+    background-color: #f3f4f6;
+  }
+  
+  .hover\:bg-gray-200:hover {
+    background-color: #e5e7eb;
+  }
+  
+  .cursor-move {
+    cursor: move;
+  }

@@ -2,6 +2,9 @@ package Model;
 
 import java.util.LinkedList;
 import java.util.List;
+
+import DataAccess.StringArrayConverter;
+import Exceptions.InternalErrors.BadRequestException;
 import Model.ModelInput.StructureBlock;
 import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
@@ -15,7 +18,9 @@ public abstract class ModelOutput extends ModelComponent {
     @Column(name = "my_type")
     @Convert(converter = ModelTypeConverter.class)
     protected ModelType myType;
-    @Transient
+    
+    @Column(name = "tags")
+    @Convert(converter = StringArrayConverter.class)
     protected String[] tags;
 
     public ModelOutput(String imageId, String identifier) {
@@ -37,6 +42,14 @@ public abstract class ModelOutput extends ModelComponent {
             tags = myType.typeList().toArray(new String[0]);
         }
         return tags;
+    }
+
+    public void setTags(String[] tags) throws Exception{
+        if(tags == null)
+            throw new BadRequestException("Trying to set tags as null");
+        if(tags.length != myType.typeList().size())
+            throw new BadRequestException("Trying to set tags of wrong length.");
+        this.tags = tags;
     }
 
 

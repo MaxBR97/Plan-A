@@ -1,63 +1,169 @@
-/* .module-box {
-    background: #fefefe;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    padding: 15px;
-    margin-bottom: 10px;
+/* ModuleBox.css */
+
+.module-box {
+  width: 45%; /* Set the width to 45% of the screen */
+  border: 1px solid #ddd;
+  padding: 15px;
+  margin: 10px;
+  box-sizing: border-box;
+  display: inline-block;
+  vertical-align: top;
+  transition: all 0.3s ease;
+  border-radius: 6px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  background-color: white;
+}
+
+/* Header section with title and buttons */
+.module-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #eee;
+  position: relative;
+}
+
+.module-title {
+  font-size: 1.5em;
+  margin: 0;
+  flex-grow: 1;
+  text-align: center;
+  padding: 0 60px; /* Make space for buttons on either side */
+}
+
+.module-description {
+  margin: 15px 0;
+  line-height: 1.4;
+}
+
+.module-subtitle {
+  font-size: 1.2em;
+  margin-top: 20px;
+  margin-bottom: 10px;
+}
+
+.module-item {
+  border: 1px solid #eee;
+  padding: 10px;
+  margin-bottom: 5px;
+}
+
+.empty-message {
+  font-style: italic;
+  color: #888;
+  margin-top: 10px;
+}
+
+.module-content {
+  overflow: hidden;
+  max-height: 2000px; /* Arbitrary large height */
+  transition: max-height 0.5s ease;
+}
+
+/* Minimized state */
+.module-box.minimized .module-content {
+  max-height: 0;
+  opacity: 0;
+  margin-top: 0;
+}
+
+.module-box.minimized {
+  padding-bottom: 15px;
+}
+
+.module-set-inputs,
+.module-parameter-inputs {
+  width: 100%;
+  margin-top: 20px;
+}
+
+.toggle-container {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+/* Minimize/Maximize Button */
+.minimize-button {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background-color: #f1f1f1;
+  border: 1px solid #ddd;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  line-height: 1;
+  padding: 0;
+  outline: none;
+  transition: background-color 0.2s;
+}
+
+.minimize-button:hover {
+  background-color: #e0e0e0;
+}
+
+/* Toggle Switch Styling */
+.toggle-container label {
+  display: inline-block;
+  position: relative;
+  width: 60px;
+  height: 34px;
+}
+
+.toggle-container label input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-container label span {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: .4s;
+  border-radius: 34px;
+}
+
+.toggle-container label span:before {
+  position: absolute;
+  content: "";
+  height: 26px;
+  width: 26px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  transition: .4s;
+  border-radius: 50%;
+}
+
+.toggle-container label input:checked + span {
+  background-color: #2196F3;
+}
+
+.toggle-container label input:focus + span {
+  box-shadow: 0 0 1px #2196F3;
+}
+
+.toggle-container label input:checked + span:before {
+  transform: translateX(26px);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .module-box {
+    width: 100%;
   }
-  
-  .module-title {
-    font-size: 16px;
-    font-weight: bold;
-  }
-  
-  .toggle-container {
-    display: flex;
-    justify-content: flex-end;
-  }
-  
-  .switch {
-    position: relative;
-    display: inline-block;
-    width: 34px;
-    height: 20px;
-  }
-  
-  .switch input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-  }
-  
-  .slider {
-    position: absolute;
-    cursor: pointer;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: #ccc;
-    transition: 0.4s;
-    border-radius: 20px;
-  }
-  
-  .slider:before {
-    position: absolute;
-    content: "";
-    height: 14px;
-    width: 14px;
-    left: 3px;
-    bottom: 3px;
-    background-color: white;
-    transition: 0.4s;
-    border-radius: 50%;
-  }
-  
-  input:checked + .slider {
-    background-color: #007bff;
-  }
-  
-  input:checked + .slider:before {
-    transform: translateX(14px);
-  }
-   */
+}
