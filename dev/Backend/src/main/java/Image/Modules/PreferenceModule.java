@@ -3,12 +3,15 @@ package Image.Modules;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 import Image.Image;
 import Model.ModelConstraint;
+import Model.ModelInput;
 import Model.ModelParameter;
 import Model.ModelPreference;
 import Model.ModelSet;
@@ -39,6 +42,9 @@ public class PreferenceModule extends Module{
     @MapKey(name = "id.identifier")
     private Map<String, ModelPreference> preferences;
 
+    @Transient
+    private Set<ModelParameter> costParameter;
+
 
     protected PreferenceModule() {
         super();
@@ -48,17 +54,31 @@ public class PreferenceModule extends Module{
     public PreferenceModule(Image image ,String name, String description) {
         super(image, name, description);
         preferences = new HashMap<>();
-
     }
-    public PreferenceModule(Image image ,String name, String description, Collection<ModelPreference> preferences, Collection<ModelSet> inputSets, Collection<ModelParameter> inputParams) {
+
+    public PreferenceModule(Image image ,String name, String description, Collection<ModelPreference> preferences, Collection<ModelSet> inputSets, Collection<ModelParameter> inputParams, Collection<ModelParameter> coefficients) {
         super(image , name, description,inputSets,inputParams);
+        for(ModelParameter costParam : coefficients){
+            this.addParam(costParam);
+        }
         this.preferences = new HashMap<>();
         for (ModelPreference constraint : preferences) {
             this.preferences.put(constraint.getIdentifier(), constraint);
             constraint.setModuleName(this.getName());
         }
-
+        for(ModelParameter param : coefficients){
+            param.setCostParameter(true);
+        }
     }
+
+    private void gatherCostParameters(){
+        this.costParameter = new HashSet<>();
+        for(ModelParameter param : this.inputParams) {
+            if(param.isCostParameter())
+                this.costParameter.add(param);
+        }
+    }
+    
     /**
      * Fetch all ModelSets that are in use in any of the preferences in the module.
      * @return all sets that are part of any preferences in the module
@@ -100,5 +120,12 @@ public class PreferenceModule extends Module{
     @Transactional
     public void removePreference(String identifier){
         preferences.remove(identifier);
+    }
+
+    @Transactional
+    public Set<ModelParameter> getCostParameters(){
+        if(costParameter == null)
+            gatherCostParameters();
+        return this.costParameter;
     }
 }

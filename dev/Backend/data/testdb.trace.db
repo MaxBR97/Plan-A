@@ -1,0 +1,21 @@
+2025-03-11 12:30:30.974763+02:00 jdbc[33]: exception
+org.h2.jdbc.JdbcSQLDataException: Value too long for column "NAME CHARACTER VARYING(255)": "'(sum<step,src,x1,y1,dest,x2,y2>inSteps*Cities*Cities|src!=dest:Edges[step,src,d... (277)"; SQL statement:
+insert into preferences (name,image_id) values (?,?) [22001-232]
+2025-03-11 12:30:53.763753+02:00 jdbc[34]: exception
+org.h2.jdbc.JdbcSQLDataException: Value too long for column "NAME CHARACTER VARYING(255)": "'(sum<step,src,x1,y1,dest,x2,y2>inSteps*Cities*Cities|src!=dest:Edges[step,src,d... (277)"; SQL statement:
+insert into preferences (name,image_id) values (?,?) [22001-232]
+2025-03-11 12:30:59.066031+02:00 jdbc[33]: exception
+org.h2.jdbc.JdbcSQLDataException: Value too long for column "NAME CHARACTER VARYING(255)": "'(sum<step,src,x1,y1,dest,x2,y2>inSteps*Cities*Cities|src!=dest:Edges[step,src,d... (277)"; SQL statement:
+insert into preferences (name,image_id) values (?,?) [22001-232]
+2025-03-11 12:31:07.381868+02:00 jdbc[33]: exception
+org.h2.jdbc.JdbcSQLDataException: Value too long for column "NAME CHARACTER VARYING(255)": "'(sum<step,src,x1,y1,dest,x2,y2>inSteps*Cities*Cities|src!=dest:Edges[step,src,d... (277)"; SQL statement:
+insert into preferences (name,image_id) values (?,?) [22001-232]
+2025-03-11 12:31:44.341963+02:00 jdbc[33]: exception
+org.h2.jdbc.JdbcSQLDataException: Value too long for column "NAME CHARACTER VARYING(255)": "'(sum<step,src,x1,y1,dest,x2,y2>inSteps*Cities*Cities|src!=dest:Edges[step,src,d... (277)"; SQL statement:
+insert into preferences (name,image_id) values (?,?) [22001-232]
+2025-03-11 12:31:58.475439+02:00 jdbc[33]: exception
+org.h2.jdbc.JdbcSQLDataException: Value too long for column "NAME CHARACTER VARYING(255)": "'(sum<step,src,x1,y1,dest,x2,y2>inSteps*Cities*Cities|src!=dest:Edges[step,src,d... (277)"; SQL statement:
+insert into preferences (name,image_id) values (?,?) [22001-232]
+2025-03-11 12:32:15.058115+02:00 jdbc[33]: exception
+org.h2.jdbc.JdbcSQLDataException: Value too long for column "NAME CHARACTER VARYING(255)": "'(sum<step,src,x1,y1,dest,x2,y2>inSteps*Cities*Cities|src!=dest:Edges[step,src,d... (277)"; SQL statement:
+insert into preferences (name,image_id) values (?,?) [22001-232]

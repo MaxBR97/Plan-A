@@ -90,7 +90,7 @@ public class Solution {
 
             Pattern statusPattern = Pattern.compile("SCIP Status\s+:\s+problem is solved.*optimal solution found");
             Pattern solvingTimePattern = Pattern.compile("Solving Time \\(sec\\)\s+:\s+(\\d+\\.\\d+)");
-            Pattern objectiveValuePattern = Pattern.compile("objective value:\\s+(\\d+(\\.\\d+)?)");
+            Pattern objectiveValuePattern = Pattern.compile("objective value:\\s+(-?\\d+(\\.\\d+)?)");
             while ((line = reader.readLine()) != null) {
                 if (!solutionSection) {
                     // Check for the solved status
@@ -119,7 +119,7 @@ public class Solution {
         parsed=true;
     }
     private void parseSolutionValues(BufferedReader reader, Set<String> varsToParse) throws IOException {
-        Pattern variablePattern = Pattern.compile("^(.*?)[ \\t]+(\\d+\\.?\\d*)[ \\t]+\\(obj:(\\d+\\.?\\d*)\\)");
+        Pattern variablePattern = Pattern.compile("^(.*?)[ \\t]+(\\d+\\.?\\d*)[ \\t]+\\(obj:(-?\\d+\\.?\\d*)\\)");
         String line;
         while ((line = reader.readLine()) != null){
             Matcher variableMatcher = variablePattern.matcher(line);

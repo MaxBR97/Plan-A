@@ -2,6 +2,7 @@ package Model;
 
 import java.util.List;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
@@ -12,7 +13,8 @@ import jakarta.persistence.Transient;
 @Table(name="parameters")
 public class ModelParameter extends ModelInput {
 
-
+    @Column(name = "is_cost_param")
+    private boolean isCostParameter = false;
     @Transient
     private String value;
 
@@ -21,6 +23,7 @@ public class ModelParameter extends ModelInput {
     }
     public ModelParameter(String imageId, String identifier, ModelType type) {
        super(imageId, identifier,type);
+
     }
     
     public ModelParameter(String imageId, String paramName, ModelType type, List<ModelSet> basicSets,
@@ -52,7 +55,12 @@ public class ModelParameter extends ModelInput {
         this.value = null;
     }
 
+    public void setCostParameter (boolean isCostParam) {
+        this.isCostParameter = isCostParam;
+    }
 
-
+    public boolean isCostParameter () {
+        return this.isCostParameter;
+    }
     
 }

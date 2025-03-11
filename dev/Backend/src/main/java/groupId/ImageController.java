@@ -130,7 +130,8 @@ public class ImageController {
             image.addPreferenceModule(preferenceModule.moduleName(), preferenceModule.description(),
                     preferenceModule.preferences(),
                     preferenceModule.inputSets().stream().map(SetDefinitionDTO::name).collect(Collectors.toSet()),
-                    preferenceModule.inputParams().stream().map(ParameterDefinitionDTO::name).collect(Collectors.toSet()));
+                    preferenceModule.inputParams().stream().map(ParameterDefinitionDTO::name).collect(Collectors.toSet()),
+                    preferenceModule.costParams().stream().map(ParameterDefinitionDTO::name).collect(Collectors.toSet()));
         }
         entityManager.merge(image);
     }

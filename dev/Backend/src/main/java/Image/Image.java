@@ -175,10 +175,11 @@ public class Image {
     }
 
     @Transactional
-    public void addPreferenceModule(String moduleName, String description, Collection<String> preferences, Collection<String> inputSets, Collection<String> inputParams) {
+    public void addPreferenceModule(String moduleName, String description, Collection<String> preferences, Collection<String> inputSets, Collection<String> inputParams, Collection<String> costParameters) {
         HashSet<ModelPreference> modelPreferences = new HashSet<>();
         HashSet<ModelSet> sets = new HashSet<>();
         HashSet<ModelParameter> params = new HashSet<>();
+        HashSet<ModelParameter> costs = new HashSet<>();
         for (String name : preferences) {
             ModelPreference preference = model.getPreference(name);
            Objects.requireNonNull(preference,"Invalid preference name in add preference module");
@@ -190,7 +191,12 @@ public class Image {
         for(String param : inputParams){
             params.add(model.getParameter(param));
         }
-        preferenceModules.put(moduleName, new PreferenceModule(this, moduleName, description, modelPreferences,sets,params));
+        if(costParameters != null){
+            for(String param : costParameters){
+                costs.add(model.getParameter(param));
+            }
+        }
+        preferenceModules.put(moduleName, new PreferenceModule(this, moduleName, description, modelPreferences,sets,params,costs));
     }
     @Transactional
     public ConstraintModule getConstraintsModule(String name) {

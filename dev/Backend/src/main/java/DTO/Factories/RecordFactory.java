@@ -114,6 +114,7 @@ public class RecordFactory {
         return new ConstraintModuleDTO(module.getName(), module.getDescription(),
                 constraints, sets, param);
     }
+
     public static PreferenceModuleDTO makeDTO(PreferenceModule module) {
         if(module == null)
             throw new NullPointerException("Null preference module in DTO mapping");
@@ -124,6 +125,7 @@ public class RecordFactory {
 
         Set<SetDefinitionDTO> sets = new HashSet<>();
         Set<ParameterDefinitionDTO> param = new HashSet<>();
+        Set<ParameterDefinitionDTO> costParams = new HashSet<>();
         
         for(ModelSet s: module.getInputSets()){
             sets.add(makeDTO(s));
@@ -131,9 +133,12 @@ public class RecordFactory {
         for(ModelParameter p: module.getInputParams()){
             param.add(makeDTO(p));
         }
+        for(ModelParameter p: module.getCostParameters()){
+            costParams.add(makeDTO(p));
+        }
 
         return new PreferenceModuleDTO(module.getName(), module.getDescription(),
-                preferences, sets, param);
+                preferences, sets, param, costParams);
     }
 
     public static SetDefinitionDTO makeDTO(ModelSet set){
