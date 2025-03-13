@@ -8,8 +8,10 @@ import SetEntry from '../reusableComponents/SetEntry';
 import ModuleBox from '../reusableComponents/ModuleBox.js';
 import SetInputBox from '../reusableComponents/SetInputBox.js';
 import ParameterInputBox from "../reusableComponents/ParameterInputBox";
+import DraggableBar from "../reusableComponents/DraggableBar.js";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom"; // Import useNavigate
+
 
 const SolutionPreviewPage = () => {
   const {
@@ -30,6 +32,7 @@ const SolutionPreviewPage = () => {
   const [preferencesToggledOff, setPreferencesToggledOff] = useState([]);
   const [sets, setSets] = useState(new Map());
   const [params, setParams] = useState(new Map());
+  const [costParams, setCostParams] = useState(new Map());
   const [constraintModules, setConstraintModules] = useState(Array.from(image.constraintModules));
   const [preferenceModules, setPreferenceModules] = useState(Array.from(image.preferenceModules));
   const [variablesModule, setVariablesModule] = useState(image.variablesModule);
@@ -44,7 +47,7 @@ const SolutionPreviewPage = () => {
       [setName]: [...(prev[setName] || []), ""],
     }));
   };
-
+  
   const isRowSelected = (setName, rowIndex) => {
     return selectedVariableValues[setName]?.includes(rowIndex) || false;
   };
@@ -68,8 +71,6 @@ const SolutionPreviewPage = () => {
   };
 
   const handleAddVariable = (setName) => {
-    console.log("Adding Variable for:", setName);
-  
     if (!sets.get(setName)) {
       console.error(`❌ Error: setTypes does not contain ${setName}`);
       return; // Prevent further execution
@@ -146,11 +147,6 @@ const SolutionPreviewPage = () => {
     });
   };
 
-  useEffect(() => {
-    console.log(constraintsToggledOff)
-    
-  }, [constraintsToggledOff, preferencesToggledOff]);
-
 
   const handleToggleConstraint = (moduleName) => {
     setConstraintsToggledOff((prev) =>
@@ -181,8 +177,9 @@ const SolutionPreviewPage = () => {
         throw new Error(`Load image request failed! Status: ${response.status}, Response: ${errorText}`);
       }
   
-    const data = await response.json(); // Parse JSON **after** checking response.ok
-    updateImage(data); // Pass parsed data instead of raw response
+    const data = await response.json();
+    updateImage(data);
+    console.log("Fetched image: ", data)
   
     } catch (error) {
       console.error("Error fetching image:", error);
@@ -205,7 +202,7 @@ const loadInputs = async () => {
         throw new Error(`load inputs request failed! Status: ${responseText}`);
     }
       
-      console.log("get input response: ", data)
+      console.log("load input response: ", data)
       const filteredParamsToValues = Object.keys(data.paramsToValues)
           .filter((paramKey) => params.has(paramKey))
           .reduce((filteredObject, paramKey) => {
@@ -240,16 +237,16 @@ const loadInputs = async () => {
 useEffect(() => {
   (async () => {
     await loadImage();
+
   })();
 }, []);
-console.log("Fetched image: ", image)
-
 
 useEffect(() => {
   // Check if image data is available
   if (image) {
     const newSets = new Map();
     const newParams = new Map();
+    const newCostParams = new Map();
     const newConstraintModules = Array.from(image.constraintModules);
     const newPreferenceModules = Array.from(image.preferenceModules);
     const newVariablesModule = image.variablesModule;
@@ -262,6 +259,9 @@ useEffect(() => {
       if (module && module.inputParams) {
         module.inputParams.forEach(param => newParams.set(param.name, param));
       }
+      if (module && module.costParams) {
+        module.costParams.forEach(param => newCostParams.set(param.name, param));
+      }
     };
 
     newConstraintModules.forEach(processModuleSetsAndParams);
@@ -269,15 +269,10 @@ useEffect(() => {
     if(newVariablesModule){
         processModuleSetsAndParams(newVariablesModule);
     }
-    console.log("-----")
-    console.log(newSets)
-    console.log(newParams)
-    console.log(newConstraintModules)
-    console.log(newPreferenceModules)
-    console.log(newVariablesModule)
-    console.log(newVariables)
+ 
     setSets(newSets);
     setParams(newParams);
+    setCostParams(newCostParams);
     setConstraintModules(newConstraintModules);
     setPreferenceModules(newPreferenceModules);
     setVariablesModule(newVariablesModule);
@@ -322,7 +317,7 @@ const handleSolve = async () => {
   };
 
   console.log("Sending SOLVE request:", JSON.stringify(requestBody, null, 2));
-
+  
   try {
       const response = await fetch("/solve", {
           method: "POST",
@@ -338,8 +333,7 @@ const handleSolve = async () => {
       }
       
       const data = JSON.parse(responseText);
-      console.log(responseText);
-      console.log(data);
+      console.log("Solve response: ",data);
       updateSolutionResponse(data);
       //navigate("/solution-results");\
       setShowResults(true)
@@ -348,7 +342,6 @@ const handleSolve = async () => {
       setErrorMessage(`Failed to solve. ${error.message}`);
   }
 };
-
 
   const [responseData, setResponseData] = useState(null);
   const [showModal, setShowModal] = useState(false);
@@ -460,6 +453,24 @@ const handleSolve = async () => {
             )})
           ) : (
             <p className="empty-message">No preference modules available.</p>
+          )}
+          
+          {preferenceModules.length > 0 && (
+            Array.from(costParams).length > 0 ?<DraggableBar 
+            min={0} 
+            max={100} 
+            markers = {Array.from(costParams.keys())
+            .filter(param => paramValues[param])
+            .map(param => ({ [param]: parseFloat(paramValues[param][0]) }))}
+            //markers={[{ speed: 30 }, { power: 100 }]} 
+            onChange={(marker) => {
+              const [paramName, paramValue] = Object.entries(marker)[0];
+              handleParamChange(paramName, paramValue);
+            }}
+            
+          />
+          
+            : null
           )}
         </div>
 

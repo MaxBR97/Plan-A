@@ -14,6 +14,7 @@ set Steps:= {1..citiesToVisit};
 set AllPossibleCombinations := {<i,a,b> in Steps * CitiesNames * CitiesNames | a != b};
 # set AllPossibleCombinations := {<i,a,b> in Steps * CitiesNames * CitiesNames | a != b and i >= 2} union {<i,a,b> in Steps * CitiesNames * CitiesNames | a != b : <1,a,b>};
 var Edges[AllPossibleCombinations] binary;
+# var TotalSteps integer >= 0 <= citiesToVisit;
 
 
 subto StartFromStartingCity:
@@ -35,28 +36,40 @@ subto CantStayInPlace:
     forall <step,src,dest> in AllPossibleCombinations | src == dest : Edges[step, src,dest] == 0;
 
 subto DepartFromLastArrivedCity:
-    forall <step,src,dest> in AllPossibleCombinations | step != citiesToVisit :
-        vif Edges[step,src,dest] != 0 
-        then sum <step2,src2,dest2> in AllPossibleCombinations | dest == src2 and step2 == step + 1 : Edges[step2,src2,dest2] <= 1 end;
+    forall <step,src,dest> in AllPossibleCombinations | step != 1 :
+        vif Edges[step,src,dest] != 0
+        then sum <step2,src2,dest2> in AllPossibleCombinations | src == dest2 and step2 + 1 == step : Edges[step2,src2,dest2] == 1 end;
 
 subto EnforceStepsSequential:
     forall <step> in Steps:
         vif sum <step2,src,dest> in AllPossibleCombinations | step == step2 : Edges[step2,src,dest] == 0 
         then sum <step2,src,dest> in AllPossibleCombinations | step2 >= step : Edges[step2,src,dest] == 0 end;
 
-param citiesVisitedCoefficient := 200;         
+# subto trial:
+#     forall <step> in Steps:
+#         vif step == TotalSteps + 1
+#         then sum <step2,src,dest> in AllPossibleCombinations | step2 >= step : Edges[step2,src,dest] == 0 end;
+
+# subto EnforceTotalStepsVariable:
+#     TotalSteps == sum <step,src,dest> in AllPossibleCombinations: Edges[step,src,dest];
+
+param citiesVisitedCoefficient := 100;         
 param distances[<src,x1,y1,dest,x2,y2> in Cities * Cities] := sqrt((x1-x2)**2 + (y1-y2)**2);
-param distancesCoefficient := 10;
+param distancesCoefficient := 1;
 param privilegedCitiesCoefficient := 0;
+param distanceNormalizationFactor := (sum <src,x1,y1,dest,x2,y2> in Cities*Cities | src == StartingCity : distances[src,x1,y1,dest,x2,y2]) / card(Cities) ;
 set privilegedCities := {"Eilat"};
 
+do print distanceNormalizationFactor;
+
 minimize distance:    
-    sum <step,src,x1,y1,dest,x2,y2> in Steps * Cities * Cities | src != dest: 
-        Edges[step,src,dest] * distances[src,x1,y1,dest,x2,y2] * distancesCoefficient
+    1*(sum <step,src,x1,y1,dest,x2,y2> in Steps * Cities * Cities | src != dest: 
+        (Edges[step,src,dest] * distances[src,x1,y1,dest,x2,y2] * distancesCoefficient / distanceNormalizationFactor))
+    
 
-    - privilegedCitiesCoefficient*(sum <priv> in privilegedCities : 
+    - privilegedCitiesCoefficient*((sum <priv> in privilegedCities : 
                                         sum <step,src,dest> in AllPossibleCombinations | dest == priv :
-                                             Edges[step,src,dest])
+                                             Edges[step,src,dest]))
 
-    - citiesVisitedCoefficient*(sum <step,src,dest> in AllPossibleCombinations: Edges[step,src,dest]);
+    - (citiesVisitedCoefficient*(sum <step,src,dest> in AllPossibleCombinations: Edges[step,src,dest]));
     

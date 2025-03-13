@@ -253,21 +253,71 @@ public class ModelTest {
 
     
     @Test
-    public void testSolve(){
+    public void testSolveOptimal(){
         ModelInterface m = null;
         try{
         
         m = modelFactory.getModel(this.sourceSolveId);
         Solution sol = m.solve(100,"SOLUTION");
         
-        if(sol == null)
-            assertFalse(true);
+        assertNotNull(sol);
         Set<String> stringVariables = m.getVariables().stream()
             .map(ModelVariable::getIdentifier)
             .collect(Collectors.toSet());
         sol.parseSolution(m, stringVariables);
-        assertTrue(sol.isSolved());
+        assertEquals(sol.getSolutionStatus(), Solution.SolutionStatus.OPTIMAL);
         assertEquals(sol.getObjectiveValue() , 1187);
+        } catch(Exception e){assertTrue(false);}
+    }
+
+    @Test
+    public void testSolveSuboptimal(){
+        ModelInterface m = null;
+        try{
+        
+        m = modelFactory.getModel(this.sourceSolveId);
+        m.setInput(m.getSet("Stations"),new String[] {"\"North\"","\"West\"","\"South\"" , "\"East\""});
+        m.setInput(m.getParameter("soldiers"),"15");
+        m.setInput(m.getParameter("degreeOne"),"7");
+        m.setInput(m.getParameter("degreeTwo"),"4");
+        m.setInput(m.getParameter("absoluteMinimalSpacing"),"0");
+
+        //21k vars~
+        //approximately 1-2 seconds reading time
+        //approx. 1 seconds presolve time
+        //aprox. 137 seconds solve for optimal
+        Solution sol = m.solve(6,"SOLUTION");
+        
+        assertNotNull(sol);
+        Set<String> stringVariables = m.getVariables().stream()
+            .map(ModelVariable::getIdentifier)
+            .collect(Collectors.toSet());
+        sol.parseSolution(m, stringVariables);
+        assertEquals(sol.getSolutionStatus(), Solution.SolutionStatus.SUBOPTIMAL);
+        } catch(Exception e){assertTrue(false);}
+    }
+
+    @Test
+    public void testSolveMemoryOverload(){
+        ModelInterface m = null;
+        try{
+        
+        m = modelFactory.getModel(this.sourceSolveId);
+        m.setInput(m.getSet("Stations"),new String[] {"\"North\"","\"West\"","\"South\"" , "\"East\"", "\"Center\""});
+        m.setInput(m.getParameter("soldiers"),"35");
+        m.setInput(m.getParameter("degreeOne"),"7");
+        m.setInput(m.getParameter("degreeTwo"),"4");
+        m.setInput(m.getParameter("absoluteMinimalSpacing"),"0");
+
+        //reading takes approx 8 sec
+        Solution sol = m.solve(3,"SOLUTION");
+        
+        assertNotNull(sol);
+        Set<String> stringVariables = m.getVariables().stream()
+            .map(ModelVariable::getIdentifier)
+            .collect(Collectors.toSet());
+        sol.parseSolution(m, stringVariables);
+        assertEquals(sol.getSolutionStatus(), Solution.SolutionStatus.UNSOLVED);
         } catch(Exception e){assertTrue(false);}
     }
 

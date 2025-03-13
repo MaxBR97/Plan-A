@@ -320,7 +320,13 @@ public class Model extends ModelInterface {
             commentOutToggledFunctionalities();
     
             ProcessBuilder processBuilder = new ProcessBuilder(
-                "scip", "-c", "read " + getSourcePathToFile() + " optimize display solution q"
+                "scip", "-c", 
+                " set limits time "+ timeout + 
+                " set timing reading TRUE" +
+                " set presolving advanced abortfac 0.01" +
+                " read " + getSourcePathToFile() + 
+                " optimize"+
+                " display solution q"
             );
             processBuilder.redirectErrorStream(true);
             processBuilder.redirectInput(ProcessBuilder.Redirect.PIPE); // Prevents waiting for input
@@ -371,15 +377,17 @@ public class Model extends ModelInterface {
             });
             
             try {
-                ans = future.get((long) timeout, TimeUnit.SECONDS);
+                ans = future.get((long) timeout + 2, TimeUnit.SECONDS);
             } catch (TimeoutException e) {
-                process.destroy(); // Kill the process if timeout occurs
+                process.destroy(); 
                 ans = null;
             } finally {
                 executor.shutdown();
             }
     
             restoreToggledFunctionalities();
+            if(ans == null)
+                return new Solution();
             return ans;
         } catch (Exception e) {
             try {
@@ -394,6 +402,8 @@ public class Model extends ModelInterface {
             }
             
             e.printStackTrace();
+            if(ans == null)
+                return new Solution();
             return null;
         }
     }

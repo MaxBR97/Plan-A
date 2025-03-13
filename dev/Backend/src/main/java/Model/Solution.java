@@ -16,11 +16,18 @@ import java.util.regex.Pattern;
 import org.yaml.snakeyaml.util.Tuple;
 
 public class Solution {
+
+    public enum SolutionStatus {
+        OPTIMAL,
+        SUBOPTIMAL,
+        UNSOLVED;
+    }
+
     final String engineMsg;
     final boolean engineRunSuccess;
     boolean parsed;
     final String solutionPath;
-    boolean solved;
+    SolutionStatus solved;
     /*
     maps variable names to a list of lists with each list holding elements of the solution,
     for example for variable V of type set1 * set2 where set1= {1,2} and set2= {"a","b"}
@@ -45,7 +52,20 @@ public class Solution {
         engineRunSuccess = true;
         engineMsg = "";
         variableTypes = new HashMap<>();
+        solved = SolutionStatus.UNSOLVED;
     }
+
+    public Solution() {
+        this.solutionPath = null;
+        variableSolution = new HashMap<>();
+        variableStructure = new HashMap<>();
+        parsed = false;
+        engineRunSuccess = true;
+        engineMsg = "";
+        variableTypes = new HashMap<>();
+        solved = SolutionStatus.UNSOLVED;
+    }
+
     public Solution(String solutionPath,String engineMsg,boolean engineRunSuccess) {
         this.solutionPath = solutionPath;
         variableSolution = new HashMap<>();
@@ -54,6 +74,7 @@ public class Solution {
         this.engineMsg = engineMsg;
         this.engineRunSuccess = engineRunSuccess;
         variableTypes = new HashMap<>();
+        solved = SolutionStatus.UNSOLVED;
     }
 
     public List<String> getVariableTypes(String identifier) {
@@ -62,6 +83,8 @@ public class Solution {
 
     //Implement as lazy call or run during initialization?
     public void parseSolution(ModelInterface model, Set<String> varsToParse) throws IOException {
+        if(this.solutionPath == null)
+            return;
         variables = model.getVariables(varsToParse);
         for (ModelVariable variable : variables) {
             if (varsToParse.contains(variable.getIdentifier())) {
@@ -79,7 +102,6 @@ public class Solution {
                         //example: var varForTest1[CxS *{"A","a"} * S * {1 .. 5}];
                         if(block.dependency!=null) //fix?
                             variableStructure.get(variable.getIdentifier()).add(block.dependency.getIdentifier());
-
                     }
                 }
             }
@@ -87,16 +109,21 @@ public class Solution {
         try (BufferedReader reader = new BufferedReader(new FileReader(solutionPath))) {
             String line;
             boolean solutionSection = false;
-
+            boolean timeLimitReached = false;
             Pattern statusPattern = Pattern.compile("SCIP Status\s+:\s+problem is solved.*optimal solution found");
+            Pattern timeLimitReachedPattern = Pattern.compile("^.*time limit reached.*$");
             Pattern solvingTimePattern = Pattern.compile("Solving Time \\(sec\\)\s+:\s+(\\d+\\.\\d+)");
-            Pattern objectiveValuePattern = Pattern.compile("objective value:\\s+(-?\\d+(\\.\\d+)?)");
+            Pattern objectiveValuePattern = Pattern.compile("objective value:\\s+(-?\\d+(\\.\\d+)?|[+|-]infinity)");
             while ((line = reader.readLine()) != null) {
                 if (!solutionSection) {
                     // Check for the solved status
                     Matcher statusMatcher = statusPattern.matcher(line);
                     if (statusMatcher.find()) {
-                        solved = true;
+                        solved = SolutionStatus.OPTIMAL;
+                    }
+                    Matcher timeLimitReachedMatcher = timeLimitReachedPattern.matcher(line);
+                    if(timeLimitReachedMatcher.find()){
+                        timeLimitReached = true;
                     }
                     // Extract solving time
                     Matcher solvingTimeMatcher = solvingTimePattern.matcher(line);
@@ -106,6 +133,8 @@ public class Solution {
                     // Extract objective value
                     Matcher objectiveMatcher = objectiveValuePattern.matcher(line);
                     if (objectiveMatcher.find()) {
+                        if(timeLimitReached)
+                            solved = SolutionStatus.SUBOPTIMAL;
                         objectiveValue = Double.parseDouble(objectiveMatcher.group(1));
                         solutionSection = true; // Objective value is defined right before the solution values section
                         parseSolutionValues(reader, varsToParse);
@@ -142,7 +171,7 @@ public class Solution {
         return parsed;
     }
 
-    public boolean isSolved() {
+    public SolutionStatus getSolutionStatus() {
         return solved;
     }
 

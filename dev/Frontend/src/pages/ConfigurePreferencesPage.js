@@ -165,6 +165,8 @@ const ConfigurePreferencesPage = () => {
         );
     };
 
+    
+
     const addPreferenceToModule = (preference) => {
         if (selectedModuleIndex === null) {
             alert('Please select a module first!');
@@ -355,37 +357,77 @@ const ConfigurePreferencesPage = () => {
         );
     };
     
-    const handleToggleInvolvedParam = (paramName) => {
+    const handleToggleInvolvedParam = (paramName, mode) => {
+        
         setAllModules(
             allModules.map((module, idx) => {
                 if (idx === selectedModuleIndex) {
-                    // Check if the param is already in inputParams
-                    const isParamIncluded = module.inputParams.some(p => p.name === paramName);
-                    let updatedParams;
+                    let updatedInputParams = module.inputParams ? module.inputParams.filter(p => p.name !== paramName) : [];
+                    let updatedCostParams = module.costParams ? module.costParams.filter(p => p.name !== paramName) : [];
                     
-                    if (isParamIncluded) {
-                        // Remove if included
-                        updatedParams = module.inputParams.filter(p => p.name !== paramName);
-                    } else {
-                        // Add if not included
+                    if (mode === "raw") {
                         const newParamDTO = {
                             name: paramName,
-                            tag: model.paramTypes?.[paramName] ,
-                            type: model.paramTypes?.[paramName] 
+                            tag: model.paramTypes?.[paramName],
+                            type: model.paramTypes?.[paramName],
                         };
-                        updatedParams = [...module.inputParams, newParamDTO];
+                        updatedInputParams = [...updatedInputParams, newParamDTO];
+                    } else if (mode === "relative") {
+                        const newParamDTO = {
+                            name: paramName,
+                            tag: model.paramTypes?.[paramName],
+                            type: model.paramTypes?.[paramName],
+                        };
+                        updatedInputParams = [...updatedInputParams, newParamDTO];
+                        updatedCostParams = [...updatedCostParams, newParamDTO];
                     }
     
-                    return { ...module, inputParams: updatedParams };
+                    return { 
+                        ...module, 
+                        inputParams: updatedInputParams, 
+                        costParams: updatedCostParams 
+                    };
                 }
                 return module;
             })
         );
     };
+    
+    
 
+
+    // const handleToggleInvolvedParamRelative = (paramName) => {
+    //     setAllModules(
+    //         allModules.map((module, idx) => {
+    //             if (idx === selectedModuleIndex) {
+    //                 // Ensure costParams exists, defaulting to an empty array if undefined
+    //                 const currentCostParams = module.costParams || [];
+                    
+    //                 // Check if the param is already in inputParams
+    //                 const isParamIncluded = currentCostParams.some(p => p.name === paramName);
+    //                 let updatedParams;
+                    
+    //                 if (isParamIncluded) {
+    //                     // Remove if included
+    //                     updatedParams = currentCostParams.filter(p => p.name !== paramName);
+    //                 } else {
+    //                     // Add if not included
+    //                     const newParamDTO = {
+    //                         name: paramName,
+    //                         tag: model.paramTypes?.[paramName],
+    //                         type: model.paramTypes?.[paramName]
+    //                     };
+    //                     updatedParams = [...currentCostParams, newParamDTO];
+    //                 }
+    
+    //                 return { ...module, costParams: updatedParams };
+    //             }
+    //             return module;
+    //         })
+    //     );
+    // };
     
     const handleBack = () => {
-        console.log("Leaving preference config with: ", allModules);
         updateImageField("preferenceModules", allModules)
         navigate('/');
     };
@@ -476,17 +518,42 @@ const ConfigurePreferencesPage = () => {
                             </div>
 
                             <h3>Select input Parameters:</h3>
-                            <div>
-                                {involvedParams.map((param, i) => (
-                                    <div key={i}>
-                                        <Checkbox 
-                                            type="checkbox" 
-                                            checked={allModules[selectedModuleIndex]?.inputParams.some(inputParams => inputParams.name === param)} 
-                                            onChange={() => handleToggleInvolvedParam(param)}
-                                        /> {param}
-                                    </div>
-                                ))}
-                            </div>
+                            <div className="flex flex-col gap-6">
+            {involvedParams.map((param, i) => (
+                <div key={i} className="border p-4 rounded-lg shadow-md flex flex-col items-center bg-gray-100">
+                    <h3 className="font-semibold text-lg mb-2">{param}</h3>
+                    <div className="flex gap-6">
+                    <label className="flex items-center gap-2">
+                            <input
+                                type="radio"
+                                name={param}
+                                checked={allModules[selectedModuleIndex]?.inputParams.every(inputParams => inputParams.name !== param)} 
+                                onChange={() => handleToggleInvolvedParam(param,"none")}
+                            />
+                            None
+                        </label>
+                        <label className="flex items-center gap-2">
+                            <input
+                                type="radio"
+                                name={param}
+                                checked={allModules[selectedModuleIndex]?.inputParams.some(inputParams => inputParams.name == param) && allModules[selectedModuleIndex]?.costParams?.every(costParam => costParam.name !== param)} 
+                                onChange={() => handleToggleInvolvedParam(param,"raw")}
+                            />
+                            Raw
+                        </label>
+                        <label className="flex items-center gap-2">
+                            <input
+                                type="radio"
+                                name={param}
+                                checked={allModules[selectedModuleIndex]?.costParams?.some(costParam => costParam.name === param)} 
+                                onChange={() => handleToggleInvolvedParam(param, "relative")}
+                            />
+                            Relative
+                        </label>
+                    </div>
+                </div>
+            ))}
+        </div>
 
                         </>
                     )}

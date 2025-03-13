@@ -53,7 +53,7 @@ public class RecordFactory {
         Objects.requireNonNull(solution,"Null Solution in DTO map");
         if(!solution.parsed())
             throw new RuntimeException("Solution must be parsed before attempting to convert to DTO.");
-        if(!solution.isSolved())
+        if(solution.getSolutionStatus() == Solution.SolutionStatus.UNSOLVED)
             return new SolutionDTO(false,-1,-1,"",new HashMap<>());
         double solvingTime = solution.getSolvingTime();
         double objectiveValue = solution.getObjectiveValue();

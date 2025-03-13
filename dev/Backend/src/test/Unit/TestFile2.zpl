@@ -1,7 +1,8 @@
 param weight := 10;
 param soldiers := 9;
 param absoluteMinimalSpacing := 8;
-
+param degreeOne := 3;
+param degreeTwo := 2;
 
 set C := {1..soldiers};
 set Stations := {"Shin Gimel", "Fillbox"};
@@ -49,6 +50,6 @@ subto minimalSpacingCons:
     forall <i,a,b,c,d> in CxSxS: vif (d-b) < minimalSpacing then couples[i,a,b,c,d] == 0 end;
 
 minimize Spacing: 
-    ((maxGuards-minGuards)+weight)**3 -
-    (minimalSpacing)**2 +
+    ((maxGuards-minGuards)+weight)**degreeOne -
+    (minimalSpacing)**degreeTwo +
     sum<i,a,b> in CxS: sum<m,n> in S | m != a or b!=n :(edge[i,a,b] * edge[i,m,n] * (b-n));
