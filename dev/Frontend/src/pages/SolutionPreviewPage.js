@@ -39,6 +39,7 @@ const SolutionPreviewPage = () => {
   const [variables, setVariables] = useState([]);
   const [showResults, setShowResults] = useState(false);
   const [timeout, setTimeout] = useState(10);
+  const [solutionStatus, setSolutionStatus] = useState(null);
   const navigate = useNavigate(); 
 
   const handleAddValue = (setName) => {
@@ -318,12 +319,21 @@ const handleSolve = async () => {
 
   console.log("Sending SOLVE request:", JSON.stringify(requestBody, null, 2));
   
-  try {
+    try {
+      let startTime = Date.now(); // Capture the start time
+
+      // Start a timer to update solutionStatus every second
+      const timer = setInterval(() => {
+          setSolutionStatus("Solving "+((Date.now() - startTime) / 1000).toFixed(1)); 
+      }, 10);
+      setShowModal(true)
       const response = await fetch("/solve", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(requestBody)
+          body: JSON.stringify(requestBody),
       });
+
+      clearInterval(timer); // Stop the timer once response is received
 
       const responseText = await response.text();
 
@@ -331,16 +341,18 @@ const handleSolve = async () => {
           console.error("Server returned an error:", responseText);
           throw new Error(`HTTP Error! Status: ${response.status} - ${responseText}`);
       }
-      
+
       const data = JSON.parse(responseText);
-      console.log("Solve response: ",data);
+      console.log("Solve response: ", data);
+
       updateSolutionResponse(data);
-      //navigate("/solution-results");\
-      setShowResults(true)
+      setSolutionStatus(data.solutionStatus);
+      setShowResults(true);
   } catch (error) {
       console.error("Error solving problem:", error);
       setErrorMessage(`Failed to solve. ${error.message}`);
   }
+
 };
 
   const [responseData, setResponseData] = useState(null);
@@ -543,8 +555,8 @@ const handleSolve = async () => {
               >
                 ×
               </span>
-              <h2>Solution Response</h2>
-              <pre>{JSON.stringify(responseData, null, 2)}</pre>
+              <h2>Solution Status:</h2>
+              <pre>{solutionStatus}</pre>
             </div>
           </div>
         )}

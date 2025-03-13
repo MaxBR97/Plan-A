@@ -54,7 +54,7 @@ public class RecordFactory {
         if(!solution.parsed())
             throw new RuntimeException("Solution must be parsed before attempting to convert to DTO.");
         if(solution.getSolutionStatus() == Solution.SolutionStatus.UNSOLVED)
-            return new SolutionDTO(false,-1,-1,"",new HashMap<>());
+            return new SolutionDTO(false,-1,solution.getSolutionStatus().toString(),-1,"",new HashMap<>());
         double solvingTime = solution.getSolvingTime();
         double objectiveValue = solution.getObjectiveValue();
         boolean solved = true;
@@ -69,7 +69,7 @@ public class RecordFactory {
             }
             variables.put(variableName,new SolutionVariable(variableStructure,variableTypes,variableValues));
          }
-        return new SolutionDTO(solved,solvingTime,objectiveValue,"",variables);
+        return new SolutionDTO(solved,solvingTime,solution.getSolutionStatus().toString(),objectiveValue,"",variables);
     }
 
     public static PreferenceDTO makeDTO(ModelPreference preference) {

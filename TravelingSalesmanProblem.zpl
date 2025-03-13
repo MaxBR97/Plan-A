@@ -7,14 +7,17 @@ set Cities := {<"Tel Aviv",5,16>, <"Yafo",5,14>, <"Jerusalem",25,8>, <"Tveria",4
                 <"Akko",23,85>, <"Hermon",80,130>, <"Beit Shean",75,50>, <"Katserin",50,95>, <"Ein Gedi",75,15>, <"Hadera",8,50>,
                 <"Ramat Gan",6,17>, <"Kfar Saba",8,23>, <"Mitzpe Ramon",31,-80>, <"Yotvata",28,-89>, <"Beit Shemesh",22,9>};
 param StartingCity := "Tel Aviv";
-param NumberOfCitiesToVisit := -1;
-param citiesToVisit := if NumberOfCitiesToVisit == -1 then card(Cities) else NumberOfCitiesToVisit end;
+param NumberOfCitiesToVisit := 22;
+param citiesToVisit :=card(Cities);
 
 set CitiesNames := proj(Cities,<1>);
 set Steps:= {1..citiesToVisit};
 set AllPossibleCombinations := {<i,a,b> in Steps * CitiesNames * CitiesNames | a != b};
 var Edges[AllPossibleCombinations] binary;
 
+# subto VisitSpecifiedNumberOfCities:
+#     sum <step> in Steps:
+#         sum <i,a,b> in AllPossibleCombinations | i == step : Edges[i,a,b] == NumberOfCitiesToVisit;
 
 subto StartFromStartingCity:
     sum <step,src,dest> in AllPossibleCombinations | step == 1 and src == StartingCity : Edges[step,src,dest]   == 1;
@@ -22,7 +25,6 @@ subto StartFromStartingCity:
 subto EachStepHappensOnce:
     forall <step> in Steps :
         sum <step2,src,dest> in AllPossibleCombinations | step2 == step : Edges[step2,src,dest]   == 1;
-           
                                                                 
 subto CantArriveSameCityTwice:
     forall <city> in CitiesNames:

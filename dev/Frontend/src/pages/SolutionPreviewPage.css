@@ -118,3 +118,16 @@
   .solve-button:hover {
     background-color: #3a80d2;
   }
+
+  .image-description {
+    max-width: 600px;  /* Limits width for better readability */
+    margin: 20px auto; /* Centers the container horizontally */
+    padding: 15px;     /* Adds spacing inside */
+    text-align: left;   /* Keeps text aligned to the left */
+    border: 2px solid #ddd; /* Light border for framing */
+    border-radius: 10px; /* Soft rounded corners */
+    background-color: #f9f9f9; /* Light background for contrast */
+    box-shadow: 2px 4px 10px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+    font-size: 1.1rem; /* Slightly larger font for readability */
+    line-height: 1.5;  /* Improves text spacing */
+}

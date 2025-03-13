@@ -174,7 +174,7 @@ const DraggableBar = ({
               }}
               onMouseDown={(e) => handleMouseDown(e, index)}
             >
-              {key}
+              {/* {key} */}
             </div>
           );
         })}
@@ -193,7 +193,8 @@ const DraggableBar = ({
                 left: `${position}%`,
                 bottom: '-25px',
                 transform: 'translateX(-50%)',
-                fontSize: '12px',
+                fontSize: '16px', /* Increased font size */
+                fontWeight: 'bold',
                 whiteSpace: 'nowrap',
                 userSelect: 'none'
               }}

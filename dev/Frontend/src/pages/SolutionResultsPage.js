@@ -22,7 +22,6 @@ const SolutionResultsPage = () => {
   // Use useEffect to update selectedVariable when solutionResponse becomes available
 
   const getSetStructure = (variable) => {
-    console.log("example: ",image.variablesModule.variablesOfInterest.find((varObj) => varObj.identifier == variable))
     const varObj = image.variablesModule?.variablesOfInterest?.find((varObj) => varObj.identifier == variable)
     
     if(varObj?.tags && varObj?.tags?.length == varObj.type.length){
@@ -32,31 +31,31 @@ const SolutionResultsPage = () => {
     else
       return solutionResponse.solution[variable]?.setStructure || [];
   }
-  
+
+  const isBinary = (variable) => solutionResponse.solution[variable].solutions.every(
+    (sol) => sol.objectiveValue === 0 || sol.objectiveValue === 1
+  );
   useEffect(() => {
-    if(solutionResponse?.solved == false) {
+    if (solutionResponse?.solved === false) {
       // Handle solved false case if needed
     }
     else if (solutionResponse?.solution) {
       const variables = Object.keys(solutionResponse.solution);
       if (variables.length > 0 && !selectedVariable) {
         const firstVariable = variables[0];
-        setSelectedVariable(firstVariable);
-        
-        // Initialize displayStructure with the first variable's set structure
-        //const initialSetStructure = solutionResponse.solution[firstVariable]?.setStructure || [];
-        
         const initialSetStructure = getSetStructure(firstVariable);
-        // Only set initial state if displayValue hasn't been set yet
-        if (displayValue === null) {
-          setDisplayValue(true);
-        }
+        const initialDisplayValue = !isBinary(firstVariable);
         
-        // Always update displayStructure to include 'value'
-        setDisplayStructure([...initialSetStructure, "value"]);
+        // Batch these updates
+        setSelectedVariable(firstVariable);
+        setDisplayValue(initialDisplayValue);
+        setDisplayStructure(initialDisplayValue 
+          ? [...initialSetStructure, "value"] 
+          : [...initialSetStructure]);
       }
     }
-  }, [solutionResponse, selectedVariable, displayValue]);
+  }, [solutionResponse]); 
+
 
   // Early return conditions
   if(solutionResponse?.solved == false) {
@@ -72,16 +71,22 @@ const SolutionResultsPage = () => {
     return <p>Loading solution data...</p>;
   }
 
+  const variableData = solutionResponse.solution[selectedVariable];
+  let { setStructure, solutions } = variableData;
+  setStructure = getSetStructure(selectedVariable) || setStructure;
+
+
   const handleVariableChange = (event) => {
     const newVariable = event.target.value;
-    setSelectedVariable(newVariable);
-    
-    // Update displayStructure when variable changes
+    const newDisplayValue = !isBinary(newVariable);
     const newSetStructure = getSetStructure(newVariable);
-    if(displayValue)
-      setDisplayStructure([...newSetStructure, "value"]);
-    else
-    setDisplayStructure(newSetStructure);
+    
+    // Update all related states in one batch
+    setSelectedVariable(newVariable);
+    setDisplayValue(newDisplayValue);
+    setDisplayStructure(newDisplayValue 
+      ? [...newSetStructure, "value"] 
+      : newSetStructure);
   };
 
   const handleDisplayValue = (checked) => {
@@ -91,14 +96,6 @@ const SolutionResultsPage = () => {
     else
       setDisplayStructure(displayStructure.filter((entry) => entry !== "value"))
   }
-
-  const variableData = solutionResponse.solution[selectedVariable];
-  let { setStructure, solutions } = variableData;
-  setStructure = getSetStructure(selectedVariable) || setStructure;
-  // Check if all objective values are binary (0 or 1)
-  const isBinary = solutions.every(
-    (sol) => sol.objectiveValue === 0 || sol.objectiveValue === 1
-  );
 
   const onDragEnd = (result) => {
     if (!result.destination) return;
@@ -119,16 +116,20 @@ const SolutionResultsPage = () => {
           <div className="solution-dropdown">
             <label className="mr-2">Select Variable: </label>
             <select 
-              onChange={handleVariableChange} 
-              value={selectedVariable || ''}
-              className="border rounded p-1"
-            >
-              {Object.keys(solutionResponse.solution).map((variable) => (
-                <option key={variable} value={variable}>
-                  {variable}
-                </option>
-              ))}
-            </select>
+  onChange={handleVariableChange} 
+  value={selectedVariable || ''}
+  className="border rounded p-1"
+  onClick={(e) => {
+    e.currentTarget.focus();
+    //e.stopPropagation();
+  }}
+>
+  {Object.keys(solutionResponse.solution).map((variable) => (
+    <option key={variable} value={variable}>
+      {variable}
+    </option>
+  ))}
+</select>
           </div>
         </div>
 
@@ -138,7 +139,7 @@ const SolutionResultsPage = () => {
             solutions={solutions} 
             setStructure={setStructure}
             displayStructure={displayStructure}
-            isBinary={true} 
+            // isBinary={true} 
             valueSetName={"value"}
             onValueChange={(tuple, newValue) => { 
               console.log("Updated:", tuple, "->", newValue); 

@@ -5,20 +5,23 @@
 set Cities := {<"Tel Aviv",5,16>, <"Yafo",5,14>, <"Jerusalem",25,8>, <"Tveria",40,90>, <"Nahariya",6,95>, <"Eilat",30,-103>,
                 <"Dimona",70,-20>, <"Ashkelon",2,-10>, <"Ashdod",3,3>, <"Beer Sheva",-7,-23>, <"Kiryat Arba",68,40>,
                 <"Akko",23,85>, <"Hermon",80,130>, <"Beit Shean",75,50>, <"Katserin",50,95>, <"Ein Gedi",75,15>, <"Hadera",8,50>,
-                <"Ramat Gan",6,17>, <"Kfar Saba",8,23>, <"Mitzpe Ramon",31,-80>, <"Yotvata",28,-89>, <"Beit Shemesh",22,9>};
+                <"Ramat Gan",6,17>, <"Kfar Saba",8,23>, <"Mitzpe Ramon",31,-80>, <"Yotvata",28,-89>,
+                <"Beit Shemesh",22,9> };
 param StartingCity := "Tel Aviv";
 param citiesToVisit := card(Cities);
 
 set CitiesNames := proj(Cities,<1>);
 set Steps:= {1..citiesToVisit};
 set AllPossibleCombinations := {<i,a,b> in Steps * CitiesNames * CitiesNames | a != b};
-# set AllPossibleCombinations := {<i,a,b> in Steps * CitiesNames * CitiesNames | a != b and i >= 2} union {<i,a,b> in Steps * CitiesNames * CitiesNames | a != b : <1,a,b>};
 var Edges[AllPossibleCombinations] binary;
 # var TotalSteps integer >= 0 <= citiesToVisit;
 
 
 subto StartFromStartingCity:
     sum <step,src,dest> in AllPossibleCombinations | step == 1 and src == StartingCity : Edges[step,src,dest]   == 1;
+
+subto EndInStartingCity:
+    sum <step,src,dest> in AllPossibleCombinations | step != 1 and dest == StartingCity : Edges[step,src,dest]  == 1;
 
 subto EachStepHappensAtMostOnce:
     forall <step> in Steps :
@@ -53,10 +56,10 @@ subto EnforceStepsSequential:
 # subto EnforceTotalStepsVariable:
 #     TotalSteps == sum <step,src,dest> in AllPossibleCombinations: Edges[step,src,dest];
 
-param citiesVisitedCoefficient := 100;         
+param citiesVisitedCoefficient := 1;         
 param distances[<src,x1,y1,dest,x2,y2> in Cities * Cities] := sqrt((x1-x2)**2 + (y1-y2)**2);
 param distancesCoefficient := 1;
-param privilegedCitiesCoefficient := 0;
+param privilegedCitiesCoefficient := 1000;
 param distanceNormalizationFactor := (sum <src,x1,y1,dest,x2,y2> in Cities*Cities | src == StartingCity : distances[src,x1,y1,dest,x2,y2]) / card(Cities) ;
 set privilegedCities := {"Eilat"};
 
