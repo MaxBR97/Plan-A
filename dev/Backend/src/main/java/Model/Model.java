@@ -323,7 +323,7 @@ public class Model extends ModelInterface {
                 "scip", "-c", 
                 " set limits time "+ timeout + 
                 " set timing reading TRUE" +
-                " set presolving advanced abortfac 0.01" +
+                " set presolving advanced abortfac 0.005" +
                 " read " + getSourcePathToFile() + 
                 " optimize"+
                 " display solution q"
@@ -1068,6 +1068,14 @@ public class Model extends ModelInterface {
         }
 
         @Override
+        public Void visitComparisonNExpr(FormulationParser.ComparisonNExprContext ctx){
+            this.visit(ctx.nExpr());
+            for(FormulationParser.BoundContext bndCtx : ctx.bound())
+                this.visit(bndCtx);
+            return null;
+        }
+
+        @Override
         public Void visitComparisonIfExpr(FormulationParser.ComparisonIfExprContext ctx){
             this.visit(ctx.ifExpr());
             return null;
@@ -1087,6 +1095,7 @@ public class Model extends ModelInterface {
 
         @Override
         public Void visitLongRedExpr(FormulationParser.LongRedExprContext ctx){
+            // // String a = ctx.
             this.visit(ctx.condition());
             this.visit(ctx.nExpr());
             return null;

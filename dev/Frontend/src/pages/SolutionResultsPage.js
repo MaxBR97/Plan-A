@@ -33,7 +33,8 @@ const SolutionResultsPage = () => {
   }
 
   const isBinary = (variable) => solutionResponse.solution[variable].solutions.every(
-    (sol) => sol.objectiveValue === 0 || sol.objectiveValue === 1
+    (sol) => sol.objectiveValue < 0.0001 && sol.objectiveValue > -0.0001 || 
+              sol.objectiveValue > 0.9999  && sol.objectiveValue < 1.0001
   );
   useEffect(() => {
     if (solutionResponse?.solved === false) {
