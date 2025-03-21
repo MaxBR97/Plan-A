@@ -11,10 +11,11 @@ set Shifts := Stations * Times;
 set SoldiersToShifts := Soldiers * Shifts;
 set ShiftSpacings := {<soldier,station,time,rest> in Soldiers * Stations * PossibleShiftAndRestTimes};
 set ArtificialShift := {<soldier,station,time,rest> in Soldiers * {"inv"} * ({<time1, time2> in  {-1}*(Times union {max(Times)+1,max(Times)+2}) | time1 < time2: <time1,time2-time1>} union {<max(Times)+1,0>}) };
-do print card(ShiftSpacings);
+# do print card(ShiftSpacings);
 var Edge[SoldiersToShifts] binary;
 var NeighbouringShifts[ShiftSpacings union ArtificialShift] binary;
-
+do print card(SoldiersToShifts);
+do print card(ShiftSpacings union ArtificialShift);
 # subto SemiAssignment:
 #     Edge[1,"Shin Gimel",0] == 1 and
 #     Edge[2,"Shin Gimel",1] == 1 and

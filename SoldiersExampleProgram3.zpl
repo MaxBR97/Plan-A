@@ -10,7 +10,7 @@ set Shifts := Stations * Times;
 set SoldiersToShifts := Soldiers * Shifts;
 
 var Edge[SoldiersToShifts] binary;
-
+do print card(SoldiersToShifts);
 
 
 # subto SemiAssignment:
