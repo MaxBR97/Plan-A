@@ -53,7 +53,7 @@ const createWindow = async () => {
     ? path.join(app.getAppPath(), 'build', 'index.html')
     : path.join(__dirname, 'index.html');
 
-  mainWindow.webContents.openDevTools();
+  // mainWindow.webContents.openDevTools();
 
   try {
     // Wait for server to be ready

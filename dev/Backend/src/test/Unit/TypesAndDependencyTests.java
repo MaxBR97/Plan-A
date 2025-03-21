@@ -150,6 +150,8 @@ public class TypesAndDependencyTests {
 
         immidiateSetDependencies.put("condForTest1", new String[]{"Zmanim","CxS","Emdot"});
         immidiateParamDependencies.put("condForTest1", new String[]{"paramForTest1"});
+        immidiateSetDependencies.put("condForTest2", new String[]{});
+        immidiateParamDependencies.put("condForTest2", new String[]{"paramForTest2"});
         immidiateSetDependencies.put("trivial1", new String[]{"CxSxS"});
         immidiateParamDependencies.put("trivial1", new String[]{});
         immidiateSetDependencies.put("trivial5", new String[]{"CxS","Zmanim","CxS","CxSxS"});
@@ -248,14 +250,14 @@ public class TypesAndDependencyTests {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"trivial1","trivial5","Hayal_Lo_Shomer_Beshtey_Emdot_Bo_Zmanit","Kol_Haemdot_Meshubatsot_Hayal_Ehad","condForTest1"})
+    @ValueSource(strings = {"trivial1","trivial5","Hayal_Lo_Shomer_Beshtey_Emdot_Bo_Zmanit","Kol_Haemdot_Meshubatsot_Hayal_Ehad","condForTest1", "condForTest2"})
     public void testConstraintsDependencies(String id){
         ModelConstraint mc = model.getConstraint(id);
         assertNotNull(mc);
         assertEquals(mc.getSetDependencies().size(), immidiateSetDependencies.get(id).length);
         for(String setId : immidiateSetDependencies.get(id)){
             assertNotNull(mc.findSetDependency(setId));
-        }
+        }  
 
         assertEquals(mc.getParamDependencies().size(), immidiateParamDependencies.get(id).length);
         for(String setId : immidiateParamDependencies.get(id)){

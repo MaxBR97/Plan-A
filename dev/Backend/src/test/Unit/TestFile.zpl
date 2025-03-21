@@ -26,6 +26,10 @@ subto condForTest1:
         sum <i,a,b> in CxS | b == time or b <= card(Emdot): 
             edge[i,a,b] == paramForTest1;
 
+param paramForTest2 := card(Zmanim);
+subto condForTest2:
+    edge[1,"Shin Gimel", 0] == max(1,min(paramForTest2,0,0));
+
 subto trivial1:
     forall <j,a1,a2,b1,b2> in CxSxS | a1 != b1 or a2 != b2 : vif couples[j,a1,a2,b1,b2] == 1 then edge[j,a1,a2] == 1  end;
 

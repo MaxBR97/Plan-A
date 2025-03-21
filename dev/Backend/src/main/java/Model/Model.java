@@ -223,6 +223,7 @@ public class Model extends ModelInterface {
         ModifierVisitor modifier = new ModifierVisitor(tokens, null, "", ModifierVisitor.Action.COMMENT_OUT, originalSource);
         modifier.setTargetFunctionalities(toggledOffFunctionalities); // Set functionalities to be commented out
         modifier.visit(tree);
+        modifier.commentOutFunctionalities();
         
         if (modifier.isModified()) {
             String modifiedSource = modifier.getModifiedSource();
@@ -599,6 +600,7 @@ public class Model extends ModelInterface {
         private final String originalSource;
         private boolean modified = false;
         private StringBuilder modifiedSource;
+        private List<FormulationParser.ConstraintContext> toCommentOut;
 
         enum Action {
             APPEND,
@@ -616,6 +618,7 @@ public class Model extends ModelInterface {
             this.act = act;
             this.originalSource = originalSource;
             this.modifiedSource = new StringBuilder(originalSource);
+            toCommentOut = new LinkedList<>();
         }
 
         public ModifierVisitor(CommonTokenStream tokens, String targetIdentifier, String[] values, Action act, String originalSource) {
@@ -625,6 +628,7 @@ public class Model extends ModelInterface {
             this.act = act;
             this.originalSource = originalSource;
             this.modifiedSource = new StringBuilder(originalSource);
+            toCommentOut = new LinkedList<>();
         }
 
         // Method to set target functionalities for commenting out
@@ -757,7 +761,7 @@ public class Model extends ModelInterface {
             if ((targetFunctionalities != null && targetFunctionalities.contains(constraintName)) ||
                 (targetIdentifier != null && constraintName.equals(targetIdentifier))) {
                 if (act == Action.COMMENT_OUT)
-                    commentOutConstraint(ctx);
+                    toCommentOut.add(ctx);
             }
             return super.visitConstraint(ctx);
         }
@@ -808,35 +812,57 @@ public class Model extends ModelInterface {
             return line;
         }
 
-        private void commentOutConstraint(FormulationParser.ConstraintContext ctx) {
-            int startIndex = ctx.start.getStartIndex();
-            int stopIndex = ctx.stop.getStopIndex();
-            String fullStatement = originalSource.substring(startIndex, stopIndex + 1);
+        private void commentOutConstraints(List<FormulationParser.ConstraintContext> constraints) {
+            List<int[]> ranges = new ArrayList<>();
             
-            // Split into lines while preserving the original line endings
-            String[] lines = fullStatement.split("(?<=\n)");
-            StringBuilder commentedOut = new StringBuilder();
-            
-            // Get the initial indentation from the first line
-            String initialIndent = "";
-            int lineStart = originalSource.lastIndexOf('\n', startIndex);
-            if (lineStart != -1) {
-                initialIndent = originalSource.substring(lineStart + 1, startIndex);
-            }
-            
-            // Comment out each line while preserving its relative indentation
-            for (String line : lines) {
-                // If it's not the last line (which won't have a newline)
-                if (line.endsWith("\n")) {
-                    commentedOut.append(initialIndent).append("# ").append(line.substring(0, line.length()-1)).append("\n");
-                } else {
-                    commentedOut.append(initialIndent).append("# ").append(line);
+            // Collect and compute correct ranges for replacement
+            for (FormulationParser.ConstraintContext ctx : constraints) {
+                int startIndex = ctx.start.getStartIndex();
+                int stopIndex = ctx.stop.getStopIndex();
+        
+                // Move stopIndex forward until we find ';', skipping whitespace and newlines
+                while (stopIndex + 1 < originalSource.length()) {
+                    char nextChar = originalSource.charAt(stopIndex + 1);
+                    if (nextChar == ';') {
+                        stopIndex++;  // Include the semicolon
+                        break;
+                    } else if (!Character.isWhitespace(nextChar)) {
+                        break;  // Stop if we hit another non-whitespace, non-';' character
+                    }
+                    stopIndex++;
                 }
+        
+                ranges.add(new int[]{startIndex, stopIndex});
             }
-            
-            modifiedSource.replace(startIndex, stopIndex + 1, commentedOut.toString());
+        
+            // Sort ranges in **reverse order** (highest index first)
+            ranges.sort((a, b) -> Integer.compare(b[0], a[0]));
+        
+            // Apply replacements in reverse order
+            for (int[] range : ranges) {
+                int startIndex = range[0];
+                int stopIndex = range[1];
+        
+                // Extract full constraint text
+                String fullStatement = originalSource.substring(startIndex, stopIndex + 1);
+        
+                // Split into lines while preserving line breaks
+                String[] lines = fullStatement.split("(?<=\n)");
+                StringBuilder commentedOut = new StringBuilder();
+        
+                // Comment out each line while keeping indentation
+                for (String line : lines) {
+                    commentedOut.append("# ").append(line);
+                }
+        
+                // Replace in modifiedSource
+                modifiedSource.replace(startIndex, stopIndex + 1, commentedOut.toString());
+            }
+        
             modified = true;
         }
+        
+
 
         private void commentOutPreference(FormulationParser.UExprContext ctx) {
             int startIndex = ctx.start.getStartIndex();
@@ -870,6 +896,10 @@ public class Model extends ModelInterface {
             modified = true;
         }
 
+        public void commentOutFunctionalities(){
+            commentOutConstraints(toCommentOut);
+        }
+
         private String extractName(String sqRef) {
             int bracketIndex = sqRef.indexOf('[');
             return bracketIndex == -1 ? sqRef : sqRef.substring(0, bracketIndex);
@@ -883,75 +913,6 @@ public class Model extends ModelInterface {
             return modifiedSource.toString();
         }
     }
-
-    // private class TypeVisitor extends FormulationBaseVisitor<Void> {
-    //     ModelType type = ModelPrimitives.UNKNOWN;
-    //     List<ModelSet> setComposition = new LinkedList<ModelSet>();
-    //     List<ModelParameter> paramComposition = new LinkedList<ModelParameter>();
-    //     boolean isVariable = false;
-
-    //     public ModelType getType(){
-    //         return type;
-    //     }
-    //     public List<ModelSet> getComposition() {
-    //         //implement
-    //     } 
-
-    //     public Void visitStrExprToken(FormulationParser.StrExprTokenContext ctx){
-    //         if(type == ModelPrimitives.UNKNOWN)
-    //             type = ModelPrimitives.TEXT;
-    //         else if( type instanceof Tuple){
-    //             ((Tuple)type).append(ModelPrimitives.TEXT);
-    //         } else {
-    //             //nothing
-    //         }
-    //         return super.visitStrExprToken(ctx);
-    //     }
-
-    //     public Void visitBasicExprToken(FormulationParser.BasicExprTokenContext ctx){
-    //         ModelPrimitives tmp = ModelPrimitives.UNKNOWN;
-    //         if(ctx.FLOAT() != null){
-    //             tmp = ModelPrimitives.FLOAT;
-    //         } else if(ctx.INFINITY() != null){
-    //             tmp = ModelPrimitives.INFINITY;
-    //         } else if(ctx.INT() != null){
-    //             tmp = ModelPrimitives.INT;
-    //         }
-    //         if(type == ModelPrimitives.UNKNOWN){
-    //             type = tmp;
-    //         } else if ( type instanceof Tuple){
-    //             ((Tuple) type).append(tmp);
-    //         } else {
-
-    //         }
-    //         return super.visitBasicExprToken(ctx);
-    //     }
-    
-    //     public Void visitTuple(FormulationParser.TupleContext ctx){
-    //         if(type == ModelPrimitives.UNKNOWN){
-    //             type = new Tuple();
-    //         } else if (type instanceof Tuple) {
-
-    //         }
-    //         return super.visitTuple(ctx);
-    //     }
-        
-    //     public Void visitVairable (FormulationParser.VariableContext ctx){
-    //         isVariable = true;
-
-    //         return super.visitVariable(ctx);
-    //     }
-
-    //     public Void visitSetExprBin(FormulationParser.SetExprBinContext ctx) {
-    //         TypeVisitor left = new TypeVisitor();
-    //         TypeVisitor right = new TypeVisitor();
-    //         left.visit(ctx.setExpr(0));
-    //         right.visit(ctx.setExpr(0));
-    //         setComposition.addAll(left.getComposition());
-    //         setComposition.addAll(right.getComposition());
-    //         return super.visitSetExprBin(ctx);
-    //     }
-    // }
 
     public class TypeVisitor extends FormulationBaseVisitor<Void> {
         private ModelType type = ModelPrimitives.UNKNOWN;
@@ -1103,7 +1064,10 @@ public class Model extends ModelInterface {
 
         @Override
         public Void visitShortRedExpr(FormulationParser.ShortRedExprContext ctx){
-            this.visit(ctx.index());
+            if(ctx.index() != null)
+                this.visit(ctx.index());
+            else if(ctx.csv() != null)
+                this.visit(ctx.csv());
             return null;
         }
 

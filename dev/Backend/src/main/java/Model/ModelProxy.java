@@ -990,7 +990,10 @@ public class ModelProxy extends ModelInterface {
 
         @Override
         public Void visitShortRedExpr(FormulationParser.ShortRedExprContext ctx){
-            this.visit(ctx.index());
+            if(ctx.index() != null)
+                this.visit(ctx.index());
+            else if(ctx.csv() != null)
+                this.visit(ctx.csv());
             return null;
         }
 

@@ -1,40 +1,52 @@
 param weight := 10;
-param NumberOfSoldiers := 6;
-param absoluteMinimalSpacing := 0;
+param NumberOfSoldiers := 9;
 param bias := 10000;
 
 set Soldiers := {1..NumberOfSoldiers};
-set Stations := {"Shin Gimel", "Fillbox"};  # Station names
-set Times := {0,4,8,12,16};
+set Stations := {"Shin Gimel", "Fillbox", "Patrol"};  # Station names
+set Times := {0 .. 24 by 1};
+set PossibleShiftAndRestTimes := {<time1, time2> in  Times*Times | time1 < time2: <time1,time2-time1>} union {<time1, time2> in  {-1}*Times | time1 < time2: <time1,time2-time1>};
 
 set Shifts := Stations * Times;            # Shift = (Station, Time)
 set SoldiersToShifts := Soldiers * Shifts;
-set ShiftSpacings := {<i,a,b,c,d> in Soldiers * Shifts * Shifts | b < d };
+set ShiftSpacings := {<i,a,b,rest> in Soldiers * (Stations union {"invisible"}) * (PossibleShiftAndRestTimes union {<max(Times),1>, <max(Times)+1,0>, <-1,max(Times)+2>}) };
+
+# set ArtificialShiftSpacings := ShiftSpacings union {<i,a,b,rest> in Soldiers * {"invisible"} * ({<time1, time2> in  {-1}*Times | time1 < time2: <time1,time2-time1>} union {<9,0>}) };
+
 
 var Edge[SoldiersToShifts] binary;
 var NeighbouringShifts[ShiftSpacings] binary;
 
-subto EnforceShiftsSpacingsVariables1:
-    forall <j,a1,a2,b1,b2> in ShiftSpacings | a1 != b1 or a2 != b2 : 
-        vif NeighbouringShifts[j,a1,a2,b1,b2] == 1 then Edge[j,a1,a2] == 1 end;
+subto EnforceEveryOneTakeInvisibleShifts:
+    forall <soldier> in Soldiers:
+        (sum <i,a,b,r> in ShiftSpacings | i == soldier and a == "invisible" and b == -1 : NeighbouringShifts[soldier,a,b,r]) == 1;
 
-subto EnforceShiftsSpacingsVariables2:
-    forall <j,a1,a2,b1,b2> in ShiftSpacings | a1 != b1 or a2 != b2 : 
-        vif NeighbouringShifts[j,a1,a2,b1,b2] == 1 then Edge[j,a1,a2] == Edge[j,b1,b2] end;
+subto EnforceEveryOneTakeInvisibleShifts2:
+    forall <soldier> in Soldiers:
+        (sum <i,a,b,r> in ShiftSpacings | i == soldier and a == "invisible" and b == max(Times)+1 : NeighbouringShifts[soldier,a,b,r]) == 1;
 
-subto EnforceShiftsSpacingsVariables3:
-    forall <i,a,b> in SoldiersToShifts | b < max(Times): 
-        vif Edge[i,a,b] == 1 and (sum<k,m,n> in SoldiersToShifts | k==i and n > b : Edge[k,m,n]) >= 1 
-        then sum <j,a1,a2,b1,b2> in ShiftSpacings | i == j and (a==a1 and b==a2) : NeighbouringShifts[j,a1,a2,b1,b2] == 1 end;
+subto EnforceNoOneTakeInvisibleShiftInValidTime:
+    forall <i,a,b,r> in ShiftSpacings | a =="invisible" and b >=0 and b <= max(Times) : NeighbouringShifts[i,a,b,r] == 0;
 
-subto EnforceShiftsSpacingsVariables4:
-    forall <i,a,b> in SoldiersToShifts | b > min(Times): 
-        vif Edge[i,a,b] == 1 and (sum<k,m,n> in SoldiersToShifts | k==i and n < b : Edge[k,m,n]) >= 1 
-        then sum <j,a1,a2,b1,b2> in ShiftSpacings | i == j and (a==b1 and b==b2) : NeighbouringShifts[j,a1,a2,b1,b2] == 1 end;
+subto EnforceNoOneTakeValidShiftInInvalidTime:
+    forall <i,a,b,r> in ShiftSpacings | a != "invisible" and (b == -1 or b == max(Times)+1) : NeighbouringShifts[i,a,b,r] == 0;
 
-subto EnforceShiftsSpacingsVariables5:
-    forall <j,a1,a2,b1,b2> in ShiftSpacings | a1 != b1 or a2 != b2 : 
-        NeighbouringShifts[j,a1,a2,b1,b2] == NeighbouringShifts[j,a1,a2,b1,b2] * ((sum <m,n> in Shifts | n > a2 and n < b2 : Edge[j,m,n]) + 1);
+subto EnforceShiftSpacingLogic1:
+    forall <soldier,station,time,rest> in ShiftSpacings  : vif NeighbouringShifts[soldier,station,time,rest] == 1
+                                                        then (sum <i,a,b,r> in ShiftSpacings | i == soldier and b == (time + rest) : NeighbouringShifts[i,a,b,r]) >= 1 end;
+
+subto EnforceShiftSpacingLogic2:
+    forall <soldier,station,time,rest> in ShiftSpacings | time != -1   : vif NeighbouringShifts[soldier,station,time,rest] == 1
+                                                        then (sum <i,a,b,r> in ShiftSpacings | i == soldier and (b + r == time) : NeighbouringShifts[i,a,b,r]) >= 1 end;
+
+
+subto EnforceShiftSpacingLogic3:
+    forall <soldier,station,time,rest> in ShiftSpacings | time >= min(Times) and time <= max(Times) and station != "invisible" : vif NeighbouringShifts[soldier,station,time,rest] == 1
+                                                        then Edge[soldier,station,time] == 1 end;
+
+subto EnforceShiftSpacingLogic4:
+    forall <soldier,station,time,rest> in ShiftSpacings | time >= min(Times) and time <= max(Times) and station != "invisible": vif Edge[soldier,station,time] == 1
+                                                        then (sum <i,a,b,r> in ShiftSpacings | i == soldier and a == station and b == time : NeighbouringShifts[i,a,b,r]) == 1 end;
 
 subto Soldier_Not_In_Two_Stations_Concurrently:
     forall <i,t,z> in SoldiersToShifts : 
@@ -44,27 +56,8 @@ subto All_Stations_One_Soldier:
     forall <s,f> in Shifts : 
         (sum<a,b,c> in SoldiersToShifts | s==b and f==c : Edge[a,b,c]) == 1;
 
-var minGuards integer >= 0 <= 5 priority 2 startval 1;
-var maxGuards integer >= 1 <= 7 priority 4 startval 2;
-var minimalSpacing integer >= absoluteMinimalSpacing <= absoluteMinimalSpacing+100;
-
-subto EnforceMinGuardsCons:
-    forall <i> in Soldiers : 
-        (sum <m,a,b> in SoldiersToShifts | i==m : Edge[m,a,b]) >= minGuards;
-
-subto EnforceMaxGuards:
-    forall <i> in Soldiers : 
-        (sum <m,a,b> in SoldiersToShifts | i==m : Edge[m,a,b]) <= maxGuards;
-
-subto EnforceRestTimeMinimum:
-    forall <i,a,b,c,d> in ShiftSpacings : 
-        vif (d - b) < minimalSpacing then NeighbouringShifts[i,a,b,c,d] == 0 end;
-
-
 set indexSetOfPeople := {<i,p> in {1.. card(Soldiers)} * Soldiers | ord(Soldiers,i,1) == p}; # -> {<1,"Yoni">, <2,"Denis"> ...}
 
 minimize myObjective: 
-    ((maxGuards - minGuards) + weight)**3 
-    - (minimalSpacing)**2 
-    + sum<i,a,b> in SoldiersToShifts : sum<m,n> in Shifts | m != a or b != n : (Edge[i,a,b] * Edge[i,m,n] * (b - n))
-    + (sum <i,person,station,time> in  indexSetOfPeople*Shifts | time <= card(Soldiers)/card(Stations)*4: (Edge[person,station,time]*bias*i*(time+1)));
+    sum <soldier> in Soldiers : sum <i,station,time,rest> in ShiftSpacings | i == soldier : (rest**2)
+    + (sum <i,person,station,time> in  indexSetOfPeople*Shifts | time <= card(Soldiers)/card(Stations)*4: (Edge[person,station,time]*bias*i*(time+1))); # assign first few soldiers by their order in the set

@@ -157,7 +157,7 @@ tuple	:	'<' csv '>' ;
 // TODO: test non-sum
 //sumExpr :	'sum' condition sep=('do' | ':') nExpr ;
 redExpr :	op=('prod'|'sum') condition sep=('do'|':') nExpr # LongRedExpr
-		|	op=('min'|'max'|'card')	'(' index ')'			 # ShortRedExpr
+		|	op=('min'|'max'|'card')	'(' ( index | csv ) ')'			 # ShortRedExpr
 		;
 // Defining RED as lexical rule brings token conflict with (functions) 'min', 'max'
 //redExpr :	op=ID condition sep=('do'|':') nExpr ;
