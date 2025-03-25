@@ -73,8 +73,11 @@ public class TypesAndDependencyTests {
 
     private static HashMap<String,String[]> immidiateSetDependencies =  new HashMap<String,String[]>();
     private static HashMap<String,String[]> immidiateParamDependencies =  new HashMap<String,String[]>();
+    private static HashMap<String,String[]> immidiateFunctionDependencies =  new HashMap<String,String[]>();
     private static HashMap<String,String[]> secondDegreeSetDependencies =  new HashMap<String,String[]>();
     private static HashMap<String,String[]> secondDegreeParamDependencies =  new HashMap<String,String[]>();
+    private static HashMap<String,String[]> secondDegreeFunctionDependencies =  new HashMap<String,String[]>();
+
     private static HashMap<String,Boolean> primitives = new HashMap<>();
     private static HashMap<String,Boolean> isComplexVariable = new HashMap<>();
 
@@ -133,12 +136,30 @@ public class TypesAndDependencyTests {
         secondDegreeSetDependencies.put("forTest2",new String[]{"Emdot","Zmanim", "anonymous_set"});
         secondDegreeParamDependencies.put("forTest2", new String[]{"soldiers"});
 
+        immidiateSetDependencies.put("Shifts", new String[]{"annonymous_set"});
+        immidiateParamDependencies.put("Shifts", new String[]{});
+        secondDegreeSetDependencies.put("Shifts",new String[]{"Stations", "Times"});
+        secondDegreeParamDependencies.put("Shifts", new String[]{"planTimeRange"});
+
+        immidiateSetDependencies.put("SoldiersToShifts", new String[]{"Soldiers", "annonymous_set"});
+        immidiateParamDependencies.put("SoldiersToShifts", new String[]{});
+        secondDegreeSetDependencies.put("SoldiersToShifts",new String[]{"Shifts"});
+        secondDegreeParamDependencies.put("SoldiersToShifts", new String[]{"soldiers"});
+
         immidiateSetDependencies.put("conditioner", new String[]{});
         immidiateParamDependencies.put("conditioner", new String[]{});
         immidiateSetDependencies.put("absoluteMinimalRivuah", new String[]{});
         immidiateParamDependencies.put("absoluteMinimalRivuah", new String[]{});
         immidiateSetDependencies.put("soldiers", new String[]{});
         immidiateParamDependencies.put("soldiers", new String[]{});
+        immidiateFunctionDependencies.put("soldiers", new String[]{});
+        immidiateSetDependencies.put("planTimeRange", new String[]{});
+        immidiateParamDependencies.put("planTimeRange", new String[]{"conditioner","soldiers","absoluteMinimalRivuah"});
+        immidiateFunctionDependencies.put("planTimeRange", new String[]{"timeDifference"});
+        immidiateSetDependencies.put("timeDifference", new String[]{});
+        immidiateParamDependencies.put("timeDifference", new String[]{"soldiers"});
+        immidiateFunctionDependencies.put("timeDifference", new String[]{});
+        
         
 
         immidiateSetDependencies.put("couples", new String[]{"CxSxS"});
@@ -178,6 +199,7 @@ public class TypesAndDependencyTests {
         primitives.put("setWithRange",false);
         primitives.put("Emdot",true);
         primitives.put("S",false);
+        
 
         isComplexVariable.put("edge",true);
         isComplexVariable.put("minShmirot",false);

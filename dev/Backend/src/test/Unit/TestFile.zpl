@@ -14,6 +14,17 @@ set forTest2 := {"a", "b"} * S * {1..soldiers} * C * {<"h",2.2> , <"a",-3.14>};
 set forTest3 := {<2,"a",3>,<6,"2",3>};
 set forTest4 := proj(forTest3,<2,1>);
 set forTest5 := proj(forTest4 * {<2,"a">,<1,"f">},<2,4>); # -> <INT,TEXT>
+set forTest6  := {0..soldiers-1};
+
+
+defnumb timeDifference(fromDay, fromHour, toDay, toHour) := soldiers;
+set Soldiers := {1..soldiers};
+set Stations := {<"Siyur1",8,4>,<"FillBox",4,1>,<"Shin Gimel",4,1>, <"Hamal",24,1>, <"Siyur2",8,4>, <"Siyur3",8,4>};
+param planTimeRange := timeDifference(conditioner,soldiers,0,absoluteMinimalRivuah);
+set Times := {0 .. planTimeRange};
+set Shifts := {<station, stationInterval, requiredPeople, time> in Stations * Times | time mod stationInterval == 0 and time + stationInterval <= planTimeRange};
+set SoldiersToShifts := Soldiers * proj(Shifts,<1,4>);
+
 
 var edge[CxS] binary;
 var couples[CxSxS] binary;
