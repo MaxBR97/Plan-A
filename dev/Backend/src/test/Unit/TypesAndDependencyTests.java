@@ -130,21 +130,51 @@ public class TypesAndDependencyTests {
 
         immidiateSetDependencies.put("forTest1", new String[]{"anonymous_set"});
         immidiateParamDependencies.put("forTest1", new String[]{});
+        secondDegreeSetDependencies.put("forTest1", new String[]{"C","Emdot","anonymous_set","CxS"});
+        secondDegreeParamDependencies.put("forTest1", new String[]{"soldiers"});
 
         immidiateSetDependencies.put("forTest2", new String[]{"anonymous_set", "S", "anonymous_set", "C", "anonymous_set"});
         immidiateParamDependencies.put("forTest2", new String[]{});
         secondDegreeSetDependencies.put("forTest2",new String[]{"Emdot","Zmanim", "anonymous_set"});
         secondDegreeParamDependencies.put("forTest2", new String[]{"soldiers"});
 
-        immidiateSetDependencies.put("Shifts", new String[]{"annonymous_set"});
+        immidiateSetDependencies.put("forTest6", new String[]{"anonymous_set"});
+        immidiateParamDependencies.put("forTest6", new String[]{});
+        secondDegreeSetDependencies.put("forTest6",new String[]{});
+        secondDegreeParamDependencies.put("forTest6", new String[]{"soldiers"});
+
+        immidiateSetDependencies.put("forTest7", new String[]{});
+        immidiateParamDependencies.put("forTest7", new String[]{"conditioner","soldiers"});
+
+        immidiateSetDependencies.put("forTest8", new String[]{});
+        immidiateParamDependencies.put("forTest8", new String[]{"conditioner"});
+
+        immidiateSetDependencies.put("forTest9", new String[]{});
+        immidiateParamDependencies.put("forTest9", new String[]{"conditioner"});
+        
+
+        immidiateSetDependencies.put("forTest10", new String[]{"forTest3"});
+        immidiateParamDependencies.put("forTest10", new String[]{});
+       
+        immidiateSetDependencies.put("forTest11", new String[]{"C","Zmanim"});
+        immidiateParamDependencies.put("forTest11", new String[]{});
+
+        immidiateSetDependencies.put("forTest13", new String[]{});
+        immidiateParamDependencies.put("forTest13", new String[]{"conditioner"});
+
+        immidiateSetDependencies.put("forTest14", new String[]{"forTest11"});
+        immidiateParamDependencies.put("forTest14", new String[]{});
+        
+
+        immidiateSetDependencies.put("Shifts", new String[]{"anonymous_set"});
         immidiateParamDependencies.put("Shifts", new String[]{});
         secondDegreeSetDependencies.put("Shifts",new String[]{"Stations", "Times"});
         secondDegreeParamDependencies.put("Shifts", new String[]{"planTimeRange"});
 
-        immidiateSetDependencies.put("SoldiersToShifts", new String[]{"Soldiers", "annonymous_set"});
+        immidiateSetDependencies.put("SoldiersToShifts", new String[]{"Soldiers", "anonymous_set"});
         immidiateParamDependencies.put("SoldiersToShifts", new String[]{});
-        secondDegreeSetDependencies.put("SoldiersToShifts",new String[]{"Shifts"});
-        secondDegreeParamDependencies.put("SoldiersToShifts", new String[]{"soldiers"});
+        secondDegreeSetDependencies.put("SoldiersToShifts",new String[]{"anonymous_set","Shifts"});
+        secondDegreeParamDependencies.put("SoldiersToShifts", new String[]{});
 
         immidiateSetDependencies.put("conditioner", new String[]{});
         immidiateParamDependencies.put("conditioner", new String[]{});
@@ -215,6 +245,29 @@ public class TypesAndDependencyTests {
         model = new Model(modelRepository, sourceId);
     }
 
+
+    @ParameterizedTest
+    @ValueSource(strings = {"timeDifference"})
+
+    public void functionDependencyInference(String id) {
+        ModelInput var = model.getFunction(id);
+        assertNotNull(var);
+        assertEquals(var.getSetDependencies().size(), immidiateSetDependencies.get(id).length);
+        for(String setId : immidiateSetDependencies.get(id)){
+            assertNotNull(var.findSetDependency(setId));
+        }
+
+        assertEquals(var.getParamDependencies().size(), immidiateParamDependencies.get(id).length);
+        for(String setId : immidiateParamDependencies.get(id)){
+            assertNotNull(var.findParamDependency(setId));
+        }
+
+        assertEquals(var.getFuncDependencies().size(), immidiateFunctionDependencies.get(id).length);
+        for(String setId : immidiateFunctionDependencies.get(id)){
+            assertNotNull(var.findFuncDependency(setId));
+        }
+    }
+    
 
 
     @ParameterizedTest
@@ -315,7 +368,7 @@ public class TypesAndDependencyTests {
 
     
     @ParameterizedTest
-    @ValueSource(strings = {"setWithRange","C","S","Zmanim", "Emdot", "CxS", "CxSxS", "forTest2"})
+    @ValueSource(strings = {"setWithRange","C","S","Zmanim", "Emdot", "CxS", "CxSxS", "forTest2","Shifts","SoldiersToShifts","forTest6", "forTest11", "forTest1"})
     public void testDependenciesOfSets(String identifier) {
         boolean hasSecondDegreeDeps = secondDegreeSetDependencies.containsKey(identifier);
         String setName = identifier;
@@ -366,7 +419,7 @@ public class TypesAndDependencyTests {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"conditioner", "absoluteMinimalRivuah", "soldiers"})
+    @ValueSource(strings = {"conditioner", "absoluteMinimalRivuah", "soldiers","planTimeRange","forTest7", "forTest8", "forTest9", "forTest10","forTest13","forTest14"})
     public void testImmidiateSetDependenciesOfParameters(String identifier) {
         String paramName = identifier;
         List<String> expectedDeps = Arrays.asList(immidiateSetDependencies.get(identifier));
@@ -379,7 +432,7 @@ public class TypesAndDependencyTests {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"conditioner", "absoluteMinimalRivuah", "soldiers"})
+    @ValueSource(strings = {"conditioner", "absoluteMinimalRivuah", "soldiers","planTimeRange","forTest7", "forTest8", "forTest9", "forTest10","forTest13","forTest14"})
     public void testImmidiateParamDependenciesOfParameters(String identifier) {
         String paramName = identifier;
         List<String> expectedDeps = Arrays.asList(immidiateParamDependencies.get(identifier));
@@ -393,6 +446,77 @@ public class TypesAndDependencyTests {
 
 
     //TODO: tests that check types, may be converted to parameterized tests.
+
+    @Test
+    public void typeForTest7(){
+        ModelInput s = model.getParameter("forTest7");
+        ModelType expectedType = ModelPrimitives.INT;
+        assertTrue( s.isCompatible(expectedType));
+    }
+
+    @Test
+    public void typeForTest8(){
+        ModelInput s = model.getParameter("forTest8");
+        ModelType expectedType = ModelPrimitives.INT;
+        assertTrue( s.isCompatible(expectedType));
+    }
+
+    @Test
+    public void typeForTest9(){
+        ModelInput s = model.getParameter("forTest9");
+        ModelType expectedType = ModelPrimitives.FLOAT;
+        assertTrue( s.isCompatible(expectedType));
+    }
+
+    @Test
+    public void typeForTest10(){
+        ModelInput s = model.getParameter("forTest10");
+        ModelType expectedType = ModelPrimitives.INT;
+        assertTrue( s.isCompatible(expectedType));
+    }
+
+    @Test
+    public void typeForTest12(){
+        ModelInput s = model.getParameter("forTest12");
+        ModelType expectedType = ModelPrimitives.FLOAT;
+        assertTrue( s.isCompatible(expectedType));
+    }
+
+    @Test
+    public void typeForTest13(){
+        ModelInput s = model.getParameter("forTest13");
+        ModelType expectedType = ModelPrimitives.INT;
+        assertTrue(s.isCompatible(expectedType));
+    }
+
+    @Test
+    public void typeForTest14(){
+        ModelInput s = model.getParameter("forTest14");
+        ModelType expectedType = ModelPrimitives.INT;
+        assertTrue( s.isCompatible(expectedType));
+    }
+
+    @Test
+    public void typeTimeDifference(){
+        ModelInput s = model.getFunction("timeDifference");
+        ModelType expectedType = ModelPrimitives.FLOAT;
+        assertTrue( s.isCompatible(expectedType));
+    }
+
+    @Test
+    public void typeMyBool(){
+        ModelInput s = model.getFunction("myBool");
+        ModelType expectedType = ModelPrimitives.BINARY;
+        assertTrue(s.isCompatible(expectedType));
+    }
+
+    @Test
+    public void typeHueHott(){
+        ModelInput s = model.getFunction("huehott");
+        ModelType expectedType = ModelPrimitives.TEXT;
+        assertTrue(s.isCompatible(expectedType));
+    }
+
     @Test
     public void typeCheckC(){
         ModelSet s = model.getSet("C");
@@ -436,6 +560,23 @@ public class TypesAndDependencyTests {
     }
 
     @Test
+    public void typeCheckforTest1(){
+        ModelSet set = model.getSet("forTest1");
+        assertTrue(set.getType() instanceof Tuple);
+        assertEquals(ModelPrimitives.TEXT,((Tuple)set.getType()).getTypes().get(0));
+        assertEquals(ModelPrimitives.INT,((Tuple)set.getType()).getTypes().get(1));
+        assertEquals(ModelPrimitives.INT,((Tuple)set.getType()).getTypes().get(2));
+        assertEquals(ModelPrimitives.INT,((Tuple)set.getType()).getTypes().get(3));
+        assertEquals(ModelPrimitives.INT,((Tuple)set.getType()).getTypes().get(4));
+    }
+
+    @Test
+    public void typeCheckforTest11(){
+        ModelSet set = model.getSet("forTest11");
+        assertTrue(ModelPrimitives.INT.isCompatible(set.getType()));
+    }
+
+    @Test
     public void typeCheckforTest3(){
         ModelSet set = model.getSet("forTest3");
         assertTrue(set.getType() instanceof Tuple);
@@ -458,6 +599,37 @@ public class TypesAndDependencyTests {
     }
 
     @Test
+    public void typeCheckforShifts(){
+        ModelSet set = model.getSet("Shifts");
+        assertTrue(set.getType() instanceof Tuple);
+        assertEquals(ModelPrimitives.TEXT,((Tuple)set.getType()).getTypes().get(0));
+        assertEquals(ModelPrimitives.INT,((Tuple)set.getType()).getTypes().get(1));
+        assertEquals(ModelPrimitives.INT,((Tuple)set.getType()).getTypes().get(2));
+    }
+
+    @Test
+    public void typeCheckforSoldiersToShifts(){
+        ModelSet set = model.getSet("SoldiersToShifts");
+        assertTrue(set.getType() instanceof Tuple);
+        assertEquals(ModelPrimitives.INT,((Tuple)set.getType()).getTypes().get(0));
+        assertEquals(ModelPrimitives.TEXT,((Tuple)set.getType()).getTypes().get(1));
+        assertEquals(ModelPrimitives.INT,((Tuple)set.getType()).getTypes().get(2));
+    }
+
+    @Test
+    public void typeCheckforVarForTest1(){
+        ModelVariable var = model.getVariable("varForTest1");
+        assertTrue(var.getType() instanceof Tuple);
+        assertEquals(ModelPrimitives.INT,((Tuple)var.getType()).getTypes().get(0));
+        assertEquals(ModelPrimitives.TEXT,((Tuple)var.getType()).getTypes().get(1));
+        assertEquals(ModelPrimitives.INT,((Tuple)var.getType()).getTypes().get(2));
+        assertEquals(ModelPrimitives.TEXT,((Tuple)var.getType()).getTypes().get(3));
+        assertEquals(ModelPrimitives.TEXT,((Tuple)var.getType()).getTypes().get(4));
+        assertEquals(ModelPrimitives.INT,((Tuple)var.getType()).getTypes().get(5));
+        assertEquals(ModelPrimitives.INT,((Tuple)var.getType()).getTypes().get(6));
+    }
+
+    @Test
     public void testProjFunc(){
         ModelSet set = model.getSet("forTest4");
         assertEquals("anonymous_set",set.getSetDependencies().get(0).getIdentifier());
@@ -470,6 +642,7 @@ public class TypesAndDependencyTests {
         }
         assertEquals("<TEXT,INT>",set.getSetDependencies().get(0).getType().toString());
     }
+    
 
     // forTest5 point to [forTest4,2] , [anonymous_set,2]
     @Test

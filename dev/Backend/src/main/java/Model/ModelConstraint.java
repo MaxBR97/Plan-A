@@ -17,7 +17,7 @@ public class ModelConstraint extends ModelFunctionality {
         super(imageId, identifier);
     }
 
-    ModelConstraint(String imageId, String constName, List<ModelSet> basicSets, List<ModelParameter> basicParams) {
-        super(imageId, constName,basicSets,basicParams);
+    ModelConstraint(String imageId, String constName, List<ModelSet> basicSets, List<ModelParameter> basicParams,List<ModelFunction> basicFuncs) {
+        super(imageId, constName,basicSets,basicParams, basicFuncs);
     }
 }

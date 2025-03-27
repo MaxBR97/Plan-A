@@ -19,28 +19,22 @@ public abstract class ModelInput extends ModelComponent {
     protected String[] tags;
 
     public ModelInput(String imageId, String identifier, ModelType type) {
-        super(imageId, identifier);
+        super(imageId, identifier, new LinkedList<>(), new LinkedList<>(), new LinkedList<>());
         myType = type;
-        setDependencies = new LinkedList<>();
-        paramDependencies = new LinkedList<>();
     }
 
-    public ModelInput(String imageId, String identifier, ModelType type, List<ModelSet> a, List<ModelParameter> b) {
-        super(imageId, identifier);
+    public ModelInput(String imageId, String identifier, ModelType type, List<ModelSet> a, List<ModelParameter> b, List<ModelFunction> c) {
+        super(imageId, identifier,a,b,c);
         myType = type;
-    setDependencies = a;
-        paramDependencies = b;
     }
 
     public ModelInput(){
         super();
     }
 
-    ModelInput(String imageId, String identifier, ModelType type, List<ModelSet> a, List<ModelParameter> b, StructureBlock[] struct) {
-        super(imageId, identifier);
+    ModelInput(String imageId, String identifier, ModelType type, List<ModelSet> a, List<ModelParameter> b, List<ModelFunction> c, StructureBlock[] struct) {
+        super(imageId, identifier,a,b,c);
         myType = type;
-        setDependencies = a;
-        paramDependencies = b;
         this.myStruct = struct;
     }
 
@@ -78,8 +72,9 @@ public abstract class ModelInput extends ModelComponent {
         boolean identified_set = !this.getIdentifier().equals("anonymous_set");
         boolean exactlyOneSetDescendant = this.setDependencies.size() == 1;
         boolean exactlyZeroParamDescendant = this.paramDependencies.size() == 0;
+        boolean exactlyZeroFuncDescendant = this.functionDependencies.size() == 0;
         if(identified_set && exactlyOneSetDescendant && exactlyZeroParamDescendant){
-            if(this.setDependencies.get(0).setDependencies.size() == 0 && this.setDependencies.get(0).paramDependencies.size() == 0){
+            if(this.setDependencies.get(0).setDependencies.size() == 0 && this.setDependencies.get(0).paramDependencies.size() == 0 && this.setDependencies.get(0).functionDependencies.size() == 0){
                 return true;
             }
         }

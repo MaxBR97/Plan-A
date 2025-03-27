@@ -23,13 +23,13 @@ public class ModelSet extends ModelInput {
         super(imageId, identifier,type);
     }
 
-    public ModelSet(String imageId, String setName, ModelType type, List<ModelSet> basicSets, List<ModelParameter> basicParams) {
-        super(imageId, setName, type, basicSets, basicParams);
+    public ModelSet(String imageId, String setName, ModelType type, List<ModelSet> basicSets, List<ModelParameter> basicParams, List<ModelFunction> basicFuncs) {
+        super(imageId, setName, type, basicSets, basicParams, basicFuncs);
     }
 
 
-    public ModelSet(String imageId, String setName, List<ModelSet> basicSets, List<ModelParameter> basicParams,StructureBlock[] resultingStructure) {
-        super(imageId, setName,null, basicSets, basicParams);
+    public ModelSet(String imageId, String setName, List<ModelSet> basicSets, List<ModelParameter> basicParams,List<ModelFunction> basicFuncs, StructureBlock[] resultingStructure) {
+        super(imageId, setName,null, basicSets, basicParams, basicFuncs);
             //infer type
             Tuple type = new Tuple();
             int i = 0;

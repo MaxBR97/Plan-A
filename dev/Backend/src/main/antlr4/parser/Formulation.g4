@@ -121,9 +121,10 @@ nExpr:	sign=('+'|'-')? uExpr ;
 
 /** unsigned (numerical) expression */
 uExpr
-	:	uExpr op='**' uExpr
+	:	uExpr op='**' 	   uExpr
 	|	uExpr op=('*'|'/') uExpr
 	|	uExpr op=('+'|'-') uExpr
+	|   uExpr op='mod'   uExpr
 	|	basicExpr
 	;
 
@@ -138,15 +139,16 @@ basicExpr
 // TODO: add tests for ifExpr
 setExpr
 	:	setExpr op='*' setExpr				# SetExprBin
-	|	setExpr op=('+'|'\\'|'-') setExpr	# SetExprBin
+	|	setExpr op=('+'|'\\'|'-'|'union') setExpr	# SetExprBin
 	|	'(' setExpr ')'						# SetExprParen
 	|	(setDesc | fnRef | sqRef | ifExpr)	# SetExprStack
 	;
 
 setDesc:'{' '}'						# SetDescEmpty
+	|	'{' condition ':' tuple '}' # SetDescExtended
 	|	'{' condition '}' 			# SetDescStack
 	|	'{' csv '}'					# SetDescStack
-	|	'{' range '}'				# SetDescStack 
+	|	'{' range '}'				# SetDescStack
 	;
 
 range	:	lhs=nExpr '..' rhs=nExpr ('by' step=nExpr)?;
@@ -157,7 +159,8 @@ tuple	:	'<' csv '>' ;
 // TODO: test non-sum
 //sumExpr :	'sum' condition sep=('do' | ':') nExpr ;
 redExpr :	op=('prod'|'sum') condition sep=('do'|':') nExpr # LongRedExpr
-		|	op=('min'|'max'|'card')	'(' ( index | csv ) ')'			 # ShortRedExpr
+		|	op=('min'|'max'|'card'|'floor'|'random')	'(' ( index | csv ) ')'			 # ShortRedExpr
+		| 	op='ord' '(' setExpr ',' idx=expr ',' comp=expr ')' #OrdRedExpr
 		;
 // Defining RED as lexical rule brings token conflict with (functions) 'min', 'max'
 //redExpr :	op=ID condition sep=('do'|':') nExpr ;
@@ -201,7 +204,7 @@ sqRef	:	name=ID ('[' csv ']')?	# SqRefCsv		// accepts 'id[]'
 		;
 
 fnRef	:	'proj' '(' setExpr ',' tuple ')' 		#ProjFunc
-		|	name=ID '(' csv ')' 	#GeneralFunc
+		|	name=ID '(' csv ')' 	#CustomFunc
 		;	
 
 // TODO: try using 'csv' for any comma separated list: indices, chains...

@@ -11,8 +11,9 @@ public abstract class ModelFunctionality extends ModelComponent {
         super(imageId, identifier);
     }
 
-    public ModelFunctionality(String imageId, String name, List<ModelSet> basicSets, List<ModelParameter> basicParams) {
-        super(imageId, name ,basicSets,basicParams);
+    public ModelFunctionality(String imageId, String name, List<ModelSet> basicSets, List<ModelParameter> basicParams,
+                                                                                         List<ModelFunction> basicFuncs) {
+        super(imageId, name ,basicSets,basicParams,basicFuncs);
     }
 
     protected ModelFunctionality(){

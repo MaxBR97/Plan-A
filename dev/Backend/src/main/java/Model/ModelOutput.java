@@ -27,8 +27,8 @@ public abstract class ModelOutput extends ModelComponent {
         super(imageId, identifier);
     }
 
-    public ModelOutput(String imageId, String ident, List<ModelSet> dep, List<ModelParameter> paramDep, ModelType type) {
-        super(imageId, ident,dep,paramDep);
+    public ModelOutput(String imageId, String ident, List<ModelSet> dep, List<ModelParameter> paramDep, List<ModelFunction> funcDep, ModelType type) {
+        super(imageId, ident,dep,paramDep,funcDep);
         isComplex = false;
         myType = type;
     }

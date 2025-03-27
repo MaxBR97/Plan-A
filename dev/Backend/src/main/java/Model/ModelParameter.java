@@ -27,12 +27,13 @@ public class ModelParameter extends ModelInput {
     }
     
     public ModelParameter(String imageId, String paramName, ModelType type, List<ModelSet> basicSets,
-            List<ModelParameter> basicParams) {
-        super(imageId, paramName, type, basicSets, basicParams);
+            List<ModelParameter> basicParams, List<ModelFunction> funcDep) {
+        super(imageId, paramName, type, basicSets, basicParams, funcDep);
     }
+    
     @Override
     public boolean isPrimitive(){
-        return this.setDependencies.isEmpty() && this.paramDependencies.isEmpty();
+        return this.setDependencies.isEmpty() && this.paramDependencies.isEmpty() && this.functionDependencies.isEmpty();
     }
 
 

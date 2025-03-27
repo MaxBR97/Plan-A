@@ -106,6 +106,8 @@ public abstract class ModelInterface {
      */
     public abstract ModelParameter getParameter(String identifier);
 
+    public abstract ModelFunction getFunction(String identifier);
+
     /**
      * Retrieves a constraint by its identifier.
      * 
@@ -147,6 +149,9 @@ public abstract class ModelInterface {
     abstract public Collection<ModelSet> getSets();
 
     abstract public Collection<ModelParameter> getParameters();
+
+    abstract public Collection<ModelFunction> getFunctions();
+    
 
     abstract public ModelComponent getComponent(String identifier);
 

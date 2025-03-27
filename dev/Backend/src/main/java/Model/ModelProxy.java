@@ -52,6 +52,7 @@ public class ModelProxy extends ModelInterface {
     private CommonTokenStream tokens;
     private final Map<String,ModelSet> sets = new HashMap<>();
     private final Map<String,ModelParameter> params = new HashMap<>();
+    private final Map<String,ModelFunction> funcs = new HashMap<>();
     private final Map<String,ModelConstraint> constraints = new HashMap<>();
     private final Map<String,ModelPreference> preferences = new HashMap<>();
     private final Map<String,ModelVariable> variables = new HashMap<>();
@@ -354,7 +355,7 @@ public class ModelProxy extends ModelInterface {
             String paramName = extractName(ctx.sqRef().getText());
             TypeVisitor typer = new TypeVisitor();
             typer.visit(ctx.expr());
-            ModelParameter param = new ModelParameter(id,paramName,typer.getType(), typer.getBasicSets(),typer.getBasicParams());
+            ModelParameter param = new ModelParameter(id,paramName,typer.getType(), typer.getBasicSets(),typer.getBasicParams(),typer.getBasicFuncs());
             if(loadElementsToRam){
                 param.setValue(ctx.expr().getText());
             }
@@ -369,6 +370,22 @@ public class ModelProxy extends ModelInterface {
             sets.put(setName,new ModelSet(id,setName,ModelPrimitives.UNKNOWN));
             return super.visitSetDecl(ctx);
         }
+
+        @Override
+        public Void visitFunction(FormulationParser.FunctionContext ctx) {
+            if(ctx.fnRef() != null && ctx.fnRef() instanceof FormulationParser.CustomFuncContext && ((FormulationParser.CustomFuncContext)ctx.fnRef()) != null) {
+                String functionName = ((FormulationParser.CustomFuncContext)ctx.fnRef()).name.getText();
+                ModelPrimitives type = ctx.FN_TYPE().getText().equals("defnumb") ? ModelPrimitives.FLOAT :
+                                        ctx.FN_TYPE().getText().equals("defbool") ? ModelPrimitives.BINARY :
+                                        ctx.FN_TYPE().getText().equals("defstrg") ? ModelPrimitives.TEXT :
+                                        ModelPrimitives.UNKNOWN;
+                TypeVisitor depVisitor = new TypeVisitor();
+                depVisitor.visit(ctx.expr());                                         
+                funcs.put(functionName,new ModelFunction(id,functionName,type,depVisitor.getBasicSets(), depVisitor.getBasicParams(), depVisitor.getBasicFuncs()));
+            }
+
+            return super.visitFunction(ctx);
+        }
         
         @Override
         public Void visitSetDefExpr(FormulationParser.SetDefExprContext ctx) {
@@ -376,7 +393,7 @@ public class ModelProxy extends ModelInterface {
             
             TypeVisitor typer = new TypeVisitor();
             typer.visit(ctx.setExpr());
-            ModelSet set = new ModelSet(id,setName,typer.getType(),typer.getBasicSets(),typer.getBasicParams());
+            ModelSet set = new ModelSet(id,setName,typer.getType(),typer.getBasicSets(),typer.getBasicParams(),typer.getBasicFuncs());
             if(loadElementsToRam){
                 java.util.List<String> elements = parseSetElements(ctx.setExpr());
                 set.setElements(elements);
@@ -390,7 +407,7 @@ public class ModelProxy extends ModelInterface {
             String constName = extractName(ctx.name.getText());
             TypeVisitor visitor = new TypeVisitor();
             visitor.visit(ctx);
-            constraints.put(constName, new ModelConstraint(id, constName,visitor.getBasicSets(),visitor.getBasicParams()));
+            constraints.put(constName, new ModelConstraint(id, constName,visitor.getBasicSets(),visitor.getBasicParams(),visitor.getBasicFuncs()));
             return super.visitConstraint(ctx);
         }
 
@@ -408,7 +425,8 @@ public class ModelProxy extends ModelInterface {
                 preferences.put(expressionComponent.getText(), 
                     new ModelPreference(id,expressionComponent.getText(), 
                                         visitor.getBasicSets(), 
-                                        visitor.getBasicParams())
+                                        visitor.getBasicParams(),
+                                        visitor.getBasicFuncs())
                 );
             }
             
@@ -423,7 +441,7 @@ public class ModelProxy extends ModelInterface {
             if(ctx.sqRef() instanceof FormulationParser.SqRefCsvContext){
                 isComplex = ((FormulationParser.SqRefCsvContext)(ctx.sqRef())).csv() == null ? false : true;
             }
-            variables.put(varName, new ModelVariable(id,varName, visitor.getBasicSets(), visitor.getBasicParams(),visitor.getType(),isComplex));
+            variables.put(varName, new ModelVariable(id,varName, visitor.getBasicSets(), visitor.getBasicParams(),visitor.getBasicFuncs(),visitor.type,isComplex));
             return super.visitVariable(ctx);
         }
 
@@ -853,13 +871,14 @@ public class ModelProxy extends ModelInterface {
         private ModelType type = ModelPrimitives.UNKNOWN;
         private  List<ModelSet> basicSets ;
         private  List<ModelParameter> basicParams;
-        
+        private  List<ModelFunction> basicFuncs;
 
         public TypeVisitor(){
             basicSets = new LinkedList<>();
             basicParams = new LinkedList<>();
+            basicFuncs = new LinkedList<>();
         }
-    
+
         private void appendType(ModelType add) {
             if(type == ModelPrimitives.UNKNOWN) {
                 if(add instanceof ModelPrimitives)
@@ -877,14 +896,14 @@ public class ModelProxy extends ModelInterface {
                 ((Tuple)type).append(add);
             }
         }
-
+    
         // Main visitor methods for type analysis
         @Override
         public Void visitSetExprBin(FormulationParser.SetExprBinContext ctx) {
             // Handle binary set operations (*, +, \, -)
             TypeVisitor leftVisitor = new TypeVisitor();
             TypeVisitor rightVisitor = new TypeVisitor();
-        
+            
             // Check if the left set is already identified
             ModelSet leftSet = getSet(ctx.setExpr(0).getText());
             if (leftSet != null) {
@@ -894,6 +913,7 @@ public class ModelProxy extends ModelInterface {
                 leftVisitor.visit(ctx.setExpr(0));
                 basicSets.addAll(leftVisitor.getBasicSets());
                 basicParams.addAll(leftVisitor.getBasicParams());
+                basicFuncs.addAll(leftVisitor.getBasicFuncs());
             }
         
             // Check if the right set is already identified
@@ -905,6 +925,7 @@ public class ModelProxy extends ModelInterface {
                 rightVisitor.visit(ctx.setExpr(1));
                 basicSets.addAll(rightVisitor.getBasicSets());
                 basicParams.addAll(rightVisitor.getBasicParams());
+                basicFuncs.addAll(rightVisitor.getBasicFuncs());
             }
         
             // Handle type combination based on the operator
@@ -926,7 +947,13 @@ public class ModelProxy extends ModelInterface {
                 } else {
                     ((Tuple) type).append(rightVisitor.getType());
                 }
-            } else {
+            } else if (ctx.op.getText().equals("union")) {
+                type = ModelPrimitives.UNKNOWN;
+                if(leftSet != null)
+                    this.appendType(leftSet.getType());
+                else
+                    this.appendType(leftVisitor.getType());
+            } else  {
                 // For union, difference, etc., types must match
                 if (leftSet != null) {
                     type = leftSet.getType();
@@ -954,12 +981,53 @@ public class ModelProxy extends ModelInterface {
                 v.visit(ctxFA);
                 basicParams.addAll(v.basicParams);
                 basicSets.addAll(v.basicSets);
+                basicFuncs.addAll(v.basicFuncs);
             }
             TypeVisitor v = new TypeVisitor();
             v.visit(ctx.comparison());
             basicParams.addAll(v.basicParams);
             basicSets.addAll(v.basicSets);
+            basicFuncs.addAll(v.basicFuncs);
 
+            return null;
+        }
+
+        @Override
+        public Void visitComparisonNExpr(FormulationParser.ComparisonNExprContext ctx){
+            this.visit(ctx.nExpr());
+            for(FormulationParser.BoundContext bndCtx : ctx.bound())
+                this.visit(bndCtx);
+            return null;
+        }
+
+        @Override
+        public Void visitNExpr(FormulationParser.NExprContext ctx){
+            this.visit(ctx.uExpr());
+            return null;
+        }
+
+        @Override
+        public Void visitUExpr(FormulationParser.UExprContext ctx){
+            if(ctx.op != null){
+                TypeVisitor t1 = new TypeVisitor();
+                TypeVisitor t2 = new TypeVisitor();
+                t1.visit(ctx.uExpr(0));
+                t2.visit(ctx.uExpr(1));
+                basicSets.addAll(t1.basicSets);
+                basicSets.addAll(t2.basicSets);
+                basicParams.addAll(t1.basicParams);
+                basicParams.addAll(t2.basicParams);
+                basicFuncs.addAll(t1.basicFuncs);
+                basicFuncs.addAll(t2.basicFuncs);
+                this.type = t1.getType();
+            } else if (ctx.basicExpr() != null){
+                TypeVisitor t = new TypeVisitor();
+                t.visit(ctx.basicExpr());
+                basicSets.addAll(t.basicSets);
+                basicParams.addAll(t.basicParams);
+                basicFuncs.addAll(t.basicFuncs);
+                this.type = t.getType();
+            }
             return null;
         }
 
@@ -982,6 +1050,28 @@ public class ModelProxy extends ModelInterface {
         }
 
         @Override
+        public Void visitCustomFunc(FormulationParser.CustomFuncContext ctx){
+            TypeVisitor newVisitor = new TypeVisitor();
+            newVisitor.visit(ctx.csv());
+            basicSets.addAll(newVisitor.getBasicSets());
+            basicParams.addAll(newVisitor.getBasicParams());
+            basicFuncs.addAll(newVisitor.getBasicFuncs());
+            appendType(getFunction(ctx.name.getText()).getType());
+            return null;
+        }
+
+        @Override
+        public Void visitBasicExprStack(FormulationParser.BasicExprStackContext ctx){
+            if(ctx.fnRef() != null)
+                this.visit(ctx.fnRef());
+            else if(ctx.redExpr() != null)
+                this.visit(ctx.redExpr());
+            else if(ctx.sqRef() != null)
+                this.visit(ctx.sqRef());
+            return null;
+        }
+
+        @Override
         public Void visitLongRedExpr(FormulationParser.LongRedExprContext ctx){
             this.visit(ctx.condition());
             this.visit(ctx.nExpr());
@@ -990,10 +1080,44 @@ public class ModelProxy extends ModelInterface {
 
         @Override
         public Void visitShortRedExpr(FormulationParser.ShortRedExprContext ctx){
+            TypeVisitor visitor = new TypeVisitor();
             if(ctx.index() != null)
-                this.visit(ctx.index());
+                visitor.visit(ctx.index());
             else if(ctx.csv() != null)
-                this.visit(ctx.csv());
+                visitor.visit(ctx.csv());
+            if(ctx.op.getText().equals("max") || ctx.op.getText().equals("min")){
+                appendType(visitor.getType());
+                basicSets.addAll(visitor.getBasicSets());
+                basicParams.addAll(visitor.getBasicParams());
+                basicFuncs.addAll(visitor.getBasicFuncs());
+            } else if(ctx.op.getText().equals("card")){
+                appendType(ModelPrimitives.INT);
+                basicSets.addAll(visitor.getBasicSets());
+                basicParams.addAll(visitor.getBasicParams());
+                basicFuncs.addAll(visitor.getBasicFuncs());
+            } else if(ctx.op.getText().equals("floor")){
+                appendType(ModelPrimitives.INT);
+                basicSets.addAll(visitor.getBasicSets());
+                basicParams.addAll(visitor.getBasicParams());
+                basicFuncs.addAll(visitor.getBasicFuncs());
+            } else if(ctx.op.getText().equals("random")){
+                appendType(ModelPrimitives.FLOAT);
+                basicSets.addAll(visitor.getBasicSets());
+                basicParams.addAll(visitor.getBasicParams());
+                basicFuncs.addAll(visitor.getBasicFuncs());
+            } 
+            return null;
+        }
+
+        @Override
+        public Void visitOrdRedExpr(FormulationParser.OrdRedExprContext ctx){
+            TypeVisitor visitor = new TypeVisitor();
+            visitor.visit(ctx.setExpr());            
+            appendType(ModelPrimitives.valueOf(visitor.getType().typeList().get(Integer.parseInt(ctx.comp.getText()) - 1)));
+            basicSets.addAll(visitor.getBasicSets());
+            basicParams.addAll(visitor.getBasicParams());
+            basicFuncs.addAll(visitor.getBasicFuncs());
+
             return null;
         }
 
@@ -1022,7 +1146,7 @@ public class ModelProxy extends ModelInterface {
             if (ctx.condition() != null){
                 TypeVisitor elementVisitor = new TypeVisitor();
                 elementVisitor.visit(ctx.condition());
-                ModelSet s = new ModelSet(id,"anonymous_set", elementVisitor.type,elementVisitor.basicSets,elementVisitor.basicParams);
+                ModelSet s = new ModelSet(id,"anonymous_set", elementVisitor.type,elementVisitor.basicSets,elementVisitor.basicParams,elementVisitor.basicFuncs);
                 basicSets.add(s);
                 type = elementVisitor.getType();
             }
@@ -1030,7 +1154,7 @@ public class ModelProxy extends ModelInterface {
                 // Handle explicit set elements
                 TypeVisitor elementVisitor = new TypeVisitor();
                 elementVisitor.visit(ctx.csv().expr(0));
-                ModelSet s = new ModelSet(id,"anonymous_set", elementVisitor.type,elementVisitor.basicSets,elementVisitor.basicParams);
+                ModelSet s = new ModelSet(id,"anonymous_set", elementVisitor.type,elementVisitor.basicSets,elementVisitor.basicParams,elementVisitor.basicFuncs);
                 // Add this as a basic set since it's explicitly defined
                 basicSets.add(s);
                 type = elementVisitor.getType();
@@ -1042,29 +1166,110 @@ public class ModelProxy extends ModelInterface {
                 visitor.visit(ctx.range());
                 s.paramDependencies.addAll(visitor.getBasicParams());
                 s.setDependencies.addAll(visitor.getBasicSets());
+                s.functionDependencies.addAll(visitor.getBasicFuncs());
             } 
             return null;
         }
 
         @Override
-        public Void visitRange(FormulationParser.RangeContext ctx){
+        public Void visitSetDescExtended(FormulationParser.SetDescExtendedContext ctx) {
+            TypeVisitor elementVisitor = new TypeVisitor();
+            elementVisitor.visit(ctx.condition());
+            HashMap<String,ModelParameter> placeHolder = new HashMap<>(); 
+            HashMap<String,ModelPrimitives> tupleCompToType = new HashMap<>();
+            FormulationParser.ConditionContext cond = ((FormulationParser.ConditionContext)ctx.condition());
+            String strCond = cond.getText();
+            FormulationParser.TupleContext tup = ((FormulationParser.TupleContext)(cond.tuple()));
+            String strTup = tup.getText();
+            FormulationParser.CsvContext csv = ((FormulationParser.CsvContext)(tup.csv()));
+            String strCsv = csv.getText();
+            int i = 0;
+            for( ExprContext expr : csv.expr()){
+                ModelPrimitives exprType = ModelPrimitives.valueOf(elementVisitor.getType().typeList().get(i));
+                tupleCompToType.put(expr.getText(),exprType);
+                placeHolder.put(expr.getText(),getParameter(expr.getText()));
+                params.put(expr.getText(), new ModelParameter("no image!",expr.getText(),exprType));
+                i++;
+            }
 
-            if(params.get(ctx.lhs.getText()) != null){
-                basicParams.add(params.get(ctx.lhs.getText()));
+            FormulationParser.TupleContext tup2 = ((FormulationParser.TupleContext)(ctx.tuple()));
+            String strTup2 = tup2.getText();
+            FormulationParser.CsvContext csv2 = ((FormulationParser.CsvContext)(tup2.csv()));
+            String strCsv2 = csv2.getText();
+            i = 0;
+            List<ModelSet> newSets = new LinkedList<>();
+            List<ModelParameter> newParams = new LinkedList<>();
+            List<ModelFunction> newFuncs = new LinkedList<>();
+            newParams.addAll(elementVisitor.getBasicParams());
+            newSets.addAll(elementVisitor.getBasicSets());
+            newFuncs.addAll(elementVisitor.getBasicFuncs());
+            for( ExprContext expr : csv2.expr()){
+                TypeVisitor exprVisitor = new TypeVisitor();
+                exprVisitor.visit(expr);
+                appendType(exprVisitor.getType());
+                newParams.addAll(exprVisitor.getBasicParams());
+                newSets.addAll(exprVisitor.getBasicSets());
+                newFuncs.addAll(exprVisitor.getBasicFuncs());
+                i++;
             }
-            if(params.get(ctx.rhs.getText()) != null){
-                basicParams.add(params.get(ctx.rhs.getText()));
+
+            for ( Map.Entry<String,ModelParameter> entry : placeHolder.entrySet()) {
+                if (entry.getValue() != null)
+                    params.put(entry.getKey(),entry.getValue());
+                else{
+                    params.remove(entry.getKey());
+                    newParams.removeIf(param -> param.getIdentifier().equals(entry.getKey()));
+                }
             }
-            if(ctx.step != null && params.get(ctx.step.getText()) != null){
-                basicParams.add(params.get(ctx.step.getText()));
+
+            newSets = new ArrayList<>(new LinkedHashSet<>(newSets));
+            newParams = new ArrayList<>(new LinkedHashSet<>(newParams));
+            newFuncs = new ArrayList<>(new LinkedHashSet<>(newFuncs));
+
+            ModelSet s = new ModelSet(id,"anonymous_set", type,newSets,newParams,newFuncs);
+            basicSets.add(s);
+            
+            return null;
+        }
+
+        @Override
+        public Void visitRange(FormulationParser.RangeContext ctx){
+            TypeVisitor visitLeft = new TypeVisitor();
+            TypeVisitor visitRight = new TypeVisitor();
+            
+            visitLeft.visit(ctx.lhs);
+            visitRight.visit(ctx.rhs);
+            if(ctx.step != null) {
+                TypeVisitor visitStep = new TypeVisitor();
+                visitStep.visit(ctx.step);
+                basicParams.addAll(visitStep.getBasicParams());
+                basicSets.addAll(visitStep.getBasicSets());
+                basicFuncs.addAll(visitStep.getBasicFuncs());
             }
+            
+            // if(params.get(ctx.lhs.getText()) != null){
+            //     basicParams.add(params.get(ctx.lhs.getText()));
+            // }
+            // if(params.get(ctx.rhs.getText()) != null){
+            //     basicParams.add(params.get(ctx.rhs.getText()));
+            // }
+            // if(ctx.step != null && params.get(ctx.step.getText()) != null){
+            //     basicParams.add(params.get(ctx.step.getText()));
+            // }
+            basicParams.addAll(visitLeft.getBasicParams());
+            basicParams.addAll(visitRight.getBasicParams());
+            
+            basicSets.addAll(visitLeft.getBasicSets());
+            basicSets.addAll(visitRight.getBasicSets());
+            
+            basicFuncs.addAll(visitLeft.getBasicFuncs());
+            basicFuncs.addAll(visitRight.getBasicFuncs());
+            
             type = ModelPrimitives.INT;
             return null;
         }
 
-        
-
-         @Override
+        @Override
         public Void visitCsv(FormulationParser.CsvContext ctx){
             for(ExprContext subCtx : ctx.expr()){
                 visit(subCtx);
@@ -1100,6 +1305,10 @@ public class ModelProxy extends ModelInterface {
                 ModelParameter param = getParameter(ctx.ID().getText());
                 basicParams.add(param);
                 appendType(param.getType());
+            } else if(ctx.ID().getText() != null && getFunction(ctx.ID().getText()) != null){
+                ModelFunction func = getFunction(ctx.ID().getText());
+                basicFuncs.add(func);
+                appendType(func.getType());
             }
 
             if(ctx.csv() != null && getSet(ctx.csv().getText()) != null){
@@ -1111,6 +1320,11 @@ public class ModelProxy extends ModelInterface {
                 ModelParameter param = getParameter(ctx.csv().getText());
                 basicParams.add(param);
                 appendType(param.getType());
+            } 
+            else if(ctx.csv() != null && getFunction(ctx.csv().getText()) != null){
+                ModelFunction func = getFunction(ctx.csv().getText());
+                basicFuncs.add(func);
+                appendType(func.getType());
             }  
             else if(ctx.csv() != null){
                 visit(ctx.csv());
@@ -1129,7 +1343,7 @@ public class ModelProxy extends ModelInterface {
             for(String tctx : structureTuple.split(",")){
                 pointersToSetComp.add(Integer.parseInt(tctx));
             }
-            
+        
             int count = 0;
             for(ModelSet s : visitor.basicSets){
                 count += s.getStructure().length;
@@ -1150,7 +1364,7 @@ public class ModelProxy extends ModelInterface {
             for(Integer p : pointersToSetComp){
                 resultingStructure[count++] = totalStructure[p-1];
             }
-            ModelSet newSet = new ModelSet(id,"anonymous_set",visitor.getBasicSets(),visitor.getBasicParams(),resultingStructure);
+            ModelSet newSet = new ModelSet(id,"anonymous_set",visitor.getBasicSets(),visitor.getBasicParams(),visitor.getBasicFuncs(),resultingStructure);
             basicSets.add(newSet);
             if(type == null || type == ModelPrimitives.UNKNOWN)
                 type = newSet.getType();
@@ -1180,9 +1394,15 @@ public class ModelProxy extends ModelInterface {
 
         @Override
         public Void visitCondition(FormulationParser.ConditionContext ctx){
+            String text = ctx.setExpr().getText();
             this.visit(ctx.setExpr());
-            if(ctx.boolExpr() != null)
-                this.visit(ctx.boolExpr());
+            if(ctx.boolExpr() != null){
+                TypeVisitor visitor = new TypeVisitor();
+                visitor.visit(ctx.boolExpr());
+                basicSets.addAll(visitor.getBasicSets());
+                basicParams.addAll(visitor.getBasicParams());
+                basicFuncs.addAll(visitor.getBasicFuncs());
+            }
             return null;
         }
 
@@ -1239,6 +1459,9 @@ public class ModelProxy extends ModelInterface {
         public List<ModelParameter> getBasicParams() {
             return basicParams;
         }
+        public List<ModelFunction> getBasicFuncs() {
+            return basicFuncs;
+        }
     }
     
     
@@ -1285,6 +1508,16 @@ public class ModelProxy extends ModelInterface {
     public Collection<ModelParameter> getParameters(){
         return this.params.values();
     }
+
+    public ModelFunction getFunction(String identifier) {
+        return funcs.get(identifier);
+    }
+
+    @Override
+    public Collection<ModelFunction> getFunctions(){
+        return this.funcs.values();
+    }
+
     @Override
     public Collection<ModelVariable> getVariables(Collection<String> identifiers){
         HashSet<ModelVariable> set = new HashSet<>();

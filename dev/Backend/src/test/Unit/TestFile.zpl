@@ -9,14 +9,23 @@ set Zmanim := {0,4,8,12,16,20};
 set S := Emdot * Zmanim;
 set CxS := C * S;
 set CxSxS := {<i,a,b,c,d> in C * S * S | b < d };
-set forTest1 := {<a> in {"a","b","c"} : <soldiers, a>};
+set forTest1 := {<num, str, str2, str3> in C * Emdot * {<"a","b">} : <str, soldiers, 2*num, soldiers-num, card(CxS)>};
 set forTest2 := {"a", "b"} * S * {1..soldiers} * C * {<"h",2.2> , <"a",-3.14>}; 
 set forTest3 := {<2,"a",3>,<6,"2",3>};
 set forTest4 := proj(forTest3,<2,1>);
 set forTest5 := proj(forTest4 * {<2,"a">,<1,"f">},<2,4>); # -> <INT,TEXT>
 set forTest6  := {0..soldiers-1};
+param forTest7 := conditioner mod 2+soldiers;
+param forTest8 := floor(conditioner+0.5);
+param forTest9 := random(-2,conditioner);
+param forTest10 := 2 + ord(forTest3,1,3);
+set forTest11 := C union Zmanim;
+param forTest12 := 0.15;
+param forTest13 := min(1,conditioner,3);
+param forTest14 := min(forTest11);
 
-
+defstrg huehott(a) := if a < 0 then "hue" else "hott" end;
+defbool myBool(x,y) := x == y and x > 2;
 defnumb timeDifference(fromDay, fromHour, toDay, toHour) := soldiers;
 set Soldiers := {1..soldiers};
 set Stations := {<"Siyur1",8,4>,<"FillBox",4,1>,<"Shin Gimel",4,1>, <"Hamal",24,1>, <"Siyur2",8,4>, <"Siyur3",8,4>};
@@ -24,12 +33,13 @@ param planTimeRange := timeDifference(conditioner,soldiers,0,absoluteMinimalRivu
 set Times := {0 .. planTimeRange};
 set Shifts := {<station, stationInterval, requiredPeople, time> in Stations * Times | time mod stationInterval == 0 and time + stationInterval <= planTimeRange};
 set SoldiersToShifts := Soldiers * proj(Shifts,<1,4>);
+# set ShiftSpacings := {<soldier,station,stationInterval,shiftStartTime,shiftStartTime2, nextShiftTime> in Soldiers * proj(Shifts,<1,2,4>) * PossibleShiftAndRestTimes | shiftStartTime == shiftStartTime2 and nextShiftTime - shiftStartTime - stationInterval >= minimumRestTime : <soldier,station,stationInterval,shiftStartTime, nextShiftTime - shiftStartTime - stationInterval>};
+# set ArtificialShift := {<soldier,station,interval,time,rest> in Soldiers * {<"inv",0>} * ({<time, firstShiftTime> in  {-1}*(Times union {max(Times)+1,max(Times)+2}) : <time, firstShiftTime-time>} union {<max(Times)+1,0>}) };
 
 
 var edge[CxS] binary;
 var couples[CxSxS] binary;
 var varForTest1[CxS *{"A","a"} * S * {1 .. 5}];
-
 
 param paramForTest1 := card(Zmanim);
 subto condForTest1:

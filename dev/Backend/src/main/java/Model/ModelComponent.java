@@ -24,6 +24,8 @@ public abstract class ModelComponent {
     protected List<ModelSet> setDependencies; // order matters
     @Transient
     protected List<ModelParameter> paramDependencies;
+    @Transient
+    protected List<ModelFunction> functionDependencies;
     
     //required for JPA
     protected ModelComponent(){
@@ -38,15 +40,17 @@ public abstract class ModelComponent {
         this.id.setIdentifier(identifier);
         this.setDependencies = new LinkedList<>();
         this.paramDependencies = new LinkedList<>();
+        this.functionDependencies = new LinkedList<>();
         this.id.setImageId(imageId);
         this.module_name = "default";
     }
 
-public ModelComponent(String imageId, String identifier, List<ModelSet> setDep, List<ModelParameter> paramDep) {
+public ModelComponent(String imageId, String identifier, List<ModelSet> setDep, List<ModelParameter> paramDep, List<ModelFunction> funcDep) {
         this.id = new ModelComponentId();    
         this.id.setIdentifier(identifier);
         this.setDependencies = setDep;
         this.paramDependencies = paramDep;
+        this.functionDependencies = funcDep;
         this.id.setImageId(imageId);
         this.module_name = "default";
     }
@@ -71,12 +75,24 @@ public ModelComponent(String imageId, String identifier, List<ModelSet> setDep, 
         return null;
     }
 
+    public ModelFunction findFuncDependency(String identifier){
+        for( ModelFunction s : functionDependencies){
+            if(s.id.getIdentifier().equals(identifier))
+                return s;
+        }
+        return null;
+    }
+
     public List<ModelSet> getSetDependencies() {
         return Collections.unmodifiableList(setDependencies);
     }
 
     public List<ModelParameter> getParamDependencies() {
         return Collections.unmodifiableList(paramDependencies);
+    }
+
+    public List<ModelFunction> getFuncDependencies() {
+        return Collections.unmodifiableList(functionDependencies);
     }
 
     // Setters
@@ -86,6 +102,10 @@ public ModelComponent(String imageId, String identifier, List<ModelSet> setDep, 
 
     public void setParamDependencies(List<ModelParameter> dependencies) {
         this.paramDependencies = new ArrayList<>(dependencies);
+    }
+
+    public void setFuncDependencies(List<ModelFunction> dependencies) {
+        this.functionDependencies = new ArrayList<>(dependencies);
     }
 
     // Individual add/remove for sets
