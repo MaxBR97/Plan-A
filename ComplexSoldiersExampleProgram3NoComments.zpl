@@ -1,5 +1,5 @@
 
-param NumberOfSoldiers := 25;
+param NumberOfSoldiers := 30;
 param bias := 100;
 
 param planFromDay := "Sunday";
@@ -31,6 +31,7 @@ defnumb getDay(time) :=
 defnumb getHour(time) := 
     ((time+ planFromHour) mod 24);
 
+
 defbool isBetween(fromDay,fromHour,toDay,toHour,targetDay,targetHour) :=
     (orderWeekDays[targetDay] == orderWeekDays[fromDay] and targetHour >= fromHour) or
     (orderWeekDays[targetDay] == orderWeekDays[toDay] and targetHour <= toHour) or
@@ -53,7 +54,8 @@ set SoldiersToShifts := Soldiers * proj(Shifts,<1,4>);
 
 set ArtificialStation := {<"inv",0,1>};
 set ArtificialShift := {<soldier,station,time> in Soldiers * proj(ArtificialStation,<1>) * {-1, card(Times) + 1 } };
-
+# set preAss := {<1,"Siyur1",0>, <2,"Siyur1",0>, <3,"Siyur1",0>, <4,"Siyur1",0>,<5,"FillBox",0>,<6,"FillBox",4>};
+set preAss := {};
 var Edge[<i,a,b> in SoldiersToShifts union ArtificialShift] binary; #
 var NeighbouringShifts[SoldiersToShifts union ArtificialShift] integer >= 0 <= card(Times)+2 startval 4; #
 set FormalShifts := {<station, stationInterval, requiredPeople, day, hour> in Stations * FormalTimes | timeDifference(planFromDay,planFromHour, day, hour) mod stationInterval == 0};
@@ -64,13 +66,13 @@ subto ConvertEnumeratedTimesToFormal:
         FormalTimesEdges[soldier,station,getDay(time),getHour(time)] == Edge[soldier,station,time];
 
 
-subto EnforceCalculationOfRestTimes:
+subto EnforceCalculationOfRestTimes1:
     forall <soldier, station, time, joinStation ,shiftInterval> in (SoldiersToShifts union ArtificialShift) * proj(Stations union ArtificialStation, <1,2>) | joinStation == station and time != (card(Times) + 1):
         forall <soldier2, station2, time2>  in SoldiersToShifts union ArtificialShift | soldier == soldier2 and time2 <= (card(Times) + 1) and (time2 >=  min(time + shiftInterval + minimumRestTime, card(Times)+1) or time == -1):
-            NeighbouringShifts[soldier,station,time] >= (time2-time-shiftInterval) * Edge[soldier,station,time] * Edge[soldier,station2,time2] * (1 - (sum <soldier3,station3,time3> in (SoldiersToShifts union ArtificialShift) | soldier3 == soldier and time3 > time  and time3 < time2 : Edge[soldier3,station3,time3]));
+            NeighbouringShifts[soldier,station,time] <= (time2-time-shiftInterval) * Edge[soldier,station,time] * Edge[soldier,station2,time2];
         
-do print "loaded EnforceCalculationOfRestTimes";
-                                                    
+do print "loaded EnforceCalculationOfRestTimes1";
+
 subto NeighbouringShiftsAndEdgesAreConnected:
     forall <soldier,station,time> in SoldiersToShifts :
         (1 - Edge[soldier,station,time]) * NeighbouringShifts[soldier,station,time] == 0;
@@ -99,7 +101,8 @@ subto Satisfy_Required_People_For_Shift:
 
 do print "loaded All_Stations_One_Soldier";
 
-set indexSetOfPeople := {<i,p> in {1.. card(Soldiers)} * Soldiers | ord(Soldiers,i,1) == p};
+set indexSetOfPeople := {<i,p> in {1.. card(Soldiers)} * Soldiers | ord(Soldiers,i,1) == p}; # -> {<1,"Yoni">, <2,"Denis"> ...}
 
 minimize myObjective: 
-    sum <soldier> in Soldiers : ((sum <i,station,time> in (SoldiersToShifts union ArtificialShift) | i == soldier : ((NeighbouringShifts[i,station,time]+1)**2)));
+    sum <soldier> in Soldiers : ((sum <i,station,time> in (SoldiersToShifts union ArtificialShift) | i == soldier : ((NeighbouringShifts[i,station,time]+1)**2)))
+    - (sum <i,station,time> in (SoldiersToShifts union ArtificialShift)  : (NeighbouringShifts[i,station,time]+1)) ** 2;

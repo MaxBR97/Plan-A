@@ -98,15 +98,15 @@ set SoldiersToShifts := Soldiers * proj(Shifts,<1,4>);
 
 set ArtificialStation := {<"inv",0,1>};
 set ArtificialShift := {<soldier,station,time> in Soldiers * proj(ArtificialStation,<1>) * {-1, card(Times) + 1 } };
-
+set preAss := {<1,"Siyur1",0>, <2,"Siyur1",0>, <3,"Siyur1",0>, <4,"Siyur1",0>,<5,"FillBox",0>,<6,"FillBox",4>};
 var Edge[<i,a,b> in SoldiersToShifts union ArtificialShift] binary; #
 var NeighbouringShifts[SoldiersToShifts union ArtificialShift] integer >= 0 <= card(Times)+2 startval 4; #
 set FormalShifts := {<station, stationInterval, requiredPeople, day, hour> in Stations * FormalTimes | timeDifference(planFromDay,planFromHour, day, hour) mod stationInterval == 0};
 var FormalTimesEdges[Soldiers * proj(FormalShifts,<1,4,5>)] binary; #
 
 subto PreAssign:
-    Edge[1,"Siyur1",0] == 1 and Edge[2,"Siyur1",0] == 1 and Edge[3,"Siyur1",0] == 1 and Edge[4,"Siyur1",0] == 1 and
-    Edge[5,"FillBox",0] == 1 and Edge[6,"FillBox",4] == 1 and Edge[7,"FillBox",8] == 1;
+    forall<a,b,c> in preAss :
+        Edge[a,b,c] == 1;
 
 # subto PreAssign2:
 #     forall <soldier,station,time> in SoldiersToShifts | soldier >= 25 :

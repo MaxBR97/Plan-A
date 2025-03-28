@@ -199,8 +199,8 @@ cmp		:	token=( '<' | '<=' | '!=' | '==' | '>=' | '>' ) ;
 INFINITY:	'infinity' ;
 
 // reference with (optional) square-brackets: indexed sets, params & vars
-sqRef	:	name=ID ('[' csv ']')?	# SqRefCsv		// accepts 'id[]'
-		|	name=ID '[' index ']'		# SqRefIndex
+sqRef	:	name=ID '[' index ']'		# SqRefIndex
+		|	name=ID ('[' csv ']')?	# SqRefCsv		// accepts 'id[]'
 		;
 
 fnRef	:	'proj' '(' setExpr ',' tuple ')' 		#ProjFunc

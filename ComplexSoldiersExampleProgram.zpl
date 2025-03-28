@@ -108,6 +108,7 @@ set ShiftSpacings := {<soldier,station,stationInterval,shiftStartTime,shiftStart
 # do print card(ShiftSpacings);
 set ArtificialShift := {<soldier,station,interval,time,rest> in Soldiers * {<"inv",0>} * ({<time, firstShiftTime> in  {-1}*(Times union {max(Times)+1,max(Times)+2}) : <time, firstShiftTime-time>} union {<max(Times)+1,0>}) };
 var Edge[SoldiersToShifts] binary; #
+#<soldier,station,stationInterval,shiftStartTime,restAfterShift>
 var NeighbouringShifts[ShiftSpacings union ArtificialShift] binary; #
 set FormalShifts := {<station, stationInterval, requiredPeople, day, hour> in Stations * FormalTimes | timeDifference(planFromDay,planFromHour, day, hour) mod stationInterval == 0};
 # do print FormalShifts;

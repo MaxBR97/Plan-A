@@ -384,11 +384,47 @@ public class Image {
         return allParams;
     }
 
+    public Set<String> getAllInputSets() {
+        Set<String> allSets = new HashSet<>();
+
+        // Add inputSets from each constraint module
+        for (ConstraintModule constraintModule : constraintsModules.values()) {
+            allSets.addAll(constraintModule.getInputSets().stream().map((ModelSet s) -> s.getIdentifier()).collect(Collectors.toSet()));
+        }
+
+        // Add inputSets from each preference module
+        for (PreferenceModule preferenceModule : preferenceModules.values()) {
+            allSets.addAll(preferenceModule.getInputSets().stream().map((ModelSet s) -> s.getIdentifier()).collect(Collectors.toSet()));
+        }
+            
+        allSets.addAll(getVariableModule().getInputSets().stream().map((ModelSet s) -> s.getIdentifier()).collect(Collectors.toSet()));
+
+        return allSets;
+    }
+
+    public Set<String> getAllInputParameters() {
+        Set<String> allParams = new HashSet<>();
+
+        // Add inputParams from each constraint module
+        for (ConstraintModule constraintModule : constraintsModules.values()) {
+            allParams.addAll(constraintModule.getInputParams().stream().map((ModelParameter s) -> s.getIdentifier()).collect(Collectors.toSet()));
+        }
+
+        // Add inputParams from each preference module
+        for (PreferenceModule preferenceModule : preferenceModules.values()) {
+            allParams.addAll(preferenceModule.getInputParams().stream().map((ModelParameter s) -> s.getIdentifier()).collect(Collectors.toSet()));
+        }
+
+        allParams.addAll(getVariableModule().getInputParams().stream().map((ModelParameter s) -> s.getIdentifier()).collect(Collectors.toSet()));
+
+        return allParams;
+    }
+
     
 
     public InputDTO getInput() throws Exception {
-        Set<String> relevantParams = getAllInvolvedParams();
-        Set<String> relevantSets = getAllInvolvedSets();
+        Set<String> relevantParams = getAllInputParameters();
+        Set<String> relevantSets = getAllInputSets();
         Map<String, List<List<String>>> setsToValues = new HashMap<>();
         Map<String,List<String>> paramsToValues = new HashMap<>();
 

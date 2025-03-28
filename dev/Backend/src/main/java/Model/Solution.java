@@ -94,14 +94,20 @@ public class Solution {
                 //below lines are not solution dependent but problem dependent, will be more efficient to maintain them inside the image
                 for (ModelSet modelSet : variable.getSetDependencies()) {
                     variableTypes.get(variable.getIdentifier()).add(modelSet.getType().toString());
-                    for (ModelInput.StructureBlock block : modelSet.getStructure()) {
+                    // for (ModelInput.StructureBlock block : modelSet.getStructure()) {
                         
-                        //TODO: Bug at block.dependency.identifier!
-                        //When var depends on anonymous primitive set, it's structure it an array of null blocks
-                        //therefore block.dependency is an invalid access
-                        //example: var varForTest1[CxS *{"A","a"} * S * {1 .. 5}];
-                        if(block.dependency!=null) //fix?
-                            variableStructure.get(variable.getIdentifier()).add(block.dependency.getIdentifier());
+                    //     //TODO: Bug at block.dependency.identifier!
+                    //     //When var depends on anonymous primitive set, it's structure it an array of null blocks
+                    //     //therefore block.dependency is an invalid access
+                    //     //example: var varForTest1[CxS *{"A","a"} * S * {1 .. 5}];
+                    //     if(block.dependency!=null) //fix?
+                    //         variableStructure.get(variable.getIdentifier()).add(block.dependency.getIdentifier());
+                    // }
+                    
+                    // The previous block of code is a deprecated attempt to automatically fetch the
+                    // names of the variables' dimensions for the results
+                    for (String typeAsBlockName : modelSet.getType().typeList()) {
+                        variableStructure.get(variable.getIdentifier()).add(typeAsBlockName);
                     }
                 }
             }
