@@ -1,16 +1,11 @@
-param InputLength := 30;
-param BinarySecret := 0000101011; #43
-param NoiseProbability := 0.05;
-set TrainingData := {<1010,1>,
-                    <0010,1>,
-                    <0000,0>,
-                    <1101,0>};
-set EnumerateVectorDimension := {0..InputLength-1};
-set RepresentSecret := { <bit> in  EnumerateVectorDimension : <bit ,(floor(BinarySecret/(10**bit)) mod 10) mod 2>};
-set RepresentVectors := {<vector,bit> in {0..card(TrainingData)-1} * EnumerateVectorDimension : <vector,bit ,(floor(ord(TrainingData,vector+1,1) / (10 ** bit)) mod 10) mod 2>};
-set RepresentResults := {<vector> in {0..card(TrainingData)-1} : <vector, ord(TrainingData,vector+1,2) mod 2 > };
+param SecretLength :=9;
+param BinarySecret := 000101011; #43
+param GeneratedSecret := floor(random(0,2**(SecretLength)));
+param NoiseProbability := 0.20;
+param MaximumZerosPerExampleLine := 0;
+param NumberOfNonZeroResults := 0;
 
-param NumberOfExamples := 400;
+
 # number is decimal number
 
 defnumb GetBitValue(number,bit) := 
@@ -21,37 +16,65 @@ defnumb GetBitValue(number,bit) :=
 # do print GetBitValue(1,0); #1
 
 defnumb ConvertBinaryToDecimal(number) := 
-    (sum <bit> in {0..InputLength-1} : (2**bit) * ((floor(number/(10**bit)) mod 10) mod 2) );
+    (sum <bit> in {0..SecretLength-1} : (2**bit) * ((floor(number/(10**bit)) mod 10) mod 2) );
 
 # do print ConvertBinaryToDecimal(001011); #11
 # do print ConvertBinaryToDecimal(011011); #27
 
 # input, secret are decimal numbers
 defnumb CalculateParity2(input, secret, noise) :=
-    ((sum <i> in {0..InputLength-1} : (GetBitValue(input,i) * GetBitValue(secret,i)) mod 2) + noise) mod 2;
+    ((sum <i> in {0..SecretLength-1} : (GetBitValue(input,i) * GetBitValue(secret,i)) mod 2) + noise) mod 2;
 
 # do print CalculateParity2(6,2,0); #1
 # do print CalculateParity2(6,1,0); #0
 # do print CalculateParity2(6,6,0); #0
 # do print CalculateParity2(6,0,0); #0
 
-# param GenerateSecret := random(0,(2**InputLength) - 1);
+set TrainingData := { <0010,1>,
+                    <0010,1>,
+                    <0000,0>,
+                    <1101,0>};
+param NumberOfExamples := 150;
+# <generatedDecimalInput,generatedDecimalResult>
+set GeneratedTrainingData := {<index,decimalVal> in {<index> in {1..NumberOfExamples} : <index,floor(random(0, 2**SecretLength))>} : <index,decimalVal,CalculateParity2(decimalVal,ConvertBinaryToDecimal(BinarySecret),floor(random(0,0.9999999+NoiseProbability)))>};
+set EnumerateVectorDimension := {0..SecretLength-1};
+
+# <row,value>
+set RepresentUserSecret := { <bit> in  EnumerateVectorDimension : <bit ,(floor(BinarySecret/(10**bit)) mod 10) mod 2>};
+# <row,col,value>
+set RepresentGeneratedMatrix := {<row,bit> in {0..card(GeneratedTrainingData)-1} * EnumerateVectorDimension : <row,bit,GetBitValue(ord(GeneratedTrainingData,row+1,2),bit)>};
+set RepresentUserMatrix := {<row,bit> in {0..card(TrainingData)-1} * EnumerateVectorDimension : <row,bit ,(floor(ord(TrainingData,row+1,1) / (10 ** bit)) mod 10)>};
+# <row,value>
+set RepresentGeneratedResults := {<row> in {0..card(GeneratedTrainingData)-1} : <row, ord(GeneratedTrainingData,row+1,3) mod 2 > };
+set RepresentUserResults := {<row> in {0..card(TrainingData)-1} : <row, ord(TrainingData,row+1,2) mod 2 > };
+
+# <rowIndex, decimal_value>
+set GeneratedMatrixConvertedToDecimals := {<row,bit,value> in RepresentGeneratedMatrix : <row, (sum <row2, bit2,value2> in RepresentGeneratedMatrix | row == row2 : ((2 ** bit2) * value2))> };
+set UserMatrixConvertedToDecimals := {<row,bit,value> in RepresentUserMatrix : <row, (sum <row2, bit2,value2> in RepresentUserMatrix | row == row2 : ((2 ** bit2) * value2))> };
+param SecretConvertedToDecimal := sum <bit,value> in RepresentUserSecret: (value ** bit);
 
 # <decimal_number,parity result>
-set GeneratedData := {<vector> in {<vector> in {0..NumberOfExamples-1} : <floor(random(0,(2**InputLength) - 1))>} : <vector, CalculateParity2(vector,ConvertBinaryToDecimal(BinarySecret),floor(random(0+NoiseProbability, 0.999999999+NoiseProbability)))>};
-
+set GeneratedDataPairs := {<row,decimalVal,row2,resVal> in GeneratedMatrixConvertedToDecimals * RepresentGeneratedResults | row == row2 : <row,decimalVal,resVal> };
+# do print GeneratedTrainingData;
+# do print "------------------";
+# do print RepresentGeneratedMatrix;
+# do print "------------------";
+# do print GeneratedMatrixConvertedToDecimals;
+# do print "------------------";
+# do print RepresentGeneratedResults;
+# do print "gre"+GeneratedDataPairs;
 set Labels := {"Estimated Vector", "Accuracy Probability"};
 
-set AllPossibleSecrets := {<vector> in {0 .. (2**InputLength)-1}};
+set AllPossibleSecrets := {<vector> in {0 .. (2**SecretLength)}};
 
 var PredictedNoiseLess[EnumerateVectorDimension] binary;
 
 param TopResultsToSelect := 4;
-var CalculateProbabilities real >= 0 <= 1;
-var BestVectors integer >= -(2**(InputLength-1)) <= 2**(InputLength-1) priority 1000 startval 11 ;
-var BestVectorBinary[{0..InputLength-1}] binary;
-var CalculateResultForEachExample[{1..card(GeneratedData)}] integer;
-var CalculateResultForEachExampleDivideByTwo[{1..card(GeneratedData)}] integer;
+
+var BestVector integer >= 0 <= 2**(SecretLength) priority 1000 startval 11 ;
+var BestVectorBinary[{0..SecretLength-1}] binary;
+var CalculateResultForEachExample[{1..card(GeneratedDataPairs)}] integer;
+var CalculateResultForEachExampleDivideByTwo[{1..card(GeneratedDataPairs)}] integer;
 var CalculateCorrectlyMatchedExamples integer;
 
 defnumb CalculateParitySingleBit(input, secret, noise) :=
@@ -59,33 +82,30 @@ defnumb CalculateParitySingleBit(input, secret, noise) :=
 
 subto Calculate_GaussianElimination:
     forall <input,result> in TrainingData:
-        (sum <bit> in {0..InputLength-1} : (((floor(input/(10**bit)) mod 10) mod 2) * PredictedNoiseLess[bit])  ) == result;
+        (sum <bit> in {0..SecretLength-1} : (((floor(input/(10**bit)) mod 10) mod 2) * PredictedNoiseLess[bit])  ) == result;
 
 subto BinaryRepresentation: 
-    BestVectors == sum <bit> in {0..InputLength-1} : ((2**bit) * BestVectorBinary[bit]);
+    BestVector == sum <bit> in {0..SecretLength-1} : ((2**bit) * BestVectorBinary[bit]);
 
-subto Calculate_Combinatorial_GeneratedData:
-    forall <example> in {1..card(GeneratedData)}:
-        CalculateResultForEachExample[example] == (sum <i> in {0..InputLength-1} : (GetBitValue(ord(GeneratedData,example,1),i) * BestVectorBinary[i])) - ord(GeneratedData,example,2);
+subto Calculate_Combinatorial_GeneratedDataPairs:
+    forall <example> in {1..card(GeneratedDataPairs)}:
+        CalculateResultForEachExample[example] == (sum <i> in {0..SecretLength-1} : (GetBitValue(ord(GeneratedDataPairs,example,2),i) * BestVectorBinary[i])) - ord(GeneratedDataPairs,example,3);
 
 subto CalculateDivideByTwo:
-    forall <example> in {1..card(GeneratedData)}:
+    forall <example> in {1..card(GeneratedDataPairs)}:
         CalculateResultForEachExampleDivideByTwo[example] <= (CalculateResultForEachExample[example]/2);
 
 subto CalculateDivideByTwo2:
-    forall <example> in {1..card(GeneratedData)}:
+    forall <example> in {1..card(GeneratedDataPairs)}:
         CalculateResultForEachExampleDivideByTwo[example]*2 >= ((CalculateResultForEachExample[example]/2)-1);
 
 subto CalculateCorrectlyMatchedExamples2:
-    CalculateCorrectlyMatchedExamples == card(GeneratedData) - (sum <example> in {1..card(GeneratedData)} :
+    CalculateCorrectlyMatchedExamples == card(GeneratedDataPairs) - (sum <example> in {1..card(GeneratedDataPairs)} :
         (CalculateResultForEachExample[example] - (CalculateResultForEachExampleDivideByTwo[example]*2)));
 
-subto CalculateProbabilities:
-    CalculateProbabilities ==  (CalculateCorrectlyMatchedExamples)/ card(GeneratedData) * (1-NoiseProbability) + (1 - ((CalculateCorrectlyMatchedExamples)/ card(GeneratedData))) * (NoiseProbability);
-
 minimize obj:
-   - ((sum <example> in {1..card(GeneratedData)} : CalculateResultForEachExampleDivideByTwo[example])/card(GeneratedData))
-   - ((CalculateProbabilities+1)*1000);
+   - ((sum <example> in {1..card(GeneratedDataPairs)} : CalculateResultForEachExampleDivideByTwo[example])/card(GeneratedDataPairs))
+   - ((CalculateCorrectlyMatchedExamples+1)*1000);
 
 
     
