@@ -1,27 +1,20 @@
 package Acceptance;
 
-import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.junit.jupiter.api.AfterEach;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
-
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
-import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -30,15 +23,10 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 
-import DTO.Records.Image.ConstraintModuleDTO;
 import DTO.Records.Image.ImageDTO;
-import DTO.Records.Image.PreferenceModuleDTO;
 import DTO.Records.Image.SolutionDTO;
 import DTO.Records.Image.SolutionValueDTO;
-import DTO.Records.Image.VariableModuleDTO;
 import DTO.Records.Model.ModelData.InputDTO;
-import DTO.Records.Model.ModelData.ParameterDefinitionDTO;
-import DTO.Records.Model.ModelData.SetDefinitionDTO;
 import DTO.Records.Model.ModelDefinition.ConstraintDTO;
 import DTO.Records.Model.ModelDefinition.DependenciesDTO;
 import DTO.Records.Model.ModelDefinition.ModelDTO;
@@ -73,7 +61,7 @@ public class ServiceTest {
               myVar[3];
             """;
 
-    static String pathToSoldiersExampleProgram2 = "..\\..\\ZimplExamplePrograms\\SoldiersExampleProgram2.zpl";
+    static String pathToSoldiersExampleProgram2 =  "..\\..\\ZimplExamplePrograms\\SoldiersExampleProgram2.zpl";
     static String pathToLearningParity2 = "..\\..\\ZimplExamplePrograms\\LearningParity2.zpl";
     static String pathToComplexSoldiersExampleProgram = "..\\..\\ZimplExamplePrograms\\ComplexSoldiersExampleProgram.zpl";
     static RequestsManager requestsManager;
@@ -160,17 +148,8 @@ public class ServiceTest {
     
         @Test
         public void GivenFile_WhenCreateImage_ImageIsCorrect() {
-            // sample Zimpl code
-            String SimpleCodeExample = "";
-            try {
-            SimpleCodeExample = Files.readString(Paths.get("./src/test/Acceptance/example.zpl"));
-            
-            } catch (IOException e) {
-                e.printStackTrace();
-                assertTrue(false);
-            }
     
-            CreateImageFromFileDTO createImage =  new CreateImageRequestBuilder(imageName,imageDescription,SimpleCodeExample).build();
+            CreateImageFromFileDTO createImage =  new CreateImageRequestBuilder(imageName,imageDescription,Paths.get("./src/test/Acceptance/example.zpl")).build();
             ResponseEntity<CreateImageResponseDTO> responseCreateImage = requestsManager.sendCreateImageRequest(createImage);
     
             //Expected response
@@ -203,6 +182,16 @@ public class ServiceTest {
             assertEquals(responseCreateImage.getBody().model().paramTypes(), expected.model().paramTypes());
             assertEquals(responseCreateImage.getBody().model().varTypes(), expected.model().varTypes());
         }
+
+        // @ParameterizedTest
+        // @ValueSource(strings = {"..\\..\\ZimplExamplePrograms\\SoldiersExampleProgram2.zpl",
+        //                         "..\\..\\ZimplExamplePrograms\\LearningParity2.zpl",
+        //                         "..\\..\\ZimplExamplePrograms\\ComplexSoldiersExampleProgram.zpl"})
+        // public void testSuccessfulCreationOfDifferentImages(String pathStringToFile){
+        //     CreateImageFromFileDTO createImage =  new CreateImageRequestBuilder(imageName,imageDescription,Paths.get(pathStringToFile)).build();
+        //     ResponseEntity<CreateImageResponseDTO> responseCreateImage = requestsManager.sendCreateImageRequest(createImage);
+        //     assertEquals(HttpStatus.OK, responseCreateImage.getStatusCode());
+        // }
 
         @Test
         public void testSolve_Simple() {
@@ -318,25 +307,12 @@ public class ServiceTest {
                                                                 """).build();
         ResponseEntity<CreateImageResponseDTO> responseCreateImage2 = requestsManager.sendCreateImageRequest(createImage2);
         
-        
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-    
-            HttpEntity<Void> request = new HttpEntity<>(headers);
-    
-            String url = "http://localhost:" + port + "/images";
-            
-            ResponseEntity<List<ImageDTO>> response = restTemplate.exchange(
-                url,
-                HttpMethod.GET,
-                request,
-                new ParameterizedTypeReference<List<ImageDTO>>() {}
-            );
-    
-            //TODO: Check response more thoroughly.
-            assertEquals(HttpStatus.OK, response.getStatusCode());
-            assertNotNull(response.getBody());
-            assertEquals(2, response.getBody().size());
+        ResponseEntity<List<ImageDTO>> responseGetAll = requestsManager.sendGetAllImagesRequest();
+
+        //TODO: Check response more thoroughly.
+        assertEquals(HttpStatus.OK, responseGetAll.getStatusCode());
+        assertNotNull(responseGetAll.getBody());
+        assertEquals(2, responseGetAll.getBody().size());
         }
 
         @Test
@@ -346,14 +322,14 @@ public class ServiceTest {
 
             assertEquals(HttpStatus.OK, responseCreateImage.getStatusCode());
             String imageId = responseCreateImage.getBody().imageId();
-            ResponseEntity<ImageDTO> image = getImageCall(imageId);
+            ResponseEntity<ImageDTO> image = requestsManager.sendGetImageRequest(imageId);
             assertEquals(HttpStatus.OK, image.getStatusCode());
             assertNotNull(image.getBody());
 
-            ResponseEntity<Void> deleted = deleteImageCall(imageId);
+            ResponseEntity<Void> deleted = requestsManager.sendDeleteImageRequest(imageId);
             assertEquals(HttpStatus.OK, deleted.getStatusCode());
 
-            image = getImageCall(imageId);
+            image = requestsManager.sendGetImageRequest(imageId);
             assertEquals(HttpStatus.resolve(500), image.getStatusCode());
         }
 
@@ -412,86 +388,6 @@ public class ServiceTest {
             } catch (Exception e) {
                 fail(e.getMessage());
             }
-        }
-
-        
-
-        private ResponseEntity<CreateImageResponseDTO> createImageCall(String code){
-            CreateImageFromFileDTO body = new CreateImageFromFileDTO(imageName,imageDescription,SimpleCodeExample);
-    
-            
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            
-            // Create http request with body and headers
-            HttpEntity<CreateImageFromFileDTO> request = new HttpEntity<>(body, headers);
-    
-            // Send POST request with body
-            String url = "http://localhost:" + port + "/images";
-            ResponseEntity<CreateImageResponseDTO> response = restTemplate.exchange(
-                url,
-                HttpMethod.POST,
-                request,
-                CreateImageResponseDTO.class
-            );
-    
-            return response;
-        }
-
-        private Void configImage(ImageConfigDTO code){
-           
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            HttpEntity<ImageConfigDTO> request2 = new HttpEntity<>(code, headers);
-            // Send PATCH request with body
-            String url2 = "http://localhost:" + port + "/images";
-            ResponseEntity<Void> response2 = restTemplate.exchange(
-                    url2,
-                    HttpMethod.PATCH,
-                    request2,
-                    Void.class
-            );
-            assertEquals(HttpStatus.OK, response2.getStatusCode());   
-            return response2.getBody();
-        }
-    
-        private ResponseEntity<Void> deleteImageCall(String imageId){
-            
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            
-            // Create http request with body and headers
-            HttpEntity<Void> request = new HttpEntity<>(headers);
-    
-            // Send POST request with body
-            String url = "http://localhost:" + port + "/images/" + imageId;
-            ResponseEntity<Void> response = restTemplate.exchange(
-                url,
-                HttpMethod.DELETE,
-                request,
-                Void.class
-            );
-    
-            return response;
-        }
-
-        private ResponseEntity<ImageDTO> getImageCall(String imageId){
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            
-            // Create http request with body and headers
-            HttpEntity<Void> request = new HttpEntity<>(headers);
-    
-            // Send POST request with body
-            String url = "http://localhost:" + port + "/images/" + imageId;
-            ResponseEntity<ImageDTO> response = restTemplate.exchange(
-                url,
-                HttpMethod.GET,
-                request,
-                ImageDTO.class
-            );
-    
-            return response;
         }
 
 

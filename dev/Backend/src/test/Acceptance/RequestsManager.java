@@ -1,13 +1,18 @@
 package Acceptance;
 
+import java.util.List;
+
 import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 
+import DTO.Records.Image.ImageDTO;
 import DTO.Records.Image.SolutionDTO;
+import DTO.Records.Model.ModelData.InputDTO;
 import DTO.Records.Requests.Commands.CreateImageFromFileDTO;
 import DTO.Records.Requests.Commands.ImageConfigDTO;
 import DTO.Records.Requests.Commands.SolveCommandDTO;
@@ -75,6 +80,72 @@ public class RequestsManager {
                 );
         
         return response3;
+    }
+
+    public ResponseEntity<ImageDTO> sendGetImageRequest(String imageId){
+        HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            HttpEntity<Void> request = new HttpEntity<>(headers);
+
+            String url = "http://localhost:" + port + "/images/" + imageId;
+            ResponseEntity<ImageDTO> response = restTemplate.exchange(
+                url,
+                HttpMethod.GET,
+                request,
+                ImageDTO.class
+            );
+    
+            return response;
+    }
+
+    public ResponseEntity<Void> sendDeleteImageRequest(String imageId){
+        
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            HttpEntity<Void> request = new HttpEntity<>(headers);
+    
+            String url = "http://localhost:" + port + "/images/" + imageId;
+            ResponseEntity<Void> response = restTemplate.exchange(
+                url,
+                HttpMethod.DELETE,
+                request,
+                Void.class
+            );
+    
+            return response;
+    }
+
+    public ResponseEntity<List<ImageDTO>> sendGetAllImagesRequest() {
+        HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+    
+            HttpEntity<Void> request = new HttpEntity<>(headers);
+    
+            String url = "http://localhost:" + port + "/images";
+            
+            ResponseEntity<List<ImageDTO>> response = restTemplate.exchange(
+                url,
+                HttpMethod.GET,
+                request,
+                new ParameterizedTypeReference<List<ImageDTO>>() {}
+            );
+            return response;
+    }
+
+    public ResponseEntity<InputDTO> sendGetInputsRequest(String imageId) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<Void> request = new HttpEntity<>(headers);
+
+        String url = "http://localhost:" + port + "/images/" + imageId + "/inputs";
+        ResponseEntity<InputDTO> response = restTemplate.exchange(
+            url,
+            HttpMethod.GET,
+            request,
+            InputDTO.class
+        );
+
+        return response;
     }
      
 }
