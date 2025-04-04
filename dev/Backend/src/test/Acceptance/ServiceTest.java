@@ -14,6 +14,8 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -70,7 +72,11 @@ public class ServiceTest {
           maximize myObjective:
               myVar[3];
             """;
-    
+
+    static String pathToSoldiersExampleProgram2 = "..\\..\\ZimplExamplePrograms\\SoldiersExampleProgram2.zpl";
+    static String pathToLearningParity2 = "..\\..\\ZimplExamplePrograms\\LearningParity2.zpl";
+    static String pathToComplexSoldiersExampleProgram = "..\\..\\ZimplExamplePrograms\\ComplexSoldiersExampleProgram.zpl";
+    static RequestsManager requestsManager;
     static String imageName="myImage";
     static String imageDescription="desc";
     @Autowired
@@ -82,29 +88,16 @@ public class ServiceTest {
     @Autowired
     private ModelRepository modelRepository;
 
+    @BeforeEach
+    public void initilize(){
+        requestsManager = new RequestsManager(port, restTemplate);
+    }
     
         @Test
         public void testCreateImage() {
-            // sample Zimpl code
-    
-            CreateImageFromFileDTO body = new CreateImageFromFileDTO(imageName,imageDescription,SimpleCodeExample);
-    
-            
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            
-            // Create http request with body and headers
-            HttpEntity<CreateImageFromFileDTO> request = new HttpEntity<>(body, headers);
-    
-            // Send POST request with body
-            String url = "http://localhost:" + port + "/images";
-            ResponseEntity<CreateImageResponseDTO> response = restTemplate.exchange(
-                url,
-                HttpMethod.POST,
-                request,
-                CreateImageResponseDTO.class
-            );
-    
+            CreateImageFromFileDTO body =  new CreateImageRequestBuilder(imageName,imageDescription,SimpleCodeExample).build();
+            ResponseEntity<CreateImageResponseDTO> response = requestsManager.sendCreateImageRequest(body);
+        
             //Expected response
             CreateImageResponseDTO expected = new CreateImageResponseDTO(
                 "some imageId", new ModelDTO(
@@ -131,19 +124,9 @@ public class ServiceTest {
             /**
              * SET UP
              */
-            CreateImageFromFileDTO body = new CreateImageFromFileDTO(imageName,imageDescription,SimpleCodeExample);
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            // Create http request with body and headers
-            HttpEntity<CreateImageFromFileDTO> request = new HttpEntity<>(body, headers);
-            // Send POST request with body
-            String url = "http://localhost:" + port + "/images";
-            ResponseEntity<CreateImageResponseDTO> response = restTemplate.exchange(
-                    url,
-                    HttpMethod.POST,
-                    request,
-                    CreateImageResponseDTO.class
-            );
+            CreateImageFromFileDTO createImage =  new CreateImageRequestBuilder(imageName,imageDescription,SimpleCodeExample).build();
+            ResponseEntity<CreateImageResponseDTO> responseCreateImage = requestsManager.sendCreateImageRequest(createImage);
+            
             //Expected response
             CreateImageResponseDTO expected = new CreateImageResponseDTO(
                     "some imageId", new ModelDTO(
@@ -155,37 +138,24 @@ public class ServiceTest {
                     Map.of("x","INT"),
                     Map.of("myVar",List.of("INT"))
             ));
-            assertEquals(HttpStatus.OK, response.getStatusCode());
-            assertNotNull(response.getBody());
-            assertNotNull(response.getBody().imageId());
-            assertEquals(response.getBody().model().constraints(), expected.model().constraints());
-            assertEquals(response.getBody().model().preferences(), expected.model().preferences());
-            assertEquals(response.getBody().model().variables(), expected.model().variables());
-            assertEquals(response.getBody().model().setTypes(), expected.model().setTypes());
-            assertEquals(response.getBody().model().paramTypes(), expected.model().paramTypes());
-            assertEquals(response.getBody().model().varTypes(), expected.model().varTypes());
-            /**
-             * TEST
-             */
-            Set<ConstraintModuleDTO> constraintModuleDTOs=Set.of(
-                    new ConstraintModuleDTO("Test module const","PeanutButter",
-                            Set.of("sampleConstraint"),Set.of(new SetDefinitionDTO("mySet", List.of("INT"),List.of("INT"))),Set.of(new ParameterDefinitionDTO("x","INT","INT"))));
-            Set<PreferenceModuleDTO> preferenceModuleDTOs=Set.of(
-                    new PreferenceModuleDTO("Test module pref","PeanutButter",
-                            Set.of("myVar[3]"),Set.of(),Set.of(),Set.of()));
-            VariableModuleDTO variableModuleDTO= new VariableModuleDTO(Set.of(new VariableDTO("myVar",List.of("INT"),List.of("INT"), new DependenciesDTO(Set.of("mySet"),Set.of()))),Set.of(new SetDefinitionDTO("mySet", List.of("INT"),List.of("INT"))),Set.of());
-            ImageDTO imageDTO= new ImageDTO(response.getBody().imageId(),imageName,imageDescription,variableModuleDTO,constraintModuleDTOs,preferenceModuleDTOs);
-            ImageConfigDTO configDTO= new ImageConfigDTO(response.getBody().imageId(),imageDTO);
-            HttpEntity<ImageConfigDTO> request2 = new HttpEntity<>(configDTO, headers);
-            // Send PATCH request with body
-            String url2 = "http://localhost:" + port + "/images";
-            ResponseEntity<Void> response2 = restTemplate.exchange(
-                    url2,
-                    HttpMethod.PATCH,
-                    request2,
-                    Void.class
-            );
-            assertEquals(HttpStatus.OK, response2.getStatusCode());
+            assertEquals(HttpStatus.OK, responseCreateImage.getStatusCode());
+            assertNotNull(responseCreateImage.getBody());
+            assertNotNull(responseCreateImage.getBody().imageId());
+            assertEquals(responseCreateImage.getBody().model().constraints(), expected.model().constraints());
+            assertEquals(responseCreateImage.getBody().model().preferences(), expected.model().preferences());
+            assertEquals(responseCreateImage.getBody().model().variables(), expected.model().variables());
+            assertEquals(responseCreateImage.getBody().model().setTypes(), expected.model().setTypes());
+            assertEquals(responseCreateImage.getBody().model().paramTypes(), expected.model().paramTypes());
+            assertEquals(responseCreateImage.getBody().model().varTypes(), expected.model().varTypes());
+            
+            ImageConfigDTO configImage =  new ConfigureImageRequestBuilder(imageName, responseCreateImage.getBody())
+            .setVariablesModule(Set.of("myVar"), Set.of("mySet"), Set.of())
+            .addConstraintsModule("Test module const", "PeanutButter", Set.of("sampleConstraint"), Set.of("mySet"), Set.of("x"))
+            .addPreferencesModule("Test module pref", "PeanutButter", Set.of("myVar[3]"),Set.of(),Set.of(),Set.of())
+            .build();
+            ResponseEntity<Void> responseConfigImage = requestsManager.sendConfigImageRequest(configImage);
+            
+            assertEquals(HttpStatus.OK, responseConfigImage.getStatusCode());
         }
     
         @Test
@@ -200,23 +170,8 @@ public class ServiceTest {
                 assertTrue(false);
             }
     
-            CreateImageFromFileDTO body = new CreateImageFromFileDTO(imageName,imageDescription,SimpleCodeExample);
-    
-            
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            
-            // Create http request with body and headers
-            HttpEntity<CreateImageFromFileDTO> request = new HttpEntity<>(body, headers);
-    
-            // Send POST request with body
-            String url = "http://localhost:" + port + "/images";
-            ResponseEntity<CreateImageResponseDTO> response = restTemplate.exchange(
-                url,
-                HttpMethod.POST,
-                request,
-                CreateImageResponseDTO.class
-            );
+            CreateImageFromFileDTO createImage =  new CreateImageRequestBuilder(imageName,imageDescription,SimpleCodeExample).build();
+            ResponseEntity<CreateImageResponseDTO> responseCreateImage = requestsManager.sendCreateImageRequest(createImage);
     
             //Expected response
             CreateImageResponseDTO expected = new CreateImageResponseDTO(
@@ -239,39 +194,25 @@ public class ServiceTest {
                     )
                 );
             
-            assertEquals(HttpStatus.OK, response.getStatusCode());
-            assertNotNull(response.getBody().imageId());
-            assertEquals(response.getBody().model().constraints(), expected.model().constraints());
-            assertEquals(response.getBody().model().preferences(), expected.model().preferences());
-            assertEquals(response.getBody().model().variables(), expected.model().variables());
-            assertEquals(response.getBody().model().setTypes(), expected.model().setTypes());
-            assertEquals(response.getBody().model().paramTypes(), expected.model().paramTypes());
-            assertEquals(response.getBody().model().varTypes(), expected.model().varTypes());
+            assertEquals(HttpStatus.OK, responseCreateImage.getStatusCode());
+            assertNotNull(responseCreateImage.getBody().imageId());
+            assertEquals(responseCreateImage.getBody().model().constraints(), expected.model().constraints());
+            assertEquals(responseCreateImage.getBody().model().preferences(), expected.model().preferences());
+            assertEquals(responseCreateImage.getBody().model().variables(), expected.model().variables());
+            assertEquals(responseCreateImage.getBody().model().setTypes(), expected.model().setTypes());
+            assertEquals(responseCreateImage.getBody().model().paramTypes(), expected.model().paramTypes());
+            assertEquals(responseCreateImage.getBody().model().varTypes(), expected.model().varTypes());
         }
+
         @Test
         public void testSolve_Simple() {
             try {
                 /**
                  * SET UP IMAGE, MAKE SURE ITS VALID
                  */
-                CreateImageFromFileDTO body = new CreateImageFromFileDTO(imageName,imageDescription,SimpleCodeExample);
-    
-    
-                HttpHeaders headers = new HttpHeaders();
-                headers.setContentType(MediaType.APPLICATION_JSON);
-    
-                // Create http request with body and headers
-                HttpEntity<CreateImageFromFileDTO> request = new HttpEntity<>(body, headers);
-    
-                // Send POST request with body
-                String url = "http://localhost:" + port + "/images";
-                ResponseEntity<CreateImageResponseDTO> response = restTemplate.exchange(
-                        url,
-                        HttpMethod.POST,
-                        request,
-                        CreateImageResponseDTO.class
-                );
-    
+                CreateImageFromFileDTO createImage =  new CreateImageRequestBuilder(imageName,imageDescription,SimpleCodeExample).build();
+                ResponseEntity<CreateImageResponseDTO> responseCreateImage = requestsManager.sendCreateImageRequest(createImage);
+                
                 //Expected response
                 CreateImageResponseDTO expected = new CreateImageResponseDTO(
                         "some imageId", new ModelDTO(
@@ -283,47 +224,35 @@ public class ServiceTest {
                         Map.of("x","INT"),
                         Map.of("myVar",List.of("INT"))));
     
-                assertEquals(HttpStatus.OK, response.getStatusCode());
-                assertNotNull(response.getBody().imageId());
-                assertEquals(response.getBody().model().constraints(), expected.model().constraints());
-                assertEquals(response.getBody().model().preferences(), expected.model().preferences());
-                assertEquals(response.getBody().model().variables(), expected.model().variables());
-                assertEquals(response.getBody().model().setTypes(), expected.model().setTypes());
-                assertEquals(response.getBody().model().paramTypes(), expected.model().paramTypes());
-                assertEquals(response.getBody().model().varTypes(), expected.model().varTypes());
+                assertEquals(HttpStatus.OK, responseCreateImage.getStatusCode());
+                assertNotNull(responseCreateImage.getBody().imageId());
+                assertEquals(responseCreateImage.getBody().model().constraints(), expected.model().constraints());
+                assertEquals(responseCreateImage.getBody().model().preferences(), expected.model().preferences());
+                assertEquals(responseCreateImage.getBody().model().variables(), expected.model().variables());
+                assertEquals(responseCreateImage.getBody().model().setTypes(), expected.model().setTypes());
+                assertEquals(responseCreateImage.getBody().model().paramTypes(), expected.model().paramTypes());
+                assertEquals(responseCreateImage.getBody().model().varTypes(), expected.model().varTypes());
                 /**
                  *  CONFIG IMAGE TO DISPLAY myVar
                  */
-                ImageDTO imageDTO=new ImageDTO(response.getBody().imageId(),imageName,imageDescription,new VariableModuleDTO(Set.of(new VariableDTO("myVar",List.of("INT"),List.of("INT"), new DependenciesDTO(Set.of("mySet"),Set.of()))),Set.of(),Set.of()),Set.of(),Set.of());
-                ImageConfigDTO config= new ImageConfigDTO(response.getBody().imageId(),imageDTO);
-                HttpEntity<ImageConfigDTO> request2 = new HttpEntity<>(config, headers);
-                // Send PATCH request with body
-                String url2 = "http://localhost:" + port + "/images";
-                ResponseEntity<Void> response2 = restTemplate.exchange(
-                        url2,
-                        HttpMethod.PATCH,
-                        request2,
-                        Void.class
-                );
-                assertEquals(HttpStatus.OK, response2.getStatusCode());
+                ImageConfigDTO configImage =  new ConfigureImageRequestBuilder(imageName, responseCreateImage.getBody())
+                .setVariablesModule(Set.of("myVar"), Set.of(), Set.of())
+                .build();
+                ResponseEntity<Void> responseConfigImage = requestsManager.sendConfigImageRequest(configImage);
+
+                assertEquals(HttpStatus.OK, responseConfigImage.getStatusCode());
                 /**
                  * CALL IMAGE TO SOLVE THE CODE, MAKE SURE SOLUTION IS CORRECT
                  */
-                InputDTO input=new InputDTO(Map.of("mySet",List.of(List.of("1"),List.of("2"),List.of("3"))),
-                        Map.of("x",List.of("10")),
-                        List.of(),List.of());
-                SolveCommandDTO solveCommandDTO=new SolveCommandDTO(response.getBody().imageId(),input,60);
-                HttpEntity<SolveCommandDTO> request3 = new HttpEntity<>(solveCommandDTO, headers);
-                String url3 = "http://localhost:" + port + "/solve";
-                ResponseEntity<SolutionDTO> response3 = restTemplate.exchange(
-                        url3,
-                        HttpMethod.POST,
-                        request3,
-                        SolutionDTO.class
-                );
-                assertEquals(HttpStatus.OK, response3.getStatusCode());
-                assertNotNull(response3.getBody());
-                assertEquals(Set.of(new SolutionValueDTO(List.of("3"),5), new SolutionValueDTO(List.of("2"),5)),response3.getBody().solution().get("myVar").solutions());
+                SolveCommandDTO solveRequest = new SolveCommandRequestBuilder(responseCreateImage.getBody())
+                .setSetInput("mySet",List.of(List.of("1"),List.of("2"),List.of("3")))
+                .setParamInput("x", List.of("10"))
+                .build();
+                ResponseEntity<SolutionDTO> solveImageResponse = requestsManager.sendSolveRequest(solveRequest);
+                
+                assertEquals(HttpStatus.OK, solveImageResponse.getStatusCode());
+                assertNotNull(solveImageResponse.getBody());
+                assertEquals(Set.of(new SolutionValueDTO(List.of("3"),5), new SolutionValueDTO(List.of("2"),5)),solveImageResponse.getBody().solution().get("myVar").solutions());
             } catch (Exception e) {
                 fail(e.getMessage());
             }
@@ -332,18 +261,16 @@ public class ServiceTest {
         @Test
         public void testLoadImageInput() {
             // create Image
-        CreateImageResponseDTO imageCreated = createImageCall(SimpleCodeExample).getBody();
-        String imageId = imageCreated.imageId();
-        Set<ConstraintModuleDTO> constraintModuleDTOs=Set.of(
-                new ConstraintModuleDTO("MyConst","description",
-                        Set.of("sampleConstraint"),Set.of(),Set.of(new ParameterDefinitionDTO("x","INT","INT"))));
-        Set<PreferenceModuleDTO> preferenceModuleDTOs=Set.of(
-                new PreferenceModuleDTO("MyPref","desc",
-                        Set.of("myVar[3]"),Set.of(),Set.of(),Set.of()));
-        VariableModuleDTO variableModuleDTO= new VariableModuleDTO(Set.of(new VariableDTO("myVar",List.of("INT"),List.of("INT"), new DependenciesDTO(Set.of("mySet"),Set.of()))),Set.of(new SetDefinitionDTO("mySet", List.of("INT"),List.of("INT"))),Set.of());
-        ImageDTO imageDTO= new ImageDTO(imageId,imageName,imageDescription,variableModuleDTO,constraintModuleDTOs,preferenceModuleDTOs);
-        ImageConfigDTO configDTO= new ImageConfigDTO(imageId,imageDTO);
-        configImage(configDTO);
+        CreateImageFromFileDTO createImage =  new CreateImageRequestBuilder(imageName,imageDescription,SimpleCodeExample).build();
+        ResponseEntity<CreateImageResponseDTO> responseCreateImage = requestsManager.sendCreateImageRequest(createImage);
+        
+        ImageConfigDTO configImage =  new ConfigureImageRequestBuilder(imageName, responseCreateImage.getBody())
+                .setVariablesModule(Set.of("myVar"), Set.of("mySet"), Set.of())
+                .addConstraintsModule("MyConst", "", Set.of("sampleConstraint"), Set.of(), Set.of("x"))
+                .addPreferencesModule("MyPref", "desc", Set.of("myVar[3]"),Set.of(),Set.of(),Set.of())
+                .build();
+
+        ResponseEntity<Void> responseConfigImage = requestsManager.sendConfigImageRequest(configImage);
     
         InputDTO expected = new InputDTO(
         Map.of(
@@ -356,8 +283,6 @@ public class ServiceTest {
         List.of()  
         );
     
-    
-            
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
             
@@ -365,7 +290,7 @@ public class ServiceTest {
             HttpEntity<Void> request = new HttpEntity<>( headers);
     
             // Send POST request with body
-            String url = "http://localhost:" + port + "/images/"+imageId+"/inputs";
+            String url = "http://localhost:" + port + "/images/"+responseCreateImage.getBody().imageId()+"/inputs";
             ResponseEntity<InputDTO> response = restTemplate.exchange(
                 url,
                 HttpMethod.GET,
@@ -383,12 +308,17 @@ public class ServiceTest {
         
         @Test
         public void getImagesTest(){
-            CreateImageResponseDTO firstImage = createImageCall(SimpleCodeExample).getBody();
-            CreateImageResponseDTO secondImage = createImageCall("""
-                                                                    set S := {<1,\"a\">, <2,\"bs\">};
-                                                                    minimize this:
-                                                                        300;
-                                                                    """).getBody();
+        CreateImageFromFileDTO createImage1 =  new CreateImageRequestBuilder(imageName,imageDescription,SimpleCodeExample).build();
+        ResponseEntity<CreateImageResponseDTO> responseCreateImage1 = requestsManager.sendCreateImageRequest(createImage1);
+
+        CreateImageFromFileDTO createImage2 =  new CreateImageRequestBuilder(imageName,imageDescription,"""
+                                                                set S := {<1,\"a\">, <2,\"bs\">};
+                                                                minimize this:
+                                                                    300;
+                                                                """).build();
+        ResponseEntity<CreateImageResponseDTO> responseCreateImage2 = requestsManager.sendCreateImageRequest(createImage2);
+        
+        
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
     
@@ -411,9 +341,11 @@ public class ServiceTest {
 
         @Test
         public void deleteImageTest() {
-            ResponseEntity<CreateImageResponseDTO> createdImage = createImageCall(SimpleCodeExample);
-            assertEquals(HttpStatus.OK, createdImage.getStatusCode());
-            String imageId = createdImage.getBody().imageId();
+        CreateImageFromFileDTO createImage =  new CreateImageRequestBuilder(imageName,imageDescription,SimpleCodeExample).build();
+        ResponseEntity<CreateImageResponseDTO> responseCreateImage = requestsManager.sendCreateImageRequest(createImage);
+
+            assertEquals(HttpStatus.OK, responseCreateImage.getStatusCode());
+            String imageId = responseCreateImage.getBody().imageId();
             ResponseEntity<ImageDTO> image = getImageCall(imageId);
             assertEquals(HttpStatus.OK, image.getStatusCode());
             assertNotNull(image.getBody());
@@ -431,24 +363,9 @@ public class ServiceTest {
                 /**
                  * SET UP IMAGE, MAKE SURE ITS VALID
                  */
-                CreateImageFromFileDTO body = new CreateImageFromFileDTO(imageName,imageDescription,SimpleCodeExample);
-    
-    
-                HttpHeaders headers = new HttpHeaders();
-                headers.setContentType(MediaType.APPLICATION_JSON);
-    
-                // Create http request with body and headers
-                HttpEntity<CreateImageFromFileDTO> request = new HttpEntity<>(body, headers);
-    
-                // Send POST request with body
-                String url = "http://localhost:" + port + "/images";
-                ResponseEntity<CreateImageResponseDTO> response = restTemplate.exchange(
-                        url,
-                        HttpMethod.POST,
-                        request,
-                        CreateImageResponseDTO.class
-                );
-    
+                CreateImageFromFileDTO createImage =  new CreateImageRequestBuilder(imageName,imageDescription,SimpleCodeExample).build();
+                ResponseEntity<CreateImageResponseDTO> responseCreateImage = requestsManager.sendCreateImageRequest(createImage);
+                
                 //Expected response
                 CreateImageResponseDTO expected = new CreateImageResponseDTO(
                         "some imageId", new ModelDTO(
@@ -460,49 +377,38 @@ public class ServiceTest {
                         Map.of("x","INT"),
                         Map.of("myVar",List.of("INT"))));
     
-                assertEquals(HttpStatus.OK, response.getStatusCode());
-                assertNotNull(response.getBody().imageId());
-                assertEquals(response.getBody().model().constraints(), expected.model().constraints());
-                assertEquals(response.getBody().model().preferences(), expected.model().preferences());
-                assertEquals(response.getBody().model().variables(), expected.model().variables());
-                assertEquals(response.getBody().model().setTypes(), expected.model().setTypes());
-                assertEquals(response.getBody().model().paramTypes(), expected.model().paramTypes());
-                assertEquals(response.getBody().model().varTypes(), expected.model().varTypes());
+                assertEquals(HttpStatus.OK, responseCreateImage.getStatusCode());
+                assertNotNull(responseCreateImage.getBody().imageId());
+                assertEquals(responseCreateImage.getBody().model().constraints(), expected.model().constraints());
+                assertEquals(responseCreateImage.getBody().model().preferences(), expected.model().preferences());
+                assertEquals(responseCreateImage.getBody().model().variables(), expected.model().variables());
+                assertEquals(responseCreateImage.getBody().model().setTypes(), expected.model().setTypes());
+                assertEquals(responseCreateImage.getBody().model().paramTypes(), expected.model().paramTypes());
+                assertEquals(responseCreateImage.getBody().model().varTypes(), expected.model().varTypes());
                 /**
                  *  CONFIG IMAGE TO DISPLAY myVar
                  */
-                ImageDTO imageDTO=new ImageDTO(response.getBody().imageId(),imageName,imageDescription,new VariableModuleDTO(Set.of(new VariableDTO("myVar",List.of("INT"),List.of("INT"), new DependenciesDTO(Set.of("mySet"),Set.of()))),Set.of(),Set.of())
-                                                ,Set.of(new ConstraintModuleDTO("constraintToRemove", "desc", Set.of("optionalConstraint"), Set.of(), Set.of())),
-                                                Set.of());
-                ImageConfigDTO config= new ImageConfigDTO(response.getBody().imageId(),imageDTO);
-                HttpEntity<ImageConfigDTO> request2 = new HttpEntity<>(config, headers);
-                // Send PATCH request with body
-                String url2 = "http://localhost:" + port + "/images";
-                ResponseEntity<Void> response2 = restTemplate.exchange(
-                        url2,
-                        HttpMethod.PATCH,
-                        request2,
-                        Void.class
-                );
-                assertEquals(HttpStatus.OK, response2.getStatusCode());
+                ImageConfigDTO configImage =  new ConfigureImageRequestBuilder(imageName, responseCreateImage.getBody())
+                .setVariablesModule(Set.of("myVar"), Set.of(), Set.of())
+                .addConstraintsModule("constraintToRemove", "", Set.of("optionalConstraint"), Set.of(), Set.of())
+                .build();
+
+                ResponseEntity<Void> responseConfigImage = requestsManager.sendConfigImageRequest(configImage);
+
+                assertEquals(HttpStatus.OK, responseConfigImage.getStatusCode());
                 /**
                  * CALL IMAGE TO SOLVE THE CODE, MAKE SURE SOLUTION IS CORRECT
                  */
-                InputDTO input=new InputDTO(Map.of("mySet",List.of(List.of("1"),List.of("2"),List.of("3"))),
-                        Map.of("x",List.of("10")),
-                        List.of("constraintToRemove"),List.of());
-                SolveCommandDTO solveCommandDTO=new SolveCommandDTO(response.getBody().imageId(),input,60);
-                HttpEntity<SolveCommandDTO> request3 = new HttpEntity<>(solveCommandDTO, headers);
-                String url3 = "http://localhost:" + port + "/solve";
-                ResponseEntity<SolutionDTO> response3 = restTemplate.exchange(
-                        url3,
-                        HttpMethod.POST,
-                        request3,
-                        SolutionDTO.class
-                );
-                assertEquals(HttpStatus.OK, response3.getStatusCode());
-                assertNotNull(response3.getBody());
-                assertEquals(Set.of(new SolutionValueDTO(List.of("3"),10)),response3.getBody().solution().get("myVar").solutions());
+                SolveCommandDTO solveRequest = new SolveCommandRequestBuilder(responseCreateImage.getBody())
+                .setSetInput("mySet",List.of(List.of("1"),List.of("2"),List.of("3")))
+                .setParamInput("x", List.of("10"))
+                .addToggleOffConstraintModule("constraintToRemove")
+                .build();
+                ResponseEntity<SolutionDTO> solveImageResponse = requestsManager.sendSolveRequest(solveRequest);
+
+                assertEquals(HttpStatus.OK, solveImageResponse.getStatusCode());
+                assertNotNull(solveImageResponse.getBody());
+                assertEquals(Set.of(new SolutionValueDTO(List.of("3"),10)),solveImageResponse.getBody().solution().get("myVar").solutions());
             } catch (Exception e) {
                 fail(e.getMessage());
             }
@@ -531,7 +437,7 @@ public class ServiceTest {
     
             return response;
         }
-    
+
         private Void configImage(ImageConfigDTO code){
            
             HttpHeaders headers = new HttpHeaders();
