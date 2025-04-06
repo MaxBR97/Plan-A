@@ -4,7 +4,7 @@ param bias := 100;
 
 set Soldiers := {1..NumberOfSoldiers};
 set Stations := {"Shin Gimel","Siyur","Fillbox","North","West","South","East","Hamal"};  # Station names
-set Times := {0 .. 50 by 1};
+set Times := {0 .. 10 by 1};
 
 set Shifts := Stations * Times;
 set SoldiersToShifts := Soldiers * Shifts;

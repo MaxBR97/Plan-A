@@ -453,53 +453,75 @@ public class ModelProxy extends ModelInterface {
         
         private java.util.List<String> parseSetElements(FormulationParser.SetExprContext ctx) {
             java.util.List<String> elements = new ArrayList<>();
-            
+        String name = ctx.getText();
             if (ctx instanceof FormulationParser.SetExprStackContext) {
                 FormulationParser.SetExprStackContext stackCtx = (FormulationParser.SetExprStackContext) ctx;
-                if (stackCtx.setDesc() != null) {
-                    // Handle explicit set descriptions
-                    if (stackCtx.setDesc() instanceof FormulationParser.SetDescStackContext) {
-                        FormulationParser.SetDescStackContext descCtx = (FormulationParser.SetDescStackContext) stackCtx.setDesc();
-                        if (descCtx.csv() != null) {
-                            String csvText = descCtx.csv().getText();
-                            
-                            // Split the CSV text by commas, but not within angle brackets
-                            StringBuilder currentElement = new StringBuilder();
-                            boolean inAngleBrackets = false;
-                            
-                            for (int i = 0; i < csvText.length(); i++) {
-                                char c = csvText.charAt(i);
-                                
-                                if (c == '<') {
-                                    inAngleBrackets = true;
-                                    currentElement.append(c);
-                                } else if (c == '>') {
-                                    inAngleBrackets = false;
-                                    currentElement.append(c);
-                                } else if (c == ',' && !inAngleBrackets) {
-                                    // When encountering a comma outside of angle brackets, add the current element to the list
-                                    elements.add(currentElement.toString().trim());
-                                    currentElement.setLength(0); // Reset the current element
-                                } else {
-                                    currentElement.append(c);
-                                }
+        
+                if (stackCtx.setDesc() instanceof FormulationParser.SetDescStackContext) {
+                    FormulationParser.SetDescStackContext descCtx = (FormulationParser.SetDescStackContext) stackCtx.setDesc();
+        
+                    // --- Handle range: {0 .. 24 by 2} ---
+                    if (descCtx.range() != null) {
+                        FormulationParser.RangeContext rangeCtx = descCtx.range();
+        
+                        try {
+                            // Only allow if both ends and step are integer literals
+                            int start = Integer.parseInt(rangeCtx.lhs.getText());
+                            int end = Integer.parseInt(rangeCtx.rhs.getText());
+                            int step = (rangeCtx.step != null) ? Integer.parseInt(rangeCtx.step.getText()) : 1;
+        
+                            for (int i = start; i <= end; i += step) {
+                                elements.add(String.valueOf(i));
                             }
-                            
-                            // Add the last element if it exists
-                            if (currentElement.length() > 0) {
-                                elements.add(currentElement.toString().trim());
-                            }
-                        } else { // no csv
-                            elements = null;
+                        } catch (NumberFormatException e) {
+                            // One of the parts isn't a literal number (e.g., NumberOfSoldiers)
+                            return null;
                         }
-                    } else { // not Desc
-                        elements = null;
+        
+                    } 
+                    // --- Handle CSV: {1, 2}, {"a"}, {<1,"b",3>} ---
+                    else if (descCtx.csv() != null) {
+                        String csvText = descCtx.csv().getText();
+        
+                        StringBuilder currentElement = new StringBuilder();
+                        boolean inAngleBrackets = false;
+        
+                        for (int i = 0; i < csvText.length(); i++) {
+                            char c = csvText.charAt(i);
+        
+                            if (c == '<') inAngleBrackets = true;
+                            if (c == '>') inAngleBrackets = false;
+        
+                            if (c == ',' && !inAngleBrackets) {
+                                elements.add(currentElement.toString().trim());
+                                currentElement.setLength(0);
+                            } else {
+                                currentElement.append(c);
+                            }
+                        }
+        
+                        if (currentElement.length() > 0) {
+                            elements.add(currentElement.toString().trim());
+                        }
+        
+                        // Reject if any element is not a literal (contains identifiers)
+                        for (String el : elements) {
+                            // Very basic check: allow if it's a number, string, or tuple of literals
+                            if (!el.matches("\\d+") &&                       // int
+                                !el.matches("\"[^\"]*\"") &&                // string
+                                !el.matches("<.*>")) {                      // assume tuples are valid
+                                return null;
+                            }
+        
+                            // Optional: be stricter on tuples if needed
+                        }
+        
+                    } else {
+                        return null; // not a valid literal set
                     }
                 }
-                else
-                    elements = null;
             }
-            
+        
             return elements;
         }
     }

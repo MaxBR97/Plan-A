@@ -53,6 +53,39 @@ public class ConfigureImageRequestBuilder implements RequestBuilder{
                     );
         return this;
     }
+
+    //insert all vars, all involved sets and params
+    public ConfigureImageRequestBuilder setDefaultVariablesModule(){
+        Set<VariableDTO> convertedVars = new HashSet<>();
+        Set<SetDefinitionDTO> sets = new HashSet<>();
+        Set<ParameterDefinitionDTO> params = new HashSet<>();
+        Set<String> vars = new HashSet<>();
+        Set<String> setInputs = new HashSet<>();
+        Set<String> paramInputs = new HashSet<>();
+
+        for(VariableDTO v : context.model().variables()){
+            vars.add(v.identifier());
+            setInputs.addAll(v.dep().setDependencies());
+            paramInputs.addAll(v.dep().paramDependencies());
+        }
+
+        for(String s : setInputs){
+            sets.add(getSet(s));
+        }
+        for(String p : paramInputs){
+            params.add(getParam(p));
+        }
+        for(String v : vars){
+            convertedVars.add(getVar(v));
+        }
+        VariableModuleDTO tmp = new VariableModuleDTO(convertedVars, sets, params);
+        imageDTO = new ImageDTO(imageDTO.imageId(), imageDTO.imageName(), imageDTO.imageDescription(),
+                                tmp,
+                                imageDTO.constraintModules(),
+                                imageDTO.preferenceModules()
+                    );
+        return this;
+    }
     
 
     public ConfigureImageRequestBuilder addConstraintsModule(String name, String desc, Set<String> constraints, Set<String> setInputs, Set<String> paramInputs){

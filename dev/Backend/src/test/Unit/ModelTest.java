@@ -310,7 +310,7 @@ public class ModelTest {
         m.setInput(m.getParameter("absoluteMinimalSpacing"),"0");
 
         //reading takes approx 8 sec
-        Solution sol = m.solve(3,"SOLUTION");
+        Solution sol = m.solve(1,"SOLUTION");
         
         assertNotNull(sol);
         Set<String> stringVariables = m.getVariables().stream()

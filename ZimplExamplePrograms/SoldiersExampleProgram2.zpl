@@ -1,10 +1,10 @@
 param weight := 10;
-param NumberOfSoldiers := 10;
+param NumberOfSoldiers := 6;
 param bias := 100;
 
 set Soldiers := {1..NumberOfSoldiers};
-set Stations := {"Shin Gimel","West","South","East","North","FillBox","Hamal","Hapak"};  # Station names
-set Times := {0 .. 6 by 1};
+set Stations := {"Shin Gimel","West"};  # Station names
+set Times := {0 .. 4 by 1};
 set PossibleShiftAndRestTimes := {<time1, time2> in  Times*(Times union {max(Times)+1}) | time1 < time2: <time1,time2-time1>};
 
 set Shifts := Stations * Times;

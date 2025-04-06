@@ -17,6 +17,10 @@ public class SolveCommandRequestBuilder implements RequestBuilder {
         req = new SolveCommandDTO(context.imageId(),new InputDTO(new HashMap<>(), new HashMap<>(), new LinkedList<>(),new LinkedList<>()),10);
     }
 
+    public SolveCommandRequestBuilder(String imageId){
+        req = new SolveCommandDTO(imageId,new InputDTO(new HashMap<>(), new HashMap<>(), new LinkedList<>(),new LinkedList<>()),10);
+    }
+
     public SolveCommandRequestBuilder setTimeout(int timeout){
         req = new SolveCommandDTO(req.imageId(), req.input(), timeout);
         return this;
@@ -39,6 +43,11 @@ public class SolveCommandRequestBuilder implements RequestBuilder {
 
     public SolveCommandRequestBuilder addToggleOffPreferenceModule(String moduleName){
         req.input().preferenceModulesToggledOff().add(moduleName);
+        return this;
+    }
+    
+    public SolveCommandRequestBuilder setInput(InputDTO inputs){
+        req = new SolveCommandDTO(req.imageId(),inputs,req.timeout());
         return this;
     }
 
