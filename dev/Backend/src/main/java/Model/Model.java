@@ -220,7 +220,7 @@ public class Model extends ModelInterface {
         }
     }
 
-    private void commentOutToggledFunctionalities() throws Exception {
+    void commentOutToggledFunctionalities() throws Exception {
         if (toggledOffFunctionalities.isEmpty()) {
             return;
         }
@@ -237,7 +237,7 @@ public class Model extends ModelInterface {
         }
     }
 
-    private void restoreToggledFunctionalities() throws Exception {
+    void restoreToggledFunctionalities() throws Exception {
         if (toggledOffFunctionalities.isEmpty()) {
             return;
         }
