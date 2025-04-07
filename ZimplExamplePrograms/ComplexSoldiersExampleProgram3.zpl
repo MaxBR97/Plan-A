@@ -80,8 +80,8 @@ defnumb getDay(time) :=
 
 defnumb getHour(time) := 
     (
-        ((planFromHour * card(minutes)) + planFromMinute + time) 
-        div card(minutes)
+        floor(((planFromHour * card(minutes)) + planFromMinute + time) 
+        / card(minutes))
     ) mod card(hours);
 
 
@@ -107,14 +107,6 @@ defbool isBetween(fromTime, toTime, targetTime) :=
     end;
 
 
-defbool isBetweenDayHourMinute(fromDay, fromHour, fromMinute, toDay, toHour, toMinute, targetDay, targetHour, targetMinute) := 
-    isBetween(
-        convertToMinutesRepresentation(fromDay, fromHour, fromMinute),
-        convertToMinutesRepresentation(toDay, toHour, toMinute),
-        convertToMinutesRepresentation(targetDay, targetHour, targetMinute)
-    );
-
-
 
 # Tests for isBetween                                   | expected
 # do print isBetweenDayHourMinute("Friday",18,23,"Sunday",8,6,"Sunday",12,15); # false
@@ -129,11 +121,17 @@ defbool isBetweenDayHourMinute(fromDay, fromHour, fromMinute, toDay, toHour, toM
 # do print isBetweenDayHourMinute("Sunday",18,0,"Friday",8,30,"Friday",8,29); # true
 
 
+defbool isBetweenDayHourMinute(fromDay, fromHour, fromMinute, toDay, toHour, toMinute, targetDay, targetHour, targetMinute) := 
+    isBetween(
+        convertToMinutesRepresentation(fromDay, fromHour, fromMinute),
+        convertToMinutesRepresentation(toDay, toHour, toMinute),
+        convertToMinutesRepresentation(targetDay, targetHour, targetMinute)
+    );
 
 set Soldiers := {1..NumberOfSoldiers};
 # <name,shift_time,people_in_shift>
- set Stations := {<"Siyur1",8,4>,<"FillBox",4,1>,<"Shin Gimel",4,1>, <"Hamal",24,1>, <"Siyur2",8,4>, <"Siyur3",8,4>};  # Station names
-#set Stations := {<"Siyur1",8,4>,<"FillBox",4,1>};  # Station names
+# set Stations := {<"Siyur1",8,4>,<"FillBox",4,1>,<"Shin Gimel",4,1>, <"Hamal",16.5,1>, <"Siyur2",8,4>, <"Siyur3",8,4>};  # Station names
+set Stations := {<"Siyur1",8,4>,<"FillBox",4,1>};  # Station names
 set FormalTimes := {<day,hour,minute> in weekDays * hours * minutes | isBetweenDayHourMinute(planFromDay,planFromHour,planFromMinute, planUntilDay,planUntilHour, planUntilMinute, day,hour, minute)};
 param planTimeRange := timeDifference(planFromDay,planFromHour,planFromMinute, planUntilDay,planUntilHour, planUntilMinute);
 set Times := {0 .. planTimeRange};
