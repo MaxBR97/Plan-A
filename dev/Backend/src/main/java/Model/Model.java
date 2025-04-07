@@ -499,7 +499,8 @@ public class Model extends ModelInterface {
         @Override
         public Void visitSetDefExpr(FormulationParser.SetDefExprContext ctx) {
             String setName = extractName(ctx.sqRef().getText());
-            
+            // if(setName.equals("FormalTimes")) // for debugging
+            //     System.out.println(ctx.setExpr().getText());
             TypeVisitor typer = new TypeVisitor();
             typer.visit(ctx.setExpr());
             ModelSet set = new ModelSet(id,setName,typer.getType(),typer.getBasicSets(),typer.getBasicParams(),typer.getBasicFuncs());
@@ -1077,7 +1078,7 @@ public class Model extends ModelInterface {
                 basicFuncs.addAll(v.basicFuncs);
             }
             TypeVisitor v = new TypeVisitor();
-            v.visit(ctx.comparison());
+            v.visit(ctx.boolExpr());
             basicParams.addAll(v.basicParams);
             basicSets.addAll(v.basicSets);
             basicFuncs.addAll(v.basicFuncs);
@@ -1142,14 +1143,24 @@ public class Model extends ModelInterface {
             return null;
         }
 
+        // else if(ctx.ID().getText() != null && getFunction(ctx.ID().getText()) != null){
+        //     ModelFunction func = getFunction(ctx.ID().getText());
+        //     basicFuncs.add(func);
+        //     appendType(func.getType());
+        // }
         @Override
         public Void visitCustomFunc(FormulationParser.CustomFuncContext ctx){
             TypeVisitor newVisitor = new TypeVisitor();
-            newVisitor.visit(ctx.csv());
+            if(ctx.csv() != null)
+                newVisitor.visit(ctx.csv());
+            else if (ctx.index() != null)
+                newVisitor.visit(ctx.index());
             basicSets.addAll(newVisitor.getBasicSets());
             basicParams.addAll(newVisitor.getBasicParams());
             basicFuncs.addAll(newVisitor.getBasicFuncs());
-            appendType(getFunction(ctx.name.getText()).getType());
+            ModelFunction func = getFunction(ctx.ID().getText());
+            basicFuncs.add(func);
+            appendType(func.getType());
             return null;
         }
 
@@ -1398,11 +1409,7 @@ public class Model extends ModelInterface {
                 ModelParameter param = getParameter(ctx.ID().getText());
                 basicParams.add(param);
                 appendType(param.getType());
-            } else if(ctx.ID().getText() != null && getFunction(ctx.ID().getText()) != null){
-                ModelFunction func = getFunction(ctx.ID().getText());
-                basicFuncs.add(func);
-                appendType(func.getType());
-            }
+            } 
 
             if(ctx.csv() != null && getSet(ctx.csv().getText()) != null){
                 ModelSet set = getSet(ctx.csv().getText());
@@ -1414,11 +1421,7 @@ public class Model extends ModelInterface {
                 basicParams.add(param);
                 appendType(param.getType());
             } 
-            else if(ctx.csv() != null && getFunction(ctx.csv().getText()) != null){
-                ModelFunction func = getFunction(ctx.csv().getText());
-                basicFuncs.add(func);
-                appendType(func.getType());
-            }  
+           
             else if(ctx.csv() != null){
                 visit(ctx.csv());
             }
@@ -1505,6 +1508,7 @@ public class Model extends ModelInterface {
             this.visit(ctx.rhs);
             return null;
         }
+
         @Override
         public Void visitBoolExprBin(FormulationParser.BoolExprBinContext ctx){
             this.visit(ctx.boolExpr(0));
@@ -1512,6 +1516,12 @@ public class Model extends ModelInterface {
             return null;
         }
         
+        @Override
+        public Void visitBoolExprFunc(FormulationParser.BoolExprFuncContext ctx){
+            this.visit(ctx.fnRef());
+            return null;
+        }
+
         @Override
         public Void visitTuple(FormulationParser.TupleContext ctx) {
             Tuple tupleType = new Tuple();

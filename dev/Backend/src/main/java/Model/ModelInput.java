@@ -120,6 +120,11 @@ public abstract class ModelInput extends ModelComponent {
     public StructureBlock[] getStructure(){
         if (myStruct != null){
             return myStruct;
+        } else if (this.getIdentifier().equals("anonymous_set") ){
+            StructureBlock[] sbs;
+            sbs = new StructureBlock[this.myType.typeList().size()];
+            myStruct = sbs;
+            return sbs;
         }
 
         StructureBlock[] ans;

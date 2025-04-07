@@ -176,6 +176,14 @@ public class TypesAndDependencyTests {
         secondDegreeSetDependencies.put("SoldiersToShifts",new String[]{"anonymous_set","Shifts"});
         secondDegreeParamDependencies.put("SoldiersToShifts", new String[]{});
 
+        
+        immidiateSetDependencies.put("FormalTimes", new String[]{"anonymous_set"});
+        immidiateParamDependencies.put("FormalTimes", new String[]{});
+        immidiateFunctionDependencies.put("FormalTimes", new String[]{});
+        secondDegreeSetDependencies.put("FormalTimes",new String[]{"Emdot","Soldiers", "Times"});
+        secondDegreeParamDependencies.put("FormalTimes", new String[]{"conditioner"});
+        secondDegreeFunctionDependencies.put("FormalTimes", new String[]{"myBool"});
+
         immidiateSetDependencies.put("conditioner", new String[]{});
         immidiateParamDependencies.put("conditioner", new String[]{});
         immidiateSetDependencies.put("absoluteMinimalRivuah", new String[]{});
@@ -368,7 +376,7 @@ public class TypesAndDependencyTests {
 
     
     @ParameterizedTest
-    @ValueSource(strings = {"setWithRange","C","S","Zmanim", "Emdot", "CxS", "CxSxS", "forTest2","Shifts","SoldiersToShifts","forTest6", "forTest11", "forTest1"})
+    @ValueSource(strings = {"setWithRange","C","S","Zmanim", "Emdot", "CxS", "CxSxS", "forTest2","Shifts","SoldiersToShifts","forTest6", "forTest11", "forTest1", "FormalTimes"})
     public void testDependenciesOfSets(String identifier) {
         boolean hasSecondDegreeDeps = secondDegreeSetDependencies.containsKey(identifier);
         String setName = identifier;
@@ -542,6 +550,13 @@ public class TypesAndDependencyTests {
     public void typeCheckS(){
         ModelSet s = model.getSet("S");
         ModelType expectedType = new Tuple(new ModelPrimitives[]{ModelPrimitives.TEXT,ModelPrimitives.INT});
+        assertTrue( s.isCompatible(expectedType));
+    }
+
+    @Test
+    public void typeCheckFormalTimes(){
+        ModelSet s = model.getSet("FormalTimes");
+        ModelType expectedType = new Tuple(new ModelPrimitives[]{ModelPrimitives.TEXT,ModelPrimitives.INT,ModelPrimitives.INT});
         assertTrue( s.isCompatible(expectedType));
     }
 

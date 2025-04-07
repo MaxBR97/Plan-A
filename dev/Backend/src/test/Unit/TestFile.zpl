@@ -33,8 +33,7 @@ param planTimeRange := timeDifference(conditioner,soldiers,0,absoluteMinimalRivu
 set Times := {0 .. planTimeRange};
 set Shifts := {<station, stationInterval, requiredPeople, time> in Stations * Times | time mod stationInterval == 0 and time + stationInterval <= planTimeRange};
 set SoldiersToShifts := Soldiers * proj(Shifts,<1,4>);
-# set ShiftSpacings := {<soldier,station,stationInterval,shiftStartTime,shiftStartTime2, nextShiftTime> in Soldiers * proj(Shifts,<1,2,4>) * PossibleShiftAndRestTimes | shiftStartTime == shiftStartTime2 and nextShiftTime - shiftStartTime - stationInterval >= minimumRestTime : <soldier,station,stationInterval,shiftStartTime, nextShiftTime - shiftStartTime - stationInterval>};
-# set ArtificialShift := {<soldier,station,interval,time,rest> in Soldiers * {<"inv",0>} * ({<time, firstShiftTime> in  {-1}*(Times union {max(Times)+1,max(Times)+2}) : <time, firstShiftTime-time>} union {<max(Times)+1,0>}) };
+set FormalTimes := {<day,hour,minute> in  Emdot * Soldiers * Times | myBool(minute,conditioner)  };
 
 
 var edge[CxS] binary;

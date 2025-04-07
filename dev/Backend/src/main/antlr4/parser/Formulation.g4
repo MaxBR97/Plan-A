@@ -100,7 +100,7 @@ GOAL	: 'minimize' | 'maximize' ;
 // TODO: redo tests
 // Mmmm... does empty tail recursion work properly in antlr4 ?
 // constraint: 'subto' name=ID? ':' forall comparison ; // nested alt (tail recursion)
-constraint: 'subto' name=ID? ':' forall* comparison ;
+constraint: 'subto' name=ID? ':' forall* boolExpr ;
 
 // TODO: redo tests
 // Mmmm... does empty tail recursion work properly in antlr4 ?
@@ -158,7 +158,7 @@ tuple	:	'<' csv '>' ;
 /* reduce expression */
 // TODO: test non-sum
 //sumExpr :	'sum' condition sep=('do' | ':') nExpr ;
-redExpr :	op=('prod'|'sum') condition sep=('do'|':') nExpr # LongRedExpr
+redExpr :	op=('prod'|'sum'|'max'|'min') condition sep=('do'|':') nExpr # LongRedExpr
 		|	op=('min'|'max'|'card'|'floor'|'random')	'(' ( index | csv ) ')'			 # ShortRedExpr
 		| 	op='ord' '(' setExpr ',' idx=expr ',' comp=expr ')' #OrdRedExpr
 		;
@@ -183,6 +183,7 @@ boolExpr
 	|	token=('true'|'false')			# BoolExprToken
 	|	'(' boolExpr ')'				# BoolExprParen
 	|	ifExpr							# BoolExprStack
+	|	fnRef							# BoolExprFunc
 	;
 
 // TODO: add 'bound+' & strExpr tests
@@ -204,7 +205,7 @@ sqRef	:	name=ID '[' index ']'		# SqRefIndex
 		;
 
 fnRef	:	'proj' '(' setExpr ',' tuple ')' 		#ProjFunc
-		|	name=ID '(' csv ')' 	#CustomFunc
+		|	name=ID '(' ( index | csv ) ')' 	#CustomFunc
 		;	
 
 // TODO: try using 'csv' for any comma separated list: indices, chains...

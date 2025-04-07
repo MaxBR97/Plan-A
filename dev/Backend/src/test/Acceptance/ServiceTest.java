@@ -396,28 +396,29 @@ public class ServiceTest {
 
         
         // @Test
-        // public void testUploadingHeavyImageAndSolveWithInputs(){
-        //     CreateImageFromFileDTO createImage =  new CreateImageRequestBuilder(imageName,imageDescription,Path.of(pathToComplexSoldiersExampleProgram3))
-        //     .build();
-        //     ResponseEntity<CreateImageResponseDTO> responseCreateImage = requestsManager.sendCreateImageRequest(createImage);
-        //     assertEquals(HttpStatus.OK, responseCreateImage.getStatusCode());
+    @Test
+    public void testUploadingHeavyImageAndSolveWithInputs(){
+            CreateImageFromFileDTO createImage =  new CreateImageRequestBuilder(imageName,imageDescription,Path.of(pathToComplexSoldiersExampleProgram3))
+            .build();
+            ResponseEntity<CreateImageResponseDTO> responseCreateImage = requestsManager.sendCreateImageRequest(createImage);
+            assertEquals(HttpStatus.OK, responseCreateImage.getStatusCode());
             
-        //     ImageConfigDTO configImage =  new ConfigureImageRequestBuilder(imageName, responseCreateImage.getBody())
-        //     .setDefaultVariablesModule()
-        //     .build();
-        //     ResponseEntity<Void> responseConfigImage = requestsManager.sendConfigImageRequest(configImage);
-        //     assertEquals(HttpStatus.OK, responseConfigImage.getStatusCode());
+            ImageConfigDTO configImage =  new ConfigureImageRequestBuilder(imageName, responseCreateImage.getBody())
+            .setDefaultVariablesModule()
+            .build();
+            ResponseEntity<Void> responseConfigImage = requestsManager.sendConfigImageRequest(configImage);
+            assertEquals(HttpStatus.OK, responseConfigImage.getStatusCode());
 
-        //     ResponseEntity<InputDTO> inputDTO = requestsManager.sendGetInputsRequest(responseCreateImage.getBody().imageId());
-        //     assertEquals(HttpStatus.OK, inputDTO.getStatusCode());
+            ResponseEntity<InputDTO> inputDTO = requestsManager.sendGetInputsRequest(responseCreateImage.getBody().imageId());
+            assertEquals(HttpStatus.OK, inputDTO.getStatusCode());
 
-        //     SolveCommandDTO solveRequest = new SolveCommandRequestBuilder(responseCreateImage.getBody())
-        //     .setInput(inputDTO.getBody())
-        //     .build();
-        //     ResponseEntity<SolutionDTO> solveImageResponse = requestsManager.sendSolveRequest(solveRequest);
+            SolveCommandDTO solveRequest = new SolveCommandRequestBuilder(responseCreateImage.getBody())
+            .setInput(inputDTO.getBody())
+            .build();
+            ResponseEntity<SolutionDTO> solveImageResponse = requestsManager.sendSolveRequest(solveRequest);
 
-        //     assertEquals(HttpStatus.OK, solveImageResponse.getStatusCode());
-        // }
+            assertEquals(HttpStatus.OK, solveImageResponse.getStatusCode());
+        }
 
         @Test
         public void testUploadMultipleProgramsAndSolve(){
