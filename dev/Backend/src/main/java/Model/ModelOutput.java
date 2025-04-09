@@ -18,6 +18,9 @@ public abstract class ModelOutput extends ModelComponent {
     @Column(name = "my_type")
     @Convert(converter = ModelTypeConverter.class)
     protected ModelType myType;
+
+    @Column(name = "alias")
+    protected String alias;
     
     @Column(name = "tags")
     @Convert(converter = StringArrayConverter.class)
@@ -31,10 +34,12 @@ public abstract class ModelOutput extends ModelComponent {
         super(imageId, ident,dep,paramDep,funcDep);
         isComplex = false;
         myType = type;
+        alias = this.getIdentifier();
     }
 
     protected ModelOutput(){
         super();
+        alias = this.getIdentifier();
     }
 
     public String[] getTags(){

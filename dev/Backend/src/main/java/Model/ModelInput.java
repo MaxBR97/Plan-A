@@ -3,33 +3,67 @@ package Model;
 import java.util.LinkedList;
 import java.util.List;
 
+import DataAccess.StringArrayConverter;
+import Exceptions.InternalErrors.BadRequestException;
+import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
+import jakarta.persistence.ElementCollection;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.MappedSuperclass;
 import jakarta.persistence.Transient;
 
 @MappedSuperclass
 public abstract class ModelInput extends ModelComponent {
+
     @Column(name = "my_type")
     @Convert(converter = ModelTypeConverter.class)
     protected ModelType myType;
+
     @Transient
     protected StructureBlock[] myStruct;
-    @Transient
+
+    @Column(name = "alias")
+    protected String alias;
+
+    @Column(name = "tags")
+    @Convert(converter = StringArrayConverter.class)
     protected String[] tags;
+
+    @Transient
+    protected List<String> values;
+    
+
+@ElementCollection
+@CollectionTable(
+    name = "model_parameter_default_values",
+    joinColumns = {
+        @JoinColumn(name = "image_id", referencedColumnName = "image_id"),
+        @JoinColumn(name = "name", referencedColumnName = "name")
+    }
+)
+@Column(name = "default_value")
+@Transient
+protected List<String> def_values;
 
     public ModelInput(String imageId, String identifier, ModelType type) {
         super(imageId, identifier, new LinkedList<>(), new LinkedList<>(), new LinkedList<>());
         myType = type;
+        alias = this.getIdentifier();
+        def_values = null;
     }
 
     public ModelInput(String imageId, String identifier, ModelType type, List<ModelSet> a, List<ModelParameter> b, List<ModelFunction> c) {
         super(imageId, identifier,a,b,c);
         myType = type;
+        alias = this.getIdentifier();
+        def_values = null;
     }
 
     public ModelInput(){
         super();
+        alias = this.getIdentifier();
+        def_values = null;
     }
 
     ModelInput(String imageId, String identifier, ModelType type, List<ModelSet> a, List<ModelParameter> b, List<ModelFunction> c, StructureBlock[] struct) {
@@ -82,10 +116,18 @@ public abstract class ModelInput extends ModelComponent {
     }
 
     public String[] getTags(){
-        if(tags == null){
+        if(tags == null || tags.length == 0){
             tags = myType.typeList().toArray(new String[0]);
         }
         return tags;
+    }
+
+    public void setTags(String[] tags) throws Exception{
+        if(tags == null)
+            throw new BadRequestException("Trying to set tags as null");
+        if(tags.length != myType.typeList().size())
+            throw new BadRequestException("Trying to set tags of wrong length.");
+        this.tags = tags;
     }
     
     // param w := 20;

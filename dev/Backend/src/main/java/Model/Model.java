@@ -1113,7 +1113,22 @@ public class Model extends ModelInterface {
                 basicParams.addAll(t2.basicParams);
                 basicFuncs.addAll(t1.basicFuncs);
                 basicFuncs.addAll(t2.basicFuncs);
-                this.type = t1.getType();
+                
+                if(ctx.op.getText().equals("+") || ctx.op.getText().equals("-") || ctx.op.getText().equals("*")){
+                    if(t1.getType().typeList().get(0).contains("INT") && t2.getType().typeList().get(0).contains("INT"))
+                        this.type = t1.getType();
+                    else if(t1.getType().typeList().get(0).contains("FLOAT") || t2.getType().typeList().get(0).contains("FLOAT"))
+                        this.type = ModelPrimitives.FLOAT;
+                    else
+                        this.type = ModelPrimitives.UNKNOWN;
+                } else if(ctx.op.getText().equals("/") ){
+                        this.type = ModelPrimitives.FLOAT;
+                }
+                else if (ctx.op.getText().equals("**") || ctx.op.getText().equals("mod")){
+                    this.type = t1.getType();
+                } else if (ctx.op.getText().equals("div")){
+                    this.type = ModelPrimitives.INT;
+                }
             } else if (ctx.basicExpr() != null){
                 TypeVisitor t = new TypeVisitor();
                 t.visit(ctx.basicExpr());
@@ -1189,7 +1204,7 @@ public class Model extends ModelInterface {
                 visitor.visit(ctx.index());
             else if(ctx.csv() != null)
                 visitor.visit(ctx.csv());
-            if(ctx.op.getText().equals("max") || ctx.op.getText().equals("min")){
+            if(ctx.op.getText().equals("max") || ctx.op.getText().equals("min") || ctx.op.getText().equals("abs") ){
                 appendType(visitor.getType());
                 basicSets.addAll(visitor.getBasicSets());
                 basicParams.addAll(visitor.getBasicParams());
@@ -1247,33 +1262,98 @@ public class Model extends ModelInterface {
     
         @Override
         public Void visitSetDescStack(FormulationParser.SetDescStackContext ctx) {
-            if (ctx.condition() != null){
+            if (ctx.condition() != null) {
                 TypeVisitor elementVisitor = new TypeVisitor();
                 elementVisitor.visit(ctx.condition());
-                ModelSet s = new ModelSet(id,"anonymous_set", elementVisitor.type,elementVisitor.basicSets,elementVisitor.basicParams,elementVisitor.basicFuncs);
+
+                ModelSet s = new ModelSet(
+                    id,
+                    "anonymous_set",
+                    elementVisitor.type,
+                    elementVisitor.basicSets,
+                    elementVisitor.basicParams,
+                    elementVisitor.basicFuncs
+                );
+
                 basicSets.add(s);
                 type = elementVisitor.getType();
-            }
-            else if (ctx.csv() != null) {
+            } else if (ctx.csv() != null) {
                 // Handle explicit set elements
-                TypeVisitor elementVisitor = new TypeVisitor();
-                elementVisitor.visit(ctx.csv().expr(0));
-                ModelSet s = new ModelSet(id,"anonymous_set", elementVisitor.type,elementVisitor.basicSets,elementVisitor.basicParams,elementVisitor.basicFuncs);
-                // Add this as a basic set since it's explicitly defined
+                List<FormulationParser.ExprContext> exprs = ctx.csv().expr();
+                int width = -1;
+                List<List<String>> allTypeLists = new ArrayList<>();
+
+                for (FormulationParser.ExprContext exprCtx : exprs) {
+                    TypeVisitor visitor = new TypeVisitor();
+                    visitor.visit(exprCtx);
+
+                    List<String> currentTypeList = visitor.type.typeList();
+
+                    if (width == -1) width = currentTypeList.size();
+                    else if (currentTypeList.size() != width)
+                        throw new RuntimeException("Inconsistent tuple sizes in CSV");
+
+                    allTypeLists.add(currentTypeList);
+                }
+
+                // Infer unified type list
+                List<String> unifiedTypeList = new ArrayList<>();
+                for (int i = 0; i < width; i++) {
+                    String resolved = "INT";
+                    for (List<String> typeList : allTypeLists) {
+                        String t = typeList.get(i);
+                        if (t.equals("TEXT")) {
+                            resolved = "TEXT";
+                            break;
+                        } else if (t.equals("FLOAT") && resolved.equals("INT")) {
+                            resolved = "FLOAT";
+                        }
+                    }
+                    unifiedTypeList.add(resolved);
+                }
+
+                // Construct the new ModelType
+                ModelType combinedType;
+                if (unifiedTypeList.size() == 1)
+                    combinedType = ModelPrimitives.valueOf(unifiedTypeList.get(0));
+                else
+                    combinedType = new Tuple(
+                        unifiedTypeList.stream()
+                            .map(ModelPrimitives::valueOf)
+                            .toList()
+                    );
+
+                // Optional: grab basicSets/Params/Funcs from first expr's visitor
+                TypeVisitor baseVisitor = new TypeVisitor();
+                baseVisitor.visit(exprs.get(0));
+
+                ModelSet s = new ModelSet(
+                    id,
+                    "anonymous_set",
+                    combinedType,
+                    baseVisitor.basicSets,
+                    baseVisitor.basicParams,
+                    baseVisitor.basicFuncs
+                );
+
                 basicSets.add(s);
-                type = elementVisitor.getType();
+                type = combinedType;
             } else if (ctx.range() != null) {
-                ModelSet s = new ModelSet(id,"anonymous_set", ModelPrimitives.INT);
+                ModelSet s = new ModelSet(id, "anonymous_set", ModelPrimitives.INT);
                 basicSets.add(s);
                 type = ModelPrimitives.INT;
+
                 TypeVisitor visitor = new TypeVisitor();
                 visitor.visit(ctx.range());
+
                 s.paramDependencies.addAll(visitor.getBasicParams());
                 s.setDependencies.addAll(visitor.getBasicSets());
                 s.functionDependencies.addAll(visitor.getBasicFuncs());
-            } 
+            }
+
             return null;
         }
+
 
         @Override
         public Void visitSetDescExtended(FormulationParser.SetDescExtendedContext ctx) {

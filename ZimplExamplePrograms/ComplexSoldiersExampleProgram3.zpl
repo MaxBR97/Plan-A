@@ -131,7 +131,7 @@ defbool isBetweenDayHourMinute(fromDay, fromHour, fromMinute, toDay, toHour, toM
 set Soldiers := {1..NumberOfSoldiers};
 # <name,shift_time,people_in_shift>
 # set Stations := {<"Siyur1",8,4>,<"FillBox",4,1>,<"Shin Gimel",4,1>, <"Hamal",16.5,1>, <"Siyur2",8,4>, <"Siyur3",8,4>};  # Station names
-set Stations := {<"Siyur1",8,4>,<"FillBox",4,1>};  # Station names
+set Stations := {<"Siyur1",8,4>,<"FillBox",4,1>,<"a",16.5,1>};  # Station names
 set FormalTimes := {<day,hour,minute> in weekDays * hours * minutes | isBetweenDayHourMinute(planFromDay,planFromHour,planFromMinute, planUntilDay,planUntilHour, planUntilMinute, day,hour, minute)};
 param planTimeRange := timeDifference(planFromDay,planFromHour,planFromMinute, planUntilDay,planUntilHour, planUntilMinute);
 set Times := {0 .. planTimeRange};

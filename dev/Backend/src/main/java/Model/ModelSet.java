@@ -3,7 +3,13 @@ package Model;
 import java.util.Collections;
 import java.util.List;
 
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinColumns;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
 
@@ -11,9 +17,14 @@ import jakarta.persistence.Transient;
 @Table(name="sets")
 public class ModelSet extends ModelInput {
 
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+@JoinColumns({
+    @JoinColumn(name = "bound_variable_image_id", referencedColumnName = "image_id"),
+    @JoinColumn(name = "bound_variable_name", referencedColumnName = "name")
+})
+protected ModelVariable boundToVariable;
 
-    @Transient
-    private List<String> elements;
+
 
     protected ModelSet(){
         super();
@@ -48,47 +59,56 @@ public class ModelSet extends ModelInput {
     }
 
     public List<String> getElements() {
-        return Collections.unmodifiableList(elements);
+        return Collections.unmodifiableList(this.values);
+    }
+
+    public List<String> getDefaultElements() {
+        return Collections.unmodifiableList(this.def_values);
     }
 
     // Get element at specific index
     public String getElement(int index) {
-        if (index >= 0 && index < elements.size()) {
-            return elements.get(index);
+        if (index >= 0 && index < values.size()) {
+            return values.get(index);
         }
         return null;
     }
 
     // Set entire list of elements
     public void setElements(List<String> elements) {
-        this.elements = elements;
+        this.values = elements;
+    }
+
+    // Set entire list of elements
+    public void setDefaultElements(List<String> elements) {
+        this.def_values = elements;
     }
 
     // Add single element
     public void addElement(String element) {
         if (element != null) {
-            this.elements.add(element);
+            this.values.add(element);
         }
     }
 
     // Remove single element
     public void removeElement(String element) {
-        this.elements.remove(element);
+        this.values.remove(element);
     }
 
-    // Clear all elements
+    // Clear all values
     public void clearElements() {
-        this.elements.clear();
+        this.values.clear();
     }
 
-    // Get size of elements
+    // Get size of values
     public int size() {
-        return elements.size();
+        return values.size();
     }
 
-    // Check if elements is empty
+    // Check if values is empty
     public boolean isEmpty() {
-        return elements.isEmpty();
+        return values.isEmpty();
     }
 
 

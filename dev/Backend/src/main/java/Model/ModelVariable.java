@@ -3,11 +3,15 @@ package Model;
 import java.util.List;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 
 @Entity
 @Table(name="variables")
 public class ModelVariable extends ModelOutput {
+
+    @OneToOne(mappedBy = "boundToVariable")
+    protected ModelSet boundSet;
     
     public ModelVariable(String imageId, String identifier) {
         super(imageId, identifier);

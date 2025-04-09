@@ -23,6 +23,10 @@ set forTest11 := C union Zmanim;
 param forTest12 := 0.15;
 param forTest13 := min(1,conditioner,3);
 param forTest14 := min(forTest11);
+set forTest15 := {<"1",1>, <"1.0", 1.0>};
+set forTest16 := {0.0};
+set forTest17 := {<x,y,z> in  forTest15 * forTest16};
+set forTest18 := {<x> in {1,2,3} : <x + forTest9>};
 
 defstrg huehott(a) := if a < 0 then "hue" else "hott" end;
 defbool myBool(x,y) := x == y and x > 2;

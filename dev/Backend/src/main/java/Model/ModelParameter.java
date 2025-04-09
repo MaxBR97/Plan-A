@@ -1,5 +1,6 @@
 package Model;
 
+import java.util.LinkedList;
 import java.util.List;
 
 import jakarta.persistence.Column;
@@ -15,8 +16,7 @@ public class ModelParameter extends ModelInput {
 
     @Column(name = "is_cost_param")
     private boolean isCostParameter = false;
-    @Transient
-    private String value;
+    
 
     public ModelParameter(){
         super();
@@ -38,22 +38,31 @@ public class ModelParameter extends ModelInput {
 
 
     public String getValue() {
-        return value;
+        return values.get(0);
     }
     
     // Set the value
     public void setValue(String value) {
-        this.value = value;
+        this.values = List.of(value);
+    }
+
+    public String getDefaultValue() {
+        return this.def_values.get(0);
+    }
+    
+    // Set the value
+    public void setDefaultValue(String value) {
+        this.def_values = List.of(value);
     }
     
     // Check if value is present
     public boolean hasValue() {
-        return value != null && !value.isEmpty();
+        return this.values != null && !this.values.isEmpty();
     }
     
     // Clear the value
     public void clearValue() {
-        this.value = null;
+        this.values = null;
     }
 
     public void setCostParameter (boolean isCostParam) {

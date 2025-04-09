@@ -505,6 +505,35 @@ public class TypesAndDependencyTests {
     }
 
     @Test
+    public void typeForTest15(){
+        ModelInput s = model.getSet("forTest15");
+        ModelType expectedType = new Tuple(new ModelPrimitives[]{ModelPrimitives.TEXT,  ModelPrimitives.FLOAT});
+        assertTrue( s.isCompatible(expectedType));
+    }
+
+    @Test
+    public void typeForTest16(){
+        ModelInput s = model.getSet("forTest16");
+        ModelType expectedType = ModelPrimitives.FLOAT;
+        assertTrue( s.isCompatible(expectedType));
+    }
+
+    
+    @Test
+    public void typeForTest17(){
+        ModelInput s = model.getSet("forTest17");
+        ModelType expectedType = new Tuple(new ModelPrimitives[]{ModelPrimitives.TEXT,ModelPrimitives.FLOAT,ModelPrimitives.FLOAT});
+        assertTrue( s.isCompatible(expectedType));
+    }
+
+    @Test
+    public void typeForTest18(){
+        ModelInput s = model.getSet("forTest18");
+        ModelType expectedType = ModelPrimitives.FLOAT;
+        assertTrue( s.isCompatible(expectedType), "type: "+ s.getType().toString() +" expected: " + expectedType.toString());
+    }
+
+    @Test
     public void typeTimeDifference(){
         ModelInput s = model.getFunction("timeDifference");
         ModelType expectedType = ModelPrimitives.FLOAT;
