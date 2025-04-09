@@ -30,7 +30,6 @@ var addedPawns[pawns] binary;
 var possibleMoves[{"col","row", "diagonal", "total"}] integer;
 var visualizeBoard[board * {"O","PAWN","QUEEN"}] binary startval 0;
 
-
 subto constCol:
     possibleMoves["col"] == col_one + col_two;
 

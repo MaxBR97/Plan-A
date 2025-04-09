@@ -467,6 +467,7 @@ public class Model extends ModelInterface {
             ModelParameter param = new ModelParameter(id,paramName,typer.getType(), typer.getBasicSets(),typer.getBasicParams(),typer.getBasicFuncs());
             if(loadElementsToRam){
                 param.setValue(ctx.expr().getText());
+                param.setDefaultValue(ctx.expr().getText());
             }
             params.put(paramName,param);
             return super.visitParamDecl(ctx);
@@ -507,6 +508,7 @@ public class Model extends ModelInterface {
             if(loadElementsToRam){
                 java.util.List<String> elements = parseSetElements(ctx.setExpr());
                 set.setElements(elements);
+                set.setDefaultElements(elements);
             }
             sets.put(setName, set);
             return super.visitSetDefExpr(ctx);
