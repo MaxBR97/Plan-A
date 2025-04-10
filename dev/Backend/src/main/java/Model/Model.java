@@ -1221,7 +1221,7 @@ public class Model extends ModelInterface {
                 basicSets.addAll(visitor.getBasicSets());
                 basicParams.addAll(visitor.getBasicParams());
                 basicFuncs.addAll(visitor.getBasicFuncs());
-            } else if(ctx.op.getText().equals("random")){
+            } else if(ctx.op.getText().equals("random") || ctx.op.getText().equals("sqrt")  ){
                 appendType(ModelPrimitives.FLOAT);
                 basicSets.addAll(visitor.getBasicSets());
                 basicParams.addAll(visitor.getBasicParams());

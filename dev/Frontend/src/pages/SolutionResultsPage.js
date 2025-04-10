@@ -33,9 +33,14 @@ const SolutionResultsPage = () => {
   }
 
   const isBinary = (variable) => solutionResponse.solution[variable].solutions.every(
-    (sol) => sol.objectiveValue < 0.0001 && sol.objectiveValue > -0.0001 || 
-              sol.objectiveValue > 0.9999  && sol.objectiveValue < 1.0001
+    (sol) => sol.objectiveValue < 0.00001 && sol.objectiveValue > -0.00001 || 
+              sol.objectiveValue > 0.99999  && sol.objectiveValue < 1.00001
   );
+
+  useEffect(() => {
+    
+  }, [displayStructure]); 
+
   useEffect(() => {
     if (solutionResponse?.solved === false) {
       // Handle solved false case if needed
@@ -56,7 +61,6 @@ const SolutionResultsPage = () => {
       }
     }
   }, [solutionResponse]); 
-
 
   // Early return conditions
   if(solutionResponse?.solved == false) {
@@ -90,12 +94,49 @@ const SolutionResultsPage = () => {
       : newSetStructure);
   };
 
+
+  function addObjectiveValueToSolutions(solutions) {
+    return solutions.map(solution => {
+      const { values, objectiveValue, ...rest } = solution;
+  
+      // Safety: make a copy of values so we don't mutate the original array
+      const newValues = [...values, objectiveValue];
+      // console.log("NEW VALS:",newValues)
+      // console.log("NEW VALS2:",objectiveValue)
+      // console.log("NEW VALS3:",solution)
+      return {
+        ...rest,       // any extra fields (if any)
+        values: newValues
+      };
+    });
+  }
+
+  function extractObjectiveValueFromSolutions(solutions) {
+    return solutions.map(solution => {
+      const { values, ...rest } = solution;
+      const newValues = [...values]; // clone to avoid mutating original
+      const objectiveValue = newValues.pop(); // remove and save the last item
+  
+      return {
+        ...rest,
+        values: newValues,
+        objectiveValue
+      };
+    });
+  }
+
+  
   const handleDisplayValue = (checked) => {
     setDisplayValue(checked)
-    if(checked)
+    if(checked){
       setDisplayStructure([...displayStructure, "value"])
-    else
+      
+      
+    }
+    else {
       setDisplayStructure(displayStructure.filter((entry) => entry !== "value"))
+      
+    }
   }
 
   const onDragEnd = (result) => {
@@ -137,11 +178,9 @@ const SolutionResultsPage = () => {
         {/* Main Solution Table */}
         <div className="solution-table-container">
           <SuperTable 
-            solutions={solutions} 
-            setStructure={setStructure}
+            solutions={displayValue ? addObjectiveValueToSolutions(solutions) : solutions} 
+            setStructure={displayValue ? [...setStructure, "value"] : setStructure}
             displayStructure={displayStructure}
-            // isBinary={true} 
-            valueSetName={"value"}
             onValueChange={(tuple, newValue) => { 
               console.log("Updated:", tuple, "->", newValue); 
             }} 

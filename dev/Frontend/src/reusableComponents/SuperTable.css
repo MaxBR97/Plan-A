@@ -1,34 +1,64 @@
-/* SolutionTable.css */
-
 .solution-table-container {
-    overflow-x: auto;
-  }
-  
-  .solution-table {
-    width: 100%;
-    border-collapse: collapse;
-  }
-  
-  .solution-table th,
-  .solution-table td {
-    border: 1px solid #ddd;
-    padding: 8px;
-    text-align: left;
-  }
-  
-  .solution-table th {
-    background-color: #f2f2f2;
-  }
-  
-  .clickable-cell {
-    cursor: pointer;
-    user-select: none;
-  }
-  
-  .clickable-cell:hover {
-    background-color: #e0e0e0;
-  }
-  
-  .row-header {
-      background-color: #f9f9f9;
-  }
+  overflow: auto;
+  max-width: 100%;
+  margin-bottom: 20px;
+}
+
+.solution-table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.solution-table th,
+.solution-table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+}
+
+.solution-table th {
+  background-color: #f2f2f2;
+  font-weight: bold;
+}
+
+.row-header {
+  font-weight: bold;
+  background-color: #f8f8f8;
+}
+
+.clickable-cell {
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.clickable-cell:hover {
+  background-color: #e9f5ff;
+}
+
+.highlighted {
+  background-color: #a8e6a8 !important; /* Green highlighting */
+  transition: background-color 0.3s;
+}
+
+.highlighted-container {
+  padding: 0;
+  background-color: rgba(168, 230, 168, 0.2); /* Lighter green for container cells */
+}
+
+.highlighted-container table {
+  border: 2px solid #a8e6a8;
+}
+
+.selection-info {
+  margin-top: 10px;
+  font-size: 14px;
+  color: #666;
+}
+
+input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 5px;
+  border: 2px solid #4a90e2;
+  border-radius: 3px;
+}

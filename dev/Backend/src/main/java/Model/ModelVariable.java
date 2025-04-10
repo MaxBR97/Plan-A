@@ -27,4 +27,12 @@ public class ModelVariable extends ModelOutput {
         this.isComplex = isComplex;
     }
 
+    public void setBoundSet(ModelSet s){
+        this.boundSet = s;
+    }
+
+    public ModelSet getBoundSet(){
+        return this.boundSet;
+    }
+
 }

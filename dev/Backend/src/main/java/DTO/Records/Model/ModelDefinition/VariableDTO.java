@@ -13,5 +13,6 @@ public record VariableDTO(
     List<String> type,
     @Valid 
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    DependenciesDTO dep
+    DependenciesDTO dep,
+    String boundSet
 ) {}

@@ -171,7 +171,8 @@ public class RecordFactory {
         variable.getPrimitiveSets(sets);
         HashSet<ModelParameter> parameters = new HashSet<>();
         variable.getPrimitiveParameters(parameters);
-        return new VariableDTO(variable.getIdentifier(),Arrays.asList(variable.getTags()),variable.getType().typeList(),makeDTO(sets,parameters));
+        String boundSet = variable.getBoundSet() == null ? null : variable.getBoundSet().getIdentifier() ;
+        return new VariableDTO(variable.getIdentifier(),Arrays.asList(variable.getTags()),variable.getType().typeList(),makeDTO(sets,parameters),boundSet);
     }
     private static Collection<ParameterDefinitionDTO> makeDTO(Set<ModelParameter> params) {
         LinkedList<ParameterDefinitionDTO> paramDTOs= new LinkedList<>();

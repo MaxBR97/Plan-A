@@ -115,6 +115,7 @@ public class ImageController {
         for(VariableDTO variable:imageDTO.variablesModule().variablesOfInterest()){
             ModelVariable modelVariable=model.getVariable(variable.identifier());
             modelVariable.setTags(variable.tags().toArray(new String[0]));
+            modelVariable.setBoundSet(model.getSet(variable.boundSet()));
             Objects.requireNonNull(modelVariable,"Invalid variable name in config/override image");
             variables.put(variable.identifier(),modelVariable);
         }
