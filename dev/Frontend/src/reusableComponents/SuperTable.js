@@ -9,33 +9,64 @@ const SuperTable = ({
   valueSetName, 
   editMode, 
   onSolutionUpdate, 
-  onAddDimension 
+  onAddDimension,
+  selectedTuples,
+  onSelectedTuplesChange,
+  defaultObjectiveValue = 0
 }) => {
   const [editingCell, setEditingCell] = useState(null); // Track which cell is being edited
   const [editValue, setEditValue] = useState(""); // Temporary value for editing
-  const [selectedTuples, setSelectedTuples] = useState([]);
-  const [newDimensionName, setNewDimensionName] = useState(""); // For adding new dimensions
   const [dimensionCounter, setDimensionCounter] = useState(1); // For generating unique dimension names
-  console.log("SELECTED:",selectedTuples)
-  useEffect(() => {
-    // Reset selection when solutions change
-    setSelectedTuples([]);
-  }, [solutions]);
 
+  useEffect(() => {
+    // Reset editing when solutions change
+    setEditingCell(null);
+    setEditValue("");
+  }, [solutions]);
 
   if (displayStructure.length < 1) {
     return <p>Set structure must have at least 1 dimension.</p>;
   }
 
   /**
-   * Sorts an array of objects (`data`) by the order of keys in `displayStructure`.
-   * Only keys in `displayStructure` affect sorting.
+   * Transforms the solutions to match the display structure
+   * This is the critical function we're fixing
    */
-  function sortByKeyStructure(data, displayStructure) {
+  function transformSolutionsForDisplay(solutionsData) {
+    // Create a clean copy of our solutions
+    let transformed = JSON.parse(JSON.stringify(solutionsData));
+    
+    // For each solution, create a new values array based on displayStructure
+    return transformed.map(sol => {
+      const originalValues = [...sol.values]; // Keep the original values
+      const displayValues = [];
+      
+      // For each dimension in displayStructure, find its value in the solution
+      displayStructure.forEach(dimension => {
+        const indexInSet = setStructure.indexOf(dimension);
+        // If dimension exists in setStructure, use its value; otherwise use a default value
+        if (indexInSet !== -1) {
+          displayValues.push(originalValues[indexInSet]);
+        } else {
+          displayValues.push(""); // Default empty value for unknown dimensions
+        }
+      });
+      
+      return {
+        values: displayValues,
+        originalValues // Keep a reference to original values for selection matching
+      };
+    });
+  }
+
+  /**
+   * Sorts an array of objects (`data`) by the order of keys in `displayStructure`.
+   */
+  function sortByDisplayStructure(data) {
     return [...data].sort((a, b) => {
-      for (const key of displayStructure) {
-        const valA = a[key];
-        const valB = b[key];
+      for (let i = 0; i < a.values.length; i++) {
+        const valA = a.values[i];
+        const valB = b.values[i];
 
         const numA = Number(valA);
         const numB = Number(valB);
@@ -51,152 +82,145 @@ const SuperTable = ({
     });
   }
 
-  function reorderObjectKeys(data, setStructure, displayStructure) {
-    return data.map(obj => {
-      const reorderedValues = new Array(displayStructure.length);
-
-      displayStructure.forEach((key, newIndex) => {
-        const currentIndex = setStructure.indexOf(key);
-        if (currentIndex !== -1) {
-          reorderedValues[newIndex] = obj.values[currentIndex];
-        }
-      });
-
-      return {
-        ...obj,
-        values: reorderedValues
-      };
-    });
-  }
-
   /**
-   * Filters an array of objects based on key-value pairs in `parentFilters`.
+   * Filters solutions based on parent filter values
    */
-  function filterByParentFilters(data, parentFilters, structure) {
-    return data.filter(obj => {
-      return Object.entries(parentFilters).every(([key, val]) => {
-        // Find the index in the 'values' array based on the key from the structure
-        const index = structure.indexOf(key);
-        if (index === -1) {
-          // If the key doesn't exist in the structure, ignore the filter
-          return true;
-        }
-        // Compare the value at the corresponding index in the values array
-        return obj.values[index] === val;
+  function filterByParentValues(solutions, parentFilters) {
+    return solutions.filter(sol => {
+      return Object.entries(parentFilters).every(([key, value]) => {
+        const indexInDisplay = displayStructure.indexOf(key);
+        return indexInDisplay >= 0 && sol.values[indexInDisplay] === value;
       });
     });
   }
 
   /**
-   * Extracts all values from the 'values' array at a given index in each object.
+   * Gets all values at a particular index from an array of solutions
    */
-  function getValuesAtIndex(data, index) {
-    return data.map(obj => obj.values[index]); // Extracts the value at the specified index from each 'values' array
+  function getValuesAtIndex(solutions, index) {
+    return solutions.map(sol => sol.values[index]);
   }
 
   /**
-   * Sorts an array of values, numerically when possible, otherwise lexicographically.
+   * Sorts an array of values, numerically when possible
    */
   function sortMixedValues(values) {
-    if (Array.isArray(values)) {
-      // Sort array as before
-      return values.sort((a, b) => {
-        const numA = Number(a);
-        const numB = Number(b);
+    return [...values].sort((a, b) => {
+      const numA = Number(a);
+      const numB = Number(b);
 
-        const bothNumbers = !isNaN(numA) && !isNaN(numB);
+      const bothNumbers = !isNaN(numA) && !isNaN(numB);
 
-        if (bothNumbers) return numA - numB;
-        return String(a).localeCompare(String(b));
-      });
-    } else if (typeof values === 'object' && values !== null) {
-      // Sort object keys by their corresponding values
-      const sortedEntries = Object.entries(values).sort(([, valueA], [, valueB]) => {
-        const numA = Number(valueA);
-        const numB = Number(valueB);
-
-        const bothNumbers = !isNaN(numA) && !isNaN(numB);
-
-        if (bothNumbers) return numA - numB;
-        return String(valueA).localeCompare(String(valueB));
-      });
-
-      // Return a new object with sorted keys and values
-      return Object.fromEntries(sortedEntries);
-    }
-
-    // Return the input as is if it's neither an array nor an object
-    return values;
+      if (bothNumbers) return numA - numB;
+      return String(a).localeCompare(String(b));
+    });
   }
 
   /**
-   * Find all tuples that match the given filters
+   * Find matching tuples with original solutions
    */
-  const findMatchingTuples = (filters) => {
-    return solutions.filter(sol => {
-      return Object.entries(filters).every(([key, val]) => {
-        const idx = displayStructure.indexOf(key);
-        return getRelevantValue(sol, idx) === val;
-      });
-    });
-  };
-  
-  /**
-   * Check if a solution matches the filters
-   */
-  const matchesFilters = (sol, filters) => {
-    return Object.entries(filters).every(([key, val]) => {
-      const idx = displayStructure.indexOf(key);
-      return getRelevantValue(sol, idx) === val;
-    });
-  };
+  function findMatchingOriginalSolutions(filters, displayedSolutions) {
+    // Find displayed solutions matching the filters
+    const matchingSolutions = filterByParentValues(displayedSolutions, filters);
+    
+    // Find corresponding original solutions
+    return solutions.filter(originalSol => 
+      matchingSolutions.some(displaySol => 
+        // We compare with originalValues we stored earlier
+        JSON.stringify(originalSol.values) === JSON.stringify(displaySol.originalValues)
+      )
+    );
+  }
 
   /**
-   * Toggle selection for multiple tuples 
+   * Check if a solution is selected
    */
-  const toggleSelection = (filters) => {
-    const matchedTuples = findMatchingTuples(filters);
-    
-    if (matchedTuples.length === 0) return;
-    
-    // Determine if we're adding or removing
-    const firstMatchIsSelected = selectedTuples.some(s => 
-      matchesFilters(s, filters)
+  function isSolutionSelected(displaySol) {
+    // Find corresponding original solutions
+    const originalSol = solutions.find(sol => 
+      JSON.stringify(sol.values) === JSON.stringify(displaySol.originalValues)
     );
     
-    if (firstMatchIsSelected) {
-      // Remove all tuples that match these filters
-      setSelectedTuples(selectedTuples.filter(tuple => 
-        !matchesFilters(tuple, filters)
-      ));
+    if (!originalSol) return false;
+    
+    // Check if it's in selectedTuples
+    return selectedTuples.some(selected => 
+      JSON.stringify(selected.values) === JSON.stringify(originalSol.values)
+    );
+  }
+
+  /**
+   * Toggle selection for tuples matching the filters
+   */
+  const toggleSelection = (filters) => {
+    // Find displayed solutions matching the filters
+    const matchingDisplayed = filterByParentValues(displayedSolutions, filters);
+    if (matchingDisplayed.length === 0) return;
+    
+    // Find corresponding original solutions
+    const matchingOriginals = findMatchingOriginalSolutions(filters, displayedSolutions);
+    
+    // Check if they're all selected already
+    const allSelected = matchingOriginals.every(original => 
+      selectedTuples.some(selected => 
+        JSON.stringify(selected.values) === JSON.stringify(original.values)
+      )
+    );
+    
+    let newSelection;
+    if (allSelected) {
+      // Remove from selection
+      newSelection = selectedTuples.filter(selected => 
+        !matchingOriginals.some(original => 
+          JSON.stringify(selected.values) === JSON.stringify(original.values)
+        )
+      );
     } else {
-      // Add all matched tuples that aren't already selected
-      const newSelected = [...selectedTuples];
-      matchedTuples.forEach(tuple => {
-        if (!newSelected.some(s => JSON.stringify(s) === JSON.stringify(tuple))) {
-          newSelected.push(tuple);
+      // Add to selection
+      newSelection = [...selectedTuples];
+      matchingOriginals.forEach(original => {
+        if (!newSelection.some(selected => 
+          JSON.stringify(selected.values) === JSON.stringify(original.values)
+        )) {
+          newSelection.push(original);
         }
       });
-      setSelectedTuples(newSelected);
+    }
+    
+    if (onSelectedTuplesChange) {
+      onSelectedTuplesChange(newSelection);
     }
   };
 
   /**
-   * Check if a specific solution is highlighted
+   * Toggle selection for entire table
    */
-  const isHighlighted = (sol) => {
-    return selectedTuples.some(s => JSON.stringify(s) === JSON.stringify(sol));
+  const toggleEntireTable = () => {
+    // Check if all solutions are selected
+    const allSelected = solutions.every(sol => 
+      selectedTuples.some(selected => 
+        JSON.stringify(selected.values) === JSON.stringify(sol.values)
+      )
+    );
+    
+    if (allSelected) {
+      // Clear selection
+      if (onSelectedTuplesChange) onSelectedTuplesChange([]);
+    } else {
+      // Select all
+      if (onSelectedTuplesChange) onSelectedTuplesChange([...solutions]);
+    }
   };
 
   /**
-   * Get the value at a specific level
+   * Toggle selection for a column
    */
-  const getRelevantValue = (sol, level) => {
-    if (displayStructure[level] === valueSetName) {
-      return sol.objectiveValue;
-    }
-    const lookAtIndex = setStructure.indexOf(displayStructure[level]);
-    return sol.values[lookAtIndex];
+  const toggleColumnSelection = (columnValue, level) => {
+    const columnDimension = displayStructure[level];
+    const filters = { [columnDimension]: columnValue };
+    
+    // Use the same logic as toggleSelection
+    toggleSelection(filters);
   };
 
   /**
@@ -205,74 +229,71 @@ const SuperTable = ({
   const applyEdit = () => {
     if (!editingCell) return;
     const { level, filters } = editingCell;
-
-    // Get the key being edited
-    const editingKey = displayStructure[level];
     
-    // Find the index of the key in setStructure
-    const idxToUpdate = setStructure.indexOf(editingKey);
-    if (idxToUpdate === -1 && editingKey !== valueSetName) return;
-
-    // Create a new array of solutions
+    // Get the dimension being edited
+    const editingDimension = displayStructure[level];
+    const indexInSetStructure = setStructure.indexOf(editingDimension);
+    if (indexInSetStructure === -1) return; // Dimension not found in set structure
+    
+    // Find matching displayed solutions
+    const matchingDisplayed = filterByParentValues(displayedSolutions, filters);
+    
+    // Find corresponding original solutions
+    const matchingOriginals = findMatchingOriginalSolutions(filters, displayedSolutions);
+    
+    // Update all matching solutions
     const updatedSolutions = solutions.map(sol => {
-      // Check if this solution matches the filters
-      const match = Object.entries(filters).every(([key, val]) => {
-        const idx = displayStructure.indexOf(key);
-        return getRelevantValue(sol, idx) === val;
-      });
-
-      if (match) {
-        if (editingKey === valueSetName) {
-          return { ...sol, objectiveValue: editValue };
-        } else {
-          const newValues = [...sol.values];
-          newValues[idxToUpdate] = editValue;
-          return { ...sol, values: newValues };
-        }
+      const isMatch = matchingOriginals.some(original => 
+        JSON.stringify(original.values) === JSON.stringify(sol.values)
+      );
+      
+      if (isMatch) {
+        const newValues = [...sol.values];
+        newValues[indexInSetStructure] = editValue;
+        return { ...sol, values: newValues };
       }
       return sol;
     });
-
+    
     // Clear editing state
     setEditingCell(null);
     setEditValue("");
     
-    // Notify parent component about the solution update
+    // Notify parent component
     if (onSolutionUpdate) {
       onSolutionUpdate(updatedSolutions);
     }
   };
 
   /**
-   * Handle adding a new row or column
+   * Handle adding a new item
    */
   const handleAddItem = (level, parentFilters = {}) => {
     const newDimName = `New_Dim_${dimensionCounter}`;
     setDimensionCounter(prev => prev + 1);
     
     if (level < displayStructure.length) {
-      // We're adding a new value to an existing dimension
+      // Adding a new value to an existing dimension
       const dimensionKey = displayStructure[level];
+      const indexInSetStructure = setStructure.indexOf(dimensionKey);
       
-      // Create a new solution with this value
+      if (indexInSetStructure === -1) return; // Dimension not found
+      
+      // Create a new solution
       const newSolution = {
-        objectiveValue: 0,
-        values: new Array(setStructure.length).fill("") // Default empty values
+        values: Array(setStructure.length).fill("") // Default empty values
       };
       
-      // Fill in the values based on parent filters
+      // Fill in values from parent filters
       Object.entries(parentFilters).forEach(([key, val]) => {
-        const dimIndex = setStructure.indexOf(key);
-        if (dimIndex !== -1) {
-          newSolution.values[dimIndex] = val;
+        const idx = setStructure.indexOf(key);
+        if (idx !== -1) {
+          newSolution.values[idx] = val;
         }
       });
       
-      // Set the value for the current dimension
-      const dimIndex = setStructure.indexOf(dimensionKey);
-      if (dimIndex !== -1) {
-        newSolution.values[dimIndex] = newDimName;
-      }
+      // Set the new dimension value
+      newSolution.values[indexInSetStructure] = newDimName;
       
       // Add to solutions
       const updatedSolutions = [...solutions, newSolution];
@@ -281,23 +302,25 @@ const SuperTable = ({
         onSolutionUpdate(updatedSolutions);
       }
     } else {
-      // We're adding a new dimension
+      // Adding a new dimension
       if (onAddDimension) {
         onAddDimension(newDimName);
       }
     }
   };
 
-  // Reorder and sort solutions for display
-  let mutatedSolutions = reorderObjectKeys(solutions, setStructure, displayStructure);
-  mutatedSolutions = sortByKeyStructure(mutatedSolutions, displayStructure);
-
+  // Transform solutions for display
+  const displayedSolutions = transformSolutionsForDisplay(solutions);
+  
+  // Sort the displayed solutions
+  const sortedSolutions = sortByDisplayStructure(displayedSolutions);
+  console.log("selected:",selectedTuples)
   const generateTable = (level, parentFilters = {}) => {
-    const currentSet = displayStructure[level];
-    const nextSet = displayStructure[level + 1];
-    const filteredSolutions = filterByParentFilters(mutatedSolutions, parentFilters, displayStructure);
-    const rawValues = getValuesAtIndex(filteredSolutions, level);
-    const uniqueValues = sortMixedValues([...new Set(rawValues)]);
+    const currentDimension = displayStructure[level];
+    const nextDimension = displayStructure[level + 1];
+    const filteredSolutions = filterByParentValues(sortedSolutions, parentFilters);
+    const currentValues = getValuesAtIndex(filteredSolutions, level);
+    const uniqueValues = sortMixedValues([...new Set(currentValues)]);
 
     // For the leaf level (most detailed)
     if (level === displayStructure.length - 1) {
@@ -306,7 +329,7 @@ const SuperTable = ({
           <thead>
             {displayStructure.length === 1 ? (
               <tr>
-                <th>{currentSet}</th>
+                <th>{currentDimension}</th>
               </tr>
             ) : (
               <tr></tr>
@@ -314,9 +337,9 @@ const SuperTable = ({
           </thead>
           <tbody>
             {uniqueValues.map((value, index) => {
-              const currentFilters = { ...parentFilters, [currentSet]: value };
-              const matchingTuples = findMatchingTuples(currentFilters);
-              const isSelected = matchingTuples.some(tuple => isHighlighted(tuple));
+              const currentFilters = { ...parentFilters, [currentDimension]: value };
+              const matchingSolutions = filterByParentValues(sortedSolutions, currentFilters);
+              const isSelected = matchingSolutions.some(sol => isSolutionSelected(sol));
               
               return (
                 <tr key={index}>
@@ -324,8 +347,10 @@ const SuperTable = ({
                     onClick={() => toggleSelection(currentFilters)}
                     onDoubleClick={(e) => {
                       e.stopPropagation();
-                      setEditingCell({ level, filters: currentFilters });
-                      setEditValue(value);
+                      if (editMode) {
+                        setEditingCell({ level, filters: currentFilters });
+                        setEditValue(value);
+                      }
                     }}
                     className={`clickable-cell ${isSelected ? "highlighted" : ""}`}
                   >
@@ -371,24 +396,21 @@ const SuperTable = ({
         <table className="solution-table">
           <thead>
             <tr>
-              <th>{currentSet}</th>
-              <th>{nextSet}</th>
-              {/* Add new column button in edit mode */}
-              {editMode && (
-                <th 
-                  className="add-item-cell"
-                  onClick={() => handleAddItem(level + 1, parentFilters)}
-                >
-                  <span className="add-button">+</span>
-                </th>
-              )}
+              <th>{currentDimension}</th>
+              <th>
+                {nextDimension}
+              </th>
             </tr>
           </thead>
           <tbody>
             {uniqueValues.map((rowValue, rowIndex) => {
-              const currentFilters = { ...parentFilters, [currentSet]: rowValue };
-              const matchingTuples = findMatchingTuples(currentFilters);
-              const isSelected = matchingTuples.some(tuple => isHighlighted(tuple));
+              const currentFilters = { ...parentFilters, [currentDimension]: rowValue };
+              const matchingSolutions = filterByParentValues(sortedSolutions, currentFilters);
+              const isSelected = matchingSolutions.some(sol => isSolutionSelected(sol));
+              
+              // For generating the cell content (based on nextDimension)
+              const nextValues = getValuesAtIndex(matchingSolutions, level + 1);
+              const nextUniqueValues = sortMixedValues([...new Set(nextValues)]);
               
               return (
                 <tr key={rowIndex}>
@@ -397,8 +419,10 @@ const SuperTable = ({
                     onClick={() => toggleSelection(currentFilters)}
                     onDoubleClick={(e) => {
                       e.stopPropagation();
-                      setEditingCell({ level, filters: currentFilters });
-                      setEditValue(rowValue);
+                      if (editMode) {
+                        setEditingCell({ level, filters: currentFilters });
+                        setEditValue(rowValue);
+                      }
                     }}
                   >
                     {editingCell &&
@@ -418,7 +442,70 @@ const SuperTable = ({
                       rowValue
                     )}
                   </td>
-                  {nextSet ? generateTable(level + 1, currentFilters) : null}
+                  <td>
+                    <table className="inner-table">
+                      <tbody>
+                        {nextUniqueValues.map((colValue, colIndex) => {
+                          const cellFilters = { 
+                            ...parentFilters, 
+                            [currentDimension]: rowValue, 
+                            [nextDimension]: colValue 
+                          };
+                          const cellMatchingSolutions = filterByParentValues(sortedSolutions, cellFilters);
+                          const isCellSelected = cellMatchingSolutions.some(sol => 
+                            isSolutionSelected(sol)
+                          );
+                          
+                          return (
+                            <tr key={colIndex}>
+                              <td 
+                                className={`clickable-cell ${isCellSelected ? "highlighted" : ""}`}
+                                onClick={() => toggleSelection(cellFilters)}
+                                onDoubleClick={(e) => {
+                                  e.stopPropagation();
+                                  if (editMode) {
+                                    setEditingCell({ level: level + 1, filters: cellFilters });
+                                    setEditValue(colValue);
+                                  }
+                                }}
+                              >
+                                {editingCell &&
+                                editingCell.level === level + 1 &&
+                                JSON.stringify(editingCell.filters) === JSON.stringify(cellFilters) ? (
+                                  <input
+                                    autoFocus
+                                    value={editValue}
+                                    onChange={(e) => setEditValue(e.target.value)}
+                                    onBlur={applyEdit}
+                                    onKeyDown={(e) => {
+                                      if (e.key === "Enter") applyEdit();
+                                    }}
+                                    onClick={(e) => e.stopPropagation()}
+                                  />
+                                ) : (
+                                  colValue
+                                )}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                        {/* Add new item button in edit mode */}
+                        {editMode && (
+                          <tr>
+                            <td 
+                              className="add-item-cell"
+                              onClick={() => handleAddItem(level + 1, {
+                                ...parentFilters, 
+                                [currentDimension]: rowValue
+                              })}
+                            >
+                              <span className="add-button">+</span>
+                            </td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </td>
                 </tr>
               );
             })}
@@ -431,6 +518,7 @@ const SuperTable = ({
                 >
                   <span className="add-button">+</span>
                 </td>
+                <td></td>
               </tr>
             )}
           </tbody>
@@ -439,51 +527,29 @@ const SuperTable = ({
     }
 
     // For upper levels (with nested tables)
-    const nextRawValues = getValuesAtIndex(mutatedSolutions, level + 1);
-    const nextUniqueValues = sortMixedValues([...new Set(nextRawValues)]);
+    const nextValues = getValuesAtIndex(filteredSolutions, level + 1);
+    const nextUniqueValues = sortMixedValues([...new Set(nextValues)]);
 
     return (
       <table className="solution-table">
         <thead>
           <tr>
-            <th>{currentSet} \ {nextSet}</th>
-            {nextSet &&
-              nextUniqueValues.map((colValue, index) => {
-                const colFilters = { ...parentFilters, [nextSet]: colValue };
-                const matchingTuples = findMatchingTuples(colFilters);
-                const isSelected = matchingTuples.some(tuple => isHighlighted(tuple));
-                
-                return (
-                  <th 
-                    key={index}
-                    className={`clickable-cell ${isSelected ? "highlighted" : ""}`}
-                    onClick={() => toggleSelection(colFilters)}
-                    onDoubleClick={(e) => {
-                      e.stopPropagation();
-                      setEditingCell({ level: level + 1, filters: colFilters });
-                      setEditValue(colValue);
-                    }}
-                  >
-                    {editingCell &&
-                    editingCell.level === level + 1 &&
-                    JSON.stringify(editingCell.filters) === JSON.stringify(colFilters) ? (
-                      <input
-                        autoFocus
-                        value={editValue}
-                        onChange={(e) => setEditValue(e.target.value)}
-                        onBlur={applyEdit}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") applyEdit();
-                        }}
-                        onClick={(e) => e.stopPropagation()}
-                      />
-                    ) : (
-                      colValue
-                    )}
-                  </th>
-                );
-              })}
-            {/* Add new column button in edit mode */}
+            <th 
+              className="table-corner clickable-cell"
+              onClick={() => toggleEntireTable()}
+            >
+              {currentDimension} \ {nextDimension}
+            </th>
+            {nextUniqueValues.map((value, index) => (
+              <th 
+                key={index}
+                className="clickable-cell"
+                onClick={() => toggleColumnSelection(value, level + 1)}
+              >
+                {value}
+              </th>
+            ))}
+            {/* Add column button for upper levels */}
             {editMode && (
               <th 
                 className="add-item-cell"
@@ -495,58 +561,52 @@ const SuperTable = ({
           </tr>
         </thead>
         <tbody>
-          {uniqueValues.map((rowValue, rowIndex) => {
-            const rowFilters = { ...parentFilters, [currentSet]: rowValue };
-            const matchingTuples = findMatchingTuples(rowFilters);
-            const isSelected = matchingTuples.some(tuple => isHighlighted(tuple));
-            
-            return (
-              <tr key={rowIndex}>
-                <td 
-                  className={`row-header clickable-cell ${isSelected ? "highlighted" : ""}`}
-                  onClick={() => toggleSelection(rowFilters)}
-                  onDoubleClick={(e) => {
-                    e.stopPropagation();
-                    setEditingCell({ level, filters: rowFilters });
+          {uniqueValues.map((rowValue, rowIndex) => (
+            <tr key={rowIndex}>
+              <td 
+                className="row-header clickable-cell"
+                onClick={() => toggleSelection({ ...parentFilters, [currentDimension]: rowValue })}
+                onDoubleClick={(e) => {
+                  e.stopPropagation();
+                  if (editMode) {
+                    setEditingCell({ level, filters: { ...parentFilters, [currentDimension]: rowValue } });
                     setEditValue(rowValue);
-                  }}
-                >
-                  {editingCell &&
-                  editingCell.level === level &&
-                  JSON.stringify(editingCell.filters) === JSON.stringify(rowFilters) ? (
-                    <input
-                      autoFocus
-                      value={editValue}
-                      onChange={(e) => setEditValue(e.target.value)}
-                      onBlur={applyEdit}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") applyEdit();
-                      }}
-                      onClick={(e) => e.stopPropagation()}
-                    />
-                  ) : (
-                    rowValue
-                  )}
-                </td>
-                {nextSet
-                  ? nextUniqueValues.map((colValue, colIndex) => {
-                      const cellFilters = { ...parentFilters, [currentSet]: rowValue, [nextSet]: colValue };
-                      const matchingTuples = findMatchingTuples(cellFilters);
-                      const isSelected = matchingTuples.some(tuple => isHighlighted(tuple));
-                      
-                      return (
-                        <td 
-                          key={colIndex} 
-                          className={isSelected ? "highlighted-container" : ""}
-                        >
-                          {generateTable(level + 2, cellFilters)}
-                        </td>
-                      );
-                    })
-                  : null}
-              </tr>
-            );
-          })}
+                  }
+                }}
+              >
+                {editingCell &&
+                editingCell.level === level &&
+                JSON.stringify(editingCell.filters) === JSON.stringify({ ...parentFilters, [currentDimension]: rowValue }) ? (
+                  <input
+                    autoFocus
+                    value={editValue}
+                    onChange={(e) => setEditValue(e.target.value)}
+                    onBlur={applyEdit}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") applyEdit();
+                    }}
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                ) : (
+                  rowValue
+                )}
+              </td>
+              {nextUniqueValues.map((colValue, colIndex) => {
+                const cellFilters = { 
+                  ...parentFilters, 
+                  [currentDimension]: rowValue, 
+                  [nextDimension]: colValue 
+                };
+                return (
+                  <td key={colIndex}>
+                    {generateTable(level + 2, cellFilters)}
+                  </td>
+                );
+              })}
+              {/* Add an empty cell to match the "add column" header */}
+              {editMode && <td></td>}
+            </tr>
+          ))}
           {/* Add new row button in edit mode */}
           {editMode && (
             <tr>
@@ -556,6 +616,10 @@ const SuperTable = ({
               >
                 <span className="add-button">+</span>
               </td>
+              {/* Add empty cells to match columns */}
+              {Array(nextUniqueValues.length + (editMode ? 1 : 0)).fill(0).map((_, i) => (
+                <td key={i}></td>
+              ))}
             </tr>
           )}
         </tbody>
@@ -565,9 +629,7 @@ const SuperTable = ({
 
   return (
     <div className="super-table-container">
-      <div className="table-scrollable">
-        {generateTable(0)}
-      </div>
+      {generateTable(0)}
     </div>
   );
 };

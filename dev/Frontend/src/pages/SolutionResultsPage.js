@@ -25,6 +25,9 @@ const SolutionResultsPage = () => {
   
   // Add state for table edit mode
   const [tableEditMode, setTableEditMode] = useState(false);
+  
+  // Global selected tuples state - persists across variables
+  const [globalSelectedTuples, setGlobalSelectedTuples] = useState({});
 
   const getSetStructure = (variable) => {
     const varObj = image.variablesModule?.variablesOfInterest?.find((varObj) => varObj.identifier == variable);
@@ -70,6 +73,38 @@ const SolutionResultsPage = () => {
   // Toggle table edit mode
   const toggleTableEditMode = () => {
     setTableEditMode(prev => !prev);
+  };
+  
+  // Handle deletion of selected tuples
+  const handleDeleteSelected = () => {
+    if (!selectedVariable || !globalSelectedTuples[selectedVariable]) return;
+    
+    const selectedTuples = globalSelectedTuples[selectedVariable];
+    if (selectedTuples.length === 0) return;
+    
+    // Filter out the selected tuples from the current variable's solutions
+    const updatedSolutions = dynamicSolutions[selectedVariable].solutions.filter(sol => 
+      !selectedTuples.some(selected => 
+        JSON.stringify(selected) === JSON.stringify(sol)
+      )
+    );
+    
+    // Update solutions
+    updateDynamicSolutions(selectedVariable, updatedSolutions);
+    
+    // Remove the deleted tuples from selection
+    setGlobalSelectedTuples(prev => ({
+      ...prev,
+      [selectedVariable]: []
+    }));
+  };
+  
+  // Update global selected tuples
+  const updateSelectedTuples = (tuples) => {
+    setGlobalSelectedTuples(prev => ({
+      ...prev,
+      [selectedVariable]: tuples
+    }));
   };
 
   // Effect to sync dynamicSolutions with solutionResponse changes
@@ -232,8 +267,18 @@ const SolutionResultsPage = () => {
             onClick={toggleTableEditMode}
             className={`px-3 py-1 rounded ${tableEditMode ? 'bg-blue-600 text-white' : 'bg-gray-200 hover:bg-gray-300'}`}
           >
-            {tableEditMode ? 'Done Editing' : 'Change Table'}
+            {tableEditMode ? 'Done Editing' : 'Edit Table'}
           </button>
+          
+          {tableEditMode && (
+            <button 
+              onClick={handleDeleteSelected}
+              className="px-3 py-1 rounded bg-red-500 text-white hover:bg-red-600"
+              disabled={!globalSelectedTuples[selectedVariable] || globalSelectedTuples[selectedVariable].length === 0}
+            >
+              Delete Selected
+            </button>
+          )}
         </div>
 
         {/* Main Solution Table */}
@@ -247,6 +292,9 @@ const SolutionResultsPage = () => {
             editMode={tableEditMode}
             onSolutionUpdate={handleSolutionUpdate}
             onAddDimension={handleAddDimension}
+            selectedTuples={globalSelectedTuples[selectedVariable] || []}
+            onSelectedTuplesChange={updateSelectedTuples}
+            defaultObjectiveValue={displayValue ? 0 : 1}
           />
         </div>
       </div>
@@ -272,7 +320,7 @@ const SolutionResultsPage = () => {
               <div 
                 {...provided.droppableProps} 
                 ref={provided.innerRef}
-                className="space-y-2"
+                className="dimension-list"
               >
                 {displayStructure.map((set, index) => (
                   <Draggable 
@@ -285,9 +333,10 @@ const SolutionResultsPage = () => {
                         ref={provided.innerRef}
                         {...provided.draggableProps}
                         {...provided.dragHandleProps}
-                        className="p-2 border rounded bg-gray-100 hover:bg-gray-200 cursor-move"
+                        className="dimension-item"
                       >
-                        {set}
+                        <span className="dimension-name">{set}</span>
+                        <span className="drag-handle">≡</span>
                       </div>
                     )}
                   </Draggable>
