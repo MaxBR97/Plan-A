@@ -1,10 +1,27 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./SuperTable.css";
 
-const SuperTable = ({ solutions, setStructure, displayStructure, isDisplayBinary, valueSetName }) => {
+const SuperTable = ({ 
+  solutions, 
+  setStructure, 
+  displayStructure, 
+  isDisplayBinary, 
+  valueSetName, 
+  editMode, 
+  onSolutionUpdate, 
+  onAddDimension 
+}) => {
   const [editingCell, setEditingCell] = useState(null); // Track which cell is being edited
   const [editValue, setEditValue] = useState(""); // Temporary value for editing
   const [selectedTuples, setSelectedTuples] = useState([]);
+  const [newDimensionName, setNewDimensionName] = useState(""); // For adding new dimensions
+  const [dimensionCounter, setDimensionCounter] = useState(1); // For generating unique dimension names
+  console.log("SELECTED:",selectedTuples)
+  useEffect(() => {
+    // Reset selection when solutions change
+    setSelectedTuples([]);
+  }, [solutions]);
+
 
   if (displayStructure.length < 1) {
     return <p>Set structure must have at least 1 dimension.</p>;
@@ -123,6 +140,16 @@ const SuperTable = ({ solutions, setStructure, displayStructure, isDisplayBinary
       });
     });
   };
+  
+  /**
+   * Check if a solution matches the filters
+   */
+  const matchesFilters = (sol, filters) => {
+    return Object.entries(filters).every(([key, val]) => {
+      const idx = displayStructure.indexOf(key);
+      return getRelevantValue(sol, idx) === val;
+    });
+  };
 
   /**
    * Toggle selection for multiple tuples 
@@ -130,30 +157,28 @@ const SuperTable = ({ solutions, setStructure, displayStructure, isDisplayBinary
   const toggleSelection = (filters) => {
     const matchedTuples = findMatchingTuples(filters);
     
-    // Create a map of selected tuples for easy lookup
-    const selectedMap = new Map(selectedTuples.map(tuple => [JSON.stringify(tuple), tuple]));
+    if (matchedTuples.length === 0) return;
     
     // Determine if we're adding or removing
-    const firstMatchIdx = selectedTuples.findIndex(s => JSON.stringify(s) === JSON.stringify(matchedTuples[0]));
-    const isSelecting = firstMatchIdx === -1;
+    const firstMatchIsSelected = selectedTuples.some(s => 
+      matchesFilters(s, filters)
+    );
     
-    if (isSelecting) {
+    if (firstMatchIsSelected) {
+      // Remove all tuples that match these filters
+      setSelectedTuples(selectedTuples.filter(tuple => 
+        !matchesFilters(tuple, filters)
+      ));
+    } else {
       // Add all matched tuples that aren't already selected
+      const newSelected = [...selectedTuples];
       matchedTuples.forEach(tuple => {
-        const tupleKey = JSON.stringify(tuple);
-        if (!selectedMap.has(tupleKey)) {
-          selectedMap.set(tupleKey, tuple);
+        if (!newSelected.some(s => JSON.stringify(s) === JSON.stringify(tuple))) {
+          newSelected.push(tuple);
         }
       });
-    } else {
-      // Remove all matched tuples
-      matchedTuples.forEach(tuple => {
-        const tupleKey = JSON.stringify(tuple);
-        selectedMap.delete(tupleKey);
-      });
+      setSelectedTuples(newSelected);
     }
-    
-    setSelectedTuples(Array.from(selectedMap.values()));
   };
 
   /**
@@ -172,26 +197,6 @@ const SuperTable = ({ solutions, setStructure, displayStructure, isDisplayBinary
     }
     const lookAtIndex = setStructure.indexOf(displayStructure[level]);
     return sol.values[lookAtIndex];
-  };
-
-  /**
-   * Get tuples filtered by parent filters
-   */
-  const getFilteredTuples = (solutions, parentFilters, displayStructure, setStructure) => {
-    return solutions.filter((sol) => {
-      return Object.entries(parentFilters).every(([key, val]) => {
-        const levelIndex = displayStructure.indexOf(key);
-        if (levelIndex === -1) return false; // Skip if the key is not part of displayStructure
-
-        if (displayStructure[levelIndex] === valueSetName) {
-          // valueSetName level - use objectiveValue
-          return sol.objectiveValue === val;
-        }
-
-        const solValue = sol.values[setStructure.indexOf(displayStructure[levelIndex])];
-        return solValue === val;
-      });
-    });
   };
 
   /**
@@ -232,12 +237,58 @@ const SuperTable = ({ solutions, setStructure, displayStructure, isDisplayBinary
     setEditingCell(null);
     setEditValue("");
     
-    // Update solutions - assumes there's a way to update solutions in the parent component
-    // This is just an example, you might need to adapt this to your actual data flow
-    setStructure(updatedSolutions);
-    // solutions = updatedSolutions
+    // Notify parent component about the solution update
+    if (onSolutionUpdate) {
+      onSolutionUpdate(updatedSolutions);
+    }
   };
 
+  /**
+   * Handle adding a new row or column
+   */
+  const handleAddItem = (level, parentFilters = {}) => {
+    const newDimName = `New_Dim_${dimensionCounter}`;
+    setDimensionCounter(prev => prev + 1);
+    
+    if (level < displayStructure.length) {
+      // We're adding a new value to an existing dimension
+      const dimensionKey = displayStructure[level];
+      
+      // Create a new solution with this value
+      const newSolution = {
+        objectiveValue: 0,
+        values: new Array(setStructure.length).fill("") // Default empty values
+      };
+      
+      // Fill in the values based on parent filters
+      Object.entries(parentFilters).forEach(([key, val]) => {
+        const dimIndex = setStructure.indexOf(key);
+        if (dimIndex !== -1) {
+          newSolution.values[dimIndex] = val;
+        }
+      });
+      
+      // Set the value for the current dimension
+      const dimIndex = setStructure.indexOf(dimensionKey);
+      if (dimIndex !== -1) {
+        newSolution.values[dimIndex] = newDimName;
+      }
+      
+      // Add to solutions
+      const updatedSolutions = [...solutions, newSolution];
+      
+      if (onSolutionUpdate) {
+        onSolutionUpdate(updatedSolutions);
+      }
+    } else {
+      // We're adding a new dimension
+      if (onAddDimension) {
+        onAddDimension(newDimName);
+      }
+    }
+  };
+
+  // Reorder and sort solutions for display
   let mutatedSolutions = reorderObjectKeys(solutions, setStructure, displayStructure);
   mutatedSolutions = sortByKeyStructure(mutatedSolutions, displayStructure);
 
@@ -298,6 +349,17 @@ const SuperTable = ({ solutions, setStructure, displayStructure, isDisplayBinary
                 </tr>
               );
             })}
+            {/* Add new row button in edit mode */}
+            {editMode && (
+              <tr>
+                <td 
+                  className="add-item-cell"
+                  onClick={() => handleAddItem(level, parentFilters)}
+                >
+                  <span className="add-button">+</span>
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       );
@@ -311,6 +373,15 @@ const SuperTable = ({ solutions, setStructure, displayStructure, isDisplayBinary
             <tr>
               <th>{currentSet}</th>
               <th>{nextSet}</th>
+              {/* Add new column button in edit mode */}
+              {editMode && (
+                <th 
+                  className="add-item-cell"
+                  onClick={() => handleAddItem(level + 1, parentFilters)}
+                >
+                  <span className="add-button">+</span>
+                </th>
+              )}
             </tr>
           </thead>
           <tbody>
@@ -351,6 +422,17 @@ const SuperTable = ({ solutions, setStructure, displayStructure, isDisplayBinary
                 </tr>
               );
             })}
+            {/* Add new row button in edit mode */}
+            {editMode && (
+              <tr>
+                <td 
+                  className="add-item-cell"
+                  onClick={() => handleAddItem(level, parentFilters)}
+                >
+                  <span className="add-button">+</span>
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       );
@@ -401,6 +483,15 @@ const SuperTable = ({ solutions, setStructure, displayStructure, isDisplayBinary
                   </th>
                 );
               })}
+            {/* Add new column button in edit mode */}
+            {editMode && (
+              <th 
+                className="add-item-cell"
+                onClick={() => handleAddItem(level + 1, parentFilters)}
+              >
+                <span className="add-button">+</span>
+              </th>
+            )}
           </tr>
         </thead>
         <tbody>
@@ -456,16 +547,26 @@ const SuperTable = ({ solutions, setStructure, displayStructure, isDisplayBinary
               </tr>
             );
           })}
+          {/* Add new row button in edit mode */}
+          {editMode && (
+            <tr>
+              <td 
+                className="add-item-cell"
+                onClick={() => handleAddItem(level, parentFilters)}
+              >
+                <span className="add-button">+</span>
+              </td>
+            </tr>
+          )}
         </tbody>
       </table>
     );
   };
 
   return (
-    <div className="solution-table-container">
-      {generateTable(0)}
-      <div className="selection-info">
-        <p>Selected tuples: {selectedTuples.length}</p>
+    <div className="super-table-container">
+      <div className="table-scrollable">
+        {generateTable(0)}
       </div>
     </div>
   );

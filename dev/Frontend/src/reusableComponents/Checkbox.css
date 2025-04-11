@@ -1,40 +1,24 @@
-/* Checkbox.css */
-.checkbox-label {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    cursor: pointer;
-    margin-bottom: 0.5rem;
-    user-select: none;
-    font-size: 14px;
-    color: #555;
-  }
-  
-  .checkbox-label.disabled {
-    cursor: not-allowed;
-    opacity: 0.6;
-  }
-  
-  .checkbox-label input[type="checkbox"] {
-    width: 16px;
-    height: 16px;
-    cursor: pointer;
-    accent-color: #4a90e2;
-  }
-  
-  .checkbox-label input[type="checkbox"]:disabled {
-    cursor: not-allowed;
-  }
-  
-  .checkbox-label span {
-    font-size: 14px;
-    line-height: 1.2;
-  }
-  
-  .checkbox-label:hover:not(.disabled) {
-    color: #333;
-  }
-  
-  .checkbox-label:hover:not(.disabled) input[type="checkbox"] {
-    box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
-  }
+.checkbox {
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+  margin-right: 12px;
+}
+
+.checkbox.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.checkbox input {
+  margin-right: 8px;
+  cursor: pointer;
+}
+
+.checkbox input:disabled {
+  cursor: not-allowed;
+}
+
+.checkbox .label {
+  font-size: 14px;
+}
