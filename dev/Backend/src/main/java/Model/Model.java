@@ -464,7 +464,8 @@ public class Model extends ModelInterface {
             String paramName = extractName(ctx.sqRef().getText());
             TypeVisitor typer = new TypeVisitor();
             typer.visit(ctx.expr());
-            ModelParameter param = new ModelParameter(id,paramName,typer.getType(), typer.getBasicSets(),typer.getBasicParams(),typer.getBasicFuncs());
+            ModelType existingType = getParameter(paramName) != null && getParameter(paramName).getType() != ModelPrimitives.UNKNOWN ? getParameter(paramName).getType() : typer.getType();
+            ModelParameter param = new ModelParameter(id,paramName,existingType, typer.getBasicSets(),typer.getBasicParams(),typer.getBasicFuncs());
             if(loadElementsToRam){
                 param.setValue(ctx.expr().getText());
                 param.setDefaultValue(ctx.expr().getText());
@@ -476,8 +477,9 @@ public class Model extends ModelInterface {
         @Override
         public Void visitSetDecl(FormulationParser.SetDeclContext ctx) {
             String setName = extractName(ctx.sqRef().getText());
-            
-            sets.put(setName,new ModelSet(id,setName,ModelPrimitives.UNKNOWN));
+            ModelType existingTypeOfSet = getSet(setName) != null && getSet(setName).getType() != ModelPrimitives.UNKNOWN ? getSet(setName).getType() :ModelPrimitives.UNKNOWN ;
+            if(!sets.containsKey(setName))
+                sets.put(setName,new ModelSet(id,setName,existingTypeOfSet));
             return super.visitSetDecl(ctx);
         }
 
@@ -504,7 +506,12 @@ public class Model extends ModelInterface {
             //     System.out.println(ctx.setExpr().getText());
             TypeVisitor typer = new TypeVisitor();
             typer.visit(ctx.setExpr());
-            ModelSet set = new ModelSet(id,setName,typer.getType(),typer.getBasicSets(),typer.getBasicParams(),typer.getBasicFuncs());
+            ModelType existingTypeOfSet = getSet(setName) != null && getSet(setName).getType() != ModelPrimitives.UNKNOWN ? getSet(setName).getType() : typer.getType();
+            ModelSet set;
+            if(!sets.containsKey(setName))
+                set = new ModelSet(id,setName,existingTypeOfSet,typer.getBasicSets(),typer.getBasicParams(),typer.getBasicFuncs());
+            else
+                set = sets.get(setName);
             if(loadElementsToRam){
                 java.util.List<String> elements = parseSetElements(ctx.setExpr());
                 set.setElements(elements);
@@ -553,7 +560,8 @@ public class Model extends ModelInterface {
             if(ctx.sqRef() instanceof FormulationParser.SqRefCsvContext){
                 isComplex = ((FormulationParser.SqRefCsvContext)(ctx.sqRef())).csv() == null ? false : true;
             }
-            variables.put(varName, new ModelVariable(id,varName, visitor.getBasicSets(), visitor.getBasicParams(),visitor.getBasicFuncs(),visitor.type,isComplex));
+            if(!variables.containsKey(varName))
+                variables.put(varName, new ModelVariable(id,varName, visitor.getBasicSets(), visitor.getBasicParams(),visitor.getBasicFuncs(),visitor.type,isComplex));
             return super.visitVariable(ctx);
         }
 

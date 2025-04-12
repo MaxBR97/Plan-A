@@ -17,7 +17,7 @@ const SuperTable = ({
   const [editingCell, setEditingCell] = useState(null); // Track which cell is being edited
   const [editValue, setEditValue] = useState(""); // Temporary value for editing
   const [dimensionCounter, setDimensionCounter] = useState(1); // For generating unique dimension names
-
+  console.log("Selected",selectedTuples)
   useEffect(() => {
     // Reset editing when solutions change
     setEditingCell(null);
@@ -118,6 +118,7 @@ const SuperTable = ({
 
   /**
    * Find matching tuples with original solutions
+   * FIX: Improved matching to handle displayValue changes
    */
   function findMatchingOriginalSolutions(filters, displayedSolutions) {
     // Find displayed solutions matching the filters
@@ -125,28 +126,65 @@ const SuperTable = ({
     
     // Find corresponding original solutions
     return solutions.filter(originalSol => 
-      matchingSolutions.some(displaySol => 
-        // We compare with originalValues we stored earlier
-        JSON.stringify(originalSol.values) === JSON.stringify(displaySol.originalValues)
-      )
+      matchingSolutions.some(displaySol => {
+        // Compare only the relevant fields from original values
+        // This fixes the issue with extra undefined values
+        const relevantOriginal = [];
+        setStructure.forEach((dim, index) => {
+          if (displayStructure.includes(dim)) {
+            relevantOriginal.push(originalSol.values[index]);
+          }
+        });
+        
+        // Compare the relevant fields from display solution
+        const relevantDisplay = [];
+        displayStructure.forEach((dim, index) => {
+          if (setStructure.includes(dim)) {
+            relevantDisplay.push(displaySol.values[index]);
+          }
+        });
+        
+        // Ignore the "value" field for comparison if it's the last one
+        const lastIndex = displayStructure.length - 1;
+        if (displayStructure[lastIndex] === valueSetName) {
+          relevantDisplay.pop();
+        }
+        
+        // Make sure the arrays are of the same length before comparing
+        const minLength = Math.min(relevantOriginal.length, relevantDisplay.length);
+        return JSON.stringify(relevantOriginal.slice(0, minLength)) === 
+               JSON.stringify(relevantDisplay.slice(0, minLength));
+      })
     );
   }
 
   /**
    * Check if a solution is selected
+   * FIX: Improved selection checking to handle displayValue changes
    */
   function isSolutionSelected(displaySol) {
-    // Find corresponding original solutions
-    const originalSol = solutions.find(sol => 
-      JSON.stringify(sol.values) === JSON.stringify(displaySol.originalValues)
-    );
+    // Create a normalized version of the display solution for comparison
+    const relevantDisplay = [];
+    displayStructure.forEach((dim, index) => {
+      if (setStructure.includes(dim) && dim !== valueSetName) {
+        relevantDisplay.push(displaySol.values[index]);
+      }
+    });
     
-    if (!originalSol) return false;
-    
-    // Check if it's in selectedTuples
-    return selectedTuples.some(selected => 
-      JSON.stringify(selected.values) === JSON.stringify(originalSol.values)
-    );
+    // Check if any selected tuple matches this solution
+    return selectedTuples.some(selected => {
+      const relevantSelected = [];
+      setStructure.forEach((dim, index) => {
+        if (displayStructure.includes(dim) && dim !== valueSetName) {
+          relevantSelected.push(selected.values[index]);
+        }
+      });
+      
+      // Make sure arrays are same length before comparing
+      const minLength = Math.min(relevantDisplay.length, relevantSelected.length);
+      return JSON.stringify(relevantDisplay.slice(0, minLength)) === 
+             JSON.stringify(relevantSelected.slice(0, minLength));
+    });
   }
 
   /**
@@ -162,32 +200,68 @@ const SuperTable = ({
     
     // Check if they're all selected already
     const allSelected = matchingOriginals.every(original => 
-      selectedTuples.some(selected => 
-        JSON.stringify(selected.values) === JSON.stringify(original.values)
-      )
+      selectedTuples.some(selected => {
+        // Compare only the relevant parts, ignoring value column if needed
+        const originalValues = original.values.filter((_, i) => 
+          // Keep only non-value dimensions that are in display structure
+          displayStructure.includes(setStructure[i]) && setStructure[i] !== valueSetName
+        );
+        
+        const selectedValues = selected.values.filter((_, i) => 
+          // Keep only non-value dimensions that are in display structure
+          displayStructure.includes(setStructure[i]) && setStructure[i] !== valueSetName
+        );
+        
+        // Compare the filteredValues
+        const minLength = Math.min(originalValues.length, selectedValues.length);
+        return JSON.stringify(originalValues.slice(0, minLength)) === 
+               JSON.stringify(selectedValues.slice(0, minLength));
+      })
     );
-    
+
     let newSelection;
     if (allSelected) {
-      // Remove from selection
+      // Remove from selection - use same comparison logic as above
       newSelection = selectedTuples.filter(selected => 
-        !matchingOriginals.some(original => 
-          JSON.stringify(selected.values) === JSON.stringify(original.values)
-        )
+        !matchingOriginals.some(original => {
+          const originalValues = original.values.filter((_, i) => 
+            displayStructure.includes(setStructure[i]) && setStructure[i] !== valueSetName
+          );
+          
+          const selectedValues = selected.values.filter((_, i) => 
+            displayStructure.includes(setStructure[i]) && setStructure[i] !== valueSetName
+          );
+          
+          const minLength = Math.min(originalValues.length, selectedValues.length);
+          return JSON.stringify(originalValues.slice(0, minLength)) === 
+                 JSON.stringify(selectedValues.slice(0, minLength));
+        })
       );
     } else {
       // Add to selection
       newSelection = [...selectedTuples];
+      
       matchingOriginals.forEach(original => {
-        if (!newSelection.some(selected => 
-          JSON.stringify(selected.values) === JSON.stringify(original.values)
-        )) {
+        if (!newSelection.some(selected => {
+          const originalValues = original.values.filter((_, i) => 
+            displayStructure.includes(setStructure[i]) && setStructure[i] !== valueSetName
+          );
+          
+          const selectedValues = selected.values.filter((_, i) => 
+            displayStructure.includes(setStructure[i]) && setStructure[i] !== valueSetName
+          );
+          
+          const minLength = Math.min(originalValues.length, selectedValues.length);
+          return JSON.stringify(originalValues.slice(0, minLength)) === 
+                 JSON.stringify(selectedValues.slice(0, minLength));
+        })) {
           newSelection.push(original);
         }
       });
     }
     
     if (onSelectedTuplesChange) {
+      
       onSelectedTuplesChange(newSelection);
     }
   };
@@ -198,9 +272,20 @@ const SuperTable = ({
   const toggleEntireTable = () => {
     // Check if all solutions are selected
     const allSelected = solutions.every(sol => 
-      selectedTuples.some(selected => 
-        JSON.stringify(selected.values) === JSON.stringify(sol.values)
-      )
+      selectedTuples.some(selected => {
+        // Compare only non-value parts
+        const solValues = sol.values.filter((_, i) => 
+          displayStructure.includes(setStructure[i]) && setStructure[i] !== valueSetName
+        );
+        
+        const selectedValues = selected.values.filter((_, i) => 
+          displayStructure.includes(setStructure[i]) && setStructure[i] !== valueSetName
+        );
+        
+        const minLength = Math.min(solValues.length, selectedValues.length);
+        return JSON.stringify(solValues.slice(0, minLength)) === 
+               JSON.stringify(selectedValues.slice(0, minLength));
+      })
     );
     
     if (allSelected) {
@@ -225,6 +310,7 @@ const SuperTable = ({
 
   /**
    * Apply the edited value
+   * FIX: Ensure we're editing the correct dimension
    */
   const applyEdit = () => {
     if (!editingCell) return;
@@ -243,16 +329,28 @@ const SuperTable = ({
     
     // Update all matching solutions
     const updatedSolutions = solutions.map(sol => {
-      const isMatch = matchingOriginals.some(original => 
-        JSON.stringify(original.values) === JSON.stringify(sol.values)
-      );
+      const isMatch = matchingOriginals.some(original => {
+        // Compare only non-value parts
+        const originalValues = original.values.filter((_, i) => 
+          displayStructure.includes(setStructure[i]) && setStructure[i] !== valueSetName
+        );
+        
+        const solValues = sol.values.filter((_, i) => 
+          displayStructure.includes(setStructure[i]) && setStructure[i] !== valueSetName
+        );
+        
+        const minLength = Math.min(originalValues.length, solValues.length);
+        return JSON.stringify(originalValues.slice(0, minLength)) === 
+               JSON.stringify(solValues.slice(0, minLength));
+      });
       
       if (isMatch) {
         const newValues = [...sol.values];
         newValues[indexInSetStructure] = editValue;
-        return { ...sol, values: newValues };
+        return { ...sol, values: newValues.slice(0,displayStructure.length) };
       }
-      return sol;
+      
+      return { ...sol, values: sol.values.slice(0,displayStructure.length) };
     });
     
     // Clear editing state
@@ -295,6 +393,14 @@ const SuperTable = ({
       // Set the new dimension value
       newSolution.values[indexInSetStructure] = newDimName;
       
+      // Add objective value if needed (for display value)
+      if (valueSetName && displayStructure.includes(valueSetName)) {
+        const valueIndex = setStructure.indexOf(valueSetName);
+        if (valueIndex !== -1) {
+          newSolution.values[valueIndex] = defaultObjectiveValue;
+        }
+      }
+      
       // Add to solutions
       const updatedSolutions = [...solutions, newSolution];
       
@@ -314,7 +420,6 @@ const SuperTable = ({
   
   // Sort the displayed solutions
   const sortedSolutions = sortByDisplayStructure(displayedSolutions);
-  console.log("selected:",selectedTuples)
   const generateTable = (level, parentFilters = {}) => {
     const currentDimension = displayStructure[level];
     const nextDimension = displayStructure[level + 1];
@@ -545,8 +650,31 @@ const SuperTable = ({
                 key={index}
                 className="clickable-cell"
                 onClick={() => toggleColumnSelection(value, level + 1)}
+                onDoubleClick={(e) => {  // FIX: Add double-click handler for column headers
+                  e.stopPropagation();
+                  if (editMode) {
+                    const columnFilters = { [nextDimension]: value };
+                    setEditingCell({ level: level + 1, filters: columnFilters });
+                    setEditValue(value);
+                  }
+                }}
               >
-                {value}
+                {editingCell &&
+                editingCell.level === level + 1 &&
+                JSON.stringify(editingCell.filters) === JSON.stringify({ [nextDimension]: value }) ? (
+                  <input
+                    autoFocus
+                    value={editValue}
+                    onChange={(e) => setEditValue(e.target.value)}
+                    onBlur={applyEdit}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") applyEdit();
+                    }}
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                ) : (
+                  value
+                )}
               </th>
             ))}
             {/* Add column button for upper levels */}
@@ -570,6 +698,7 @@ const SuperTable = ({
                   e.stopPropagation();
                   if (editMode) {
                     setEditingCell({ level, filters: { ...parentFilters, [currentDimension]: rowValue } });
+                    
                     setEditValue(rowValue);
                   }
                 }}

@@ -23,37 +23,27 @@ const ConfigureVariablesPage = () => {
     const [selectedSets, setSelectedSets] = useState([]);  // Stores selected sets
     const [selectedParams, setSelectedParams] = useState([]); // Stores selected params
     const [hasInitialized, setHasInitialized] = useState(false);
-    const [variablesTags, setVariablesTags] = useState(model.varTypes)
+    const [variablesTags, setVariablesTags] = useState(model.varTypes);
+    const [variableBoundSets, setVariableBoundSets] = useState({});  // Store bound set selections
+    const [enableBoundSets, setEnableBoundSets] = useState({});  // Track which variables have bound sets enabled
    
     useEffect(() => {
-        // First, update the displayed sets and params
-        const newDisplaySets = selectedVars
-          .flatMap(variable => variable.dep?.setDependencies ?? [])
-          .reduce((unique, item) => unique.includes(item) ? unique : [...unique, item], []);
-      
-        const newDisplayParams = selectedVars
-          .flatMap(variable => variable.dep?.paramDependencies ?? [])
-          .reduce((unique, item) => unique.includes(item) ? unique : [...unique, item], []);
-      
-        setDisplaySets(newDisplaySets);
-        setDisplayParams(newDisplayParams);
+        // Get sets from model.setTypes instead of variable dependencies
+        const setNames = model.setTypes ? Object.keys(model.setTypes) : [];
+        setDisplaySets(setNames);
+        
+        // Get params from model.paramTypes instead of variable dependencies
+        const paramNames = model.paramTypes ? Object.keys(model.paramTypes) : [];
+        setDisplayParams(paramNames);
         
         // Only during initialization, also set the selected sets and params
-        if (!hasInitialized && newDisplaySets.length > 0) {
-          setSelectedSets(newDisplaySets);
-          setSelectedParams(newDisplayParams);
+        if (!hasInitialized && setNames.length > 0) {
+          setSelectedSets(setNames);
+          setSelectedParams(paramNames);
           setHasInitialized(true);
-        } else {
-          // For subsequent updates, filter out any that are no longer displayed
-          setSelectedSets(prevSelected => 
-            prevSelected.filter(set => newDisplaySets.includes(set))
-          );
-          setSelectedParams(prevSelected => 
-            prevSelected.filter(param => newDisplayParams.includes(param))
-          );
         }
         
-      }, [selectedVars, hasInitialized]);
+    }, [model.setTypes, model.paramTypes, hasInitialized]);
 
     // Handles variable selection (checkbox clicked)
     const handleVarCheckboxChange = (variable) => {
@@ -88,6 +78,31 @@ const ConfigureVariablesPage = () => {
         });
     };
 
+    // Handle enabling/disabling bound set selection for a variable
+    const handleEnableBoundSet = (variableIdentifier) => {
+        setEnableBoundSets(prev => ({
+            ...prev,
+            [variableIdentifier]: !prev[variableIdentifier]
+        }));
+        
+        // Clear bound set when disabling
+        if (enableBoundSets[variableIdentifier]) {
+            setVariableBoundSets(prev => {
+                const updated = { ...prev };
+                delete updated[variableIdentifier];
+                return updated;
+            });
+        }
+    };
+
+    // Handle radio button selection for bound sets
+    const handleBoundSetChange = (variableIdentifier, setName) => {
+        setVariableBoundSets(prev => ({
+            ...prev,
+            [variableIdentifier]: setName
+        }));
+    };
+
     // Save selected variables, sets, and parameters in context when navigating
     const handleContinue = () => {
         // Transform selectedVars from identifiers to VariableDTO objects
@@ -95,10 +110,7 @@ const ConfigureVariablesPage = () => {
             identifier: v.identifier,
             tags: variablesTags[v.identifier] || model.varTypes[v.identifier] || [],
             type: model.varTypes[v.identifier] || [],
-            // dep: {
-            //     setDependencies: v.dep?.setDependencies || [],
-            //     paramDependencies: v.dep?.paramDependencies || []
-            // }
+            boundSet: enableBoundSets[v.identifier] ? variableBoundSets[v.identifier] : undefined
         }));
     
         // Transform selectedSets from strings to SetDefinitionDTO objects
@@ -111,7 +123,7 @@ const ConfigureVariablesPage = () => {
         // Transform selectedParams from strings to ParameterDefinitionDTO objects
         const inputParamsObjects = selectedParams.map(paramName => ({
             name: paramName,
-            type: model.paramTypes?.[paramName] ,
+            type: model.paramTypes?.[paramName],
             tag: model.paramTypes?.[paramName]
         }));
     
@@ -123,17 +135,17 @@ const ConfigureVariablesPage = () => {
     };
 
     // In your parent component where selectedVars is defined
-const handleTagValueChange = (e, varIdentifier, index) => {
-    // Make a copy of the current state
-    const updatedVariablesTags = { ...variablesTags };
-    
-    // Update the specific value at the specific index for the specific variable
-    updatedVariablesTags[varIdentifier][index] = e.target.value;
-    
-    // Update the state
-    setVariablesTags(updatedVariablesTags);
-  };
-console.log("variables tags: ",variablesTags)
+    const handleTagValueChange = (e, varIdentifier, index) => {
+        // Make a copy of the current state
+        const updatedVariablesTags = { ...variablesTags };
+        
+        // Update the specific value at the specific index for the specific variable
+        updatedVariablesTags[varIdentifier][index] = e.target.value;
+        
+        // Update the state
+        setVariablesTags(updatedVariablesTags);
+    };
+
     return (
         <div className="configure-variables-page">
             <h1 className="page-title">Configure Variables</h1>
@@ -158,7 +170,7 @@ console.log("variables tags: ",variablesTags)
                     )}
                 </div>
                 
-                {/* Sets & Parameters Section (Only for Selected Variables) */}
+                {/* Sets & Parameters Section (Now from model.setTypes/paramTypes) */}
                 <div className="involved-section">
                     <h2>Involved Sets</h2>
                     {displaySets.length > 0 ? (
@@ -190,16 +202,44 @@ console.log("variables tags: ",variablesTags)
                 </div>
                 <div className="tags-container">
                     <h2>Tag Variables' Output Tuple</h2>
-                    {selectedVars.map((value, key) => {
-                        return <TagConfigure
-                        key={key}
-                        label="s"
-                        variable={value}
-                        types={model.varTypes[value.identifier]}
-                        values={variablesTags[value.identifier] || []}
-                        onChange={(e, index) => handleTagValueChange(e, value.identifier, index)}
-                        />
-                    })}
+                    {selectedVars.map((variable, key) => (
+                        <div key={key} className="variable-config-item">
+                            <TagConfigure
+                                label="s"
+                                variable={variable}
+                                types={model.varTypes[variable.identifier]}
+                                values={variablesTags[variable.identifier] || []}
+                                onChange={(e, index) => handleTagValueChange(e, variable.identifier, index)}
+                            />
+                            
+                            {/* Bound Set Selection */}
+                            <div className="bound-set-selector">
+                                <Checkbox
+                                    label={`Select bound set for ${variable.identifier}`}
+                                    checked={enableBoundSets[variable.identifier] || false}
+                                    onChange={() => handleEnableBoundSet(variable.identifier)}
+                                />
+                                
+                                {enableBoundSets[variable.identifier] && (
+                                    <div className="bound-set-radio-group">
+                                        {displaySets.map((setName, setIdx) => (
+                                            <div key={setIdx} className="radio-option">
+                                                <input
+                                                    type="radio"
+                                                    id={`${variable.identifier}-set-${setIdx}`}
+                                                    name={`bound-set-${variable.identifier}`}
+                                                    value={setName}
+                                                    checked={variableBoundSets[variable.identifier] === setName}
+                                                    onChange={() => handleBoundSetChange(variable.identifier, setName)}
+                                                />
+                                                <label htmlFor={`${variable.identifier}-set-${setIdx}`}>{setName}</label>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    ))}
                 </div>
             </div>
             

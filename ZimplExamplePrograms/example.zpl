@@ -12,8 +12,22 @@ set invalidShifts := {<"Yoni","North",0,20>};
 
 set Mishmarot := Station * Times; # -> {<North,16>, <North,20>, ....}
 
+#<person,station,time,result>
+set PreAssignedShibutsim := {<"a","b",0,1>};
+
+#<person,result>
+set PreAssignedTotalMishmarot := {};
+
 var Shibutsim[People * Mishmarot] binary; # -> {<Max,North,16>, <Max,North,20>, ....}
 var TotalMishmarot [People] integer >= 0;
+
+subto PreAssignShibutsim:
+    forall <person,station,time,result> in PreAssignedShibutsim:
+        Shibutsim[person,station,time] == result;
+
+subto PreAssignedTotalMishmarot:
+    forall <person,result> in PreAssignedTotalMishmarot:
+        TotalMishmarot[person] == result;
 
 subto EachPersonAssignedOneShiftAtATime:
     forall <i,t> in People*Times: (sum <j,a,b> in People*Mishmarot | b == t and i == j : Shibutsim[i,a,b]) <= 1;

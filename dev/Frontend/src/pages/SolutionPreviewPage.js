@@ -40,7 +40,9 @@ const SolutionPreviewPage = () => {
   const [showResults, setShowResults] = useState(false);
   const [timeout, setTimeout] = useState(10);
   const [solutionStatus, setSolutionStatus] = useState(null);
+  const [globalSelectedTuples, setGlobalSelectedTuples] = useState({});
   const navigate = useNavigate(); 
+  
 
   const handleAddValue = (setName) => {
     setVariableValues((prev) => ({
@@ -288,52 +290,113 @@ useEffect(() => {
 const handleSolve = async () => {
   setErrorMessage(null);
   setResponseData(null);
+  console.log("global selected:",globalSelectedTuples)
+ // Construct the POST request body for solving
+const transformedParamValues = Object.fromEntries(
+  Object.entries(paramValues).map(([key, value]) => [
+      key,
+      value
+  ])
+);
 
-  // Construct the POST request body for solving
-  const transformedParamValues = Object.fromEntries(
-      Object.entries(paramValues).map(([key, value]) => [
-          key,
-          value
-      ])
-  );
-  const requestBody = {
-    imageId: image.imageId,
-    input: {
-      setsToValues: Object.entries(variableValues).reduce((acc, [setName, rows]) => {
-        if (selectedVariableValues[setName]) {
-          const selectedRows = rows.filter((_, rowIndex) =>
-            selectedVariableValues[setName].includes(rowIndex)
-          );
-          if (selectedRows.length > 0) {
-            acc[setName] = selectedRows;
-          }
+// Create a copy of the existing setsToValues
+const updatedSetsToValues = { ...Object.entries(variableValues).reduce((acc, [setName, rows]) => {
+if (selectedVariableValues[setName]) {
+    const selectedRows = rows.filter((_, rowIndex) =>
+        selectedVariableValues[setName].includes(rowIndex)
+    );
+    if (selectedRows.length > 0) {
+        acc[setName] = selectedRows;
+    }
+}
+return acc;
+}, {}) };
+
+// First, identify all bound sets from the ImageDTO's variablesOfInterest
+const allBoundSets = new Set();
+if (image.variablesModule?.variablesOfInterest) {
+image.variablesModule.variablesOfInterest.forEach(variable => {
+    if (variable.boundSet) {
+        allBoundSets.add(variable.boundSet);
+    }
+});
+}
+
+// Initialize all bound sets with empty arrays if they don't exist in updatedSetsToValues
+allBoundSets.forEach(boundSetName => {
+if (!updatedSetsToValues[boundSetName]) {
+    updatedSetsToValues[boundSetName] = [];
+}
+});
+
+// Process globalSelectedTuples to add bound set data
+if (globalSelectedTuples && Object.keys(globalSelectedTuples).length > 0) {
+// Iterate through each variable in globalSelectedTuples
+Object.entries(globalSelectedTuples).forEach(([variableName, selectedTuples]) => {
+    // Find this variable in the image's variablesModule
+    const variableInfo = image.variablesModule?.variablesOfInterest?.find(
+        v => v.identifier === variableName
+    );
+    
+    // Check if the variable has a bound set
+    if (variableInfo && variableInfo.boundSet) {
+        const boundSetName = variableInfo.boundSet;
+        
+        // Check if we have the tuples data
+        if (Array.isArray(selectedTuples) && selectedTuples.length > 0) {
+            // Transform each tuple to have only values array with objectiveValue appended if present
+            const transformedTuples = selectedTuples.map(tuple => {
+                if (tuple.hasOwnProperty('objectiveValue') && tuple.objectiveValue !== undefined) {
+                    // Create a new tuple with just the values array, appending objectiveValue
+                    return [...tuple.values, tuple.objectiveValue];
+                    
+                }
+                // If no objectiveValue or it's undefined, keep just the values array
+                return [...tuple.values];
+            });
+            
+            // Add the transformed tuples to the bound set
+            transformedTuples.forEach(tuple => {
+                if (!updatedSetsToValues[boundSetName].some(
+                    existingTuple => JSON.stringify(existingTuple) === JSON.stringify(tuple)
+                )) {
+                    updatedSetsToValues[boundSetName].push(tuple);
+                }
+            });
         }
-        return acc;
-      }, {}),
-      paramsToValues: transformedParamValues,
-      constraintModulesToggledOff: constraintsToggledOff,
-      preferenceModulesToggledOff: preferencesToggledOff,
-    },
-    timeout: timeout,
-  };
+    }
+});
+}
 
-  console.log("Sending SOLVE request:", JSON.stringify(requestBody, null, 2));
-  
-    try {
-      let startTime = Date.now(); // Capture the start time
+const requestBody = {
+imageId: image.imageId,
+input: {
+    setsToValues: updatedSetsToValues,
+    paramsToValues: transformedParamValues,
+    constraintModulesToggledOff: constraintsToggledOff,
+    preferenceModulesToggledOff: preferencesToggledOff,
+},
+timeout: timeout,
+};
 
-      // Start a timer to update solutionStatus every second
-      const timer = setInterval(() => {
-          setSolutionStatus("Solving "+((Date.now() - startTime) / 1000).toFixed(1)); 
-      }, 10);
-      setShowModal(true)
-      const response = await fetch("/solve", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(requestBody),
-      });
+console.log("global:", globalSelectedTuples);
+console.log("request:", requestBody);
 
-      clearInterval(timer); // Stop the timer once response is received
+try {
+let startTime = Date.now(); // Capture the start time
+
+// Start a timer to update solutionStatus every second
+const timer = setInterval(() => {
+    setSolutionStatus("Solving " + ((Date.now() - startTime) / 1000).toFixed(1)); 
+}, 10);
+setShowModal(true);
+const response = await fetch("/solve", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(requestBody),
+});
+
+clearInterval(timer); // Stop the timer once response is received
 
       const responseText = await response.text();
 
@@ -360,7 +423,7 @@ const handleSolve = async () => {
   const [errorMessage, setErrorMessage] = useState(null);
 
   // const selectedParams = image.variablesModule?.inputParams ?? [];
-
+// console.log("Sending SOLVE request:", JSON.stringify(requestBody, null, 2));
   return (
     <div className="solution-preview-page">
       <h1 className="page-title">{image.imageName}</h1>
@@ -561,7 +624,10 @@ const handleSolve = async () => {
           </div>
         )}
         <div className="results">
-        {showResults && <SolutionResultsPage />}
+        {showResults && <SolutionResultsPage 
+            globalSelectedTuples={globalSelectedTuples} 
+            setGlobalSelectedTuples={setGlobalSelectedTuples}
+          />}
         </div>
       <button className="home-button" onClick={() => navigate("/")}>
         ← Back to Home

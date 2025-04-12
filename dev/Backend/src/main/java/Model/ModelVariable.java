@@ -2,7 +2,10 @@ package Model;
 
 import java.util.List;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinColumns;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 
@@ -10,7 +13,11 @@ import jakarta.persistence.Table;
 @Table(name="variables")
 public class ModelVariable extends ModelOutput {
 
-    @OneToOne(mappedBy = "boundToVariable")
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumns({
+        @JoinColumn(name = "bound_set_image_id", referencedColumnName = "image_id"),
+        @JoinColumn(name = "bound_set_name", referencedColumnName = "name")
+    })
     protected ModelSet boundSet;
     
     public ModelVariable(String imageId, String identifier) {

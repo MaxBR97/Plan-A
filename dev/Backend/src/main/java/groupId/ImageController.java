@@ -99,7 +99,7 @@ public class ImageController {
     }
 
     @Transactional
-    public void overrideImage(ImageConfigDTO imgConfig) throws Exception{
+    public void overrideImage(ImageConfigDTO imgConfig) throws Exception {
         ImageDTO imageDTO= imgConfig.image();
         Image image = imageRepository.findById(imgConfig.imageId()).get();
         entityManager.merge(image);

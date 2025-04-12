@@ -5,7 +5,7 @@ import SuperTable from "../reusableComponents/SuperTable.js";
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import Checkbox from "../reusableComponents/Checkbox.js";
 
-const SolutionResultsPage = () => {
+const SolutionResultsPage = ({ globalSelectedTuples, setGlobalSelectedTuples }) => {
   const {
     image,
     model,
@@ -14,7 +14,8 @@ const SolutionResultsPage = () => {
     updateImageField,
     updateModel,
     updateSolutionResponse,
-    initialImageState
+    initialImageState,
+    
   } = useZPL();
   const [selectedVariable, setSelectedVariable] = useState(null);
   const [displayValue, setDisplayValue] = useState(true);
@@ -26,9 +27,6 @@ const SolutionResultsPage = () => {
   // Add state for table edit mode
   const [tableEditMode, setTableEditMode] = useState(false);
   
-  // Global selected tuples state - persists across variables
-  const [globalSelectedTuples, setGlobalSelectedTuples] = useState({});
-
   const getSetStructure = (variable) => {
     const varObj = image.variablesModule?.variablesOfInterest?.find((varObj) => varObj.identifier == variable);
     
@@ -179,7 +177,7 @@ const SolutionResultsPage = () => {
   function addObjectiveValueToSolutions(solutions) {
     return solutions.map(solution => {
       const { values, objectiveValue, ...rest } = solution;
-      const newValues = [...values, objectiveValue];
+      const newValues = objectiveValue ? [...values, objectiveValue] : [...values];
       return {
         ...rest,
         values: newValues

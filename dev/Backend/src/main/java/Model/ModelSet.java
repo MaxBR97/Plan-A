@@ -14,13 +14,6 @@ import jakarta.persistence.Table;
 @Table(name="sets")
 public class ModelSet extends ModelInput {
 
-    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
-@JoinColumns({
-    @JoinColumn(name = "bound_variable_image_id", referencedColumnName = "image_id"),
-    @JoinColumn(name = "bound_variable_name", referencedColumnName = "name")
-})
-protected ModelVariable boundToVariable;
-
 
 
     protected ModelSet(){
