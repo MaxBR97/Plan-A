@@ -95,7 +95,7 @@ public class Model extends ModelInterface {
         modelRepository.downloadDocument(id + suffix);
     }
     
-    private void parseSource() throws Exception {
+    public void parseSource() throws Exception {
         originalSource = new String(getSource().readAllBytes());
         CharStream charStream = CharStreams.fromString(originalSource);
         FormulationLexer lexer = new FormulationLexer(charStream);
@@ -465,7 +465,13 @@ public class Model extends ModelInterface {
             TypeVisitor typer = new TypeVisitor();
             typer.visit(ctx.expr());
             ModelType existingType = getParameter(paramName) != null && getParameter(paramName).getType() != ModelPrimitives.UNKNOWN ? getParameter(paramName).getType() : typer.getType();
-            ModelParameter param = new ModelParameter(id,paramName,existingType, typer.getBasicSets(),typer.getBasicParams(),typer.getBasicFuncs());
+            ModelParameter param = params.get(paramName);
+            ModelParameter dynamicParam = new ModelParameter(id,paramName,existingType, typer.getBasicSets(),typer.getBasicParams(),typer.getBasicFuncs());
+            if(!params.containsKey(paramName)){
+                param = dynamicParam;
+            } else {
+                param.dynamicLoadTransient(param);
+            }
             if(loadElementsToRam){
                 param.setValue(ctx.expr().getText());
                 param.setDefaultValue(ctx.expr().getText());
@@ -477,9 +483,12 @@ public class Model extends ModelInterface {
         @Override
         public Void visitSetDecl(FormulationParser.SetDeclContext ctx) {
             String setName = extractName(ctx.sqRef().getText());
-            ModelType existingTypeOfSet = getSet(setName) != null && getSet(setName).getType() != ModelPrimitives.UNKNOWN ? getSet(setName).getType() :ModelPrimitives.UNKNOWN ;
+            ModelType existingTypeOfSet = getSet(setName) != null && getSet(setName).getType() != ModelPrimitives.UNKNOWN ? getSet(setName).getType() : ModelPrimitives.UNKNOWN ;
+            ModelSet dynamicSet = new ModelSet(id,setName,existingTypeOfSet);
             if(!sets.containsKey(setName))
-                sets.put(setName,new ModelSet(id,setName,existingTypeOfSet));
+                sets.put(setName,dynamicSet);
+            else
+                sets.get(setName).dynamicLoadTransient(dynamicSet);
             return super.visitSetDecl(ctx);
         }
 
@@ -507,11 +516,12 @@ public class Model extends ModelInterface {
             TypeVisitor typer = new TypeVisitor();
             typer.visit(ctx.setExpr());
             ModelType existingTypeOfSet = getSet(setName) != null && getSet(setName).getType() != ModelPrimitives.UNKNOWN ? getSet(setName).getType() : typer.getType();
-            ModelSet set;
+            ModelSet set = sets.get(setName);
+            ModelSet dynamicSet = new ModelSet(id,setName,existingTypeOfSet,typer.getBasicSets(),typer.getBasicParams(),typer.getBasicFuncs());
             if(!sets.containsKey(setName))
-                set = new ModelSet(id,setName,existingTypeOfSet,typer.getBasicSets(),typer.getBasicParams(),typer.getBasicFuncs());
+                set = dynamicSet;
             else
-                set = sets.get(setName);
+               set.dynamicLoadTransient(set);
             if(loadElementsToRam){
                 java.util.List<String> elements = parseSetElements(ctx.setExpr());
                 set.setElements(elements);
@@ -715,8 +725,7 @@ public class Model extends ModelInterface {
             }
         }
 
-        private void modifySetContent(FormulationParser.SetDefExprContext ctx, 
-                                    FormulationParser.SetExprStackContext stackCtx) {
+        private void modifySetContent(FormulationParser.SetDefExprContext ctx) {
             // Get the original text with its formatting
             int startIndex = ctx.start.getStartIndex();
             int stopIndex = ctx.stop.getStopIndex();
@@ -804,8 +813,8 @@ public class Model extends ModelInterface {
                 else if (ctx.setExpr() instanceof FormulationParser.SetExprStackContext) {
                     FormulationParser.SetExprStackContext stackCtx = 
                         (FormulationParser.SetExprStackContext) ctx.setExpr();
-                    if (stackCtx.setDesc() instanceof FormulationParser.SetDescStackContext) {
-                        modifySetContent(ctx, stackCtx);
+                    if (stackCtx.setDesc() instanceof FormulationParser.SetDescContext || stackCtx.setDesc() instanceof FormulationParser.SetDescEmptyContext ) {
+                        modifySetContent(ctx);
                     }
                 }
             }
@@ -1728,6 +1737,20 @@ public class Model extends ModelInterface {
         getConstraint(mc) != null ? getConstraint(mc) :
         getPreference(mc);
 
+    }
+
+    @Override
+    public void setModelComponent(ModelComponent mc) throws Exception{
+        if(mc instanceof ModelSet){
+            sets.put(((ModelSet)mc).getIdentifier(), ((ModelSet)mc));
+        } else if(mc instanceof ModelParameter){
+            params.put(((ModelParameter)mc).getIdentifier(), ((ModelParameter)mc));
+        } else if(mc instanceof ModelFunction){
+            funcs.put(((ModelFunction)mc).getIdentifier(), ((ModelFunction)mc));
+        }
+        
+        //TODO: unefficient - refactor
+        // parseSource();
     }
 
 }

@@ -55,6 +55,15 @@ public ModelComponent(String imageId, String identifier, List<ModelSet> setDep, 
         this.module_name = "default";
     }
 
+    public void dynamicLoadTransient(ModelComponent mc){
+        if(this.setDependencies == null)
+            this.setDependencies = mc.setDependencies;
+        if(this.paramDependencies == null)
+            this.paramDependencies = mc.paramDependencies;
+        if(this.functionDependencies == null)
+            this.functionDependencies = mc.functionDependencies;
+    }
+
     public String getIdentifier() {
         return this.id.getIdentifier();
     }

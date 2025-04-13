@@ -113,5 +113,15 @@ public class VariableModule extends Module {
         }
         return involvedParameters;
     }
+
+    public Set<ModelSet> getInputSets() {
+        Set<ModelSet> sets = new HashSet<>();
+        for(ModelVariable var : this.variables.values()){
+            if(var.getBoundSet() != null)
+                sets.add(var.getBoundSet());
+        }
+        sets.addAll(super.getInputSets());
+        return sets;
+    }
     
 }

@@ -12,7 +12,6 @@ import SolverService.SolverService;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import parser.*;
-import parser.FormulationBaseVisitor;
 import parser.FormulationLexer;
 import parser.FormulationParser;
 import parser.FormulationParser.ExprContext;
@@ -42,6 +41,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import DataAccess.ModelRepository;
 import GRPC.CompilationResult;
+import static GRPC.CompilationResult.parser;
 import GRPC.ExecutionRequest;
 import GRPC.SolverServiceGrpc;
 import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder;
@@ -60,6 +60,11 @@ public class ModelProxy extends ModelInterface {
         this.localModel = new Model(repo, id);
         this.solverHost = solverHost;
         this.solverPort = solverPort;
+    }
+
+    @Override
+    public void parseSource() throws Exception{
+        localModel.parseSource();
     }
 
     @Override
@@ -234,5 +239,10 @@ public class ModelProxy extends ModelInterface {
     @Override
     public ModelComponent getComponent(String mc) {
         return localModel.getComponent(mc);
+    }
+
+    @Override
+    public void setModelComponent(ModelComponent mc) throws Exception{
+        localModel.setModelComponent(mc);
     }
 }

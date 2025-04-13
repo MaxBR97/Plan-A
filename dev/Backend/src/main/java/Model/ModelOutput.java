@@ -15,6 +15,7 @@ import jakarta.persistence.Transient;
 public abstract class ModelOutput extends ModelComponent {
     @Transient
     protected boolean isComplex;
+    
     @Column(name = "my_type")
     @Convert(converter = ModelTypeConverter.class)
     protected ModelType myType;

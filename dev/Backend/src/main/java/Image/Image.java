@@ -113,6 +113,17 @@ public class Image {
         if(variables == null || variables.isEmpty())
             setVariableModule(new VariableModule(this, Map.of(), List.of(),List.of()));
         this.model = modelFactory.getModel(id);
+        setModelWithPersistedData();
+    }
+
+    private void setModelWithPersistedData() throws Exception {
+        for(ModelSet set : getAllInputSets()){
+            this.model.setModelComponent(set);
+        }
+        for(ModelParameter param : getAllInputParameters()){
+            this.model.setModelComponent(param);
+        }
+        this.model.parseSource();
     }
 
 
@@ -348,74 +359,74 @@ public class Image {
         getVariableModule().override(variables,inputSets,inputParams);
     }
 
-    public Set<String> getAllInvolvedSets() {
-        Set<String> allSets = new HashSet<>();
+    public Set<ModelSet> getAllInvolvedSets() {
+        Set<ModelSet> allSets = new HashSet<>();
 
         // Add inputSets from each constraint module
         for (ConstraintModule constraintModule : constraintsModules.values()) {
-            allSets.addAll(constraintModule.getInvolvedSets().stream().map((ModelSet s) -> s.getIdentifier()).collect(Collectors.toSet()));
+            allSets.addAll(constraintModule.getInvolvedSets());
         }
 
         // Add inputSets from each preference module
         for (PreferenceModule preferenceModule : preferenceModules.values()) {
-            allSets.addAll(preferenceModule.getInvolvedSets().stream().map((ModelSet s) -> s.getIdentifier()).collect(Collectors.toSet()));
+            allSets.addAll(preferenceModule.getInvolvedSets());
         }
             
-        allSets.addAll(getVariableModule().getInvolvedSets().stream().map((ModelSet s) -> s.getIdentifier()).collect(Collectors.toSet()));
+        allSets.addAll(getVariableModule().getInvolvedSets());
 
         return allSets;
     }
 
-    public Set<String> getAllInvolvedParams() {
-        Set<String> allParams = new HashSet<>();
+    public Set<ModelParameter> getAllInvolvedParams() {
+        Set<ModelParameter> allParams = new HashSet<>();
 
         // Add inputParams from each constraint module
         for (ConstraintModule constraintModule : constraintsModules.values()) {
-            allParams.addAll(constraintModule.getInvolvedParameters().stream().map((ModelParameter s) -> s.getIdentifier()).collect(Collectors.toSet()));
+            allParams.addAll(constraintModule.getInvolvedParameters());
         }
 
         // Add inputParams from each preference module
         for (PreferenceModule preferenceModule : preferenceModules.values()) {
-            allParams.addAll(preferenceModule.getInvolvedParameters().stream().map((ModelParameter s) -> s.getIdentifier()).collect(Collectors.toSet()));
+            allParams.addAll(preferenceModule.getInvolvedParameters());
         }
 
-        allParams.addAll(getVariableModule().getInvolvedParameters().stream().map((ModelParameter s) -> s.getIdentifier()).collect(Collectors.toSet()));
+        allParams.addAll(getVariableModule().getInvolvedParameters());
 
         return allParams;
     }
 
-    public Set<String> getAllInputSets() {
-        Set<String> allSets = new HashSet<>();
+    public Set<ModelSet> getAllInputSets() {
+        Set<ModelSet> allSets = new HashSet<>();
 
         // Add inputSets from each constraint module
         for (ConstraintModule constraintModule : constraintsModules.values()) {
-            allSets.addAll(constraintModule.getInputSets().stream().map((ModelSet s) -> s.getIdentifier()).collect(Collectors.toSet()));
+            allSets.addAll(constraintModule.getInputSets());
         }
 
         // Add inputSets from each preference module
         for (PreferenceModule preferenceModule : preferenceModules.values()) {
-            allSets.addAll(preferenceModule.getInputSets().stream().map((ModelSet s) -> s.getIdentifier()).collect(Collectors.toSet()));
+            allSets.addAll(preferenceModule.getInputSets());
         }
             
-        allSets.addAll(getVariableModule().getInputSets().stream().map((ModelSet s) -> s.getIdentifier()).collect(Collectors.toSet()));
+        allSets.addAll(getVariableModule().getInputSets());
 
         return allSets;
     }
 
-    public Set<String> getAllInputParameters() {
-        Set<String> allParams = new HashSet<>();
+    public Set<ModelParameter> getAllInputParameters() {
+        Set<ModelParameter> allParams = new HashSet<>();
 
         // Add inputParams from each constraint module
         for (ConstraintModule constraintModule : constraintsModules.values()) {
-            allParams.addAll(constraintModule.getInputParams().stream().map((ModelParameter s) -> s.getIdentifier()).collect(Collectors.toSet()));
+            allParams.addAll(constraintModule.getInputParams());
         }
 
         // Add inputParams from each preference module
         for (PreferenceModule preferenceModule : preferenceModules.values()) {
-            allParams.addAll(preferenceModule.getInputParams().stream().map((ModelParameter s) -> s.getIdentifier()).collect(Collectors.toSet()));
+            allParams.addAll(preferenceModule.getInputParams());
         }
 
-        allParams.addAll(getVariableModule().getInputParams().stream().map((ModelParameter s) -> s.getIdentifier()).collect(Collectors.toSet()));
+        allParams.addAll(getVariableModule().getInputParams());
 
         return allParams;
     }
@@ -423,8 +434,8 @@ public class Image {
     
 
     public InputDTO getInput() throws Exception {
-        Set<String> relevantParams = getAllInputParameters();
-        Set<String> relevantSets = getAllInputSets();
+        Set<String> relevantParams = getAllInputParameters().stream().map((ModelParameter s) -> s.getIdentifier()).collect(Collectors.toSet());
+        Set<String> relevantSets = getAllInputSets().stream().map((ModelSet s) -> s.getIdentifier()).collect(Collectors.toSet());
         Map<String, List<List<String>>> setsToValues = new HashMap<>();
         Map<String,List<String>> paramsToValues = new HashMap<>();
 

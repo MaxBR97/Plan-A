@@ -24,6 +24,7 @@ public abstract class ModelInterface {
     public abstract String getSolutionPathToFile(String suffix) throws Exception;
     public abstract String getSourcePathToFile() throws Exception;
     public abstract InputStream getSource() throws Exception;
+    public abstract void parseSource() throws Exception;
     /**
      * Appends a value to a specified set in the model.
      * 
@@ -151,8 +152,9 @@ public abstract class ModelInterface {
     abstract public Collection<ModelParameter> getParameters();
 
     abstract public Collection<ModelFunction> getFunctions();
-    
 
     abstract public ModelComponent getComponent(String identifier);
+    
+    abstract public void setModelComponent(ModelComponent mc)  throws Exception;
 
 }

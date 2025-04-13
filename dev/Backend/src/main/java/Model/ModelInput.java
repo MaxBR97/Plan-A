@@ -72,6 +72,12 @@ protected List<String> def_values;
         this.myStruct = struct;
     }
 
+    public void dynamicLoadTransient(ModelInput mc){
+        super.dynamicLoadTransient(mc);
+        if(this.myStruct == null)
+            this.myStruct = mc.myStruct;
+    }
+
 
     // Existing methods
     public ModelType getType() {
