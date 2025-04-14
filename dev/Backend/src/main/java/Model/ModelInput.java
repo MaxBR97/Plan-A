@@ -34,15 +34,15 @@ public abstract class ModelInput extends ModelComponent {
     protected List<String> values;
     
 
-@ElementCollection
-@CollectionTable(
-    name = "model_parameter_default_values",
-    joinColumns = {
-        @JoinColumn(name = "image_id", referencedColumnName = "image_id"),
-        @JoinColumn(name = "name", referencedColumnName = "name")
-    }
-)
-@Column(name = "default_value")
+// @ElementCollection
+// @CollectionTable(
+//     name = "model_parameter_default_values",
+//     joinColumns = {
+//         @JoinColumn(name = "image_id", referencedColumnName = "image_id"),
+//         @JoinColumn(name = "name", referencedColumnName = "name")
+//     }
+// )
+// @Column(name = "default_value")
 @Transient
 protected List<String> def_values;
 
@@ -76,6 +76,14 @@ protected List<String> def_values;
         super.dynamicLoadTransient(mc);
         if(this.myStruct == null)
             this.myStruct = mc.myStruct;
+    }
+
+    public void setAlias(String alias) {
+        this.alias = alias;
+    }
+
+    public String getAlias(){
+        return this.alias;
     }
 
 

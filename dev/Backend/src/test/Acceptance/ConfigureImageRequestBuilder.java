@@ -139,7 +139,7 @@ public class ConfigureImageRequestBuilder implements RequestBuilder{
         
         for( Map.Entry<String,List<String>> entry : context.model().setTypes().entrySet()){
             if(entry.getKey().equals(id)){
-                return new SetDefinitionDTO(id, entry.getValue(),entry.getValue());
+                return new SetDefinitionDTO(id, entry.getValue(),entry.getValue(),id);
             }
         }
         return null;
@@ -148,7 +148,7 @@ public class ConfigureImageRequestBuilder implements RequestBuilder{
     private ParameterDefinitionDTO getParam(String id){
         for( Map.Entry<String,String> entry : context.model().paramTypes().entrySet()){
             if(entry.getKey().equals(id)){
-                return new ParameterDefinitionDTO(id, entry.getValue(),entry.getValue());
+                return new ParameterDefinitionDTO(id, entry.getValue(),entry.getValue(),id);
             }
         }
         return null;

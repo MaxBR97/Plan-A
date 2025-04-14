@@ -112,6 +112,7 @@ public class ImageController {
         BadRequestException.requireNotNull(imgConfig.image().variablesModule().variablesOfInterest(),"Bad DTO during image config, field in variables in image is null");
         BadRequestException.requireNotNull(imgConfig.image().variablesModule().inputParams(),"Bad DTO during image config, field in variables in image is null");
         BadRequestException.requireNotNull(imgConfig.image().variablesModule().inputSets(),"Bad DTO during image config, field in variables in image is null");
+        image.configureModelInputs(imgConfig.image().variablesModule().inputSets(),imgConfig.image().variablesModule().inputParams());
         for(VariableDTO variable:imageDTO.variablesModule().variablesOfInterest()){
             ModelVariable modelVariable=model.getVariable(variable.identifier());
             modelVariable.setTags(variable.tags().toArray(new String[0]));
@@ -126,6 +127,7 @@ public class ImageController {
                     constraintModule.constraints(),
                     constraintModule.inputSets().stream().map(SetDefinitionDTO::name).collect(Collectors.toSet()),
                     constraintModule.inputParams().stream().map(ParameterDefinitionDTO::name).collect(Collectors.toSet()));
+            image.configureModelInputs(constraintModule.inputSets(),constraintModule.inputParams());
         }
         for (PreferenceModuleDTO preferenceModule:imageDTO.preferenceModules()){
             image.addPreferenceModule(preferenceModule.moduleName(), preferenceModule.description(),
@@ -133,7 +135,9 @@ public class ImageController {
                     preferenceModule.inputSets().stream().map(SetDefinitionDTO::name).collect(Collectors.toSet()),
                     preferenceModule.inputParams().stream().map(ParameterDefinitionDTO::name).collect(Collectors.toSet()),
                     preferenceModule.costParams().stream().map(ParameterDefinitionDTO::name).collect(Collectors.toSet()));
+            image.configureModelInputs(preferenceModule.inputSets(),preferenceModule.inputParams());
         }
+        
         entityManager.merge(image);
     }
 

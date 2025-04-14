@@ -3,6 +3,7 @@ package Model;
 import java.util.Collections;
 import java.util.List;
 
+import DTO.Records.Model.ModelData.SetDefinitionDTO;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.JoinColumn;
@@ -47,6 +48,18 @@ public class ModelSet extends ModelInput {
             super.myType = type;
             super.myStruct = resultingStructure;
     }
+
+    public void modify(SetDefinitionDTO dto) throws Exception {
+    
+        if(dto.alias() != null && !dto.alias().equals(""))
+            this.setAlias(dto.alias());
+        
+        if(dto.tags() != null && dto.tags().size() == dto.type().size())
+            this.setTags(dto.tags().toArray(new String[0]));
+            
+    }
+
+    
 
     public List<String> getElements() {
         return Collections.unmodifiableList(this.values);

@@ -15,6 +15,8 @@ import java.util.stream.Collectors;
 import DTO.Factories.RecordFactory;
 import DTO.Records.Image.SolutionDTO;
 import DTO.Records.Model.ModelData.InputDTO;
+import DTO.Records.Model.ModelData.ParameterDefinitionDTO;
+import DTO.Records.Model.ModelData.SetDefinitionDTO;
 import DTO.Records.Model.ModelDefinition.ConstraintDTO;
 import DTO.Records.Model.ModelDefinition.PreferenceDTO;
 import Image.Modules.ConstraintModule;
@@ -40,6 +42,7 @@ import jakarta.persistence.PostLoad;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
 import jakarta.transaction.Transactional;
+import jakarta.validation.Valid;
 
 @Entity
 @Table(name = "images")
@@ -193,8 +196,8 @@ public class Image {
         HashSet<ModelParameter> costs = new HashSet<>();
         for (String name : preferences) {
             ModelPreference preference = model.getPreference(name);
-           Objects.requireNonNull(preference,"Invalid preference name in add preference module");
-           modelPreferences.add(preference);
+            Objects.requireNonNull(preference,"Invalid preference name in add preference module");
+            modelPreferences.add(preference);
         }
         for(String set : inputSets){
             sets.add(model.getSet(set));
@@ -209,6 +212,7 @@ public class Image {
         }
         preferenceModules.put(moduleName, new PreferenceModule(this, moduleName, description, modelPreferences,sets,params,costs));
     }
+
     @Transactional
     public ConstraintModule getConstraintsModule(String name) {
         return constraintsModules.get(name);
@@ -454,5 +458,18 @@ public class Image {
         }
 
         return new InputDTO(setsToValues,paramsToValues,new LinkedList<>(), new LinkedList<>());
+    }
+
+    public void configureModelInputs(Set<SetDefinitionDTO> inputSets,
+            Set<ParameterDefinitionDTO> inputParams) throws Exception {
+        for(SetDefinitionDTO setDTO : inputSets){
+            ModelSet set = model.getSet(setDTO.name());
+            set.modify(setDTO);
+        }
+        
+        for(ParameterDefinitionDTO paramDTO : inputParams){
+            ModelParameter param = model.getParameter(paramDTO.name());
+            param.modify(paramDTO);
+        }
     }
 }

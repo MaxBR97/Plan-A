@@ -470,7 +470,7 @@ public class Model extends ModelInterface {
             if(!params.containsKey(paramName)){
                 param = dynamicParam;
             } else {
-                param.dynamicLoadTransient(param);
+                param.dynamicLoadTransient(dynamicParam);
             }
             if(loadElementsToRam){
                 param.setValue(ctx.expr().getText());
@@ -501,7 +501,14 @@ public class Model extends ModelInterface {
                                         ctx.FN_TYPE().getText().equals("defstrg") ? ModelPrimitives.TEXT :
                                         ModelPrimitives.UNKNOWN;
                 TypeVisitor depVisitor = new TypeVisitor();
-                depVisitor.visit(ctx.expr());                                         
+                depVisitor.visit(ctx.expr());                          
+                ModelFunction func = funcs.get(functionName);
+                ModelFunction dynamicFunc = new ModelFunction(id,functionName,type,depVisitor.getBasicSets(), depVisitor.getBasicParams(), depVisitor.getBasicFuncs());
+                if(!funcs.containsKey(functionName)){
+                    func = dynamicFunc;
+                } else {
+                    func.dynamicLoadTransient(dynamicFunc);
+                }               
                 funcs.put(functionName,new ModelFunction(id,functionName,type,depVisitor.getBasicSets(), depVisitor.getBasicParams(), depVisitor.getBasicFuncs()));
             }
 
@@ -521,7 +528,7 @@ public class Model extends ModelInterface {
             if(!sets.containsKey(setName))
                 set = dynamicSet;
             else
-               set.dynamicLoadTransient(set);
+               set.dynamicLoadTransient(dynamicSet);
             if(loadElementsToRam){
                 java.util.List<String> elements = parseSetElements(ctx.setExpr());
                 set.setElements(elements);

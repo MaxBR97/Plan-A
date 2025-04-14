@@ -15,7 +15,7 @@ import jakarta.persistence.Transient;
 public abstract class ModelOutput extends ModelComponent {
     @Transient
     protected boolean isComplex;
-    
+
     @Column(name = "my_type")
     @Convert(converter = ModelTypeConverter.class)
     protected ModelType myType;
@@ -42,6 +42,13 @@ public abstract class ModelOutput extends ModelComponent {
         super();
         alias = this.getIdentifier();
     }
+
+    public void dynamicLoadTransient(ModelOutput mc){
+        super.dynamicLoadTransient(mc);
+        if(this.isComplex == false)
+            this.isComplex = mc.isComplex;
+    }
+
 
     public String[] getTags(){
         if(tags == null){

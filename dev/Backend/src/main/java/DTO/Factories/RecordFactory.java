@@ -148,7 +148,7 @@ public class RecordFactory {
         //         dependencies.add(block.dependency.getIdentifier());
         //     }
         // }
-        return new SetDefinitionDTO(set.getIdentifier(), Arrays.asList(set.getTags()), set.getType().typeList());
+        return new SetDefinitionDTO(set.getIdentifier(), Arrays.asList(set.getTags()), set.getType().typeList(),set.getAlias());
     }
 
     public static Collection<SetDefinitionDTO> makeDTO(Collection<ModelSet> sets){
@@ -160,8 +160,9 @@ public class RecordFactory {
     }
 
     public static ParameterDefinitionDTO makeDTO(ModelParameter parameter){
-        return new ParameterDefinitionDTO(parameter.getIdentifier(),parameter.getTags()[0], parameter.getType().toString());
+        return new ParameterDefinitionDTO(parameter.getIdentifier(),parameter.getTags()[0], parameter.getType().toString(), parameter.getAlias());
     }
+
     public static ParameterDTO makeDTO(ModelParameter parameter, String value){
         return new ParameterDTO(makeDTO(parameter), value);
     }

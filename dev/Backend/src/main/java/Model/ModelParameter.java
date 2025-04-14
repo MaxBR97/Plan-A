@@ -3,6 +3,7 @@ package Model;
 import java.util.LinkedList;
 import java.util.List;
 
+import DTO.Records.Model.ModelData.ParameterDefinitionDTO;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
@@ -29,6 +30,14 @@ public class ModelParameter extends ModelInput {
     public ModelParameter(String imageId, String paramName, ModelType type, List<ModelSet> basicSets,
             List<ModelParameter> basicParams, List<ModelFunction> funcDep) {
         super(imageId, paramName, type, basicSets, basicParams, funcDep);
+    }
+
+    public void modify(ParameterDefinitionDTO dto) throws Exception{
+        if(dto.alias() != null && !dto.alias().equals(""))
+            this.setAlias(dto.alias());
+        
+        if(dto.tag() != null)
+            this.setTags(new String[]{dto.tag()});
     }
     
     @Override
