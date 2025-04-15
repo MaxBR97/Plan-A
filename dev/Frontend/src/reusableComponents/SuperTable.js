@@ -309,59 +309,90 @@ const SuperTable = ({
   };
 
   /**
-   * Apply the edited value
-   * FIX: Ensure we're editing the correct dimension
-   */
-  const applyEdit = () => {
-    if (!editingCell) return;
-    const { level, filters } = editingCell;
+ * Apply the edited value
+ * FIX: Ensure we're editing the correct dimension and update selected tuples
+ */
+const applyEdit = () => {
+  if (!editingCell) return;
+  const { level, filters } = editingCell;
+  
+  // Get the dimension being edited
+  const editingDimension = displayStructure[level];
+  const indexInSetStructure = setStructure.indexOf(editingDimension);
+  if (indexInSetStructure === -1) return; // Dimension not found in set structure
+  
+  // Find matching displayed solutions
+  const matchingDisplayed = filterByParentValues(displayedSolutions, filters);
+  
+  // Find corresponding original solutions
+  const matchingOriginals = findMatchingOriginalSolutions(filters, displayedSolutions);
+  
+  // Update all matching solutions
+  const updatedSolutions = solutions.map(sol => {
+    const isMatch = matchingOriginals.some(original => {
+      // Compare only non-value parts
+      const originalValues = original.values.filter((_, i) => 
+        displayStructure.includes(setStructure[i]) && setStructure[i] !== valueSetName
+      );
+      
+      const solValues = sol.values.filter((_, i) => 
+        displayStructure.includes(setStructure[i]) && setStructure[i] !== valueSetName
+      );
+      
+      const minLength = Math.min(originalValues.length, solValues.length);
+      return JSON.stringify(originalValues.slice(0, minLength)) === 
+             JSON.stringify(solValues.slice(0, minLength));
+    });
     
-    // Get the dimension being edited
-    const editingDimension = displayStructure[level];
-    const indexInSetStructure = setStructure.indexOf(editingDimension);
-    if (indexInSetStructure === -1) return; // Dimension not found in set structure
+    if (isMatch) {
+      const newValues = [...sol.values];
+      newValues[indexInSetStructure] = editValue;
+      return { ...sol, values: newValues.slice(0,displayStructure.length) };
+    }
     
-    // Find matching displayed solutions
-    const matchingDisplayed = filterByParentValues(displayedSolutions, filters);
-    
-    // Find corresponding original solutions
-    const matchingOriginals = findMatchingOriginalSolutions(filters, displayedSolutions);
-    
-    // Update all matching solutions
-    const updatedSolutions = solutions.map(sol => {
+    return { ...sol, values: sol.values.slice(0,displayStructure.length) };
+  });
+  
+  // Also update any matching tuples in the selectedTuples array
+  if (selectedTuples && onSelectedTuplesChange) {
+    const updatedSelectedTuples = selectedTuples.map(selectedTuple => {
       const isMatch = matchingOriginals.some(original => {
         // Compare only non-value parts
         const originalValues = original.values.filter((_, i) => 
           displayStructure.includes(setStructure[i]) && setStructure[i] !== valueSetName
         );
         
-        const solValues = sol.values.filter((_, i) => 
+        const selectedValues = selectedTuple.values.filter((_, i) => 
           displayStructure.includes(setStructure[i]) && setStructure[i] !== valueSetName
         );
         
-        const minLength = Math.min(originalValues.length, solValues.length);
+        const minLength = Math.min(originalValues.length, selectedValues.length);
         return JSON.stringify(originalValues.slice(0, minLength)) === 
-               JSON.stringify(solValues.slice(0, minLength));
+               JSON.stringify(selectedValues.slice(0, minLength));
       });
       
       if (isMatch) {
-        const newValues = [...sol.values];
+        const newValues = [...selectedTuple.values];
         newValues[indexInSetStructure] = editValue;
-        return { ...sol, values: newValues.slice(0,displayStructure.length) };
+        return { ...selectedTuple, values: newValues.slice(0, displayStructure.length) };
       }
       
-      return { ...sol, values: sol.values.slice(0,displayStructure.length) };
+      return selectedTuple;
     });
     
-    // Clear editing state
-    setEditingCell(null);
-    setEditValue("");
-    
-    // Notify parent component
-    if (onSolutionUpdate) {
-      onSolutionUpdate(updatedSolutions);
-    }
-  };
+    // Update the selected tuples
+    onSelectedTuplesChange(updatedSelectedTuples);
+  }
+  
+  // Clear editing state
+  setEditingCell(null);
+  setEditValue("");
+  
+  // Notify parent component
+  if (onSolutionUpdate) {
+    onSolutionUpdate(updatedSolutions);
+  }
+};
 
   /**
    * Handle adding a new item
@@ -400,7 +431,10 @@ const SuperTable = ({
           newSolution.values[valueIndex] = defaultObjectiveValue;
         }
       }
-      
+      if(isDisplayBinary){
+        newSolution.objectiveValue = 1;
+      }
+
       // Add to solutions
       const updatedSolutions = [...solutions, newSolution];
       
