@@ -6,6 +6,7 @@ const SetEntry = ({
   label = "SetEntry",
   row,
   typeList,
+  tagsList,
   checked,
   onEdit,
   onToggle,

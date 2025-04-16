@@ -1,0 +1,140 @@
+.configure-sets-params-page {
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  
+  .page-title {
+    font-size: 24px;
+    margin-bottom: 24px;
+    color: #333;
+    text-align: center;
+  }
+  
+  .sets-section,
+  .params-section {
+    margin-bottom: 30px;
+    background-color: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  }
+  
+  h2 {
+    font-size: 20px;
+    margin-bottom: 16px;
+    color: #444;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 8px;
+  }
+  
+  .items-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+  }
+  
+  .item-card {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 16px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  }
+  
+  .item-card h3 {
+    margin-top: 0;
+    margin-bottom: 12px;
+    font-size: 18px;
+    color: #333;
+  }
+  
+  .item-card h4 {
+    margin-top: 12px;
+    margin-bottom: 8px;
+    font-size: 16px;
+    color: #555;
+  }
+  
+  .field-group {
+    margin-bottom: 12px;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .field-group label {
+    margin-bottom: 4px;
+    font-weight: 500;
+    font-size: 14px;
+    color: #666;
+  }
+  
+  .tag-input {
+    margin-bottom: 8px;
+  }
+  
+  input[type="text"] {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    width: 100%;
+  }
+  
+  input[type="text"]:focus {
+    border-color: #0066cc;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.2);
+  }
+  
+  .navigation-buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 30px;
+  }
+  
+  .continue-button,
+  .back-button {
+    padding: 10px 20px;
+    border-radius: 4px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 16px;
+    text-align: center;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s;
+  }
+  
+  .continue-button {
+    background-color: #0066cc;
+    color: white;
+    border: none;
+  }
+  
+  .continue-button:hover {
+    background-color: #0055aa;
+    transform: translateY(-1px);
+  }
+  
+  .back-button {
+    background-color: #f0f0f0;
+    color: #444;
+    border: 1px solid #ddd;
+  }
+  
+  .back-button:hover {
+    background-color: #e5e5e5;
+    transform: translateY(-1px);
+  }
+  
+  .no-data-message {
+    color: #888;
+    font-style: italic;
+    text-align: center;
+    padding: 20px 0;
+  }
+  
+  .tags-group {
+    border-top: 1px solid #eee;
+    padding-top: 10px;
+  }

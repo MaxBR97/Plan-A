@@ -88,6 +88,10 @@ const ConfigurePreferencesPage = () => {
     const handleContinue = async () => {
         setSendRequestAndContinue(true)
     };
+
+    const handleConfigSetsAndParams = async () => {
+        navigate('/configure-sets-params')   
+    }
     
     useEffect(() => {
         setAvailablePreferences(Array.from(model.preferences).filter((c) => 
@@ -579,8 +583,15 @@ const ConfigurePreferencesPage = () => {
             <button
     className="continue-button"
     onClick={handleContinue}
->
+            >
     Continue
+</button>
+
+<button
+    className="continue-button"
+    onClick={handleConfigSetsAndParams}
+            >
+    Configure Sets & Params
 </button>
 
 <button

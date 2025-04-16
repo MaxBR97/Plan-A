@@ -11,6 +11,7 @@ import ConfigureConstraintsPage from './pages/ConfigureConstraintsPage';
 import ConfigurePreferencesPage from './pages/ConfigurePreferencesPage';
 import SolutionPreviewPage from './pages/SolutionPreviewPage';
 import SolutionResultsPage from "./pages/SolutionResultsPage";
+import ConfigureSetsAndParamsPage from "./pages/ConfigureSetsAndParamsPage";
 
 function App() {
     return (
@@ -24,6 +25,7 @@ function App() {
                     <Route path="/configure-constraints" element={<ConfigureConstraintsPage />} />
                     <Route path="/configure-preferences" element={<ConfigurePreferencesPage />} />
                     <Route path="/solution-preview" element={<SolutionPreviewPage />} />
+                    <Route path="/configure-sets-params" element={<ConfigureSetsAndParamsPage />} />
                     {/* <Route path="/solution-results" element={<SolutionResultsPage />} /> */}
                 </Routes>
             </DndProvider>

@@ -6,6 +6,7 @@ const SetInputBox = ({
     typeList,
     tupleTags,
     setName,
+    setAlias,
     handleAddTuple,
     handleTupleChange,
     handleTupleToggle,
@@ -18,7 +19,7 @@ const SetInputBox = ({
 // In SetInputBox.jsx
 return (
   <div key={key} className="set-input">
-    <h3 className="set-name">{setName}</h3>
+    <h3 className="set-name">{setAlias ? setAlias : setName}</h3>
     <p className="set-type">
       <strong>Type:</strong> {typeList.join(", ")}
     </p>
@@ -35,31 +36,28 @@ return (
 
     {/* Wrap all entries in a scrollable container div */}
     <div className="entries-container">
-      {setValues?.map((row, rowIndex) => (
-        <div key={rowIndex}>
-          <SetEntry
-            key={rowIndex}
-            typeList={typeList}
-            row={row}
-            checked={isRowSelected(setName, rowIndex)}
-            onEdit={(e, typeIndex) =>
-              handleTupleChange(setName, rowIndex, typeIndex, e.target.value)
-            }
-            onToggle={(e) =>
-              handleTupleToggle(
-                setName,
-                rowIndex,
-              )
-            }
-            onDelete={(e) =>
-              handleRemoveTuple(
-                setName,
-                rowIndex,
-              )
-            }
-          />
-        </div>
+    <div className="tag-row">
+      {typeList.map((type, index) => (
+        <span key={index} className="tag-label">
+          {tupleTags?.[index] || type}
+        </span>
       ))}
+    </div>
+    {setValues?.map((row, rowIndex) => (
+    <div key={rowIndex}>
+      <SetEntry
+        key={rowIndex}
+        typeList={typeList}
+        row={row}
+        checked={isRowSelected(setName, rowIndex)}
+        onEdit={(e, typeIndex) =>
+          handleTupleChange(setName, rowIndex, typeIndex, e.target.value)
+        }
+        onToggle={() => handleTupleToggle(setName, rowIndex)}
+        onDelete={() => handleRemoveTuple(setName, rowIndex)}
+      />
+    </div>
+  ))}
     </div>
   </div>
 );

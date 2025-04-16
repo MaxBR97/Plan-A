@@ -70,6 +70,7 @@ const ModuleBox = ({
                 typeList={set.type}
                 tupleTags={set.tags || []}
                 setName={set.setName}
+                setAlias={set.alias}
                 handleAddTuple={handleAddTuple}
                 handleTupleChange={handleTupleChange}
                 handleTupleToggle={handleTupleToggle}
@@ -89,6 +90,7 @@ const ModuleBox = ({
               <ParameterInputBox
                 key={pIndex}
                 paramName={param.paramName}
+                paramAlias={param.alias}
                 type={param.type}
                 value={param.value}
                 onChange={handleParamChange}

@@ -442,6 +442,7 @@ clearInterval(timer); // Stop the timer once response is received
                   setName: setDef.name,
                   type: setDef.type,
                   tags: setDef.type,
+                  alias : setDef.alias,
                   setValues: variableValues[setDef.name] || [] ,
                 };
 
@@ -453,7 +454,8 @@ clearInterval(timer); // Stop the timer once response is received
                 const inputParam = {
                   paramName: paramDef.name,
                   value: paramValues[paramDef.name] || "",
-                  type: paramDef.type
+                  type: paramDef.type,
+                  alias : paramDef.alias,
                 };
                 inputParams =[...inputParams, inputParam];
               });
@@ -557,8 +559,9 @@ clearInterval(timer); // Stop the timer once response is received
   <SetInputBox
     index={index}
     typeList={setDef.type}
-    tupleTags={[]}
+    tupleTags={setDef.tags}
     setName={setDef.name}
+    setAlias={setDef.alias}
     handleAddTuple={handleAddVariable}
     handleTupleChange={handleVariableChange}
     handleTupleToggle={handleVariableToggle}
@@ -578,7 +581,9 @@ clearInterval(timer); // Stop the timer once response is received
           <ParameterInputBox
             key={index}
             paramName={paramDef.name}
+            paramAlias={paramDef.alias}
             type={paramDef.type}
+            tag={paramDef.tag}
             value={paramValues[paramDef.name]}
             onChange={handleParamChange}
           />

@@ -1,13 +1,13 @@
 import React from "react";
 import "./ParameterInputBox.css"
 
-const ParameterInputBox = ({ paramName, type, value, onChange }) => {
+const ParameterInputBox = ({ paramName, paramAlias, type, tag, value, onChange }) => {
   // Ensure the value is an array
   const paramValue = Array.isArray(value) ? value[0] || "" : "";
 
   return (
     <div className="parameter-input">
-      <h3 className="parameter-name">{paramName}</h3>
+      <h3 className="parameter-name">{paramAlias ? paramAlias : paramName}</h3>
       <p className="parameter-type">
         <strong>Type:</strong> {type || "Unknown"}
       </p>

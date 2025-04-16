@@ -117,154 +117,129 @@ const SuperTable = ({
   }
 
   /**
-   * Find matching tuples with original solutions
-   * FIX: Improved matching to handle displayValue changes
-   */
-  function findMatchingOriginalSolutions(filters, displayedSolutions) {
-    // Find displayed solutions matching the filters
-    const matchingSolutions = filterByParentValues(displayedSolutions, filters);
-    
-    // Find corresponding original solutions
-    return solutions.filter(originalSol => 
-      matchingSolutions.some(displaySol => {
-        // Compare only the relevant fields from original values
-        // This fixes the issue with extra undefined values
-        const relevantOriginal = [];
-        setStructure.forEach((dim, index) => {
-          if (displayStructure.includes(dim)) {
-            relevantOriginal.push(originalSol.values[index]);
-          }
-        });
-        
-        // Compare the relevant fields from display solution
-        const relevantDisplay = [];
-        displayStructure.forEach((dim, index) => {
-          if (setStructure.includes(dim)) {
-            relevantDisplay.push(displaySol.values[index]);
-          }
-        });
-        
-        // Ignore the "value" field for comparison if it's the last one
-        const lastIndex = displayStructure.length - 1;
-        if (displayStructure[lastIndex] === valueSetName) {
-          relevantDisplay.pop();
+ * Find matching tuples with original solutions
+ * FIX: Correct dimension alignment between displayStructure and setStructure
+ */
+function findMatchingOriginalSolutions(filters, displayedSolutions) {
+  // Find displayed solutions matching the filters
+  const matchingDisplayed = filterByParentValues(displayedSolutions, filters);
+
+  return solutions.filter(originalSol => 
+    matchingDisplayed.some(displaySol => {
+      // Build dimension -> value maps for both original and display solutions
+      const originalMap = {};
+      setStructure.forEach((dim, i) => {
+        if (dim !== valueSetName) {
+          originalMap[dim] = originalSol.values[i];
         }
-        
-        // Make sure the arrays are of the same length before comparing
-        const minLength = Math.min(relevantOriginal.length, relevantDisplay.length);
-        return JSON.stringify(relevantOriginal.slice(0, minLength)) === 
-               JSON.stringify(relevantDisplay.slice(0, minLength));
+      });
+
+      const displayMap = {};
+      displayStructure.forEach((dim, i) => {
+        if (dim !== valueSetName) {
+          displayMap[dim] = displaySol.values[i];
+        }
+      });
+
+      // Compare all relevant dimensions in displayStructure
+      return displayStructure.every(dim => {
+        if (dim === valueSetName) return true; // Skip value comparison
+        return originalMap[dim] === displayMap[dim];
+      });
+    })
+  );
+}
+
+
+  function isSolutionSelected(displaySol) {
+    // Build a map: dimension -> value from displaySol (in displayStructure order)
+    const dimToValueMap = {};
+    displayStructure.forEach((dim, i) => {
+      dimToValueMap[dim] = displaySol.values[i];
+    });
+  
+    // Get the dimensions we're going to match on (excluding valueSetName)
+    const matchDims = displayStructure.filter(dim => dim !== valueSetName);
+  
+    return selectedTuples.some(selected => {
+      // Rebuild selected dim -> value based on setStructure
+      const selectedDimToValue = {};
+      setStructure.forEach((dim, i) => {
+        selectedDimToValue[dim] = selected.values[i];
+      });
+  
+      // Only compare relevant dimensions
+      return matchDims.every(dim => selectedDimToValue[dim] === dimToValueMap[dim]);
+    });
+  }
+  
+  /**
+ * Extract tuple values in the order of displayStructure (excluding valueSetName)
+ */
+function extractValuesInDisplayOrder(tuple) {
+  const dimToVal = {};
+  setStructure.forEach((dim, i) => {
+    dimToVal[dim] = tuple.values[i];
+  });
+
+  return displayStructure
+    .filter(dim => dim !== valueSetName)
+    .map(dim => dimToVal[dim]);
+}
+
+/**
+ * Toggle selection for tuples matching the filters
+ */
+const toggleSelection = (filters) => {
+  console.log("Filters:",filters)
+  // Find displayed solutions matching the filters
+  const matchingDisplayed = filterByParentValues(displayedSolutions, filters);
+  if (matchingDisplayed.length === 0) return;
+
+  // Find corresponding original solutions
+  const matchingOriginals = findMatchingOriginalSolutions(filters, displayedSolutions);
+  console.log("orign",matchingDisplayed)
+  // Check if they're all selected already
+  const allSelected = matchingOriginals.every(original =>
+    selectedTuples.some(selected => {
+      const originalValues = extractValuesInDisplayOrder(original);
+      const selectedValues = extractValuesInDisplayOrder(selected);
+      return JSON.stringify(originalValues) === JSON.stringify(selectedValues);
+    })
+  );
+
+  let newSelection;
+  if (allSelected) {
+    // Remove from selection
+    newSelection = selectedTuples.filter(selected =>
+      !matchingOriginals.some(original => {
+        const originalValues = extractValuesInDisplayOrder(original);
+        const selectedValues = extractValuesInDisplayOrder(selected);
+        return JSON.stringify(originalValues) === JSON.stringify(selectedValues);
       })
     );
-  }
+    console.log("NEW selection:",newSelection)
+  } else {
+    // Add to selection
+    newSelection = [...selectedTuples];
+    matchingOriginals.forEach(original => {
+      const alreadySelected = newSelection.some(selected => {
+        const originalValues = extractValuesInDisplayOrder(original);
+        const selectedValues = extractValuesInDisplayOrder(selected);
+        return JSON.stringify(originalValues) === JSON.stringify(selectedValues);
+      });
 
-  /**
-   * Check if a solution is selected
-   * FIX: Improved selection checking to handle displayValue changes
-   */
-  function isSolutionSelected(displaySol) {
-    // Create a normalized version of the display solution for comparison
-    const relevantDisplay = [];
-    displayStructure.forEach((dim, index) => {
-      if (setStructure.includes(dim) && dim !== valueSetName) {
-        relevantDisplay.push(displaySol.values[index]);
+      if (!alreadySelected) {
+        newSelection.push(original);
       }
     });
-    
-    // Check if any selected tuple matches this solution
-    return selectedTuples.some(selected => {
-      const relevantSelected = [];
-      setStructure.forEach((dim, index) => {
-        if (displayStructure.includes(dim) && dim !== valueSetName) {
-          relevantSelected.push(selected.values[index]);
-        }
-      });
-      
-      // Make sure arrays are same length before comparing
-      const minLength = Math.min(relevantDisplay.length, relevantSelected.length);
-      return JSON.stringify(relevantDisplay.slice(0, minLength)) === 
-             JSON.stringify(relevantSelected.slice(0, minLength));
-    });
   }
 
-  /**
-   * Toggle selection for tuples matching the filters
-   */
-  const toggleSelection = (filters) => {
-    // Find displayed solutions matching the filters
-    const matchingDisplayed = filterByParentValues(displayedSolutions, filters);
-    if (matchingDisplayed.length === 0) return;
-    
-    // Find corresponding original solutions
-    const matchingOriginals = findMatchingOriginalSolutions(filters, displayedSolutions);
-    
-    // Check if they're all selected already
-    const allSelected = matchingOriginals.every(original => 
-      selectedTuples.some(selected => {
-        // Compare only the relevant parts, ignoring value column if needed
-        const originalValues = original.values.filter((_, i) => 
-          // Keep only non-value dimensions that are in display structure
-          displayStructure.includes(setStructure[i]) && setStructure[i] !== valueSetName
-        );
-        
-        const selectedValues = selected.values.filter((_, i) => 
-          // Keep only non-value dimensions that are in display structure
-          displayStructure.includes(setStructure[i]) && setStructure[i] !== valueSetName
-        );
-        
-        // Compare the filteredValues
-        const minLength = Math.min(originalValues.length, selectedValues.length);
-        return JSON.stringify(originalValues.slice(0, minLength)) === 
-               JSON.stringify(selectedValues.slice(0, minLength));
-      })
-    );
+  if (onSelectedTuplesChange) {
+    onSelectedTuplesChange(newSelection);
+  }
+};
 
-    let newSelection;
-    if (allSelected) {
-      // Remove from selection - use same comparison logic as above
-      newSelection = selectedTuples.filter(selected => 
-        !matchingOriginals.some(original => {
-          const originalValues = original.values.filter((_, i) => 
-            displayStructure.includes(setStructure[i]) && setStructure[i] !== valueSetName
-          );
-          
-          const selectedValues = selected.values.filter((_, i) => 
-            displayStructure.includes(setStructure[i]) && setStructure[i] !== valueSetName
-          );
-          
-          const minLength = Math.min(originalValues.length, selectedValues.length);
-          return JSON.stringify(originalValues.slice(0, minLength)) === 
-                 JSON.stringify(selectedValues.slice(0, minLength));
-        })
-      );
-    } else {
-      // Add to selection
-      newSelection = [...selectedTuples];
-      
-      matchingOriginals.forEach(original => {
-        if (!newSelection.some(selected => {
-          const originalValues = original.values.filter((_, i) => 
-            displayStructure.includes(setStructure[i]) && setStructure[i] !== valueSetName
-          );
-          
-          const selectedValues = selected.values.filter((_, i) => 
-            displayStructure.includes(setStructure[i]) && setStructure[i] !== valueSetName
-          );
-          
-          const minLength = Math.min(originalValues.length, selectedValues.length);
-          return JSON.stringify(originalValues.slice(0, minLength)) === 
-                 JSON.stringify(selectedValues.slice(0, minLength));
-        })) {
-          newSelection.push(original);
-        }
-      });
-    }
-    
-    if (onSelectedTuplesChange) {
-      
-      onSelectedTuplesChange(newSelection);
-    }
-  };
 
   /**
    * Toggle selection for entire table
@@ -479,6 +454,7 @@ const applyEdit = () => {
               const currentFilters = { ...parentFilters, [currentDimension]: value };
               const matchingSolutions = filterByParentValues(sortedSolutions, currentFilters);
               const isSelected = matchingSolutions.some(sol => isSolutionSelected(sol));
+              console.log("is Selected:",isSelected)
               
               return (
                 <tr key={index}>
@@ -486,10 +462,10 @@ const applyEdit = () => {
                     onClick={() => toggleSelection(currentFilters)}
                     onDoubleClick={(e) => {
                       e.stopPropagation();
-                      if (editMode) {
+                      // if (editMode) {
                         setEditingCell({ level, filters: currentFilters });
                         setEditValue(value);
-                      }
+                      // }
                     }}
                     className={`clickable-cell ${isSelected ? "highlighted" : ""}`}
                   >
@@ -558,10 +534,10 @@ const applyEdit = () => {
                     onClick={() => toggleSelection(currentFilters)}
                     onDoubleClick={(e) => {
                       e.stopPropagation();
-                      if (editMode) {
+                      // if (editMode) {
                         setEditingCell({ level, filters: currentFilters });
                         setEditValue(rowValue);
-                      }
+                      // }
                     }}
                   >
                     {editingCell &&
@@ -602,10 +578,10 @@ const applyEdit = () => {
                                 onClick={() => toggleSelection(cellFilters)}
                                 onDoubleClick={(e) => {
                                   e.stopPropagation();
-                                  if (editMode) {
+                                  // if (editMode) {
                                     setEditingCell({ level: level + 1, filters: cellFilters });
                                     setEditValue(colValue);
-                                  }
+                                  // }
                                 }}
                               >
                                 {editingCell &&
@@ -686,11 +662,11 @@ const applyEdit = () => {
                 onClick={() => toggleColumnSelection(value, level + 1)}
                 onDoubleClick={(e) => {  // FIX: Add double-click handler for column headers
                   e.stopPropagation();
-                  if (editMode) {
+                  // if (editMode) {
                     const columnFilters = { [nextDimension]: value };
                     setEditingCell({ level: level + 1, filters: columnFilters });
                     setEditValue(value);
-                  }
+                  // }
                 }}
               >
                 {editingCell &&
@@ -727,14 +703,14 @@ const applyEdit = () => {
             <tr key={rowIndex}>
               <td 
                 className="row-header clickable-cell"
-                onClick={() => toggleSelection({ ...parentFilters, [currentDimension]: rowValue })}
+                onClick={() => {console.log("ASD",{ ...parentFilters, [currentDimension]: rowValue }); toggleSelection({ ...parentFilters, [currentDimension]: rowValue })}}
                 onDoubleClick={(e) => {
                   e.stopPropagation();
-                  if (editMode) {
+                  // if (editMode) {
                     setEditingCell({ level, filters: { ...parentFilters, [currentDimension]: rowValue } });
                     
                     setEditValue(rowValue);
-                  }
+                  // }
                 }}
               >
                 {editingCell &&
