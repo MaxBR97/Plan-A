@@ -1,6 +1,6 @@
 # Changes from last generation: time is represented in minutes, and a significant scalability imporvement
 param NumberOfSoldiers := 30;
-param bias := 100;
+
 
 param planFromDay := "Sunday";
 param planFromHour := 0;

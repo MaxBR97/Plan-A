@@ -17,7 +17,7 @@ const SuperTable = ({
   const [editingCell, setEditingCell] = useState(null); // Track which cell is being edited
   const [editValue, setEditValue] = useState(""); // Temporary value for editing
   const [dimensionCounter, setDimensionCounter] = useState(1); // For generating unique dimension names
-  console.log("Selected",selectedTuples)
+  console.log("Selected Tuples",selectedTuples)
   useEffect(() => {
     // Reset editing when solutions change
     setEditingCell(null);
@@ -191,14 +191,12 @@ function extractValuesInDisplayOrder(tuple) {
  * Toggle selection for tuples matching the filters
  */
 const toggleSelection = (filters) => {
-  console.log("Filters:",filters)
   // Find displayed solutions matching the filters
   const matchingDisplayed = filterByParentValues(displayedSolutions, filters);
   if (matchingDisplayed.length === 0) return;
 
   // Find corresponding original solutions
   const matchingOriginals = findMatchingOriginalSolutions(filters, displayedSolutions);
-  console.log("orign",matchingDisplayed)
   // Check if they're all selected already
   const allSelected = matchingOriginals.every(original =>
     selectedTuples.some(selected => {
@@ -218,7 +216,7 @@ const toggleSelection = (filters) => {
         return JSON.stringify(originalValues) === JSON.stringify(selectedValues);
       })
     );
-    console.log("NEW selection:",newSelection)
+
   } else {
     // Add to selection
     newSelection = [...selectedTuples];
@@ -454,7 +452,6 @@ const applyEdit = () => {
               const currentFilters = { ...parentFilters, [currentDimension]: value };
               const matchingSolutions = filterByParentValues(sortedSolutions, currentFilters);
               const isSelected = matchingSolutions.some(sol => isSolutionSelected(sol));
-              console.log("is Selected:",isSelected)
               
               return (
                 <tr key={index}>
@@ -703,7 +700,7 @@ const applyEdit = () => {
             <tr key={rowIndex}>
               <td 
                 className="row-header clickable-cell"
-                onClick={() => {console.log("ASD",{ ...parentFilters, [currentDimension]: rowValue }); toggleSelection({ ...parentFilters, [currentDimension]: rowValue })}}
+                onClick={() => {toggleSelection({ ...parentFilters, [currentDimension]: rowValue })}}
                 onDoubleClick={(e) => {
                   e.stopPropagation();
                   // if (editMode) {

@@ -124,7 +124,7 @@ const SolutionResultsPage = ({ globalSelectedTuples, setGlobalSelectedTuples }) 
   // Initialize selected variable and display structure
   useEffect(() => {
     if (solutionResponse?.solved === false) {
-      // Handle solved false case if needed
+      setGlobalSelectedTuples({})
     }
     else if (solutionResponse?.solution) {
       const variables = Object.keys(solutionResponse.solution);
