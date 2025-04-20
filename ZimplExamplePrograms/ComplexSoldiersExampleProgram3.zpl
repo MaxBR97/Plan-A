@@ -1,5 +1,5 @@
 # Changes from last generation: time is represented in minutes, and a significant scalability imporvement
-param NumberOfSoldiers := 30;
+param NumberOfSoldiers := 6;
 
 
 param planFromDay := "Sunday";
@@ -131,25 +131,60 @@ defbool isBetweenDayHourMinute(fromDay, fromHour, fromMinute, toDay, toHour, toM
 set Soldiers := {1..NumberOfSoldiers};
 # <name,shift_time,people_in_shift>
 # set Stations := {<"Siyur1",8,4>,<"FillBox",4,1>,<"Shin Gimel",4,1>, <"Hamal",16.5,1>, <"Siyur2",8,4>, <"Siyur3",8,4>};  # Station names
-set Stations := {<"Siyur1",8,4>,<"FillBox",4,1>,<"a",16.5,1>};  # Station names
+#<station_name, required_people,FromHour,FromMinute,UntilHour,UntilMinute, default_shift_duration_hours, default_shift_duration_minutes>
+set Everyday_Missions := {
+    <"Patrol",1,1,0,4,0,1,30>
+    # , <"Night Patrol",2,22,00,6,00,1,0> , <"Kitchen",1,6,0,20,00,14,0>
+    };
+#<station_name, required_people,FromDay,FromHour,FromMinute,UntilDay,UntilHour,UntilMinute, default_shift_duration_hours, default_shift_duration_minutes>
+set OneTime_Missions := {
+    <"Avodot Rasar",3,"Sunday",0,0,"Monday",2,0,1,45>
+    };
+
+#<Person_name,FromDay,FromHour,FromMinute>
+set PeopleAllowedToBeAssignedFrom := {<"Empty Soldier","Sunday",0,0>};
+#<Person_name,Until,UntilHour,UntilMinute>
+set PeopleAllowedToBeAssignedUntil := {<"Empty Soldier","Saturday",23,59>};
+
+#<station,station_interval,required_ppl>
+set AllMissions :={<station,interval_hours,interval_minutes,required_people> in proj(Everyday_Missions,<1,7,8,2>) union proj(OneTime_Missions,<1,9,10,2>) : <station,interval_hours*60 + interval_minutes ,required_people>};
+
 set FormalTimes := {<day,hour,minute> in weekDays * hours * minutes | isBetweenDayHourMinute(planFromDay,planFromHour,planFromMinute, planUntilDay,planUntilHour, planUntilMinute, day,hour, minute)};
 param planTimeRange := timeDifference(planFromDay,planFromHour,planFromMinute, planUntilDay,planUntilHour, planUntilMinute);
 set Times := {0 .. planTimeRange};
 
-set Shifts := {<station, stationInterval, requiredPeople, time> in Stations * Times | time mod (stationInterval*card(minutes)) == 0 and time + (stationInterval*card(minutes)) <= planTimeRange};
+#<station,stationInterval,requiredppl,time>
+set Shifts := 
+    {<station_name, required_people,fromHour,fromMinute,untilHour,untilMinute, default_shift_duration_hours, default_shift_duration_minutes, day, time_quant> in Everyday_Missions * weekDays * Times |
+                                                                isBetweenDayHourMinute(day,fromHour,fromMinute,day,untilHour,untilMinute,getDay(time_quant),getHour(time_quant),getMinute(time_quant)) and
+                                                                (convertToMinutesRepresentation(day,untilHour, untilMinute) > time_quant) and
+                                                                (convertToMinutesRepresentation(planUntilDay,planUntilHour, planUntilMinute) > time_quant) and
+                                                                floor((time_quant-convertToMinutesRepresentation(day,fromHour, fromMinute)) mod (default_shift_duration_hours*60 + default_shift_duration_minutes)) == 0 and  
+                                                                ((orderWeekDays[day] >= orderWeekDays[planFromDay] and orderWeekDays[day] <= orderWeekDays[planUntilDay] and orderWeekDays[planFromDay] <= orderWeekDays[planUntilDay] ) or (orderWeekDays[day] >= orderWeekDays[planFromDay] and orderWeekDays[day] <= orderWeekDays[planUntilDay] and orderWeekDays[planFromDay] > orderWeekDays[planUntilDay])) :
+                                                                <station_name, default_shift_duration_hours*60 + default_shift_duration_minutes , required_people,time_quant>} union 
+    {<station_name, required_people,fromDay,fromHour,fromMinute,untilDay,untilHour,untilMinute,default_shift_duration_hours,default_shift_duration_minutes,time_quant> in OneTime_Missions * Times | 
+                                                                isBetweenDayHourMinute(fromDay,fromHour,fromMinute,untilDay,untilHour,untilMinute,getDay(time_quant),getHour(time_quant),getMinute(time_quant)) and
+                                                                (convertToMinutesRepresentation(planUntilDay,planUntilHour, planUntilMinute) > time_quant) and
+                                                                (convertToMinutesRepresentation(untilDay,untilHour, untilMinute) > time_quant) and
+                                                                floor((time_quant-convertToMinutesRepresentation(fromDay,fromHour, fromMinute)) mod (default_shift_duration_hours*60 + default_shift_duration_minutes)) == 0 : 
+                                                                <station_name,default_shift_duration_hours*60 + default_shift_duration_minutes , required_people,time_quant>};
+do print Shifts;
 
 set SoldiersToShifts := Soldiers * proj(Shifts,<1,4>);
 
 set ArtificialStation := {<"inv",0,1>};
 set ArtificialShift := {<soldier,station,time> in Soldiers * proj(ArtificialStation,<1>) * {-1, card(Times) + 1 } };
-set preAssign := {<1,"Siyur1","Sunday",0,0>, <2,"Siyur1","Sunday",0,0>, <3,"Siyur1","Sunday",0,0>, <4,"Siyur1","Sunday",0,0>,
-                <5,"FillBox","Monday",0,0>,<6,"FillBox","Sunday",8,0>, <7,"FillBox","Sunday",12,0>, <8,"FillBox","Sunday",16,0>, <9,"FillBox","Sunday",20,0>};
+set preAssign := {};
 set encodedPreAssign := {<soldier,station,day,hour,minute> in preAssign: <soldier,station,timeDifference(planFromDay,planFromHour, planFromMinute, day, hour, minute)>};                
 param AntiPreAssignRate := 0.0;
 set antiPreAss := {<soldier,station,time> in SoldiersToShifts | floor(random(0+AntiPreAssignRate,1+AntiPreAssignRate)) == 1} - encodedPreAssign;
 var Edge[<i,a,b> in SoldiersToShifts union ArtificialShift] binary; #
 var NeighbouringShifts[SoldiersToShifts union ArtificialShift] real >= 0 <= (card(Times)/60)+2; #
-set FormalShiftsDescription := {<station, stationInterval, requiredPeople, day, hour, minute> in Stations * FormalTimes | timeDifference(planFromDay,planFromHour, planFromMinute, day, hour, minute) mod stationInterval == 0 : <station, stationInterval, requiredPeople, convertToPresentation[day], makeTimeInString(hour,minute)>};
+#<station, interval, required, day , hour, minute>
+set FormalShiftsDescription := {<station, stationInterval, requiredPeople,time, day, hour, minute> in Shifts * FormalTimes | getMinute(time) == minute and getHour(time) == hour and getDay(time) == day :
+ <station, stationInterval, requiredPeople, convertToPresentation[day], makeTimeInString(hour,minute)>};
+# do print FormalShiftsDescription;
+do print Soldiers * proj(FormalShiftsDescription,<1,4,5>);
 var FormalTimesEdges[Soldiers * proj(FormalShiftsDescription,<1,4,5>)] binary; #
 # set labelsForShiftStatistics := {"Problem size (people * stations * times)", "Total Shifts Assigned", "Average Shifts Per Person", "Average Rest Time", "People Not Assigned Atleast Once"}
 # var ShiftStatistics[labels] integer;
@@ -171,7 +206,7 @@ defnumb nextKnownShift(soldier,time) :=
     then card(Times)+1
     else min <sol,station, t> in encodedPreAssign | t > time and soldier == sol: t end;
 
-do print card({<soldier, station, time, joinStation ,shiftInterval, requiredPeople> in ((SoldiersToShifts union ArtificialShift) - antiPreAss) * proj(Stations union ArtificialStation, <1,2,3>) | joinStation == station and time != (card(Times) + 1) and (card({<a,b,c> in encodedPreAssign | b == station and c == time}) < requiredPeople or card({<a,b,c> in encodedPreAssign | a == soldier and b == station and c == time}) >= 1)});
+# do print card({<soldier, station, time, joinStation ,shiftInterval, requiredPeople> in ((SoldiersToShifts union ArtificialShift) - antiPreAss) * proj(Stations union ArtificialStation, <1,2,3>) | joinStation == station and time != (card(Times) + 1) and (card({<a,b,c> in encodedPreAssign | b == station and c == time}) < requiredPeople or card({<a,b,c> in encodedPreAssign | a == soldier and b == station and c == time}) >= 1)});
 
 
 # subto EnforceCalculationOfRestTimes1:
@@ -182,14 +217,11 @@ do print card({<soldier, station, time, joinStation ,shiftInterval, requiredPeop
 # do print "loaded EnforceCalculationOfRestTimes1";
 
 subto EnforceCalculationOfRestTimes1:
-    forall <soldier, station, time, joinStation ,shiftInterval, requiredPeople> in ((SoldiersToShifts union ArtificialShift) - antiPreAss) * proj(Stations union ArtificialStation, <1,2,3>) | joinStation == station and time != (card(Times) + 1) and (card({<a,b,c> in encodedPreAssign | b == station and c == time}) < requiredPeople or card({<a,b,c> in encodedPreAssign | a == soldier and b == station and c == time}) >= 1):
+    forall <soldier, station, time, joinStation ,shiftInterval, requiredPeople> in ((SoldiersToShifts union ArtificialShift) - antiPreAss) * proj(AllMissions union ArtificialStation, <1,2,3>) | joinStation == station and time != (card(Times) + 1) and (card({<a,b,c> in encodedPreAssign | b == station and c == time}) < requiredPeople or card({<a,b,c> in encodedPreAssign | a == soldier and b == station and c == time}) >= 1):
         forall <soldier2, station2, time2>  in ((SoldiersToShifts union ArtificialShift) - antiPreAss) | soldier == soldier2 and time2 <= (card(Times) + 1) and (time2 >= min(time + (shiftInterval + minimumRestHours)*60, card(Times)+1) or time == -1) :
             NeighbouringShifts[soldier,station,time] <=  (((time2-time-(shiftInterval*60)) / 60) * Edge[soldier,station,time] * Edge[soldier,station2,time2] ) +  ((1-(Edge[soldier,station,time] * Edge[soldier,station2,time2]))*170);
         
 do print "loaded EnforceCalculationOfRestTimes1";
-
-# subto try:
-#     NeighbouringShifts[1,"Siyur1",0] >= 1;
 
 # Edge = 0 -> NeighbouringShifts = 0                                                      
 subto NeighbouringShiftsAndEdgesAreConnected:
