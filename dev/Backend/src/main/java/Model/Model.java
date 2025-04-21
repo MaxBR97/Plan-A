@@ -69,6 +69,18 @@ public class Model extends ModelInterface {
         parseSource();
     }
 
+    public Model(ModelRepository repo, String id, Set<ModelSet> persistedSets, Set<ModelParameter> persistedParams ) throws Exception {
+        modelRepository = repo;
+        this.id = id;
+        for(ModelSet set : persistedSets){
+            this.setModelComponent(set);
+        }
+        for(ModelParameter param : persistedParams){
+            this.setModelComponent(param);
+        }
+        parseSource();
+    }
+
 
     public InputStream getSource() throws Exception{
         InputStream inputStream = modelRepository.downloadDocument(id);

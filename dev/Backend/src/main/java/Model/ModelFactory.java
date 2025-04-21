@@ -3,6 +3,7 @@ package Model;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -46,7 +47,21 @@ public class ModelFactory {
 
     public ModelInterface getModel(String id) throws Exception {
         
-        return getModel(id,modelInstance);
+        return getModel(id,modelInstance, Set.of(), Set.of());
+    }
+
+    public ModelInterface getModel(String id, Set<ModelSet> sets, Set<ModelParameter> params) throws Exception {
+        
+        return getModel(id,modelInstance, sets, params);
+    }
+
+    public ModelInterface getModel(String id, String role, Set<ModelSet> sets, Set<ModelParameter> params) throws Exception {
+        
+        if(role.equals("local"))
+            return new Model(modelRepository,id,sets,params);
+        else if(role.equals("grpcSolver"))
+            return new ModelProxy(modelRepository,id,remoteHost,remotePort,sets,params);
+        throw new BadRequestException(" invalid configuration of model");
     }
 
     public ModelInterface getModel(String id, String role) throws Exception {

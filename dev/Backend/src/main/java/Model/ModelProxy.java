@@ -62,6 +62,14 @@ public class ModelProxy extends ModelInterface {
         this.solverPort = solverPort;
     }
 
+    public ModelProxy(ModelRepository repo, String id, String solverHost, int solverPort, Set<ModelSet> sets, Set<ModelParameter> params) throws Exception {
+        this.modelRepository = repo;
+        this.id = id;
+        this.localModel = new Model(repo, id,sets, params);
+        this.solverHost = solverHost;
+        this.solverPort = solverPort;
+    }
+
     @Override
     public void parseSource() throws Exception{
         localModel.parseSource();

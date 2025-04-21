@@ -115,8 +115,8 @@ public class Image {
     private void initializeTransientFields() throws Exception {
         if(variables == null || variables.isEmpty())
             setVariableModule(new VariableModule(this, Map.of(), List.of(),List.of()));
-        this.model = modelFactory.getModel(id);
-        setModelWithPersistedData();
+        this.model = modelFactory.getModel(id, getAllInputSets(), getAllInputParameters());
+        //setModelWithPersistedData();
     }
 
     private void setModelWithPersistedData() throws Exception {
