@@ -198,6 +198,11 @@ protected List<String> def_values;
             ans = new StructureBlock[((Tuple)this.myType).size()];
         }
 
+        if (ans != null){
+            myStruct = ans;
+            return ans;
+        }
+
         int i = 0;
         for (ModelSet set : setDependencies){
             int j =1;

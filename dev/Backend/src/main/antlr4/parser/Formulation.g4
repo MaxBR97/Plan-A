@@ -205,6 +205,8 @@ sqRef	:	name=ID '[' index ']'		# SqRefIndex
 		;
 
 fnRef	:	'proj' '(' setExpr ',' tuple ')' 		#ProjFunc
+		|	'length' '(' strExpr ')'				#LengthFunc
+		|	'substr' '(' strExpr ',' expr ',' expr ')' #SubstrFunc
 		|	name=ID '(' ( index | csv ) ')' 	#CustomFunc
 		;	
 

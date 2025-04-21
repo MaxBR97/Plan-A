@@ -1189,6 +1189,7 @@ public class Model extends ModelInterface {
         //     basicFuncs.add(func);
         //     appendType(func.getType());
         // }
+        
         @Override
         public Void visitCustomFunc(FormulationParser.CustomFuncContext ctx){
             TypeVisitor newVisitor = new TypeVisitor();
@@ -1555,7 +1556,7 @@ public class Model extends ModelInterface {
             for(ModelSet s : visitor.basicSets){
                 int i = 1;
                 for(StructureBlock sb : s.getStructure()){
-                    totalStructure[count] = new StructureBlock(s, sb == null && s.getIdentifier().equals("anonymous_set") ? i : sb.position);
+                    totalStructure[count] = new StructureBlock(s, sb == null /*&& s.getIdentifier().equals("anonymous_set")*/ ? i : sb.position);
                     count++;
                     i++;
                 }   
@@ -1575,7 +1576,37 @@ public class Model extends ModelInterface {
 
             return null;
         }
+
         
+        @Override
+        public Void visitLengthFunc(FormulationParser.LengthFuncContext ctx) {
+            TypeVisitor newVisitor = new TypeVisitor();
+            if(ctx.strExpr() != null)
+                newVisitor.visit(ctx.strExpr());
+            basicSets.addAll(newVisitor.getBasicSets());
+            basicParams.addAll(newVisitor.getBasicParams());
+            basicFuncs.addAll(newVisitor.getBasicFuncs());
+            appendType(ModelPrimitives.INT);
+            return null;
+        }
+        
+        @Override
+        public Void visitSubstrFunc(FormulationParser.SubstrFuncContext ctx) {
+            TypeVisitor newVisitor = new TypeVisitor();
+            if(ctx.strExpr() != null)
+                newVisitor.visit(ctx.strExpr());
+            if(ctx.expr(0) != null)
+                newVisitor.visit(ctx.expr(0));
+            if(ctx.expr(1) != null)
+                newVisitor.visit(ctx.expr(1));
+            basicSets.addAll(newVisitor.getBasicSets());
+            basicParams.addAll(newVisitor.getBasicParams());
+            basicFuncs.addAll(newVisitor.getBasicFuncs());
+            appendType(ModelPrimitives.TEXT);
+            return null;
+        }
+        
+
         @Override
         public Void visitStrExprToken(FormulationParser.StrExprTokenContext ctx) {
             handleBasicType(ModelPrimitives.TEXT);
