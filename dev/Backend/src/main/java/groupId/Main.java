@@ -21,7 +21,7 @@ import parser.*;
 
 //TODO: Make an order in maven pom file, and make a proper pom hierarchy.
 
-@SpringBootApplication(scanBasePackages = {"groupId", "DataAccess", "Model", "Image", "Unit", "Integration", "Acceptance", "DTO", "Exceptions", "Image.Modules","Exceptions.UserErrors","SolverService"})
+@SpringBootApplication(scanBasePackages = {"groupId", "DataAccess", "Model", "Image", " Unit", "Integration", "Acceptance", "DTO", "Exceptions", "Image.Modules","Exceptions.UserErrors","SolverService"})
 @EnableJpaRepositories(basePackages = {"DataAccess", "Model","Image", "Unit","Image.Modules"})
 @ComponentScan(basePackages = {"groupId", "DataAccess", "Model", "Image", "Unit","Image.Modules","SolverService"})
 @EntityScan(basePackages = {"DataAccess", "Model", "Unit", "groupId", "Image","Image.Modules"})

@@ -489,7 +489,6 @@ clearInterval(timer); // Stop the timer once response is received
             preferenceModules.map((module, index) => {
               let inputSets = [];
               let inputParams = []
-
               module.inputSets.forEach((setDef) => {
                 const inputSet = {
                   setName: setDef.name,
@@ -533,19 +532,19 @@ clearInterval(timer); // Stop the timer once response is received
           )}
           
           {preferenceModules.length > 0 && (
-            Array.from(costParams).length > 0 ?<DraggableBar 
-            min={0} 
-            max={100} 
-            markers = {Array.from(costParams.keys())
-            .filter(param => paramValues[param])
-            .map(param => ({ [param]: parseFloat(paramValues[param][0]) }))}
-            //markers={[{ speed: 30 }, { power: 100 }]} 
+            Array.from(costParams).length > 0 ? <DraggableBar 
+            min={0}
+            max={100}
+            markers={Array.from(costParams.keys())
+              .filter(param => paramValues[param])
+              .map(param => ({ [param]: parseFloat(paramValues[param][0]) }))
+            }
+            costParams={costParams} // <--- pass the costParams!
             onChange={(marker) => {
               const [paramName, paramValue] = Object.entries(marker)[0];
               handleParamChange(paramName, paramValue);
             }}
-            
-          />
+          />          
           
             : null
           )}

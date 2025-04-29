@@ -280,21 +280,24 @@ const SolutionResultsPage = ({ globalSelectedTuples, setGlobalSelectedTuples }) 
         </div>
 
         {/* Main Solution Table */}
-        <div className="solution-table-container">
-          <SuperTable 
-            solutions={displayValue ? addObjectiveValueToSolutions(solutions) : solutions} 
-            setStructure={displayValue ? [...setStructure, "value"] : setStructure}
-            displayStructure={displayStructure}
-            isDisplayBinary={!displayValue}
-            valueSetName="value"
-            editMode={tableEditMode}
-            onSolutionUpdate={handleSolutionUpdate}
-            onAddDimension={handleAddDimension}
-            selectedTuples={globalSelectedTuples[selectedVariable] || []}
-            onSelectedTuplesChange={updateSelectedTuples}
-            defaultObjectiveValue={displayValue ? 0 : 1}
-          />
+        <div className="solution-table-container max-h-[600px] overflow-auto">
+          <div className="min-w-[800px]">
+            <SuperTable 
+              solutions={displayValue ? addObjectiveValueToSolutions(solutions) : solutions} 
+              setStructure={displayValue ? [...setStructure, "value"] : setStructure}
+              displayStructure={displayStructure}
+              isDisplayBinary={!displayValue}
+              valueSetName="value"
+              editMode={tableEditMode}
+              onSolutionUpdate={handleSolutionUpdate}
+              onAddDimension={handleAddDimension}
+              selectedTuples={globalSelectedTuples[selectedVariable] || []}
+              onSelectedTuplesChange={updateSelectedTuples}
+              defaultObjectiveValue={displayValue ? 0 : 1}
+            />
+          </div>
         </div>
+
       </div>
 
       {/* Draggable Set Structure Box */}

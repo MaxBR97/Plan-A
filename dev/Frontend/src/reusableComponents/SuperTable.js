@@ -464,7 +464,7 @@ const applyEdit = () => {
                         setEditValue(value);
                       // }
                     }}
-                    className={`clickable-cell ${isSelected ? "highlighted" : ""}`}
+                    className={`row-header clickable-cell ${isSelected ? "highlighted" : ""}`}
                   >
                     {editingCell &&
                     editingCell.level === level &&
@@ -643,7 +643,7 @@ const applyEdit = () => {
     const nextUniqueValues = sortMixedValues([...new Set(nextValues)]);
 
     return (
-      <table className="solution-table">
+      <table className={`solution-table level-${level}`}>
         <thead>
           <tr>
             <th 
@@ -765,9 +765,14 @@ const applyEdit = () => {
 
   return (
     <div className="super-table-container">
-      {generateTable(0)}
+      <div className="table-scrollable">
+        {generateTable(0)}
+      </div>
     </div>
   );
+  
+  
+  
 };
 
 export default SuperTable;

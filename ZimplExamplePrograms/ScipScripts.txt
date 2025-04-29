@@ -1,0 +1,12 @@
+    current best arrangment: read C:\Users\Max\Plan-A\dev\Backend\User\Models\f94a3e17-3993-4be5-9bb5-81467766fac5.zpl set presolv maxrounds 0 set lp adva iter 10  set nodesele breadth stdpr 100000 set limits time 19 optimi display solu
+
+    set nodesel bfs stdprio 1  set nodesel breadthf stdprio 100 set nodesel dfs stdprio 5 set nodesel estima stdprio 3 set nodesel hybrides stdprio 1 set nodesel restartdfs stdprio 20 set nodesel uct stdprio 10
+    set emph easycip set emph optima set emph counter  - 19 sec best: 205789 global best: 170491 
+
+    read C:\Users\Max\Plan-A\dev\Backend\User\Models\f94a3e17-3993-4be5-9bb5-81467766fac5.zpl set lp adv iter 100 set presol maxroun 0 set nodesel bfs stdprio 1  set nodesel breadthf stdprio 100 set nodesel dfs stdprio 5 set nodesel estima stdprio 3 set nodesel hybrides stdprio 1 set nodesel restartdfs stdprio 20 set nodesel uct stdprio 10 set emph optim set emph easycip set emph feas set emph counter
+    read C:\Users\Max\Plan-A\dev\Backend\User\Models\f94a3e17-3993-4be5-9bb5-81467766fac5.zpl set heur actcon freq 20 set lp adv iterlim 100 optimi
+    set heur emph off set presolv emph off
+
+    read C:\Users\Max\Plan-A\dev\Backend\User\Models\f94a3e17-3993-4be5-9bb5-81467766fac5.zpl set emph optim set limit time 35 optimize set emph easycip set emph optim set emph counter set limit time 45 optimi set emph optim set limit time 55 optim set emph count set limit time 1e+20 optimize - reach 177000 in less than a minute
+
+
