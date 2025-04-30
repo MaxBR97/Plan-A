@@ -31,12 +31,15 @@ import Model.ModelSet;
 import Model.ModelVariable;
 import Model.Solution;
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.MapKey;
+import jakarta.persistence.MapKeyColumn;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.PostLoad;
 import jakarta.persistence.Table;
@@ -76,6 +79,17 @@ public class Image {
     //@Transient
     private Map<String,VariableModule> variables;
 
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "image_solver_scripts", joinColumns = @JoinColumn(name = "image_id"))
+    @MapKeyColumn(name = "script_key")
+    @Column(name = "script_value")
+    private Map<String, String> solverScripts;
+
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "image_saved_solutions", joinColumns = @JoinColumn(name = "image_id"))
+    @Column(name = "solution_name")
+    private List<String> savedSolutions;
+
     @Transient
     private int defaultTimeout = 60;
 
@@ -95,6 +109,8 @@ public class Image {
         constraintsModules = new HashMap<>();
         preferenceModules = new HashMap<>();
         variables = new HashMap<>();
+        solverScripts = new HashMap<>();
+        savedSolutions = new LinkedList<>();
     }
     
     public Image(String id, String name, String description) throws Exception {
@@ -105,6 +121,8 @@ public class Image {
         preferenceModules = new HashMap<>();
         setVariableModule(new VariableModule(this, Map.of(), List.of(),List.of()));
         this.model = modelFactory.getModel(id);
+        solverScripts = new HashMap<>();
+        savedSolutions = new LinkedList<>();
     }
 
     public static void setModelFactory(ModelFactory factory){

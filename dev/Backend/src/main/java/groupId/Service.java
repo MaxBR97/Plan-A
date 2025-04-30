@@ -6,6 +6,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -90,6 +91,36 @@ public class Service implements ServiceInterface {
         controller.deleteImage(imageId);
         return ResponseEntity.ok().build();
     }
+
+    // @PostMapping("/images/{id}/solutions")
+    // public ResponseEntity<Void> saveSolution(
+    //         @PathVariable("id") String imageId,
+    //         @Valid @RequestBody SolutionDTO solutionDTO) throws Exception {
+    //     controller.saveSolution(imageId, solutionDTO);
+    //     return ResponseEntity.status(HttpStatus.CREATED).build();
+    // }
+
+    // @GetMapping("/images/{id}/solutions/{name}")
+    // public ResponseEntity<SolutionDTO> getSavedSolution(
+    //     @PathVariable("id") String imageId,
+    //     @PathVariable("name") String solutionName) throws Exception {
+    //     SolutionDTO solution = controller.getSavedSolution(imageId, solutionName);
+    //     if (solution == null) {
+    //         return ResponseEntity.notFound().build();
+    //     }
+    //     return ResponseEntity.ok(solution);
+    // }
+
+
+    // @DeleteMapping("/images/{id}/solutions/{name}")
+    // public ResponseEntity<Void> deleteSavedSolution(
+    //         @PathVariable("id") String imageId,
+    //         @PathVariable("name") String solutionName) throws Exception {
+    //     controller.deleteSavedSolution(imageId, solutionName);
+    //     return ResponseEntity.noContent().build();
+    // }
+
+
 
     //TODO: remove this getter. Temporarily exists to support bad tests.
     public ImageController getImageController() {

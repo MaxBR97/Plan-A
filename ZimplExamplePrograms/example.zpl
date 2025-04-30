@@ -13,7 +13,7 @@ set invalidShifts := {<"Yoni","North",0,20>};
 set Mishmarot := Station * Times; # -> {<North,16>, <North,20>, ....}
 
 #<person,station,time,result>
-set PreAssignedShibutsim := {<"a","b",0,1>};
+set PreAssignedShibutsim := {<"Max","North",0,1>};
 
 #<person,result>
 set PreAssignedTotalMishmarot := {};
