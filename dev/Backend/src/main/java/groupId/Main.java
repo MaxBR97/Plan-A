@@ -15,7 +15,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 import Model.Model;
 import Model.ModelSet;
-import SolverService.SolverService;
+import SolverService.GrpcSolverService;
 import SolverService.SolverServiceApplication;
 import parser.*;
 

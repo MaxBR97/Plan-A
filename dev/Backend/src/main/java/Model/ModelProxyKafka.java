@@ -4,11 +4,17 @@ import Exceptions.UserErrors.ZimplCompileError;
 
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.*;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.common.header.internals.RecordHeader;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.requestreply.ReplyingKafkaTemplate;
+import org.springframework.kafka.requestreply.RequestReplyFuture;
+import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.stereotype.Service;
 
 import Model.ModelInput.StructureBlock;
-import SolverService.SolverService;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import parser.*;
@@ -29,6 +35,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.security.Policy;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -39,35 +46,41 @@ import java.util.stream.Collectors;
 import org.antlr.runtime.tree.TreeWizard;
 import org.springframework.web.bind.annotation.RestController;
 
+import DTO.Records.Requests.Commands.KafkaCompileRequestDTO;
+import DTO.Records.Requests.Commands.KafkaCompileResponseDTO;
+import DTO.Records.Requests.Commands.KafkaSolveRequestDTO;
+import DTO.Records.Requests.Commands.KafkaSolveResponseDTO;
 import DataAccess.ModelRepository;
-import GRPC.CompilationResult;
-import static GRPC.CompilationResult.parser;
-import GRPC.ExecutionRequest;
-import GRPC.SolverServiceGrpc;
-import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder;
 
-public class ModelProxy extends ModelInterface {
+
+public class ModelProxyKafka extends ModelInterface {
 
     private final Model localModel;
-    private final String solverHost;
-    private final int solverPort;
+
+    private ReplyingKafkaTemplate<String, KafkaCompileRequestDTO, KafkaCompileResponseDTO> compileTemplate;
+    private ReplyingKafkaTemplate<String, KafkaSolveRequestDTO, KafkaSolveResponseDTO> solveTemplate;
+
     private ModelRepository modelRepository;
     private String id;
 
-    public ModelProxy(ModelRepository repo, String id, String solverHost, int solverPort) throws Exception {
+    public ModelProxyKafka(ModelRepository repo, String id,
+    ReplyingKafkaTemplate<String, KafkaCompileRequestDTO, KafkaCompileResponseDTO> compileTemplate, 
+    ReplyingKafkaTemplate<String, KafkaSolveRequestDTO, KafkaSolveResponseDTO> solveTemplate) throws Exception {
         this.modelRepository = repo;
         this.id = id;
+        this.compileTemplate = compileTemplate;
+        this.solveTemplate = solveTemplate;
         this.localModel = new Model(repo, id);
-        this.solverHost = solverHost;
-        this.solverPort = solverPort;
     }
 
-    public ModelProxy(ModelRepository repo, String id, String solverHost, int solverPort, Set<ModelSet> sets, Set<ModelParameter> params) throws Exception {
+    public ModelProxyKafka(ModelRepository repo, String id, Set<ModelSet> sets, Set<ModelParameter> params, 
+    ReplyingKafkaTemplate<String, KafkaCompileRequestDTO, KafkaCompileResponseDTO> compileTemplate, 
+    ReplyingKafkaTemplate<String, KafkaSolveRequestDTO, KafkaSolveResponseDTO> solveTemplate) throws Exception {
         this.modelRepository = repo;
         this.id = id;
-        this.localModel = new Model(repo, id,sets, params);
-        this.solverHost = solverHost;
-        this.solverPort = solverPort;
+        this.compileTemplate = compileTemplate;
+        this.solveTemplate = solveTemplate;
+        this.localModel = new Model(repo, id, sets, params);
     }
 
     @Override
@@ -130,60 +143,50 @@ public class ModelProxy extends ModelInterface {
         localModel.toggleFunctionality(mf, turnOn);
     }
 
-    //TODO: convert isCompiling and solve to asynchronous calls.
-    //TODO: much refactoring and optimisation needed.
     @Override
     public boolean isCompiling(float timeout) throws Exception {
-        String serviceBHost = this.solverHost;
-        int serviceBPort = this.solverPort;
-
-        ManagedChannel channel = NettyChannelBuilder.forAddress(serviceBHost, serviceBPort)
-                .usePlaintext()
-                .build();
-
-        SolverServiceGrpc.SolverServiceBlockingStub stub = SolverServiceGrpc.newBlockingStub(channel);
-
-        ExecutionRequest request = ExecutionRequest.newBuilder()
-                .setId(id)
-                //.setCode(this.originalSource)
-                .setTimeout(timeout)
-                .build();
-
         localModel.commentOutToggledFunctionalities();
-        CompilationResult response = stub.isCompiling(request);
+
+        KafkaCompileRequestDTO requestDTO = new KafkaCompileRequestDTO(id, timeout);
+        ProducerRecord<String, KafkaCompileRequestDTO> record = new ProducerRecord<>("compile_request", requestDTO);
+        // record.headers().add(KafkaHeaders.REPLY_TOPIC, "compile_response".getBytes(StandardCharsets.UTF_8));
+        RequestReplyFuture<String, KafkaCompileRequestDTO, KafkaCompileResponseDTO> future = compileTemplate.sendAndReceive(record);
+
+        ConsumerRecord<String, KafkaCompileResponseDTO> response = future.get((long) timeout, TimeUnit.SECONDS);
+
         localModel.restoreToggledFunctionalities();
 
-        channel.shutdown().awaitTermination(5, TimeUnit.SECONDS);
-        return response.getResult();
+        return response.value().result();
+    }
+
+
+    //TODO: If using a remote worker, the local service should not access the model document
+    // meanning, should not use: modelRepository.downloadDocument(...).
+    @Override
+    public Solution solve(float timeout, String solutionFileSuffix, String solverScript) throws Exception {
+        localModel.commentOutToggledFunctionalities();
+
+        KafkaSolveRequestDTO requestDTO = new KafkaSolveRequestDTO(id, timeout, solverScript);
+        ProducerRecord<String, KafkaSolveRequestDTO> record = new ProducerRecord<>("solve_request", requestDTO);
+        // record.headers().add(KafkaHeaders.REPLY_TOPIC, "solve_response".getBytes(StandardCharsets.UTF_8));
+        RequestReplyFuture<String, KafkaSolveRequestDTO, KafkaSolveResponseDTO> future = solveTemplate.sendAndReceive(record);
+
+        ConsumerRecord<String, KafkaSolveResponseDTO> response = future.get((long) timeout, TimeUnit.SECONDS);
+
+        localModel.restoreToggledFunctionalities();
+
+        String solutionName = response.value().solution();
+        modelRepository.downloadDocument(solutionName);
+
+        if ("null".equals(solutionName)) {
+            return null;
+        }
+
+        Path pathToSolution = modelRepository.getLocalyCachedFile(solutionName);
+        return new Solution(pathToSolution.toString());
     }
     
-    public Solution solve(float timeout, String solutionFileSufix) throws Exception {
-        String serviceBHost = this.solverHost;
-        int serviceBPort = this.solverPort;
-
-        ManagedChannel channel = NettyChannelBuilder.forAddress(serviceBHost, serviceBPort)
-                .usePlaintext()
-                .build();
-
-        SolverServiceGrpc.SolverServiceBlockingStub stub = SolverServiceGrpc.newBlockingStub(channel);
-
-        ExecutionRequest request = ExecutionRequest.newBuilder()
-                .setId(id)
-                .setTimeout(timeout)
-                .build();
-
-        localModel.commentOutToggledFunctionalities();                
-        GRPC.Solution response = stub.solve(request);
-        localModel.restoreToggledFunctionalities();
-        modelRepository.downloadDocument(response.getSolution());
-        if(response.getSolution().equals("null"))
-            return null;
-        Path pathToSolution = modelRepository.getLocalyCachedFile(response.getSolution());
-        Solution sol = new Solution(pathToSolution.toString());
-
-        channel.shutdown().awaitTermination(5, TimeUnit.SECONDS);
-        return sol;
-    }
+    
 
     public ModelSet getSet(String identifier) {
         return localModel.getSet(identifier);

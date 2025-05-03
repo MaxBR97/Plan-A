@@ -330,7 +330,7 @@ public class Model extends ModelInterface {
         }
     }
     //TODO: remove solutionFileSufix, it should be dedcided internally in Model class
-    public Solution solve(float timeout, String solutionFileSufix) throws BadRequestException {
+    public Solution solve(float timeout, String solutionFileSufix, String solverScript) throws BadRequestException {
         if(solutionFileSufix == null)
             throw new BadRequestException("solutionFileSufix is null");
         Solution ans = null;
@@ -340,8 +340,8 @@ public class Model extends ModelInterface {
             ProcessBuilder processBuilder = new ProcessBuilder(
                 "scip", "-c", 
                 " set limits time "+ timeout + 
-                " set timing reading TRUE" +
-                " set presolving advanced abortfac 0.005" +
+                " set timing reading TRUE " +
+                solverScript +
                 " read " + getSourcePathToFile() + 
                 " optimize"+
                 " display solution q"

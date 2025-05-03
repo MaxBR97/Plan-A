@@ -14,15 +14,15 @@ public class SolveCommandRequestBuilder implements RequestBuilder {
     SolveCommandDTO req;
 
     public SolveCommandRequestBuilder(CreateImageResponseDTO context){
-        req = new SolveCommandDTO(context.imageId(),new InputDTO(new HashMap<>(), new HashMap<>(), new LinkedList<>(),new LinkedList<>()),10);
+        req = new SolveCommandDTO(context.imageId(),new InputDTO(new HashMap<>(), new HashMap<>(), new LinkedList<>(),new LinkedList<>()),10, "");
     }
 
     public SolveCommandRequestBuilder(String imageId){
-        req = new SolveCommandDTO(imageId,new InputDTO(new HashMap<>(), new HashMap<>(), new LinkedList<>(),new LinkedList<>()),10);
+        req = new SolveCommandDTO(imageId,new InputDTO(new HashMap<>(), new HashMap<>(), new LinkedList<>(),new LinkedList<>()),10, "");
     }
 
     public SolveCommandRequestBuilder setTimeout(int timeout){
-        req = new SolveCommandDTO(req.imageId(), req.input(), timeout);
+        req = new SolveCommandDTO(req.imageId(), req.input(), timeout , "");
         return this;
     }
 
@@ -47,7 +47,7 @@ public class SolveCommandRequestBuilder implements RequestBuilder {
     }
     
     public SolveCommandRequestBuilder setInput(InputDTO inputs){
-        req = new SolveCommandDTO(req.imageId(),inputs,req.timeout());
+        req = new SolveCommandDTO(req.imageId(),inputs,req.timeout(), "");
         return this;
     }
 

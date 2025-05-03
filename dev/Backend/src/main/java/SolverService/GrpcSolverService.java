@@ -22,12 +22,12 @@ import Model.ModelInterface;
 @Profile("grpcSolver")
 @GrpcService
 @Component
-public class SolverService extends SolverServiceGrpc.SolverServiceImplBase {
+public class GrpcSolverService extends SolverServiceGrpc.SolverServiceImplBase {
 
     ModelFactory modelFactory;
 
     @Autowired
-    public SolverService(ModelFactory modelFact){
+    public GrpcSolverService(ModelFactory modelFact){
         modelFactory = modelFact;
     }
 
@@ -54,9 +54,10 @@ public class SolverService extends SolverServiceGrpc.SolverServiceImplBase {
     public void solve(ExecutionRequest request, StreamObserver<GRPC.Solution> responseObserver) {
         String id = request.getId();
         float timeout = request.getTimeout();
+        String solverScript = request.getSolverScript();
         try{
         ModelInterface model = modelFactory.getModel(id,"local");
-        Model.Solution ans = model.solve(timeout, "tmp");
+        Model.Solution ans = model.solve(timeout, "tmp", solverScript);
         GRPC.Solution response;
         if(ans != null) {
             String content = new String(Files.readAllBytes(Path.of(model.getSolutionPathToFile("tmp"))));

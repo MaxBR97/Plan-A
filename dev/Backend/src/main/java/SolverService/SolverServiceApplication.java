@@ -5,7 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
-@Profile("grpcSolver")
+
 @Component
 @SpringBootApplication
 public class SolverServiceApplication {
@@ -13,3 +13,4 @@ public class SolverServiceApplication {
         SpringApplication.run(SolverServiceApplication.class, args);
     }
 }
+

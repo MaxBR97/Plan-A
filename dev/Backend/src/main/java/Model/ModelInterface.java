@@ -89,7 +89,7 @@ public abstract class ModelInterface {
      * @param timeout Maximum time in seconds to wait for solving
      * @return Solution object if solving succeeds, null otherwise
      */
-    public abstract Solution solve(float timeout, String solutionFileSufix) throws Exception;
+    public abstract Solution solve(float timeout, String solutionFileSufix, String solverScript) throws Exception;
 
     /**
      * Retrieves a set by its identifier.

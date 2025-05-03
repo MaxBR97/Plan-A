@@ -5,4 +5,4 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
-public record SolveCommandDTO(@NotBlank String imageId, @NotNull @Valid InputDTO input, @Min(0) @NotNull int timeout) {}
+public record SolveCommandDTO(@NotBlank String imageId, @NotNull @Valid InputDTO input, @Min(0) @NotNull int timeout, String solverSettings) {}

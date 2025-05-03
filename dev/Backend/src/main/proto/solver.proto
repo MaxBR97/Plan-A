@@ -12,8 +12,8 @@ service SolverService {
 
 message ExecutionRequest {
     string id = 1;
-    
     float timeout = 2;
+    string solverScript = 3;
 }
 
 message CompilationResult {

@@ -95,7 +95,7 @@ public class ImageController {
             }
         }
 
-        return image.solve(command.timeout());
+        return image.solve(command.timeout(), command.solverSettings());
     }
 
     @Transactional

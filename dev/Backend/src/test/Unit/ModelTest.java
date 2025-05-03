@@ -258,7 +258,7 @@ public class ModelTest {
         try{
         
         m = modelFactory.getModel(this.sourceSolveId);
-        Solution sol = m.solve(100,"SOLUTION");
+        Solution sol = m.solve(100,"SOLUTION", "");
         
         assertNotNull(sol);
         Set<String> stringVariables = m.getVariables().stream()
@@ -286,7 +286,7 @@ public class ModelTest {
         //approximately 1-2 seconds reading time
         //approx. 1 seconds presolve time
         //aprox. 137 seconds solve for optimal
-        Solution sol = m.solve(6,"SOLUTION");
+        Solution sol = m.solve(6,"SOLUTION", "");
         
         assertNotNull(sol);
         Set<String> stringVariables = m.getVariables().stream()
@@ -310,7 +310,7 @@ public class ModelTest {
         m.setInput(m.getParameter("absoluteMinimalSpacing"),"0");
 
         //reading takes approx 8 sec
-        Solution sol = m.solve(1,"SOLUTION");
+        Solution sol = m.solve(1,"SOLUTION","");
         
         assertNotNull(sol);
         Set<String> stringVariables = m.getVariables().stream()
