@@ -336,7 +336,7 @@ public class Model extends ModelInterface {
         Solution ans = null;
         try {
             commentOutToggledFunctionalities();
-    
+            
             ProcessBuilder processBuilder = new ProcessBuilder(
                 "scip", "-c", 
                 " set limits time "+ timeout + 

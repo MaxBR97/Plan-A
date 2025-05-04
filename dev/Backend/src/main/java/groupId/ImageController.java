@@ -62,12 +62,16 @@ public class ImageController {
         id,
         command.imageName(),
         command.imageDescription(),
-        command.ownerUsername(),
+        command.owner(),
         command.isPrivate() == null ? true : command.isPrivate());
         imageRepository.save(image);
         return RecordFactory.makeDTO(id, image.getModel());
     }
 
+    /* TODO: this method gets the model of the image to toggle off constraints and preferences.
+      What actually should happen is image toggling off functions should be called, instead of
+      directly calling mode methods.
+    */
     @Transactional
     public SolutionDTO solve(SolveCommandDTO command) throws Exception {
         Image image = imageRepository.findById(command.imageId()).get();
