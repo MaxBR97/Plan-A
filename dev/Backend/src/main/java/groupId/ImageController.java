@@ -58,9 +58,13 @@ public class ImageController {
     public CreateImageResponseDTO createImageFromFile(CreateImageFromFileDTO command) throws Exception {
         String id = UUID.randomUUID().toString();
         modelFactory.uploadNewModel(id,command.code());
-        Image image = new Image(id,command.imageName(),command.imageDescription());
+        Image image = new Image(
+        id,
+        command.imageName(),
+        command.imageDescription(),
+        command.ownerUsername(),
+        command.isPrivate() == null ? true : command.isPrivate());
         imageRepository.save(image);
-
         return RecordFactory.makeDTO(id, image.getModel());
     }
 
@@ -106,6 +110,8 @@ public class ImageController {
         // //TODO: Not good going, should be fixed to do the operation with deleting and re-writing the whole image
         // imageRepository.deleteById(image.getId());
         // imageRepository.flush();
+        if (imageDTO.isPrivate() != null)
+            image.setIsPrivate(imageDTO.isPrivate());
         Objects.requireNonNull(image,"Invalid imageId in image config/override image");
         Map<String, ModelVariable> variables = new HashMap<>();
         ModelInterface model= image.getModel();

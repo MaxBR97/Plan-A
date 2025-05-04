@@ -46,6 +46,7 @@ import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 
 @Entity
 @Table(name = "images")
@@ -55,8 +56,14 @@ public class Image {
     @Column(name = "image_id") 
     private String id;
 
+    @Column(name = "owner")
+    private String owner;
+
     @Column(name = "image_name") 
     private String name;
+
+    @Column(name = "is_public")
+    private boolean isPrivate;
 
     @Column(name = "image_description") 
     private String description;
@@ -111,9 +118,11 @@ public class Image {
         variables = new HashMap<>();
         solverScripts = new HashMap<>();
         savedSolutions = new LinkedList<>();
+        owner = null;
+        isPrivate = true;
     }
     
-    public Image(String id, String name, String description) throws Exception {
+    public Image(String id, String name, String description, String ownerUser, boolean isPublic) throws Exception {
         this.id = id;
         this.name = name;
         this.description = description;
@@ -123,6 +132,8 @@ public class Image {
         this.model = modelFactory.getModel(id);
         solverScripts = new HashMap<>();
         savedSolutions = new LinkedList<>();
+        this.owner = ownerUser;
+        this.isPrivate = isPrivate;
     }
 
     public static void setModelFactory(ModelFactory factory){
@@ -162,6 +173,21 @@ public class Image {
     @Transactional
     public String getDescription(){
         return this.description;
+    }
+
+    @Transactional
+    public String getOwner(){
+        return this.owner;
+    }
+
+    @Transactional
+    public boolean isPrivate(){
+        return this.isPrivate;
+    }
+
+    @Transactional
+    public void setIsPrivate(boolean isPrivate) {
+        this.isPrivate = isPrivate;
     }
     
     @Transactional
@@ -490,4 +516,5 @@ public class Image {
             param.modify(paramDTO);
         }
     }
+
 }

@@ -87,7 +87,7 @@ public class ServiceTest {
     
         @Test
         public void testCreateImage() {
-            CreateImageFromFileDTO body =  new CreateImageRequestBuilder(imageName,imageDescription,SimpleCodeExample).build();
+            CreateImageFromFileDTO body =  new CreateImageRequestBuilder(imageName,imageDescription, "none", false, SimpleCodeExample).build();
             ResponseEntity<CreateImageResponseDTO> response = requestsManager.sendCreateImageRequest(body);
         
             //Expected response
@@ -116,7 +116,7 @@ public class ServiceTest {
             /**
              * SET UP
              */
-            CreateImageFromFileDTO createImage =  new CreateImageRequestBuilder(imageName,imageDescription,SimpleCodeExample).build();
+            CreateImageFromFileDTO createImage =  new CreateImageRequestBuilder(imageName,imageDescription, "none", false , SimpleCodeExample).build();
             ResponseEntity<CreateImageResponseDTO> responseCreateImage = requestsManager.sendCreateImageRequest(createImage);
             
             //Expected response
@@ -153,7 +153,7 @@ public class ServiceTest {
         @Test
         public void GivenFile_WhenCreateImage_ImageIsCorrect() {
     
-            CreateImageFromFileDTO createImage =  new CreateImageRequestBuilder(imageName,imageDescription,Paths.get("./src/test/Acceptance/example.zpl")).build();
+            CreateImageFromFileDTO createImage =  new CreateImageRequestBuilder(imageName,imageDescription, "none", false, Paths.get("./src/test/Acceptance/example.zpl")).build();
             ResponseEntity<CreateImageResponseDTO> responseCreateImage = requestsManager.sendCreateImageRequest(createImage);
     
             //Expected response
@@ -203,7 +203,7 @@ public class ServiceTest {
                 /**
                  * SET UP IMAGE, MAKE SURE ITS VALID
                  */
-                CreateImageFromFileDTO createImage =  new CreateImageRequestBuilder(imageName,imageDescription,SimpleCodeExample).build();
+                CreateImageFromFileDTO createImage =  new CreateImageRequestBuilder(imageName,imageDescription, "none", false , SimpleCodeExample).build();
                 ResponseEntity<CreateImageResponseDTO> responseCreateImage = requestsManager.sendCreateImageRequest(createImage);
                 
                 //Expected response
@@ -254,7 +254,7 @@ public class ServiceTest {
         @Test
         public void testLoadImageInput() {
             // create Image
-        CreateImageFromFileDTO createImage =  new CreateImageRequestBuilder(imageName,imageDescription,SimpleCodeExample).build();
+        CreateImageFromFileDTO createImage =  new CreateImageRequestBuilder(imageName,imageDescription, "none", false , SimpleCodeExample).build();
         ResponseEntity<CreateImageResponseDTO> responseCreateImage = requestsManager.sendCreateImageRequest(createImage);
         
         ImageConfigDTO configImage =  new ConfigureImageRequestBuilder(imageName, responseCreateImage.getBody())
@@ -301,10 +301,10 @@ public class ServiceTest {
         
         @Test
         public void getImagesTest(){
-        CreateImageFromFileDTO createImage1 =  new CreateImageRequestBuilder(imageName,imageDescription,SimpleCodeExample).build();
+        CreateImageFromFileDTO createImage1 =  new CreateImageRequestBuilder(imageName,imageDescription, "none", false , SimpleCodeExample).build();
         ResponseEntity<CreateImageResponseDTO> responseCreateImage1 = requestsManager.sendCreateImageRequest(createImage1);
 
-        CreateImageFromFileDTO createImage2 =  new CreateImageRequestBuilder(imageName,imageDescription,"""
+        CreateImageFromFileDTO createImage2 =  new CreateImageRequestBuilder(imageName,imageDescription,"none", false ,"""
                                                                 set S := {<1,\"a\">, <2,\"bs\">};
                                                                 minimize this:
                                                                     300;
@@ -321,7 +321,7 @@ public class ServiceTest {
 
         @Test
         public void deleteImageTest() {
-        CreateImageFromFileDTO createImage =  new CreateImageRequestBuilder(imageName,imageDescription,SimpleCodeExample).build();
+        CreateImageFromFileDTO createImage =  new CreateImageRequestBuilder(imageName,imageDescription, "none", false, SimpleCodeExample).build();
         ResponseEntity<CreateImageResponseDTO> responseCreateImage = requestsManager.sendCreateImageRequest(createImage);
 
             assertEquals(HttpStatus.OK, responseCreateImage.getStatusCode());
@@ -343,7 +343,7 @@ public class ServiceTest {
                 /**
                  * SET UP IMAGE, MAKE SURE ITS VALID
                  */
-                CreateImageFromFileDTO createImage =  new CreateImageRequestBuilder(imageName,imageDescription,SimpleCodeExample).build();
+                CreateImageFromFileDTO createImage =  new CreateImageRequestBuilder(imageName,imageDescription,"none", false , SimpleCodeExample).build();
                 ResponseEntity<CreateImageResponseDTO> responseCreateImage = requestsManager.sendCreateImageRequest(createImage);
                 
                 //Expected response
@@ -398,7 +398,7 @@ public class ServiceTest {
         // @Test
     @Test
     public void testUploadingHeavyImageAndSolveWithInputs(){
-            CreateImageFromFileDTO createImage =  new CreateImageRequestBuilder(imageName,imageDescription,Path.of(pathToComplexSoldiersExampleProgram3))
+            CreateImageFromFileDTO createImage =  new CreateImageRequestBuilder(imageName,imageDescription, "none", false , Path.of(pathToComplexSoldiersExampleProgram3))
             .build();
             ResponseEntity<CreateImageResponseDTO> responseCreateImage = requestsManager.sendCreateImageRequest(createImage);
             assertEquals(HttpStatus.OK, responseCreateImage.getStatusCode());
@@ -430,7 +430,7 @@ public class ServiceTest {
                                                 );
             List<String> respectiveImageIds = new LinkedList<>();                                                
             for(String program : uploadAll){
-                CreateImageFromFileDTO createImage =  new CreateImageRequestBuilder(imageName,imageDescription,Path.of(program))
+                CreateImageFromFileDTO createImage =  new CreateImageRequestBuilder(imageName,imageDescription, "none", false , Path.of(program))
                 .build();
                 ResponseEntity<CreateImageResponseDTO> responseCreateImage = requestsManager.sendCreateImageRequest(createImage);
                 assertEquals(HttpStatus.OK, responseCreateImage.getStatusCode());

@@ -33,10 +33,10 @@ public class ModelFactory {
     private static Environment environment;
 
     
-    @Autowired
+    @Autowired(required = false)
     private ReplyingKafkaTemplate<String, KafkaCompileRequestDTO, KafkaCompileResponseDTO> compileTemplate;
 
-    @Autowired
+    @Autowired(required = false)
     private ReplyingKafkaTemplate<String, KafkaSolveRequestDTO, KafkaSolveResponseDTO> solveTemplate;
 
     @Autowired

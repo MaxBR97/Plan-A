@@ -205,7 +205,7 @@ public class RecordFactory {
                     preferences.add(makeDTO(module));
                 }
                 
-                return new ImageDTO(image.getId(),image.getName(), image.getDescription(), variables, constraints, preferences);
+                return new ImageDTO(image.getId(),image.getName(), image.getDescription(), image.getOwner(), image.isPrivate(), variables, constraints, preferences);
         }
         private static VariableModuleDTO makeDTO(VariableModule module) {
             Set<VariableDTO> vars = new HashSet<>();
@@ -287,8 +287,8 @@ public class RecordFactory {
         }
         return new DependenciesDTO(resS, resP);
     }
-    public static CreateImageFromFileDTO makeDTO(String name, String description , String code){
-        return new CreateImageFromFileDTO(name,description,code);
+    public static CreateImageFromFileDTO makeDTO(String name, String description , String owner, Boolean isPrivate, String code){
+        return new CreateImageFromFileDTO(name,description, owner, isPrivate, code);
     }
 
 }
