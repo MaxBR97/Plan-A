@@ -122,7 +122,7 @@ public class Image {
         isPrivate = true;
     }
     
-    public Image(String id, String name, String description, String ownerUser, boolean isPublic) throws Exception {
+    public Image(String id, String name, String description, String ownerUser, Boolean isPrivate) throws Exception {
         this.id = id;
         this.name = name;
         this.description = description;
@@ -133,7 +133,7 @@ public class Image {
         solverScripts = new HashMap<>();
         savedSolutions = new LinkedList<>();
         this.owner = ownerUser;
-        this.isPrivate = isPrivate;
+        this.isPrivate = isPrivate == null ? true  : isPrivate ;
     }
 
     public static void setModelFactory(ModelFactory factory){

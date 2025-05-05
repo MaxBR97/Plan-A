@@ -2,10 +2,17 @@ import { createContext, useContext, useState } from "react";
 
 const ZPLContext = createContext(null);
 
+const initialUser = {
+  username: "guest",
+  isLoggedIn: false
+}
+
 const initialImageState = {
   imageName: "My Image",
   imageDescription: "default description",
   imageId: null,
+  owner: "guest",
+  isPrivate: true,
   constraintModules: [],
   preferenceModules: [],
   // variables: [],
@@ -26,11 +33,21 @@ const initialModelState = {
 }
 
 export const ZPLProvider = ({ children }) => {
+  const [user, setUser] = useState(initialUser);
+
   // State for image-related data
   const [image, setImage] = useState(initialImageState);
 
   // State for model-related data (from ModelDTO)
   const [model, setModel] = useState(initialModelState);
+
+  // Function to update user fields dynamically
+  const updateUserField = (field, value) => {  
+    setUser((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
 
   // State for solution response (from SolutionDTO)
   const [solutionResponse, setSolutionResponse] = useState({
@@ -90,6 +107,7 @@ export const ZPLProvider = ({ children }) => {
   return (
     <ZPLContext.Provider
       value={{
+        user,
         image,
         model,
         solutionResponse,

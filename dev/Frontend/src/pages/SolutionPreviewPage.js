@@ -601,7 +601,7 @@ clearInterval(timer); // Stop the timer once response is received
           <NumberInput 
             value={timeout}   
             onChange={setTimeout}
-            label="Timeout: "
+            label="Timeout (seconds): "
             placeholder="Enter amount"
             min="0"
           />
