@@ -7,7 +7,8 @@ import org.springframework.stereotype.Component;
 
 
 @Component
-@SpringBootApplication
+@Profile("kafkaSolver")
+@SpringBootApplication(scanBasePackages = {"groupId", "DataAccess", "Model", "Image", " Unit", "Integration", "Acceptance", "DTO", "Exceptions", "Image.Modules","Exceptions.UserErrors","SolverService"})
 public class SolverServiceApplication {
     public static void main(String[] args) {
         SpringApplication.run(SolverServiceApplication.class, args);

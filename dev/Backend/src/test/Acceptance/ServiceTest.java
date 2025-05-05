@@ -63,11 +63,11 @@ public class ServiceTest {
               myVar[3];
             """;
 
-    static String pathToSoldiersExampleProgram2 =  "..\\..\\ZimplExamplePrograms\\SoldiersExampleProgram2.zpl";
-    static String pathToSoldiersExampleProgram3 =  "..\\..\\ZimplExamplePrograms\\SoldiersExampleProgram3.zpl";
-    static String pathToComplexSoldiersExampleProgram3 =  "..\\..\\ZimplExamplePrograms\\ComplexSoldiersExampleProgram3.zpl";
-    static String pathToLearningParity2 = "..\\..\\ZimplExamplePrograms\\LearningParity2.zpl";
-    static String pathToComplexSoldiersExampleProgram = "..\\..\\ZimplExamplePrograms\\ComplexSoldiersExampleProgram.zpl";
+    static String pathToSoldiersExampleProgram2 =  Paths.get("..", "..", "ZimplExamplePrograms", "SoldiersExampleProgram2.zpl").toString();
+    static String pathToSoldiersExampleProgram3 =  Paths.get("..", "..","ZimplExamplePrograms","SoldiersExampleProgram3.zpl").toString();
+    static String pathToComplexSoldiersExampleProgram3 =  Paths.get("..","..", "ZimplExamplePrograms","ComplexSoldiersExampleProgram3.zpl").toString();
+    static String pathToLearningParity2 = Paths.get("..", "..", "ZimplExamplePrograms", "LearningParity2.zpl").toString();
+    static String pathToComplexSoldiersExampleProgram = Paths.get("..","..","ZimplExamplePrograms","ComplexSoldiersExampleProgram.zpl").toString();
     static RequestsManager requestsManager;
     static String imageName="myImage";
     static String imageDescription="desc";

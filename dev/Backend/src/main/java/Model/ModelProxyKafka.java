@@ -164,15 +164,16 @@ public class ModelProxyKafka extends ModelInterface {
     // meanning, should not use: modelRepository.downloadDocument(...).
     @Override
     public Solution solve(float timeout, String solutionFileSuffix, String solverScript) throws Exception {
+        
         localModel.commentOutToggledFunctionalities();
 
         KafkaSolveRequestDTO requestDTO = new KafkaSolveRequestDTO(id, timeout, solverScript);
         ProducerRecord<String, KafkaSolveRequestDTO> record = new ProducerRecord<>("solve_request", requestDTO);
         // record.headers().add(KafkaHeaders.REPLY_TOPIC, "solve_response".getBytes(StandardCharsets.UTF_8));
         RequestReplyFuture<String, KafkaSolveRequestDTO, KafkaSolveResponseDTO> future = solveTemplate.sendAndReceive(record);
-
+        System.out.println("Reply Received456" + future.get((long) timeout, TimeUnit.SECONDS).toString());
         ConsumerRecord<String, KafkaSolveResponseDTO> response = future.get((long) timeout, TimeUnit.SECONDS);
-
+        System.out.println("Reply Received456");
         localModel.restoreToggledFunctionalities();
 
         String solutionName = response.value().solution();
