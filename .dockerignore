@@ -1,0 +1,7 @@
+dev/Frontend/node_modules/
+dev/Backend/target/
+.git/
+.gitignore/
+Distribution/
+.vscode/
+
