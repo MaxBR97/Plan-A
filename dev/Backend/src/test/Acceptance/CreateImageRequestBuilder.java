@@ -12,11 +12,11 @@ import DTO.Records.Requests.Commands.CreateImageFromFileDTO;
 public class CreateImageRequestBuilder implements RequestBuilder {
     CreateImageFromFileDTO req;
 
-    public CreateImageRequestBuilder(String imageName,String imageDescription, String code){
-        req = new CreateImageFromFileDTO(imageName,imageDescription,code);
+    public CreateImageRequestBuilder(String imageName, String imageDescription, String owner, Boolean isPrivate, String code){    
+        req = new CreateImageFromFileDTO(imageName,imageDescription, owner, isPrivate, code);
     }
 
-    public CreateImageRequestBuilder(String imageName,String imageDescription, Path code){
+    public CreateImageRequestBuilder(String imageName,String imageDescription, String owner, Boolean isPrivate, Path code){
          String codeString = "";
             try {
             codeString = Files.readString(code);
@@ -25,7 +25,7 @@ public class CreateImageRequestBuilder implements RequestBuilder {
                 e.printStackTrace();
                 assertTrue(false);
             }
-        req = new CreateImageFromFileDTO(imageName,imageDescription,codeString);
+        req = new CreateImageFromFileDTO(imageName,imageDescription, owner, isPrivate, codeString);
     }
     
     public CreateImageFromFileDTO build() {
