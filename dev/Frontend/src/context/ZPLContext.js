@@ -111,6 +111,7 @@ export const ZPLProvider = ({ children }) => {
         image,
         model,
         solutionResponse,
+        updateUserField,
         updateImage,
         updateImageField,
         updateImageFieldWithCallBack,

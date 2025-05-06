@@ -26,6 +26,7 @@ function App() {
                     <Route path="/configure-preferences" element={<ConfigurePreferencesPage />} />
                     <Route path="/solution-preview" element={<SolutionPreviewPage />} />
                     <Route path="/configure-sets-params" element={<ConfigureSetsAndParamsPage />} />
+                    {/* <Route path="/login" element={<LoginPage/>} /> */}
                     {/* <Route path="/solution-results" element={<SolutionResultsPage />} /> */}
                 </Routes>
             </DndProvider>

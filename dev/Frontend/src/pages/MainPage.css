@@ -225,3 +225,17 @@
     display: flex;
     flex-direction: column;
   }
+
+  .auth-section {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 10px;
+  }
+  
+  .auth-button {
+    margin-left: 10px;
+    padding: 6px 12px;
+    font-weight: bold;
+    cursor: pointer;
+  }
+  

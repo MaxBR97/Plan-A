@@ -3,9 +3,15 @@ import { Link ,useNavigate } from 'react-router-dom';
 import './MainPage.css';
 import axios from 'axios';
 import { useZPL } from "../context/ZPLContext";
+import { login, logout, getUsername } from './KeycloakService.js';
+import { keycloak, initKeycloak } from './KeycloakService.js';
+
+
 
 const MainPage = () => {
     const {
+        user,
+        updateUserField,
         updateImage,
         image
       } = useZPL();
@@ -15,9 +21,15 @@ const MainPage = () => {
     const [error, setError] = useState(null);
     const [expandedDescriptions, setExpandedDescriptions] = useState({});
 
-    // Fetch all images when component mounts
     useEffect(() => {
-        fetchImages();
+    initKeycloak().then(authenticated => {
+      if (authenticated) {
+        updateUserField('isLoggedIn', true);
+        updateUserField('username', getUsername());
+      }
+    });
+  
+    fetchImages();
     }, []);
 
     const fetchImages = async () => {
@@ -67,6 +79,17 @@ const MainPage = () => {
 
     return (
         <div className="main-page">
+            <div className="auth-section">
+            {user.isLoggedIn ? (
+                <>
+                <span>Welcome, {user.username}!</span>
+                <button onClick={logout} className="auth-button">Logout</button>
+                </>
+            ) : (
+                <button onClick={login} className="auth-button">Login</button>
+            )}
+            </div>
+
             <h1 className="main-title">Plan A</h1>
             
             <div className="my-images-container">
