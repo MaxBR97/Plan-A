@@ -17,7 +17,7 @@ import jakarta.transaction.Transactional;
  
 @SpringBootTest(classes = Main.class)
 @ExtendWith(SpringExtension.class)
-@ActiveProfiles("inMemory-local") 
+@ActiveProfiles({"inMemory-local","securityAndGateway"}) 
 @Transactional
 public class ServiceRequestsTests {
     static String SimpleCodeExample = """

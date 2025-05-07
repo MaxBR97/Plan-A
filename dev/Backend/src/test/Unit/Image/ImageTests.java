@@ -42,7 +42,7 @@ import jakarta.transaction.Transactional;
 @SpringBootTest(classes = Main.class)
 //@ComponentScan(basePackages = {"Model", "DataAccess","DataAccess.LocalStorage", "Image.Modules"})
 //@ExtendWith(SpringExtension.class)
-@ActiveProfiles({"H2mem", "S3-test"})
+@ActiveProfiles({"H2mem", "S3-test", "securityAndGateway"})
 @TestMethodOrder(MethodOrderer.Alphanumeric.class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class ImageTests {

@@ -10,7 +10,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
-import org.yaml.snakeyaml.util.Tuple;
+import Utils.Tuple;
 
 import DTO.Records.Image.ConstraintModuleDTO;
 import DTO.Records.Image.ImageDTO;

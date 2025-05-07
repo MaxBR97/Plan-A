@@ -51,7 +51,7 @@ import groupId.Main;
 //@ExtendWith(SpringExtension.class)
 //@ActiveProfiles("test") 
 //@Transactional
-@ActiveProfiles("H2mem")
+@ActiveProfiles({"H2mem","securityAndGateway"})
 @TestMethodOrder(MethodOrderer.Alphanumeric.class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS) 
 

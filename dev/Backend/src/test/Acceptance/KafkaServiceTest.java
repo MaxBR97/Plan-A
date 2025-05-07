@@ -14,7 +14,7 @@ import groupId.Main;
 //     }
 // )
 // @EmbeddedKafka(partitions = 1, topics = {"solve_request", "compile_request"})
-// @ActiveProfiles({"H2mem", "kafkaSolver", "S3-test"})
+// @ActiveProfiles({"H2mem", "kafkaSolver", "S3-test","securityAndGateway"})
 // public class KafkaServiceTest extends ServiceTest {
 // }
 

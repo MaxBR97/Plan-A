@@ -1,0 +1,80 @@
+{
+    "id": "Plan-A-dev",
+    "realm": "Plan-A-dev",
+    "enabled": true,
+    "displayName": "Plan-A Development",
+    "accessTokenLifespan": 300,
+    "ssoSessionIdleTimeout": 1800,
+    "ssoSessionMaxLifespan": 36000,
+    "roles": {
+      "realm": [
+        {
+          "name": "user",
+          "description": "Regular user role"
+        },
+        {
+          "name": "admin",
+          "description": "Administrator role"
+        }
+      ]
+    },
+    "users": [
+      {
+        "username": "admin",
+        "enabled": true,
+        "email": "admin@example.com",
+        "firstName": "Admin",
+        "lastName": "User",
+        "credentials": [
+          {
+            "type": "password",
+            "value": "password",
+            "temporary": false
+          }
+        ],
+        "realmRoles": ["admin", "user"]
+      },
+      {
+        "username": "user",
+        "enabled": true,
+        "email": "user@example.com",
+        "firstName": "Regular",
+        "lastName": "User",
+        "credentials": [
+          {
+            "type": "password",
+            "value": "password",
+            "temporary": false
+          }
+        ],
+        "realmRoles": ["user"]
+      }
+    ],
+    "clients": [
+      {
+        "clientId": "dev-client",
+        "enabled": true,
+        "publicClient": true,
+        "redirectUris": [
+          "http://localhost:3000/*",
+          "http://localhost:4200/*",
+          "http://localhost/*"
+        ],
+        "webOrigins": [
+          "http://localhost:3000",
+          "http://localhost:4200",
+          "http://localhost"
+        ],
+        "rootUrl": "http://localhost:3000/",
+        "baseUrl": "/",
+        "adminUrl": "http://localhost:3000/",
+        "directAccessGrantsEnabled": true,
+        "standardFlowEnabled": true,
+        "implicitFlowEnabled": false,
+        "serviceAccountsEnabled": false,
+        "attributes": {
+          "post.logout.redirect.uris": "http://localhost:3000/,http://localhost:4200/,http://localhost/"
+        }
+      }
+    ]
+  }

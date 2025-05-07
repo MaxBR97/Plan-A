@@ -1,15 +1,5 @@
 package Acceptance;
 
-import java.util.List;
-
-import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-
 import DTO.Records.Image.ImageDTO;
 import DTO.Records.Image.SolutionDTO;
 import DTO.Records.Model.ModelData.InputDTO;
@@ -17,135 +7,101 @@ import DTO.Records.Requests.Commands.CreateImageFromFileDTO;
 import DTO.Records.Requests.Commands.ImageConfigDTO;
 import DTO.Records.Requests.Commands.SolveCommandDTO;
 import DTO.Records.Requests.Responses.CreateImageResponseDTO;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.reactive.function.client.WebClient;
+
+import java.util.List;
 
 public class RequestsManager {
     int port;
-    TestRestTemplate restTemplate;
+    WebClient webClient;
 
     CreateImageRequestBuilder createImageReq;
     ConfigureImageRequestBuilder configImageReq;
-    
-    
 
-    public RequestsManager(int port, TestRestTemplate restTemplate){
+    public RequestsManager(int port, WebClient webClient) {
         this.port = port;
-        this.restTemplate = restTemplate;
-    }
-    
-    
-
-    public ResponseEntity<CreateImageResponseDTO> sendCreateImageRequest(CreateImageFromFileDTO body){
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        
-        HttpEntity<CreateImageFromFileDTO> request = new HttpEntity<>(body, headers);
-
-        // Send POST request with body
-        String url = "http://localhost:" + port + "/images";
-        ResponseEntity<CreateImageResponseDTO> response = restTemplate.exchange(
-                url,
-                HttpMethod.POST,
-                request,
-                CreateImageResponseDTO.class
-        );
-        return response;
+        this.webClient = webClient;
     }
 
-    public ResponseEntity<Void> sendConfigImageRequest(ImageConfigDTO body){
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
+    public ResponseEntity<CreateImageResponseDTO> sendCreateImageRequest(CreateImageFromFileDTO body) {
+        CreateImageResponseDTO result = webClient.post()
+                .uri("/images")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(body)
+                .retrieve()
+                .bodyToMono(CreateImageResponseDTO.class)
+                .block();
 
-        HttpEntity<ImageConfigDTO> request2 = new HttpEntity<>(body , headers);
-                    // Send PATCH request with body
-                    String url2 = "http://localhost:" + port + "/images";
-                    ResponseEntity<Void> response2 = restTemplate.exchange(
-                            url2,
-                            HttpMethod.PATCH,
-                            request2,
-                            Void.class
-                    );  
-        return response2;
+        return ResponseEntity.ok(result);
     }
 
-    public ResponseEntity<SolutionDTO> sendSolveRequest(SolveCommandDTO body){
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        HttpEntity<SolveCommandDTO> request3 = new HttpEntity<>(body, headers);
-                String url3 = "http://localhost:" + port + "/solve";
-                ResponseEntity<SolutionDTO> response3 = restTemplate.exchange(
-                        url3,
-                        HttpMethod.POST,
-                        request3,
-                        SolutionDTO.class
-                );
-        
-        return response3;
+    public ResponseEntity<Void> sendConfigImageRequest(ImageConfigDTO body) {
+        webClient.patch()
+                .uri("/images")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(body)
+                .retrieve()
+                .toBodilessEntity()
+                .block();
+
+        return ResponseEntity.ok().build();
     }
 
-    public ResponseEntity<ImageDTO> sendGetImageRequest(String imageId){
-        HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            HttpEntity<Void> request = new HttpEntity<>(headers);
+    public ResponseEntity<SolutionDTO> sendSolveRequest(SolveCommandDTO body) {
+        SolutionDTO result = webClient.post()
+                .uri("/solve")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(body)
+                .retrieve()
+                .bodyToMono(SolutionDTO.class)
+                .block();
 
-            String url = "http://localhost:" + port + "/images/" + imageId;
-            ResponseEntity<ImageDTO> response = restTemplate.exchange(
-                url,
-                HttpMethod.GET,
-                request,
-                ImageDTO.class
-            );
-    
-            return response;
+        return ResponseEntity.ok(result);
     }
 
-    public ResponseEntity<Void> sendDeleteImageRequest(String imageId){
-        
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            HttpEntity<Void> request = new HttpEntity<>(headers);
-    
-            String url = "http://localhost:" + port + "/images/" + imageId;
-            ResponseEntity<Void> response = restTemplate.exchange(
-                url,
-                HttpMethod.DELETE,
-                request,
-                Void.class
-            );
-    
-            return response;
+    public ResponseEntity<ImageDTO> sendGetImageRequest(String imageId) {
+        ImageDTO result = webClient.get()
+                .uri("/images/{id}", imageId)
+                .accept(MediaType.APPLICATION_JSON)
+                .retrieve()
+                .bodyToMono(ImageDTO.class)
+                .block();
+
+        return ResponseEntity.ok(result);
+    }
+
+    public ResponseEntity<Void> sendDeleteImageRequest(String imageId) {
+        webClient.delete()
+                .uri("/images/{id}", imageId)
+                .retrieve()
+                .toBodilessEntity()
+                .block();
+
+        return ResponseEntity.ok().build();
     }
 
     public ResponseEntity<List<ImageDTO>> sendGetAllImagesRequest() {
-        HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-    
-            HttpEntity<Void> request = new HttpEntity<>(headers);
-    
-            String url = "http://localhost:" + port + "/images";
-            
-            ResponseEntity<List<ImageDTO>> response = restTemplate.exchange(
-                url,
-                HttpMethod.GET,
-                request,
-                new ParameterizedTypeReference<List<ImageDTO>>() {}
-            );
-            return response;
+        List<ImageDTO> result = webClient.get()
+                .uri("/images")
+                .accept(MediaType.APPLICATION_JSON)
+                .retrieve()
+                .bodyToMono(new ParameterizedTypeReference<List<ImageDTO>>() {})
+                .block();
+
+        return ResponseEntity.ok(result);
     }
 
     public ResponseEntity<InputDTO> sendGetInputsRequest(String imageId) {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        HttpEntity<Void> request = new HttpEntity<>(headers);
+        InputDTO result = webClient.get()
+                .uri("/images/{id}/inputs", imageId)
+                .accept(MediaType.APPLICATION_JSON)
+                .retrieve()
+                .bodyToMono(InputDTO.class)
+                .block();
 
-        String url = "http://localhost:" + port + "/images/" + imageId + "/inputs";
-        ResponseEntity<InputDTO> response = restTemplate.exchange(
-            url,
-            HttpMethod.GET,
-            request,
-            InputDTO.class
-        );
-
-        return response;
+        return ResponseEntity.ok(result);
     }
-     
 }

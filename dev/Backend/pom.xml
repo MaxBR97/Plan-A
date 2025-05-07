@@ -3,11 +3,11 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
-		<groupId>org.springframework.boot</groupId>
-		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.4.0</version>
-		<relativePath/> <!-- lookup parent from repository -->
-	</parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.2.4</version> <!-- Changed from 3.4.0 to 3.2.4 (latest 3.2.x) -->
+        <relativePath/> <!-- lookup parent from repository -->
+    </parent>
 	<groupId>Service</groupId>
 	<artifactId>artifactid</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
@@ -35,6 +35,19 @@
 		<maven.compiler.testTarget>${maven.compiler.testSource}</maven.compiler.testTarget>
 		<maven.compiler.testRelease>${maven.compiler.testTarget}</maven.compiler.testRelease>
 	</properties>
+
+        <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-dependencies</artifactId>
+                <version>2023.0.0</version> 
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
 	<dependencies>
 		<dependency>
 			<groupId>software.amazon.awssdk</groupId>
@@ -51,10 +64,7 @@
 			<artifactId>antlr4-runtime</artifactId>
 			<version>4.13.2</version>
 		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-web</artifactId>
-		</dependency>
+		
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter</artifactId>
@@ -80,10 +90,7 @@
 			<artifactId>hibernate-validator</artifactId>
 			<version>8.0.0.Final</version>
 		</dependency>
-		<dependency>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-web</artifactId>
-    </dependency>
+		
 
     <!-- Spring Boot Starter for JPA (Hibernate) -->
     <dependency>
@@ -127,24 +134,16 @@
         <scope>test</scope>
     </dependency>
 
-    <!-- Spring Boot DevTools (Optional, for live reload in development) -->
-    <!-- <dependency>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-devtools</artifactId>
-        <scope>runtime</scope>
-        <optional>true</optional>
-    </dependency> -->
-
-	<!-- <dependency>
-        <groupId>io.github.lognet</groupId>
-        <artifactId>grpc-spring-boot-starter</artifactId>
-        <version>4.6.0</version>
-    </dependency> -->
-
-     <dependency>
+     <!-- <dependency>
             <groupId>io.grpc</groupId>
             <artifactId>grpc-netty-shaded</artifactId>
             <version>1.70.0</version>
+        </dependency> -->
+        
+        <dependency>
+            <groupId>io.grpc</groupId>
+            <artifactId>grpc-netty</artifactId>
+            <version>1.70.0</version> <!-- Use appropriate version compatible with your Spring version -->
         </dependency>
 
         <dependency>
@@ -192,10 +191,6 @@
 	</dependency>
     <!-- Spring Boot Kafka -->
     <dependency>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter</artifactId>
-    </dependency>
-    <dependency>
         <groupId>org.springframework.kafka</groupId>
         <artifactId>spring-kafka</artifactId>
     </dependency>
@@ -205,8 +200,60 @@
 		<scope>test</scope>
 	</dependency>
 
+    <!-- <dependency>
+        <groupId>org.springframework.cloud</groupId>
+        <artifactId>spring-cloud-gateway-grpc</artifactId>
+    </dependency> -->
 
-	</dependencies>
+
+    <!-- <dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency> -->
+
+    
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-webflux</artifactId>
+    </dependency>
+
+    
+    <dependency>
+        <groupId>org.springframework.cloud</groupId>
+        <artifactId>spring-cloud-starter-gateway</artifactId>
+    </dependency>
+
+    
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
+    </dependency>
+
+    
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-security</artifactId>
+    </dependency>
+
+    
+    <dependency>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-configuration-processor</artifactId>
+		<optional>true</optional>
+	</dependency>
+
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-oauth2-client</artifactId>
+    </dependency>
+
+    <dependency>
+        <groupId>org.springframework.security</groupId>
+        <artifactId>spring-security-oauth2-jose</artifactId>
+    </dependency>
+
+</dependencies>
+
 
 	<build>
 		<testSourceDirectory>src/test</testSourceDirectory>

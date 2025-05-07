@@ -62,7 +62,7 @@ import groupId.Main;
 // })
 @TestMethodOrder(MethodOrderer.Alphanumeric.class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-@ActiveProfiles("inMemory-local") 
+@ActiveProfiles({"inMemory-local","securityAndGateway"}) 
 public class TypesAndDependencyTests {
    
     private Model model;

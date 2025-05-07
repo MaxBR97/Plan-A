@@ -1,0 +1,25 @@
+spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: https://<your-keycloak-domain>/realms/<realm-name>
+
+  cloud:
+    gateway:
+      default-filters:
+        - TokenRelay
+      routes:
+        - id: service-a
+          uri: http://localhost:8081
+          predicates:
+            - Path=/api/service-a/**
+          filters:
+            - StripPrefix=2
+
+        - id: service-b
+          uri: http://localhost:8082
+          predicates:
+            - Path=/api/service-b/**
+          filters:
+            - StripPrefix=2

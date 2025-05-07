@@ -1,42 +1,75 @@
-import React, { useState, useEffect } from 'react';
-import { Link ,useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import './MainPage.css';
 import axios from 'axios';
 import { useZPL } from "../context/ZPLContext";
-import { login, logout, getUsername } from './KeycloakService.js';
-import { keycloak, initKeycloak } from './KeycloakService.js';
-
-
+import { 
+  login, 
+  logout, 
+  register,
+  getUsername, 
+  initKeycloak, 
+  isAuthenticated 
+} from './KeycloakService';
 
 const MainPage = () => {
     const {
         user,
         updateUserField,
-        updateImage,
-        image
-      } = useZPL();
+        updateImage
+    } = useZPL();
     const navigate = useNavigate();
     const [myImages, setMyImages] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [expandedDescriptions, setExpandedDescriptions] = useState({});
-
+    
+    // Use a ref to track whether we've initialized authentication on mount
+    const authInitialized = useRef(false);
     useEffect(() => {
-    initKeycloak().then(authenticated => {
-      if (authenticated) {
-        updateUserField('isLoggedIn', true);
-        updateUserField('username', getUsername());
-      }
-    });
-  
-    fetchImages();
-    }, []);
+        // Only initialize Keycloak once on mount
+        if (!authInitialized.current) {
+            authInitialized.current = true;
+            
+            initKeycloak()
+                .then(authenticated => {
+                    console.log("Keycloak auth status:", authenticated);
+                    if (authenticated) {
+                        updateUserField('isLoggedIn', true);
+                        updateUserField('username', getUsername());
+                    } else {
+                        // If not authenticated, still show "Guest"
+                        updateUserField('isLoggedIn', false);
+                        updateUserField('username', 'Guest');
+                    }
+                })
+                .catch(error => {
+                    console.error("Auth initialization error:", error);
+                    // On error, default to "Guest"
+                    updateUserField('isLoggedIn', false);
+                    updateUserField('username', 'Guest');
+                })
+                .finally(() => {
+                    // Fetch images regardless of auth status
+                    fetchImages();
+                });
+        } 
+            // Fetch images even if not doing auth init
+            fetchImages();
+        
+        
+        // Cleanup function to run on unmount
+        return () => {
+            // Any cleanup needed when component unmounts
+        };
+    }, []); // Empty dependency array so it only runs once on mount
 
     const fetchImages = async () => {
         try {
             setLoading(true);
+            console.log("getting images")
             const response = await axios.get('/images');
-            console.log("GET /images response: ", response)
+            console.log("GET /images response: ", response);
             setMyImages(response.data);
             setError(null);
         } catch (err) {
@@ -47,16 +80,17 @@ const MainPage = () => {
             setLoading(false);
         }
     };
+
     const navigateToImageDetails = (imageId) => {
-        const selectedImage = myImages.find(image => image.imageId == imageId)
-        console.log("selected: ",selectedImage)
-        updateImage(selectedImage)
+        const selectedImage = myImages.find(image => image.imageId == imageId);
+        console.log("selected: ", selectedImage);
+        updateImage(selectedImage);
         navigate(`/solution-preview`);
     };
 
     const toggleDescription = (imageId, event) => {
         if (event) {
-            event.stopPropagation(); 
+            event.stopPropagation();
         }
         setExpandedDescriptions(prev => ({
             ...prev,
@@ -64,7 +98,11 @@ const MainPage = () => {
         }));
     };
 
-    const handleDeleteImage = async (imageId) => {
+    const handleDeleteImage = async (imageId, event) => {
+        if (event) {
+            event.stopPropagation(); 
+        }
+        
         if (window.confirm('Are you sure you want to delete this image?')) {
             try {
                 await axios.delete(`/images/${imageId}`);
@@ -77,17 +115,42 @@ const MainPage = () => {
         }
     };
 
+    const handleLogin = () => {
+        // Save current path for redirect after login
+        localStorage.setItem('auth_redirect_uri', window.location.pathname);
+        login();
+    };
+
+    const handleRegister = () => {
+        // Save current path for redirect after registration
+        localStorage.setItem('auth_redirect_uri', window.location.pathname);
+        register();
+    };
+
+    const handleLogout = () => {
+        // Save current path for redirect after logout
+        localStorage.setItem('auth_redirect_uri', window.location.pathname);
+        logout();
+        updateUserField('isLoggedIn', false);
+        updateUserField('username', 'Guest');
+    };
+
+    const handleRefresh = () => {
+        fetchImages();
+    };
+
     return (
         <div className="main-page">
             <div className="auth-section">
-            {user.isLoggedIn ? (
-                <>
-                <span>Welcome, {user.username}!</span>
-                <button onClick={logout} className="auth-button">Logout</button>
-                </>
-            ) : (
-                <button onClick={login} className="auth-button">Login</button>
-            )}
+                <span>Welcome, {user.isLoggedIn ? user.username : 'Guest'}!</span>
+                {user.isLoggedIn ? (
+                    <button onClick={handleLogout} className="auth-button">Logout</button>
+                ) : (
+                    <div className="auth-buttons">
+                        <button onClick={handleLogin} className="auth-button">Login</button>
+                        <button onClick={handleRegister} className="auth-button">Sign Up</button>
+                    </div>
+                )}
             </div>
 
             <h1 className="main-title">Plan A</h1>
@@ -97,7 +160,7 @@ const MainPage = () => {
                     <h2>My Images</h2>
                     <button 
                         className="refresh-button"
-                        onClick={fetchImages}
+                        onClick={handleRefresh}
                         disabled={loading}
                     >
                         Refresh
@@ -126,10 +189,7 @@ const MainPage = () => {
                                 <h3>{image.imageName}</h3>
                                 <button 
                                     className="delete-button"
-                                    onClick={(e) => {
-                                        e.stopPropagation(); // Prevent card click event
-                                        handleDeleteImage(image.imageId);
-                                    }}
+                                    onClick={(e) => handleDeleteImage(image.imageId, e)}
                                     aria-label="Delete image"
                                 >
                                     ×
@@ -143,19 +203,12 @@ const MainPage = () => {
                                     {image.imageDescription && image.imageDescription.length > 150 && (
                                         <button 
                                             className="read-more-button"
-                                            onClick={(e) => {
-                                                e.stopPropagation(); // Prevent card click event
-                                                toggleDescription(image.imageId);
-                                            }}
+                                            onClick={(e) => toggleDescription(image.imageId, e)}
                                         >
                                             {expandedDescriptions[image.imageId] ? 'Show less' : 'Read more'}
                                         </button>
                                     )}
                                 </div>
-                                {/* <div className="image-actions">
-                                    <button className="view-button">View Details</button>
-                                    <button className="edit-button">Edit</button>
-                                </div> */}
                             </div>
                         </div>
                     ))}
