@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import DTO.Factories.RecordFactory;
@@ -158,6 +159,16 @@ public class Image {
         this.model.parseSource();
     }
 
+    public void setSolverScripts(Map<String , String> solverScripts) {
+        if(solverScripts != null && solverScripts.size() > 0)
+            this.solverScripts = solverScripts;
+    }
+
+    public Map<String,String> getSolverScripts(){
+        if (solverScripts == null || solverScripts.size() == 0)
+            this.solverScripts = new HashMap<>(Map.of("default",""));            
+        return this.solverScripts;
+    }
 
     // //will probably have to use an adapter layer, or change types to DTOs
     // @Transactional
@@ -369,6 +380,45 @@ public class Image {
             toggleOffPreference(preference);
         }
         return RecordFactory.makeDTO(model.solve(defaultTimeout));*/
+    }
+
+     public CompletableFuture<SolutionDTO> solveAsync(int timeout, String solverScript) {
+        CompletableFuture<SolutionDTO> futureSolutionDTO = new CompletableFuture<>();
+        
+        try {
+            // Call the model's async solve method
+            CompletableFuture<Solution> futureSolution = model.solveAsync(
+                "SOLUTION", solverScript
+            );
+            
+            // When the solution is ready, convert it to DTO and complete our future
+            futureSolution.thenAccept(solution -> {
+                try {
+                    // Parse the solution as in the synchronous method
+                    solution.parseSolution(model, getVariableModule().getIdentifiers());
+                    
+                    // Convert to DTO
+                    SolutionDTO solutionDTO = RecordFactory.makeDTO(solution);
+                    
+                    // Complete the future with the DTO
+                    futureSolutionDTO.complete(solutionDTO);
+                } catch (Exception e) {
+                    futureSolutionDTO.completeExceptionally(
+                        new RuntimeException("IO exception while parsing solution file, message: " + e)
+                    );
+                }
+            }).exceptionally(ex -> {
+                // Forward any exceptions from the model's solve method
+                futureSolutionDTO.completeExceptionally(ex);
+                return null;
+            });
+            
+        } catch (Exception e) {
+            // Complete exceptionally if we can't start the solve process
+            futureSolutionDTO.completeExceptionally(e);
+        }
+        
+        return futureSolutionDTO;
     }
 
     private void toggleOffConstraint(String name){

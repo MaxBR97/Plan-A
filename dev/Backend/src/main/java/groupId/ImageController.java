@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +29,7 @@ import DTO.Records.Requests.Responses.CreateImageResponseDTO;
 import DataAccess.ImageRepository;
 import Exceptions.InternalErrors.BadRequestException;
 import Image.Image;
+import Model.Model;
 import Model.ModelConstraint;
 import Model.ModelFactory;
 import Model.ModelInterface;
@@ -106,6 +108,47 @@ public class ImageController {
         return image.solve(command.timeout(), command.solverSettings());
     }
 
+    private ModelInterface currentlySolving;
+    public ModelInterface getModelCurrentlySolving(){
+        return currentlySolving;
+    }
+
+    @Transactional
+    public CompletableFuture<SolutionDTO> solveAsync(SolveCommandDTO command) throws Exception {
+        Image image = imageRepository.findById(command.imageId()).get();
+        
+        ModelInterface model = image.getModel();
+        for (Map.Entry<String,List<List<String>>> set : command.input().setsToValues().entrySet()){
+            List<String> setElements = new LinkedList<>();
+            for(List<String> element : set.getValue()){
+                String tuple = ModelType.convertArrayOfAtoms((element.toArray(new String[0])),model.getSet(set.getKey()).getType());
+                setElements.add(tuple);
+            }
+            model.setInput(model.getSet(set.getKey()), setElements.toArray(new String[0]));
+        }
+
+        for (Map.Entry<String,List<String>> parameter : command.input().paramsToValues().entrySet()){
+            model.setInput(model.getParameter(parameter.getKey()), ModelType.convertArrayOfAtoms(parameter.getValue().toArray(new String[0]), model.getParameter(parameter.getKey()).getType()));
+        }
+
+        for (String constraintModule : command.input().constraintModulesToggledOff()){
+            Collection<ModelConstraint> constraintsToToggleOff = image.getConstraintsModule(constraintModule).getConstraints().values();
+            for(ModelConstraint mc : constraintsToToggleOff){
+                model.toggleFunctionality(model.getConstraint(mc.getIdentifier()), false);
+            }
+        }
+
+        for (String preferenceModule : command.input().preferenceModulesToggledOff()){
+            Collection<ModelPreference> preferencesToToggleOff = image.getPreferencesModule(preferenceModule).getPreferences().values();
+            for(ModelPreference mp : preferencesToToggleOff){
+                model.toggleFunctionality(model.getPreference(mp.getIdentifier()), false);
+            }
+        }
+        currentlySolving = model;
+        CompletableFuture<SolutionDTO> futureAns = image.solveAsync(command.timeout(), command.solverSettings());
+        return futureAns;
+    }
+
     @Transactional
     public void overrideImage(ImageConfigDTO imgConfig) throws Exception {
         ImageDTO imageDTO= imgConfig.image();
@@ -116,6 +159,7 @@ public class ImageController {
         // imageRepository.flush();
         if (imageDTO.isPrivate() != null)
             image.setIsPrivate(imageDTO.isPrivate());
+        image.setSolverScripts(imageDTO.solverSettings());
         Objects.requireNonNull(image,"Invalid imageId in image config/override image");
         Map<String, ModelVariable> variables = new HashMap<>();
         ModelInterface model= image.getModel();

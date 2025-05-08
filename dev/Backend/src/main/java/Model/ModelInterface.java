@@ -1,10 +1,12 @@
 package Model;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -154,6 +156,12 @@ public abstract class ModelInterface {
     abstract public Collection<ModelFunction> getFunctions();
 
     abstract public ModelComponent getComponent(String identifier);
+
+    abstract public CompletableFuture<Solution> solveAsync(String suffix, String script) throws Exception;
+    abstract public String poll();
+    abstract public void pause() throws IOException;
+    abstract public void continueProcess() throws IOException;
+    abstract  public void finish() throws IOException;
     
     abstract public void setModelComponent(ModelComponent mc)  throws Exception;
 

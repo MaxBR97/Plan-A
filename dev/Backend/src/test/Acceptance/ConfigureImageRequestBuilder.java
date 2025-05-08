@@ -27,7 +27,7 @@ public class ConfigureImageRequestBuilder implements RequestBuilder{
 
     public ConfigureImageRequestBuilder(String imageName, CreateImageResponseDTO createdImageReponse){
         this.context = createdImageReponse;
-        imageDTO=new ImageDTO(context.imageId(),imageName,"", null, null,  new VariableModuleDTO(Set.of(),Set.of(),Set.of()),
+        imageDTO=new ImageDTO(context.imageId(),imageName,"", null, null, null,  new VariableModuleDTO(Set.of(),Set.of(),Set.of()),
                                                 Set.of(),
                                                 Set.of());
     }
@@ -49,6 +49,7 @@ public class ConfigureImageRequestBuilder implements RequestBuilder{
         imageDTO = new ImageDTO(imageDTO.imageId(), imageDTO.imageName(), imageDTO.imageDescription(),
                                 imageDTO.owner(),
                                 imageDTO.isPrivate(),
+                                null,
                                 tmp,
                                 imageDTO.constraintModules(),
                                 imageDTO.preferenceModules()
@@ -84,6 +85,7 @@ public class ConfigureImageRequestBuilder implements RequestBuilder{
         imageDTO = new ImageDTO(imageDTO.imageId(), imageDTO.imageName(), imageDTO.imageDescription(),
                                 imageDTO.owner(),
                                 imageDTO.isPrivate(),
+                                null,
                                 tmp,
                                 imageDTO.constraintModules(),
                                 imageDTO.preferenceModules()
@@ -106,6 +108,7 @@ public class ConfigureImageRequestBuilder implements RequestBuilder{
         imageDTO = new ImageDTO(imageDTO.imageId(), imageDTO.imageName(), imageDTO.imageDescription(),
                                 imageDTO.owner(),
                                 imageDTO.isPrivate(),
+                                null,
                                 imageDTO.variablesModule(),
                                 tmp,
                                 imageDTO.preferenceModules()
@@ -132,6 +135,7 @@ public class ConfigureImageRequestBuilder implements RequestBuilder{
         imageDTO = new ImageDTO(imageDTO.imageId(), imageDTO.imageName(), imageDTO.imageDescription(),
                                 imageDTO.owner(),
                                 imageDTO.isPrivate(),
+                                null,
                                 imageDTO.variablesModule(),
                                 imageDTO.constraintModules(),
                                 tmp

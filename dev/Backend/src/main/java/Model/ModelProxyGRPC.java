@@ -29,6 +29,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.security.Policy;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -252,5 +253,33 @@ public class ModelProxyGRPC extends ModelInterface {
     @Override
     public void setModelComponent(ModelComponent mc) throws Exception{
         localModel.setModelComponent(mc);
+    }
+
+    public CompletableFuture<Solution> solveAsync(String suffix, String script) throws Exception{
+        throw new Exception("");
+    }
+
+    @Override
+    public String poll() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'poll'");
+    }
+
+    @Override
+    public void pause() throws IOException {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'pause'");
+    }
+
+    @Override
+    public void continueProcess() throws IOException {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'continueProcess'");
+    }
+
+    @Override
+    public void finish() throws IOException {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'finish'");
     }
 }
