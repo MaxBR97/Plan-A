@@ -116,30 +116,42 @@ public class Solution {
             String line;
             boolean solutionSection = false;
             boolean timeLimitReached = false;
-            Pattern statusPattern = Pattern.compile("SCIP Status\s+:\s+problem is solved.*optimal solution found");
+            Pattern optimalSolutionPattern = Pattern.compile("solution status: optimal solution found");
+            Pattern interruptPattern = Pattern.compile("solution status: .*interrupt.*$");
+            Pattern infeasibleSolutionPattern = Pattern.compile("solution status: .*infeas.*$");
+            Pattern unsolvedSolutionPattern = Pattern.compile("no solution.*$");
+            
             Pattern timeLimitReachedPattern = Pattern.compile("^.*time limit reached.*$");
             Pattern solvingTimePattern = Pattern.compile("Solving Time \\(sec\\)\s+:\s+(\\d+\\.\\d+)");
             Pattern objectiveValuePattern = Pattern.compile("objective value:\\s+(-?\\d+(\\.\\d+)?|[+|-]infinity)");
             while ((line = reader.readLine()) != null) {
                 if (!solutionSection) {
                     // Check for the solved status
-                    Matcher statusMatcher = statusPattern.matcher(line);
-                    if (statusMatcher.find()) {
+                    Matcher optimalMatcher = optimalSolutionPattern.matcher(line);
+                    Matcher infeasibleMatcher = infeasibleSolutionPattern.matcher(line);
+                    if (optimalMatcher.find()) {
                         solved = SolutionStatus.OPTIMAL;
+                    } else if (infeasibleMatcher.find()){
+                        solved = SolutionStatus.UNSOLVED;
                     }
-                    Matcher timeLimitReachedMatcher = timeLimitReachedPattern.matcher(line);
-                    if(timeLimitReachedMatcher.find()){
-                        timeLimitReached = true;
-                    }
+                    // Matcher timeLimitReachedMatcher = timeLimitReachedPattern.matcher(line);
+                    
+                    // if(timeLimitReachedMatcher.find()){
+                    //     timeLimitReached = true;
+                    // }
+
                     // Extract solving time
-                    Matcher solvingTimeMatcher = solvingTimePattern.matcher(line);
-                    if (solvingTimeMatcher.find()) {
-                        solvingTime = Double.parseDouble(solvingTimeMatcher.group(1));
-                    }
+
+                    // Matcher solvingTimeMatcher = solvingTimePattern.matcher(line);
+                    // if (solvingTimeMatcher.find()) {
+                    //     solvingTime = Double.parseDouble(solvingTimeMatcher.group(1));
+                    // }
+
                     // Extract objective value
+
                     Matcher objectiveMatcher = objectiveValuePattern.matcher(line);
                     if (objectiveMatcher.find()) {
-                        if(timeLimitReached)
+                        if(this.solved == SolutionStatus.UNSOLVED)
                             solved = SolutionStatus.SUBOPTIMAL;
                         objectiveValue = Double.parseDouble(objectiveMatcher.group(1));
                         solutionSection = true; // Objective value is defined right before the solution values section
@@ -153,6 +165,7 @@ public class Solution {
         }
         parsed=true;
     }
+
     private void parseSolutionValues(BufferedReader reader, Set<String> varsToParse) throws IOException {
         Pattern variablePattern = Pattern.compile("^(.*?)[ \\t]+(\\d+\\.?\\d*)[ \\t]+\\(obj:(-?\\d+\\.?\\d*)\\)");
         String line;

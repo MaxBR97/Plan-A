@@ -258,7 +258,7 @@ public class ModelTest {
         try{
         
         m = modelFactory.getModel(this.sourceSolveId);
-        Solution sol = m.solve(100,"SOLUTION", "");
+        Solution sol = m.solve(15,"SOLUTION", "");
         
         assertNotNull(sol);
         Set<String> stringVariables = m.getVariables().stream()
@@ -267,7 +267,7 @@ public class ModelTest {
         sol.parseSolution(m, stringVariables);
         assertEquals(sol.getSolutionStatus(), Solution.SolutionStatus.OPTIMAL);
         assertEquals(sol.getObjectiveValue() , 1187);
-        } catch(Exception e){assertTrue(false);}
+        } catch(Exception e){assertTrue(false,e.getMessage());}
     }
 
     @Test

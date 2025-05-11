@@ -62,10 +62,10 @@ public class StreamController {
      * Start a new SCIP solving process
      */
     @PostMapping("/solve/start")
-    public ResponseEntity<String> startSolve(@RequestBody SolveCommandDTO request) throws Exception {
-        futureSolution = controller.solveAsync(request);
+    public ResponseEntity<SolutionDTO> startSolve(@RequestBody SolveCommandDTO request) throws Exception {
+        futureSolution = controller.solveAsync(request,false);
         model = controller.getModelCurrentlySolving();
-        return ResponseEntity.ok("started");
+        return ResponseEntity.ok(futureSolution.get());
     }
 
     /**
@@ -81,16 +81,19 @@ public class StreamController {
      * Continue the solving process
      */
     @PostMapping("/solve/continue")
-    public ResponseEntity<String> continueSolve() throws Exception {
-        model.continueProcess();
-        return ResponseEntity.ok("continue");
+    public ResponseEntity<SolutionDTO> continueSolve(@RequestBody SolveCommandDTO request) throws Exception {
+        if(request != null && request.timeout() > 0)
+            futureSolution = controller.solveAsync(request,true);
+        else
+            futureSolution = controller.solveAsync(request, true);
+        return ResponseEntity.ok(futureSolution.get());
     }
 
     /**
      poll solving status
      */
     @PostMapping("/solve/poll")
-    public ResponseEntity<String> pollSolve() {
+    public ResponseEntity<String> pollLog() throws Exception{
         String ans = model.poll();
         return ResponseEntity.ok(ans);
     }
@@ -99,11 +102,11 @@ public class StreamController {
      
      */
     @PostMapping("/solve/pollSolution")
-    public ResponseEntity<String> pollSolution() throws Exception {
+    public ResponseEntity<SolutionDTO> pollSolution() throws Exception {
         if(futureSolution.isDone())
-            return ResponseEntity.ok(futureSolution.get().toString());
+            return ResponseEntity.ok(futureSolution.get());
         else   
-            return ResponseEntity.ok("not done yet");
+            return ResponseEntity.ok(null);
     }
 
     /**

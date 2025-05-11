@@ -252,6 +252,19 @@
         <artifactId>spring-security-oauth2-jose</artifactId>
     </dependency>
 
+<dependency>
+        <groupId>net.java.dev.jna</groupId>
+        <artifactId>jna</artifactId>
+        <version>5.13.0</version>
+    </dependency>
+    
+    <!-- JNA Platform (contains Windows-specific functionality) -->
+    <dependency>
+        <groupId>net.java.dev.jna</groupId>
+        <artifactId>jna-platform</artifactId>
+        <version>5.13.0</version>
+    </dependency>
+
 </dependencies>
 
 

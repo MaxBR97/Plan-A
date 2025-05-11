@@ -45,6 +45,8 @@ public class ImageController {
     private final ImageRepository imageRepository;
     private final ModelFactory modelFactory;
     private EntityManager entityManager;
+    //should be enabled only when running in desktop app
+    private Image currentlyCached;
 
 
     @Autowired
@@ -113,10 +115,11 @@ public class ImageController {
         return currentlySolving;
     }
 
+    //TODO: same as with solve(...)
     @Transactional
-    public CompletableFuture<SolutionDTO> solveAsync(SolveCommandDTO command) throws Exception {
-        Image image = imageRepository.findById(command.imageId()).get();
-        
+    public CompletableFuture<SolutionDTO> solveAsync(SolveCommandDTO command, boolean continueLast) throws Exception {
+        Image image = currentlyCached != null ? currentlyCached : imageRepository.findById(command.imageId()).get();
+        currentlyCached = image;
         ModelInterface model = image.getModel();
         for (Map.Entry<String,List<List<String>>> set : command.input().setsToValues().entrySet()){
             List<String> setElements = new LinkedList<>();
@@ -145,7 +148,7 @@ public class ImageController {
             }
         }
         currentlySolving = model;
-        CompletableFuture<SolutionDTO> futureAns = image.solveAsync(command.timeout(), command.solverSettings());
+        CompletableFuture<SolutionDTO> futureAns = image.solveAsync(command.timeout(), command.solverSettings(), continueLast);
         return futureAns;
     }
 
@@ -197,7 +200,8 @@ public class ImageController {
 
     @Transactional
     public ImageDTO getImage(String id) {
-        Image image = imageRepository.findById(id).get();
+        Image image = currentlyCached != null && currentlyCached.getId().equals(id) ? currentlyCached : imageRepository.findById(id).get();
+        currentlyCached = image;
         return RecordFactory.makeDTO(image);
     }
 
@@ -220,6 +224,8 @@ public class ImageController {
         imageRepository.deleteById(imageId);
         System.gc();
         modelFactory.deleteModel(imageId);
+        if(currentlyCached.getId().equals(imageId))
+            currentlyCached = null;
     }
 
 }

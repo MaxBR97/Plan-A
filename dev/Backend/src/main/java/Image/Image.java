@@ -382,14 +382,18 @@ public class Image {
         return RecordFactory.makeDTO(model.solve(defaultTimeout));*/
     }
 
-     public CompletableFuture<SolutionDTO> solveAsync(int timeout, String solverScript) {
+     public CompletableFuture<SolutionDTO> solveAsync(int timeout, String solverScript, boolean continueLast) {
         CompletableFuture<SolutionDTO> futureSolutionDTO = new CompletableFuture<>();
         
         try {
-            // Call the model's async solve method
-            CompletableFuture<Solution> futureSolution = model.solveAsync(
-                "SOLUTION", solverScript
-            );
+            CompletableFuture<Solution> futureSolution;
+            if(!continueLast){
+                futureSolution = model.solveAsync(timeout,
+                    "SOLUTION", solverScript
+                );
+            } else {
+                futureSolution = model.continueProcess(timeout);
+            }
             
             // When the solution is ready, convert it to DTO and complete our future
             futureSolution.thenAccept(solution -> {
