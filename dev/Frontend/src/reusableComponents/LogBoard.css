@@ -1,0 +1,30 @@
+/* LogBoard.css */
+.log-container {
+    white-space: pre-wrap;
+    font-family: monospace;
+    line-height: 1.4;
+    overflow-wrap: break-word;
+    overflow-y: auto;
+    overflow-x: hidden;
+    width: 100%;
+    max-width: 100%;
+    height: 100%;
+    word-break: break-word;
+  }
+  
+  .log-container::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  .log-container::-webkit-scrollbar-track {
+    background: #333;
+  }
+  
+  .log-container::-webkit-scrollbar-thumb {
+    background: #666;
+    border-radius: 4px;
+  }
+  
+  .log-container::-webkit-scrollbar-thumb:hover {
+    background: #888;
+  }

@@ -11,3 +11,19 @@
 
 
     set emph easycip set emph optima set emph counter set emph op -  after about 10 sec - set emph count
+
+  the settings used for this: set emph easycip, setting the time limit to 10 and then extending by 10 seconds every time.  
+ time | node  | left  |LP iter|LP it/n|mem/heur|mdpt |vars |cons |rows |cuts |sepa|confs|strbr|  dualbound   | primalbound  |  gap   | compl.
+ 66.0s|   200 |   189 |411852 |1781.1 |    96M |  23 |5294 |4613 |2017 |  28k|  2 |   2 |   0 | 4.633586e+03 | 4.968431e+04 | 972.26%|  40.95%
+t67.0s|   208 |   189 |421946 |1761.1 |  trysol|  23 |5294 |4613 |   0 |  29k|  0 |   2 |   2 | 4.633586e+03 | 5.077205e+03 |   9.57%|  40.97%
+
+set emphasis optimal
+set presol emphasis agg
+set constraints linear propfreq 10
+set constraints nonlinear sepafreq 10
+set constraints nonlinear enabled FALSE
+set heuristics emphasis aggre
+set branching strong / set branching inference
+
+set constraints linear propfreq 10 set constraints nonlinear sepafreq 10 set heur nlpd freq -1 set branching infere prio 500000000 set heur trustreg freq 3 //currently the most promising setting for giving fast a good enough solution
+set emph opt set constraints linear propfreq 10 set constraints nonlinear sepafreq 10 set heur nlpd freq -1 set branching infere prio 500000000 set heur trustreg freq 3  set lp adv iterlim 20000 // long solving but perhaps reaches optimallity faster

@@ -92,6 +92,10 @@ const ConfigurePreferencesPage = () => {
     const handleConfigSetsAndParams = async () => {
         navigate('/configure-sets-params')   
     }
+
+    const handleConfigSolver = async () => {
+        navigate('/configure-solver-options')   
+    }
     
     useEffect(() => {
         setAvailablePreferences(Array.from(model.preferences).filter((c) => 
@@ -592,6 +596,13 @@ const ConfigurePreferencesPage = () => {
     onClick={handleConfigSetsAndParams}
             >
     Configure Sets & Params
+</button>
+
+<button
+    className="continue-button"
+    onClick={handleConfigSolver}
+            >
+    Configure Solver
 </button>
 
 <button

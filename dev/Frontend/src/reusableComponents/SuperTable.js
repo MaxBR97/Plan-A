@@ -17,7 +17,6 @@ const SuperTable = ({
   const [editingCell, setEditingCell] = useState(null); // Track which cell is being edited
   const [editValue, setEditValue] = useState(""); // Temporary value for editing
   const [dimensionCounter, setDimensionCounter] = useState(1); // For generating unique dimension names
-  console.log("Selected Tuples",selectedTuples)
   useEffect(() => {
     // Reset editing when solutions change
     setEditingCell(null);

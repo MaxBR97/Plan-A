@@ -1,21 +1,16 @@
-# Changes from last generation: time is represented in minutes, and a significant scalability imporvement
+# Fixed scheduler with improved week boundary handling and relative day numbering
 
 set weekDays := {"Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"};
 param orderWeekDays[weekDays] := <"Sunday"> 1 , <"Monday"> 2, <"Tuesday"> 3, <"Wednesday"> 4, <"Thursday"> 5, <"Friday"> 6, <"Saturday"> 7;
 param orderWeekDaysOpposite[{1..7}] := <1> "Sunday", <2> "Monday", <3> "Tuesday", <4> "Wednesday", <5> "Thursday", <6> "Friday", <7> "Saturday";
-param convertToPresentation[weekDays] := <"Sunday"> "1 Sunday", <"Monday"> "2 Monday", <"Tuesday"> "3 Tuesday", <"Wednesday"> "4 Wednesday", <"Thursday"> "5 Thursday", <"Friday"> "6 Friday", <"Saturday"> "7 Saturday";
 param toString[{0..9}] := <0> "0", <1> "1", <2> "2", <3> "3", <4> "4", <5> "5", <6> "6", <7> "7", <8> "8", <9> "9";
 param stringToNumber[{"0","1","2","3","4","5","6","7","8","9"}] := <"0"> 0, <"1"> 1, <"2"> 2, <"3"> 3, <"4"> 4, <"5"> 5, <"6"> 6, <"7"> 7, <"8"> 8, <"9"> 9;
 
 set hours := {0 .. 23};
 set minutes := {0 .. 59};
 
-
 defnumb convertStringToNumber(str) := 
     sum <i> in {0..length(str)-1} : (stringToNumber[substr(str,length(str) - 1 - i,1)] * (10**i));
-
-# do print convertStringToNumber("132"); # 132
-# do print convertStringToNumber("002"); # 2
 
 # 13, 40 -> "13:40"
 defstrg makeTimeInString(hour,minute) :=
@@ -27,22 +22,11 @@ defnumb getMinuteFromStringFormat(str) :=
         if substr(str,2,1) == ":" then convertStringToNumber(substr(str,3,2)) else convertStringToNumber(substr(str,2,2)) end 
     end;
 
-# do print getMinuteFromStringFormat("13:40"); #40
-# do print getMinuteFromStringFormat("13:02")+2; #4
-# do print getMinuteFromStringFormat("13:2"); #2
-# do print getMinuteFromStringFormat("1:04"); #4
-
 #"13:40" -> 13  , "1:20" -> 1
 defnumb getHourFromStringFormat(str) :=
     if length(str) == 5 then convertStringToNumber(substr(str,0,2)) else
         if substr(str,3,1) == ":" then convertStringToNumber(substr(str,0,2)) else convertStringToNumber(substr(str,0,1)) end 
     end;
-
-# do print "getHourFromStringTests";
-# do print getHourFromStringFormat("13:40"); #13
-# do print getHourFromStringFormat("1:20"); #1
-# do print getHourFromStringFormat("1:2"); #1
-# do print getHourFromStringFormat("1:2")*5; #5
 
 param planFromTimeFormal := "00:00";
 param planFromDay := "Sunday";
@@ -58,6 +42,15 @@ param nightTimeStartHour := getHourFromStringFormat(nightTimeStart);
 param nightTimeStartMinute := getMinuteFromStringFormat(nightTimeStart);
 param nightTimeEndHour := getHourFromStringFormat(nightTimeEnd);
 param nightTimeEndMinute := getMinuteFromStringFormat(nightTimeEnd);
+param minimumRestTime := 8;
+
+# Define relative day numbering based on planFromDay
+defnumb getDayNumber(day) := 
+    ((orderWeekDays[day] - orderWeekDays[planFromDay] + 7) mod 7) + 1;
+
+# Update convertToPresentation to use relative day numbering
+param convertToPresentation[<day> in weekDays] := 
+    toString[getDayNumber(day)] + " " + day;
 
 
 defnumb HourMinutesDifference(fromHour,fromMinute,toHour,toMinute) :=
@@ -71,15 +64,7 @@ defnumb HourMinutesDifference(fromHour,fromMinute,toHour,toMinute) :=
     end
     ;
 
-# do print HourMinutesDifference(1,30,2,0); # 30
-# do print HourMinutesDifference(1,30,1,30); # 0
-# do print HourMinutesDifference(1,30,1,0); # 1410
-# do print HourMinutesDifference(1,30,2,40); # 70
-# do print HourMinutesDifference(3,30,2,30); # 1380
-# do print HourMinutesDifference(3,30,2,40); # 1390
-# do print HourMinutesDifference(3,30,2,20); # 1370
-# do print "------";
-
+# Improved time difference calculation that properly handles week boundaries
 defnumb timeDifference(fromDay, fromHour, fromMinute, toDay, toHour, toMinute) := 
     (
         (orderWeekDays[toDay] * card(hours) * card(minutes) + toHour * card(minutes) + toMinute)
@@ -87,34 +72,9 @@ defnumb timeDifference(fromDay, fromHour, fromMinute, toDay, toHour, toMinute) :
       + card(weekDays) * card(hours) * card(minutes)   # ensure non-negative by adding a full week's worth
     ) mod (card(weekDays) * card(hours) * card(minutes));
 
-# # # Tests for timeDifference                     | expected
-# do print timeDifference("Sunday",18,0,"Sunday",19,0); #60
-# do print timeDifference("Sunday",0,30,"Sunday",23,0); #1350
-# do print timeDifference("Sunday",4,0,"Sunday",0,40); #9880
-# do print timeDifference("Sunday",4,5,"Sunday",0,0); #9835
-# do print timeDifference("Sunday",0,0,"Sunday",0,0); #0
-# do print "-------";
-# do print timeDifference("Sunday",0,0,"Monday",0,0); #1440
-# do print timeDifference("Sunday",0,0,"Tuesday",0,0); #2880
-# do print timeDifference("Sunday",23,0,"Tuesday",23,0); #2880
-# do print timeDifference("Sunday",23,0,"Tuesday",22,0); #2820
-# do print timeDifference("Sunday",21,0,"Tuesday",23,0); #3000
-# do print timeDifference("Sunday",0,0,"Tuesday",12,0); #3600
-# do print "-------";
-# do print timeDifference("Saturday",0,0,"Sunday",0,0); #1440
-# do print timeDifference("Saturday",12,0,"Sunday",0,0); #720
-# do print timeDifference("Saturday",12,0,"Sunday",1,0); #780
-# do print timeDifference("Friday",1 ,0,"Monday",1,0); #4320
-
+# Fixed getDay function that properly handles week transitions
 defnumb getDay(time) := 
-    orderWeekDaysOpposite[(((orderWeekDays[planFromDay] - 1) + floor(time / (24 * 60) )) mod card(weekDays)) + 1];
-# to test assign planFromDay = "Sunday", planFromHour = 0;
-# do print getDay(1); # Sunday;
-# do print getDay(23); # Sunday;
-# do print getDay(card(minutes)* card(hours)); # Monday;
-# do print getDay(card(minutes)* card(hours) * 7); # Sunday;
-# do print getDay(card(minutes)* card(hours) * 6); # Saturday;
-
+    orderWeekDaysOpposite[(((orderWeekDays[planFromDay] - 1) + floor((time + planFromHour*60 + planFromMinute) / (24 * 60) )) mod card(weekDays)) + 1];
 
 defnumb getHour(time) := 
     (
@@ -122,60 +82,37 @@ defnumb getHour(time) :=
         / card(minutes))
     ) mod card(hours);
 
-
-# to test, assign planFromHour = 6;
-# do print getHour(0); # 6;
-# do print getHour(60); # 7;
-# do print getHour(24*60); # 6;
-# do print getHour(48*60); # 6;
-# do print getHour(12*60); # 18;
-# do print getHour(24*7*60); # 6;
-# do print getHour((24*7*60) - 1); # 5;
-
 defnumb getMinute(time) := 
     (planFromMinute + time) mod card(minutes);
 
+# Convert day/hour/minute to total minutes representation for easier comparison
 defnumb convertToMinutesRepresentation(day, hour, minute) :=
     ((orderWeekDays[day] - 1) * 24 * 60) + (hour * 60) + minute;
 
+# Improved isBetween function that handles circular ranges
 defbool isBetween(fromTime, toTime, targetTime) := 
     if fromTime <= toTime
     then (targetTime >= fromTime and targetTime <= toTime)
     else (targetTime >= fromTime or targetTime <= toTime)
     end;
 
-
-
-# Tests for isBetween                                   | expected
-# do print isBetweenDayHourMinute("Friday",18,23,"Sunday",8,6,"Sunday",12,15); # false
-# do print isBetweenDayHourMinute("Friday",18,2,"Sunday",8,1,"Sunday",7,0); # true
-# do print isBetweenDayHourMinute("Friday",18,7,"Sunday",8,34,"Saturday",12,0); # true
-# do print isBetweenDayHourMinute("Friday",18,53,"Sunday",8,13,"Friday",12,21); # false
-# do print isBetweenDayHourMinute("Friday",18,0,"Sunday",8,0,"Friday",20,54); # true
-# do print isBetweenDayHourMinute("Friday",18,0,"Sunday",8,0,"Monday",12,5); # false
-# do print isBetweenDayHourMinute("Sunday",18,0,"Friday",8,0,"Saturday",12,12); # false
-# do print isBetweenDayHourMinute("Sunday",18,0,"Friday",8,0,"Monday",12,32); # true
-# do print isBetweenDayHourMinute("Sunday",18,0,"Friday",8,30,"Friday",8,32); # false
-# do print isBetweenDayHourMinute("Sunday",18,0,"Friday",8,30,"Friday",8,29); # true
-
-
+# Improved function to check if a time point is between two other time points
 defbool isBetweenDayHourMinute(fromDay, fromHour, fromMinute, toDay, toHour, toMinute, targetDay, targetHour, targetMinute) := 
-    isBetween(
-        convertToMinutesRepresentation(fromDay, fromHour, fromMinute),
-        convertToMinutesRepresentation(toDay, toHour, toMinute),
-        convertToMinutesRepresentation(targetDay, targetHour, targetMinute)
-    );
+    
+    # Handle week wrapping - if toDay comes before fromDay in the week
+    if orderWeekDays[toDay] < orderWeekDays[fromDay] or 
+       (orderWeekDays[toDay] == orderWeekDays[fromDay] and 
+        (toHour < fromHour or (toHour == fromHour and toMinute < fromMinute)))
+    then 
+        # Target is either after fromTime or before toTime (across week boundary)
+        convertToMinutesRepresentation(targetDay, targetHour, targetMinute) >= convertToMinutesRepresentation(fromDay, fromHour, fromMinute) or convertToMinutesRepresentation(targetDay, targetHour, targetMinute) <= convertToMinutesRepresentation(toDay, toHour, toMinute)
+    else
+        # Normal case - target time should be between fromTime and toTime
+        convertToMinutesRepresentation(targetDay, targetHour, targetMinute) >= convertToMinutesRepresentation(fromDay, fromHour, fromMinute) and convertToMinutesRepresentation(targetDay, targetHour, targetMinute) <= convertToMinutesRepresentation(toDay, toHour, toMinute)
+    end;
 
 defbool isBetweenHourMinute(fromHour,fromMinute,toHour,toMinute,targetHour,targetMinute) :=
     isBetweenDayHourMinute("Sunday",fromHour,fromMinute,"Sunday",toHour,toMinute,"Sunday",targetHour,targetMinute);
-
-# do print isBetweenHourMinute(22,30,5,00,2,0); #true
-# do print isBetweenHourMinute(22,30,5,00,5,30); #false
-# do print isBetweenHourMinute(00,30,5,00,5,30); #false
-# do print isBetweenHourMinute(00,30,5,00,22,30); #false
-# do print isBetweenHourMinute(22,30,5,00,5,20); #false
-# do print isBetweenHourMinute(22,30,00,00,23,30); #true
-# do print isBetweenHourMinute(22,30,00,00,22,10); #false
 
 defnumb CommonTimeDuration(fromHour, fromMinute, toHour, toMinute, fromHour2, fromMinute2, toHour2, toMinute2) :=
     if isBetweenHourMinute(fromHour, fromMinute, toHour, toMinute,  fromHour2, fromMinute2) and isBetweenHourMinute(fromHour, fromMinute, toHour, toMinute,  toHour2, toMinute2) and HourMinutesDifference(fromHour2,fromMinute2,toHour2,toMinute2) >= 12*60
@@ -186,18 +123,6 @@ defnumb CommonTimeDuration(fromHour, fromMinute, toHour, toMinute, fromHour2, fr
     then min(HourMinutesDifference(fromHour,fromMinute,toHour2,toMinute2))
     else 0 
     end end end;
-
-# do print CommonTimeDuration(22,30,5,00,2,00,6,00); # 180 (minutes) because from 22:30 until 5:00 and from 2:00 and 6:00 there is common time of 3 hours from 2:00 to 5:00
-# do print CommonTimeDuration(00,30,5,00,2,00,20,53); # 180
-# do print CommonTimeDuration(00,30,5,00,5,00,20,53); # 0
-# do print CommonTimeDuration(00,30,5,00,5,01,20,53); # 0
-# do print CommonTimeDuration(00,30,5,00,5,00,2,00); # 90
-# do print CommonTimeDuration(04,30,5,00,5,00,4,59); # 29
-# do print CommonTimeDuration(04,30,5,00,5,00,5,00); # 0
-# do print CommonTimeDuration(04,30,5,00,2,00,4,50); # 20
-# do print CommonTimeDuration(04,00,8,00,7,00,5,00); # 120
-do print CommonTimeDuration(07,00,5,00,4,00,8,00); # 120
-
 
 #hard coded squads - each person belongs to one of the squads
 set Squads := {"1a","1b","1c","2a","2b","2c","none"};
@@ -242,28 +167,76 @@ set PeopleAllowedToBeAssignedUntil := {<soldier,day,stringTime> in PeopleAllowed
 #<station,station_interval,required_ppl>
 set AllMissions :={<station,interval_hours,interval_minutes,required_people> in proj(Everyday_Missions,<1,7,8,2>) union proj(OneTime_Missions,<1,9,10,2>) : <station,interval_hours*60 + interval_minutes ,required_people>};
 
-set FormalTimes := {<day,hour,minute> in weekDays * hours * minutes | isBetweenDayHourMinute(planFromDay,planFromHour,planFromMinute, planUntilDay,planUntilHour, planUntilMinute, day,hour, minute)};
+# Improved FormalTimes definition that properly handles planning across week boundaries
+set FormalTimes := {<day,hour,minute> in weekDays * hours * minutes | 
+    if convertToMinutesRepresentation(planFromDay, planFromHour, planFromMinute) <= convertToMinutesRepresentation(planUntilDay, planUntilHour, planUntilMinute) 
+    then (convertToMinutesRepresentation(day, hour, minute) >= convertToMinutesRepresentation(planFromDay, planFromHour, planFromMinute) and convertToMinutesRepresentation(day, hour, minute) <= convertToMinutesRepresentation(planUntilDay, planUntilHour, planUntilMinute))
+    else (convertToMinutesRepresentation(day, hour, minute) >= convertToMinutesRepresentation(planFromDay, planFromHour, planFromMinute) or convertToMinutesRepresentation(day, hour, minute) <= convertToMinutesRepresentation(planUntilDay, planUntilHour, planUntilMinute))
+    end
+};
+
 param planTimeRange := timeDifference(planFromDay,planFromHour,planFromMinute, planUntilDay,planUntilHour, planUntilMinute);
 set Times := {0 .. planTimeRange};
 
-#<station,stationInterval,requiredppl,time>
-set Shifts := 
-    {<station_name, required_people,fromHour,fromMinute,untilHour,untilMinute, default_shift_duration_hours, default_shift_duration_minutes, day, time_quant> in Everyday_Missions * weekDays * Times |
-                                                                isBetweenDayHourMinute(day,fromHour,fromMinute,day,untilHour,untilMinute,getDay(time_quant),getHour(time_quant),getMinute(time_quant)) and
-                                                                getDay(time_quant) == day and
-                                                                (if untilHour < fromHour or (untilHour == fromHour and untilMinute < fromMinute) then
-                                                                ((convertToMinutesRepresentation(day,untilHour, untilMinute) > time_quant) or (convertToMinutesRepresentation(day,fromHour, fromMinute) < time_quant))
-                                                                else (convertToMinutesRepresentation(day,untilHour, untilMinute) > time_quant) end) and
-                                                                (convertToMinutesRepresentation(planUntilDay,planUntilHour, planUntilMinute) > time_quant + (default_shift_duration_hours*60 + default_shift_duration_minutes)) and
-                                                                floor((time_quant-convertToMinutesRepresentation(day,fromHour, fromMinute)) mod (default_shift_duration_hours*60 + default_shift_duration_minutes)) == 0 and  
-                                                                ((orderWeekDays[day] >= orderWeekDays[planFromDay] and orderWeekDays[day] <= orderWeekDays[planUntilDay] and orderWeekDays[planFromDay] <= orderWeekDays[planUntilDay] ) or (orderWeekDays[day] >= orderWeekDays[planFromDay] and orderWeekDays[day] <= (orderWeekDays[planUntilDay]+7) and orderWeekDays[planFromDay] > orderWeekDays[planUntilDay])) :
-                                                                <station_name, default_shift_duration_hours*60 + default_shift_duration_minutes , required_people,time_quant>} union 
-    {<station_name, required_people,fromDay,fromHour,fromMinute,untilDay,untilHour,untilMinute,default_shift_duration_hours,default_shift_duration_minutes,time_quant> in OneTime_Missions * Times | 
-                                                                isBetweenDayHourMinute(fromDay,fromHour,fromMinute,untilDay,untilHour,untilMinute,getDay(time_quant),getHour(time_quant),getMinute(time_quant)) and
-                                                                (convertToMinutesRepresentation(planUntilDay,planUntilHour, planUntilMinute) > time_quant + (default_shift_duration_hours*60 + default_shift_duration_minutes)) and
-                                                                (convertToMinutesRepresentation(untilDay,untilHour, untilMinute) > time_quant) and
-                                                                floor((time_quant-convertToMinutesRepresentation(fromDay,fromHour, fromMinute)) mod (default_shift_duration_hours*60 + default_shift_duration_minutes)) == 0 : 
-                                                                <station_name,default_shift_duration_hours*60 + default_shift_duration_minutes , required_people,time_quant>};
+# Improved Shifts definition with fixed shift duration handling
+set Shifts := {
+    <station_name, required_people, fromHour, fromMinute, untilHour, untilMinute, default_shift_duration_hours, default_shift_duration_minutes, day, time_quant> 
+    in Everyday_Missions * weekDays * Times |
+        # Current time is within our planning range
+        isBetweenDayHourMinute(planFromDay, planFromHour, planFromMinute, planUntilDay, planUntilHour, planUntilMinute, day, getHour(time_quant), getMinute(time_quant)) and
+        
+        # Current time corresponds to a valid shift start time
+        (
+            # For missions crossing midnight - the daily start time
+            ((getHour(time_quant) == fromHour and getMinute(time_quant) == fromMinute) or
+             # For subsequent shifts based on shift duration
+             (isBetweenHourMinute(fromHour, fromMinute, untilHour, untilMinute, getHour(time_quant), getMinute(time_quant)) and
+             (((getHour(time_quant) - fromHour) * 60 + (getMinute(time_quant) - fromMinute) + 24*60) mod (24*60)) mod (default_shift_duration_hours * 60 + default_shift_duration_minutes) == 0))
+        ) and
+        
+        # CRITICAL FIX: The shift END must be within the mission bounds (or plan bounds)
+        (
+            # For missions that don't cross midnight
+            (fromHour < untilHour and 
+             (getHour(time_quant) * 60 + getMinute(time_quant) + default_shift_duration_hours * 60 + default_shift_duration_minutes) <= (untilHour * 60 + untilMinute)) or
+            
+            # For missions that cross midnight (e.g. 23:00-01:00)
+            (fromHour > untilHour and
+             ((getHour(time_quant) * 60 + getMinute(time_quant) + default_shift_duration_hours * 60 + default_shift_duration_minutes) <= (untilHour * 60 + untilMinute) or
+              (getHour(time_quant) * 60 + getMinute(time_quant)) >= fromHour * 60 + fromMinute))
+        ) and
+        
+        # Ensure the shift doesn't exceed the planning period
+        (time_quant + (default_shift_duration_hours*60 + default_shift_duration_minutes) <= planTimeRange) :
+        
+        <station_name, default_shift_duration_hours*60 + default_shift_duration_minutes, required_people, time_quant>
+} union 
+{
+    <station_name, required_people, fromDay, fromHour, fromMinute, untilDay, untilHour, untilMinute, default_shift_duration_hours, default_shift_duration_minutes, time_quant> 
+    in OneTime_Missions * Times | 
+        # Check if the time point is within our planning range
+        isBetweenDayHourMinute(planFromDay, planFromHour, planFromMinute, planUntilDay, planUntilHour, planUntilMinute, getDay(time_quant), getHour(time_quant), getMinute(time_quant)) and
+        
+        # Check if this time point is within the mission's bounds
+        isBetweenDayHourMinute(fromDay, fromHour, fromMinute, untilDay, untilHour, untilMinute, getDay(time_quant), getHour(time_quant), getMinute(time_quant)) and
+        
+        # Either it's the exact start time or it's on a valid shift boundary
+        (
+            (getDay(time_quant) == fromDay and getHour(time_quant) == fromHour and getMinute(time_quant) == fromMinute) or
+            (timeDifference(fromDay, fromHour, fromMinute, getDay(time_quant), getHour(time_quant), getMinute(time_quant)) mod (default_shift_duration_hours*60 + default_shift_duration_minutes) == 0)
+        ) and
+        
+        # CRITICAL FIX: Ensure the shift's end time is within mission bounds
+        (
+            timeDifference(getDay(time_quant), getHour(time_quant), getMinute(time_quant), untilDay, untilHour, untilMinute) >= (default_shift_duration_hours*60 + default_shift_duration_minutes)
+        ) and
+        
+        # Ensure the shift doesn't exceed the planning period
+        (time_quant + (default_shift_duration_hours*60 + default_shift_duration_minutes) <= planTimeRange) :
+        
+        <station_name, default_shift_duration_hours*60 + default_shift_duration_minutes, required_people, time_quant>
+};
+
 do print Shifts;
 # do print Everyday_Missions;
 # do print isBetweenDayHourMinute("Friday",6,0,"Friday",0,0,getDay(0),getHour(0),getMinute(0));
@@ -283,7 +256,7 @@ set encodedPreAssign := {<soldier,station,day,hour_minute,value> in preAssign: <
 set zero_out := { <soldier, station, stationInterval, requiredPeople, time> in Soldiers * Shifts | (sum <soldier2,station2,time2,value2> in encodedPreAssign | station == station2 and time == time2 and value2 == 1: 1) == requiredPeople and card({<soldier3,station3,time3,value3> in encodedPreAssign | soldier3 == soldier and station3 == station and time3 == time and value3 == 1}) == 0};
 param AntiPreAssignRate := 0.0;
 set antiPreAss := {<soldier,station,time> in SoldiersToShifts | floor(random(0+AntiPreAssignRate,0.99999999+AntiPreAssignRate)) == 1} - proj(encodedPreAssign,<1,2,3>);
-var Edge[<i,a,b> in SoldiersToShifts] binary; #
+var Edge[<i,a,b> in SoldiersToShifts] binary priority 6000000; #
 set RestTimes := { <soldier,station,interval,time> in Soldiers * proj(Shifts,<1,2,4>) : <soldier,time + interval>} union {<soldier,zero_time> in Soldiers * {0}};
 var NeighbouringShifts[<soldier,endTime> in RestTimes] real >= 0 <= max((max(Times)-endTime)/60,0);
 set RestTimes2 := { <soldier,station,interval,time> in Soldiers * proj(Shifts,<1,2,4>) : <soldier,time>} union {<soldier,zero_time> in Soldiers * {0}};
@@ -329,6 +302,7 @@ subto ConvertEnumeratedTimesToFormal:
     forall <soldier,station,time> in SoldiersToShifts:
         FormalTimesEdges[soldier,station,convertToPresentation[getDay(time)],makeTimeInString(getHour(time), getMinute(time))] == Edge[soldier,station,time];
 
+
 set already_satisfied_5 := { <soldier, station, stationInterval, requiredPeople, time> in Soldiers * Shifts | (sum <soldier2,station2,time2,value2> in encodedPreAssign | station == station2 and time == time2 and value2 == 1: 1) == requiredPeople and card({<soldier3,station3,time3,value3> in encodedPreAssign | soldier3 == soldier and station3 == station and time3 == time and value3 == 1}) == 0};
 do print already_satisfied_5;
 subto EnforceCalculationOfRestTimes1:
@@ -362,8 +336,14 @@ subto EnforceAvailabilityFrom:
     forall <soldier, day,hour,minute> in PeopleAllowedToBeAssignedFrom : 
         forall <soldier2, station2, stationInterval2, requiredPeople2, time2> in Soldiers * Shifts | soldier2 == soldier and time2 < convertToMinutesRepresentation(day,hour,minute):
             Edge[soldier2,station2,time2] == 0;
-        
+
+subto EnforceMinimalRestTimeHeuristic:
+    forall <soldier, station, stationInterval, requiredPeople, time> in Soldiers * Shifts:
+        forall <station2, stationInterval2, requiredPeople2, time2> in Shifts | time2 > time and time2 < (time + minimumRestTime + stationInterval):
+            Edge[soldier,station,time] * Edge[soldier,station2,time2] == 0;
+        # can also replace by: 
 do print "loaded EnforceInavailabilityFrom";
+
 set preAssignSoldierStatistics := {<"Empty Soldier", "Total Duty Hours", 0.0>};
 set preAssignShiftStatistics := {<"People Not Assigned Atleast Once", 1.0>};
 # set preAssignSoldierStatistics := {};
@@ -468,6 +448,8 @@ param soldierSpacingDegree := 1;
 param soldierTotalNightDutyDegree := 2;
 param soldierTotalMissionsTimesDegree := 2;
 param repetitiveMissionsDegree := 2;
+
+
 
 subto CalculateOptimizationScore:
     ShiftStatistics["Optimization Score"] == 

@@ -12,6 +12,7 @@ import ConfigurePreferencesPage from './pages/ConfigurePreferencesPage';
 import SolutionPreviewPage from './pages/SolutionPreviewPage';
 import SolutionResultsPage from "./pages/SolutionResultsPage";
 import ConfigureSetsAndParamsPage from "./pages/ConfigureSetsAndParamsPage";
+import ConfigureSolverOptionsPage from "./pages/ConfigureSolverOptionsPage";
 
 function App() {
     return (
@@ -24,8 +25,9 @@ function App() {
                     <Route path="/configure-variables" element={<ConfigureVariablesPage />} />
                     <Route path="/configure-constraints" element={<ConfigureConstraintsPage />} />
                     <Route path="/configure-preferences" element={<ConfigurePreferencesPage />} />
-                    <Route path="/solution-preview" element={<SolutionPreviewPage />} />
+                    <Route path="/solution-preview" element={<SolutionPreviewPage isDesktop={true}/>} />
                     <Route path="/configure-sets-params" element={<ConfigureSetsAndParamsPage />} />
+                    <Route path="/configure-solver-options" element={<ConfigureSolverOptionsPage />} />
                     {/* <Route path="/login" element={<LoginPage/>} /> */}
                     {/* <Route path="/solution-results" element={<SolutionResultsPage />} /> */}
                 </Routes>

@@ -6,6 +6,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
@@ -153,51 +154,105 @@ public class ImageController {
     }
 
     @Transactional
-    public void overrideImage(ImageConfigDTO imgConfig) throws Exception {
-        ImageDTO imageDTO= imgConfig.image();
-        Image image = imageRepository.findById(imgConfig.imageId()).get();
-        entityManager.merge(image);
-        // //TODO: Not good going, should be fixed to do the operation with deleting and re-writing the whole image
-        // imageRepository.deleteById(image.getId());
-        // imageRepository.flush();
-        if (imageDTO.isPrivate() != null)
-            image.setIsPrivate(imageDTO.isPrivate());
-        image.setSolverScripts(imageDTO.solverSettings());
-        Objects.requireNonNull(image,"Invalid imageId in image config/override image");
-        Map<String, ModelVariable> variables = new HashMap<>();
-        ModelInterface model= image.getModel();
-        BadRequestException.requireNotNull(imgConfig.image().variablesModule().variablesOfInterest(),"Bad DTO during image config, field in variables in image is null");
-        BadRequestException.requireNotNull(imgConfig.image().variablesModule().inputParams(),"Bad DTO during image config, field in variables in image is null");
-        BadRequestException.requireNotNull(imgConfig.image().variablesModule().inputSets(),"Bad DTO during image config, field in variables in image is null");
-        image.configureModelInputs(imgConfig.image().variablesModule().inputSets(),imgConfig.image().variablesModule().inputParams());
-        for(VariableDTO variable:imageDTO.variablesModule().variablesOfInterest()){
-            ModelVariable modelVariable=model.getVariable(variable.identifier());
-            modelVariable.setTags(variable.tags().toArray(new String[0]));
-            modelVariable.setBoundSet(model.getSet(variable.boundSet()));
-            Objects.requireNonNull(modelVariable,"Invalid variable name in config/override image");
-            variables.put(variable.identifier(),modelVariable);
-        }
-        image.reset(variables, imageDTO.variablesModule().inputSets().stream().map(SetDefinitionDTO::name).collect(Collectors.toSet()),
-                                imageDTO.variablesModule().inputParams().stream().map(ParameterDefinitionDTO::name).collect(Collectors.toSet()));
-        for(ConstraintModuleDTO constraintModule:imageDTO.constraintModules()){
-            image.addConstraintModule(constraintModule.moduleName(),constraintModule.description(),
-                    constraintModule.constraints(),
-                    constraintModule.inputSets().stream().map(SetDefinitionDTO::name).collect(Collectors.toSet()),
-                    constraintModule.inputParams().stream().map(ParameterDefinitionDTO::name).collect(Collectors.toSet()));
-            image.configureModelInputs(constraintModule.inputSets(),constraintModule.inputParams());
-        }
-        for (PreferenceModuleDTO preferenceModule:imageDTO.preferenceModules()){
-            image.addPreferenceModule(preferenceModule.moduleName(), preferenceModule.description(),
-                    preferenceModule.preferences(),
-                    preferenceModule.inputSets().stream().map(SetDefinitionDTO::name).collect(Collectors.toSet()),
-                    preferenceModule.inputParams().stream().map(ParameterDefinitionDTO::name).collect(Collectors.toSet()),
-                    preferenceModule.costParams().stream().map(ParameterDefinitionDTO::name).collect(Collectors.toSet()));
-            image.configureModelInputs(preferenceModule.inputSets(),preferenceModule.inputParams());
+public void overrideImage(ImageConfigDTO imgConfig) throws Exception {
+    ImageDTO imageDTO = imgConfig.image();
+    String imageId = imgConfig.imageId();
+    
+    // Find the image by ID
+    Image image = imageRepository.findById(imageId)
+            .orElseThrow(() -> new BadRequestException("Invalid imageId in image config"));
+    
+    // Update basic properties
+    if (imageDTO.isPrivate() != null) {
+        image.setIsPrivate(imageDTO.isPrivate());
+    }
+    
+    // Update solver scripts
+    image.setSolverScripts(imageDTO.solverSettings());
+    
+    // Get the model
+    ModelInterface model = image.getModel();
+    
+    // Validate DTO inputs
+    BadRequestException.requireNotNull(imageDTO.variablesModule().variablesOfInterest(), 
+            "Bad DTO during image config, variablesOfInterest is null");
+    BadRequestException.requireNotNull(imageDTO.variablesModule().inputParams(), 
+            "Bad DTO during image config, inputParams is null");
+    BadRequestException.requireNotNull(imageDTO.variablesModule().inputSets(), 
+            "Bad DTO during image config, inputSets is null");
+    
+    // Clear existing modules first (since we're doing a full replacement)
+    // This properly handles orphanRemoval
+    image.getConstraintsModules().clear();
+    image.getPreferenceModules().clear();
+    
+    // Handle variables module
+    Map<String, ModelVariable> variables = new HashMap<>();
+    for (VariableDTO variable : imageDTO.variablesModule().variablesOfInterest()) {
+        ModelVariable modelVariable = model.getVariable(variable.identifier());
+        if (modelVariable == null) {
+            throw new BadRequestException("Invalid variable name: " + variable.identifier());
         }
         
-        entityManager.merge(image);
+        modelVariable.setTags(variable.tags().toArray(new String[0]));
+        modelVariable.setBoundSet(model.getSet(variable.boundSet()));
+        variables.put(variable.identifier(), modelVariable);
     }
-
+    
+    // Update input sets and parameters
+    Set<String> inputSetNames = imageDTO.variablesModule().inputSets().stream()
+            .map(SetDefinitionDTO::name)
+            .collect(Collectors.toSet());
+    
+    Set<String> inputParamNames = imageDTO.variablesModule().inputParams().stream()
+            .map(ParameterDefinitionDTO::name)
+            .collect(Collectors.toSet());
+    
+    // Reset variables and configure inputs
+    image.reset(variables, inputSetNames, inputParamNames);
+    image.configureModelInputs(imageDTO.variablesModule().inputSets(), 
+                              imageDTO.variablesModule().inputParams());
+    
+    // Add constraint modules
+    for (ConstraintModuleDTO constraintModule : imageDTO.constraintModules()) {
+        image.addConstraintModule(
+                constraintModule.moduleName(),
+                constraintModule.description(),
+                constraintModule.constraints(),
+                constraintModule.inputSets().stream()
+                        .map(SetDefinitionDTO::name)
+                        .collect(Collectors.toSet()),
+                constraintModule.inputParams().stream()
+                        .map(ParameterDefinitionDTO::name)
+                        .collect(Collectors.toSet())
+        );
+        
+        image.configureModelInputs(constraintModule.inputSets(), constraintModule.inputParams());
+    }
+    
+    // Add preference modules
+    for (PreferenceModuleDTO preferenceModule : imageDTO.preferenceModules()) {
+        image.addPreferenceModule(
+                preferenceModule.moduleName(),
+                preferenceModule.description(),
+                preferenceModule.preferences(),
+                preferenceModule.inputSets().stream()
+                        .map(SetDefinitionDTO::name)
+                        .collect(Collectors.toSet()),
+                preferenceModule.inputParams().stream()
+                        .map(ParameterDefinitionDTO::name)
+                        .collect(Collectors.toSet()),
+                preferenceModule.costParams().stream()
+                        .map(ParameterDefinitionDTO::name)
+                        .collect(Collectors.toSet())
+        );
+        
+        image.configureModelInputs(preferenceModule.inputSets(), preferenceModule.inputParams());
+    }
+    
+    // Save the updated entity
+    imageRepository.save(image);
+}
     @Transactional
     public ImageDTO getImage(String id) {
         Image image = currentlyCached != null && currentlyCached.getId().equals(id) ? currentlyCached : imageRepository.findById(id).get();

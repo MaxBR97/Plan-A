@@ -9,11 +9,14 @@ import ModuleBox from '../reusableComponents/ModuleBox.js';
 import SetInputBox from '../reusableComponents/SetInputBox.js';
 import ParameterInputBox from "../reusableComponents/ParameterInputBox";
 import DraggableBar from "../reusableComponents/DraggableBar.js";
+import LogBoard from "../reusableComponents/LogBoard.js"
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom"; // Import useNavigate
 
+import WebSocketTester from "./WebSocketTest.js";
 
-const SolutionPreviewPage = () => {
+
+const SolutionPreviewPage = ({isDesktop=false}) => {
   const {
     image,
     model,
@@ -41,8 +44,13 @@ const SolutionPreviewPage = () => {
   const [timeout, setTimeout] = useState(10);
   const [solutionStatus, setSolutionStatus] = useState(null);
   const [globalSelectedTuples, setGlobalSelectedTuples] = useState({});
+  const [selectedScript, setSelectedScript] = useState(Object.keys(image.solverSettings)[0]);
   const navigate = useNavigate(); 
-  
+
+  const handleSelectScript = (key) => {
+    setSelectedScript(key);
+  };
+
 
   const handleAddValue = (setName) => {
     setVariableValues((prev) => ({
@@ -287,7 +295,9 @@ useEffect(() => {
   })();
 }, [image]);
 
-const handleSolve = async () => {
+
+
+const handleSolve = async (isContinue = false) => {
   setErrorMessage(null);
   setResponseData(null);
   console.log("global selected:",globalSelectedTuples)
@@ -377,20 +387,28 @@ input: {
     preferenceModulesToggledOff: preferencesToggledOff,
 },
 timeout: timeout,
+solverSettings: image.solverSettings[selectedScript]
 };
 
 console.log("global:", globalSelectedTuples);
 console.log("request:", requestBody);
-
+console.log("Selected script ",selectedScript)
 try {
 let startTime = Date.now(); // Capture the start time
 
 // Start a timer to update solutionStatus every second
-const timer = setInterval(() => {
+const timer = setInterval(async ()  => {
     setSolutionStatus("Solving " + ((Date.now() - startTime) / 1000).toFixed(1)); 
-}, 10);
+    if(isDesktop){ 
+      const poll = await fetch("/solve/poll", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(requestBody),
+      }); window.appendLog( await poll.text() + "\n");
+    }
+}, 1000);
 setShowModal(true);
-const response = await fetch("/solve", {
+const response = await fetch(isContinue ? "/solve/continue" : isDesktop ? "/solve/start" : "/solve", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(requestBody),
@@ -607,11 +625,29 @@ clearInterval(timer); // Stop the timer once response is received
           />
         </div>
 
-        <button className="solve-button" onClick={handleSolve}>
+          <div className="script-options">
+          Solver Settings:
+    {Object.keys(image.solverSettings).map((key) => (
+      <div key={key} className="script-option">
+        <input
+          type="radio"
+          id={`script-${key}`}
+          name="solver-script"
+          checked={selectedScript == key}
+          onChange={() => handleSelectScript(key)}
+        />
+        <label htmlFor={`script-${key}`}>{key}</label>
+      </div>
+  ))}
+        </div>
+        
+        <button className="solve-button" onClick={() => handleSolve(false)}>
           Solve
         </button>
+        {isDesktop && (<button className="solve-button" onClick={() => handleSolve(true)}>
+          Continue Solve
+        </button>)}
         
-
         {/* Modal for Response */}
         {showModal && (
           <div className="response-modal">
@@ -625,6 +661,7 @@ clearInterval(timer); // Stop the timer once response is received
               <h2>Solution Status:</h2>
               <pre>{solutionStatus}</pre>
             </div>
+            <div><LogBoard/></div>
           </div>
         )}
         <div className="results">
@@ -640,7 +677,11 @@ clearInterval(timer); // Stop the timer once response is received
       <Link to="/configure-constraints" className="back-button">
         Back
       </Link>
+
+      {/* <WebSocketTester /> */}
+      
     </div>
+    
   );
 };
 
