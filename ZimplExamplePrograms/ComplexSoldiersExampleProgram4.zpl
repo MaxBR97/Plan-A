@@ -42,7 +42,7 @@ param nightTimeStartHour := getHourFromStringFormat(nightTimeStart);
 param nightTimeStartMinute := getMinuteFromStringFormat(nightTimeStart);
 param nightTimeEndHour := getHourFromStringFormat(nightTimeEnd);
 param nightTimeEndMinute := getMinuteFromStringFormat(nightTimeEnd);
-param minimumRestTime := 8;
+param minimumRestHours := 0;
 
 # Define relative day numbering based on planFromDay
 defnumb getDayNumber(day) := 
@@ -281,7 +281,7 @@ subto EnforceNeighbouringShiftsTotalSum:
         (sum <soldier3,station3,interval3,time3> in Soldiers * proj(Shifts,<1,2,4>) | soldier3 == soldier : Edge[soldier3,station3,time3]*(interval3/60)) == (card(Times)-1)/60;
 
 subto PreAssignZero:
-    forall <soldier, station, stationInterval, requiredPeople, time> in zero_out :
+    forall <soldier, station, time> in proj(zero_out,<1,2,5>) union antiPreAss :
         Edge[soldier,station,time] == 0;
 
 set already_satisfied_1 := { <station, stationInterval, requiredPeople, time> in Shifts | (sum <soldier2,station2,time2,value2> in encodedPreAssign | station == station2 and time == time2 and value2 == 1: 1) == requiredPeople };
@@ -339,10 +339,10 @@ subto EnforceAvailabilityFrom:
 
 subto EnforceMinimalRestTimeHeuristic:
     forall <soldier, station, stationInterval, requiredPeople, time> in Soldiers * Shifts:
-        forall <station2, stationInterval2, requiredPeople2, time2> in Shifts | time2 > time and time2 < (time + minimumRestTime + stationInterval):
+        forall <station2, stationInterval2, requiredPeople2, time2> in Shifts | time2 > time and time2 < (time + minimumRestHours*60 + stationInterval):
             Edge[soldier,station,time] * Edge[soldier,station2,time2] == 0;
-        # can also replace by: 
-do print "loaded EnforceInavailabilityFrom";
+#         # can also replace by: 
+# do print "loaded EnforceInavailabilityFrom";
 
 set preAssignSoldierStatistics := {<"Empty Soldier", "Total Duty Hours", 0.0>};
 set preAssignShiftStatistics := {<"People Not Assigned Atleast Once", 1.0>};

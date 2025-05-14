@@ -27,3 +27,5 @@ set branching strong / set branching inference
 
 set constraints linear propfreq 10 set constraints nonlinear sepafreq 10 set heur nlpd freq -1 set branching infere prio 500000000 set heur trustreg freq 3 //currently the most promising setting for giving fast a good enough solution
 set emph opt set constraints linear propfreq 10 set constraints nonlinear sepafreq 10 set heur nlpd freq -1 set branching infere prio 500000000 set heur trustreg freq 3  set lp adv iterlim 20000 // long solving but perhaps reaches optimallity faster
+
+read C:\Users\Max\Plan-A\ZimplExamplePrograms\ComplexSoldiersExampleProgram4.zpl set emph opt set constraints linear propfreq 10 set constraints nonlinear sepafreq 10 set heur nlpd freq -1 set branching infere prio 500000000 set heur trustreg freq 3  
