@@ -155,14 +155,14 @@ public class VariableModule extends Module {
         }
     }
     
-    // @Transactional
-    // public void override(Map<String, ModelVariable> variables, Collection<ModelSet> inputSets, Collection<ModelParameter> inputParams) {
-    //     this.variables.clear();
-    //     this.inputSets.clear();
-    //     this.inputParams.clear();
-    //     this.variables.putAll(variables);
-    //     this.inputSets.addAll(inputSets);
-    //     this.inputParams.addAll(inputParams);
-    // }
+    @Transactional
+    public void override(Map<String, ModelVariable> variables, Collection<ModelSet> inputSets, Collection<ModelParameter> inputParams) {
+        this.variables.clear();
+        this.inputSets.clear();
+        this.inputParams.clear();
+        this.variables.putAll(variables);
+        this.inputSets.addAll(inputSets);
+        this.inputParams.addAll(inputParams);
+    }
 
 }
