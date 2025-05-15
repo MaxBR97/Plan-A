@@ -7,10 +7,13 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import DTO.Records.Image.ConstraintModuleDTO;
+import DTO.Records.Model.ModelDefinition.VariableDTO;
 import Image.Image;
 import Model.ModelConstraint;
 import Model.ModelParameter;
 import Model.ModelSet;
+import Model.ModelVariable;
 import ch.qos.logback.core.model.Model;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.DiscriminatorValue;
@@ -29,7 +32,6 @@ public class ConstraintModule extends Module{
      * a constraint module, holding the user definition for a group of model constraints
      * (a group of subTo expressions in zimpl code)
      */
-
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumns({
         @JoinColumn(name = "image_id", referencedColumnName = "image_id", nullable = false),
@@ -38,6 +40,17 @@ public class ConstraintModule extends Module{
     @MapKey(name = "id.identifier")
     //@Transient
     private Map<String,ModelConstraint> constraints;
+
+
+    public ConstraintModule(Image image, ConstraintModuleDTO dto) throws Exception {
+        super(image, dto.moduleName(), dto.description(), dto.inputSets(), dto.inputParams());
+        this.constraints = new HashMap<>();
+        for (String consDTO : dto.constraints()) {
+            ModelConstraint cons = image.getModel().getConstraint(consDTO);
+            this.constraints.put(consDTO, cons);
+            cons.setModuleName(this.getName());
+        }
+    }
 
     public ConstraintModule(Image image , String name, String description) {
         super(image, name, description);
@@ -100,3 +113,4 @@ public class ConstraintModule extends Module{
         constraints.remove(identifier);
     }
 }
+

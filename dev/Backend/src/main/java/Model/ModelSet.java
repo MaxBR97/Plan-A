@@ -49,7 +49,8 @@ public class ModelSet extends ModelInput {
             super.myStruct = resultingStructure;
     }
 
-    public void modify(SetDefinitionDTO dto) throws Exception {
+    // TODO: this method should propagate the work to ModelInput. Do the same at ModelParameter.
+    public void update(SetDefinitionDTO dto) throws Exception {
     
         if(dto.alias() != null && !dto.alias().equals(""))
             this.setAlias(dto.alias());

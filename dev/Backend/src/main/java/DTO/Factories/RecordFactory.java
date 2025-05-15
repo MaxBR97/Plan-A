@@ -197,7 +197,7 @@ public class RecordFactory {
             throw new NullPointerException("Null image in DTO mapping");
         Set< ConstraintModuleDTO> constraints = new HashSet<>();
         Set<PreferenceModuleDTO> preferences = new HashSet<>();
-        VariableModuleDTO variables = makeDTO(image.getVariableModule());
+        VariableModuleDTO variables = makeDTO(image.getVariablesModule());
                 for(ConstraintModule module: image.getConstraintsModules().values()){
                     constraints.add(makeDTO(module));
                 }

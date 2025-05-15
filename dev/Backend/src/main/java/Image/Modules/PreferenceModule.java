@@ -9,6 +9,10 @@ import java.util.Set;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
+import DTO.Records.Image.ConstraintModuleDTO;
+import DTO.Records.Image.PreferenceModuleDTO;
+import DTO.Records.Model.ModelData.ParameterDefinitionDTO;
+import DTO.Records.Model.ModelData.SetDefinitionDTO;
 import Image.Image;
 import Model.ModelConstraint;
 import Model.ModelInput;
@@ -34,7 +38,7 @@ public class PreferenceModule extends Module{
      * (a preference is a single expressions in the expression sum in the minimize/maximize expression in zimpl)
      */
     
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumns({
         @JoinColumn(name = "image_id", referencedColumnName = "image_id", nullable = false),
         @JoinColumn(name = "module_name", referencedColumnName = "name", nullable = false)
@@ -45,6 +49,24 @@ public class PreferenceModule extends Module{
     @Transient
     private Set<ModelParameter> costParameter;
 
+
+    public PreferenceModule(Image image, PreferenceModuleDTO dto) throws Exception {
+        super(image, dto.moduleName(), dto.description(), dto.inputSets(), dto.inputParams());
+        costParameter = new HashSet<>();
+        for (ParameterDefinitionDTO paramDTO : dto.costParams()) {
+            ModelParameter param = image.getModel().getParameter(paramDTO.name());
+            costParameter.add(param);
+            param.update(paramDTO);
+            param.setCostParameter(true);
+        }
+        
+        this.preferences = new HashMap<>();
+        for (String prefDTO : dto.preferences()) {
+            ModelPreference preference = image.getModel().getPreference(prefDTO);
+            this.preferences.put(prefDTO, preference);
+            preference.setModuleName(this.getName());
+        }
+    }
 
     protected PreferenceModule() {
         super();

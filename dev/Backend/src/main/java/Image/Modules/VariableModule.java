@@ -6,6 +6,11 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import DTO.Records.Image.ConstraintModuleDTO;
+import DTO.Records.Image.VariableModuleDTO;
+import DTO.Records.Model.ModelData.ParameterDefinitionDTO;
+import DTO.Records.Model.ModelData.SetDefinitionDTO;
+import DTO.Records.Model.ModelDefinition.VariableDTO;
 import Image.Image;
 import Model.ModelParameter;
 import Model.ModelSet;
@@ -23,6 +28,7 @@ import jakarta.transaction.Transactional;
 @Entity
 @DiscriminatorValue("VARIABLE")
 public class VariableModule extends Module {
+    private static final String VARIABLE_MODULE_NAME = "VariableModule";
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumns({
@@ -33,34 +39,51 @@ public class VariableModule extends Module {
     //@Transient
     private Map<String, ModelVariable> variables;
 
-    @Transient
-    private final static String genericName = "VariableModule";
 
-        public Map<String, ModelVariable> getVariables() {
-            return variables;
-        }
-    
-        public VariableModule() {
-           super();
-           variables = new HashMap<>();
-        }
-    
-    public VariableModule(Image image, Map<String, ModelVariable> variables, Collection<ModelSet> inputSets, Collection<ModelParameter> inputParams) {
-       super(image,getVariableModuleName(),"NO DESCRIPTION", inputSets, inputParams);
-       this.variables = new HashMap<>();
+    public Map<String, ModelVariable> getVariables() {
+        return variables;
     }
 
-    public VariableModule(Image image, Set<ModelVariable> variables, Collection<ModelSet> inputSets, Collection<ModelParameter> inputParams) {
-        super(image,getVariableModuleName(),"NO DESCRIPTION",inputSets,inputParams);
+    public VariableModule(Image image, VariableModuleDTO dto) throws Exception {
+        super(image, getVariableModuleName(), "", dto.inputSets(), dto.inputParams());
         this.variables = new HashMap<>();
-        for(ModelVariable variable: variables) {
-            this.variables.put(variable.getIdentifier(),variable);
-            //TODO: set module name for the added variable, do so also for preferences and constraints
+        for (VariableDTO varDTO : dto.variablesOfInterest()) {
+            ModelVariable var = image.getModel().getVariable(varDTO.identifier());
+            this.variables.put(varDTO.identifier(), var);
+            var.update(varDTO);
+            if (varDTO.boundSet() != null) {
+                var.setBoundSet(image.getModel().getSet(varDTO.boundSet()));
+            }
         }
     }
 
-    public static String getVariableModuleName(){
-        return genericName;
+    protected VariableModule() {
+        super();
+        variables = new HashMap<>();
+    }
+
+    public VariableModule(Image image, String name, String description) {
+        super(image, name, description);
+        variables = new HashMap<>();
+    }
+
+    public VariableModule(Image image, Map<String, ModelVariable> variables, Collection<ModelSet> inputSets, Collection<ModelParameter> inputParams) {
+        super(image, VariableModule.getVariableModuleName(), "", inputSets, inputParams);
+        this.variables = new HashMap<>(variables);
+    }
+
+    // @Transactional
+    // public void override(Map<String, ModelVariable> variables, Collection<ModelSet> inputSets, Collection<ModelParameter> inputParams) {
+    //     this.variables.clear();
+    //     this.inputSets.clear();
+    //     this.inputParams.clear();
+    //     this.variables.putAll(variables);
+    //     this.inputSets.addAll(inputSets);
+    //     this.inputParams.addAll(inputParams);
+    // }
+
+    public static String getVariableModuleName() {
+        return VARIABLE_MODULE_NAME;
     }
 
     @Transactional
@@ -68,15 +91,6 @@ public class VariableModule extends Module {
         variables.clear();
         inputSets.clear();
         inputParams.clear();
-    }
-    
-    public void override(Map<String, ModelVariable> variables, Collection<ModelSet> inputSets, Collection<ModelParameter> inputParams) {
-        this.variables.clear();
-        this.inputSets.clear();
-        this.inputParams.clear();
-        this.variables.putAll(variables);
-        this.inputSets.addAll(inputSets);
-        this.inputParams.addAll(inputParams);
     }
 
     public Set<String> getIdentifiers() {
@@ -91,8 +105,6 @@ public class VariableModule extends Module {
     public void addVariable(ModelVariable variable) {
         variables.put(variable.getIdentifier(),variable);
     }
-
-
 
     @Override
     public Set<ModelSet> getInvolvedSets() {
@@ -124,4 +136,29 @@ public class VariableModule extends Module {
         return sets;
     }
     
+    @Transactional
+    public void update(VariableModuleDTO dto) throws Exception {
+        // Update variables of interest
+        for (VariableDTO varDTO : dto.variablesOfInterest()) {
+            ModelVariable modelVar = image.getModel().getVariable(varDTO.identifier());
+            if (modelVar == null) {
+                throw new IllegalArgumentException("Invalid variable name: " + varDTO.identifier());
+            }
+            modelVar.setTags(varDTO.tags().toArray(new String[0]));
+            modelVar.setBoundSet(image.getModel().getSet(varDTO.boundSet()));
+            variables.put(varDTO.identifier(), modelVar);
+        }
+
+        // Update input sets
+        inputSets.clear();
+        for (var setDTO : dto.inputSets()) {
+            addSet(image.getModel().getSet(setDTO.name()));
+        }
+
+        // Update input parameters
+        inputParams.clear();
+        for (var paramDTO : dto.inputParams()) {
+            addParam(image.getModel().getParameter(paramDTO.name()));
+        }
+    }
 }

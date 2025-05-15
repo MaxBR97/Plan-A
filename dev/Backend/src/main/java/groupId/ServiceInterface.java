@@ -15,7 +15,7 @@ public interface ServiceInterface {
     
     public ResponseEntity<CreateImageResponseDTO> createImage(@RequestBody CreateImageFromFileDTO data) throws Exception;
 
-    public ResponseEntity<Void> configureImage(ImageConfigDTO config) throws Exception;
+    public ResponseEntity<Void> updateImage(ImageConfigDTO config) throws Exception;
 
     public ResponseEntity<SolutionDTO> solve(SolveCommandDTO input) throws Exception;
 

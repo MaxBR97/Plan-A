@@ -9,12 +9,13 @@ import jakarta.persistence.Embeddable;
 public class ModelComponentId implements Serializable {
     @Column(name="name")
     private String identifier;
+    
     @Column(name="image_id", insertable=false, updatable=false)
     private String imageId;
 
     // Default constructor (required by Hibernate)
     public ModelComponentId() {
-        identifier= "defaultIdentifier";
+        identifier = "defaultIdentifier";
         imageId = "defaultImageId";
     }
 

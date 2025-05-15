@@ -8,8 +8,11 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
+import jakarta.persistence.DiscriminatorColumn;
+import jakarta.persistence.DiscriminatorValue;
 
 //import parser.FormulationParser.ParamDeclContext;
+
 
 @Entity
 @Table(name="parameters")
@@ -32,7 +35,7 @@ public class ModelParameter extends ModelInput {
         super(imageId, paramName, type, basicSets, basicParams, funcDep);
     }
 
-    public void modify(ParameterDefinitionDTO dto) throws Exception{
+    public void update(ParameterDefinitionDTO dto) throws Exception{
         if(dto.alias() != null && !dto.alias().equals(""))
             this.setAlias(dto.alias());
         

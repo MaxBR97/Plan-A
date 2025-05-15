@@ -3,6 +3,8 @@ package Model;
 import java.util.LinkedList;
 import java.util.List;
 
+import DTO.Records.Model.ModelData.SetDefinitionDTO;
+import DTO.Records.Model.ModelDefinition.VariableDTO;
 import DataAccess.StringArrayConverter;
 import Exceptions.InternalErrors.BadRequestException;
 import Model.ModelInput.StructureBlock;
@@ -48,6 +50,8 @@ public abstract class ModelOutput extends ModelComponent {
         if(this.isComplex == false)
             this.isComplex = mc.isComplex;
     }
+
+    
 
 
     public String[] getTags(){

@@ -58,9 +58,11 @@ public class ImageController {
         Image.setModelFactory(modelFactory);
     }
 
-    //TODO: ensure the code file received does not exceed 8KB
     @Transactional
     public CreateImageResponseDTO createImageFromFile(CreateImageFromFileDTO command) throws Exception {
+        if(command.code().length() > 65536 ){ // 8 Memory Pages
+            throw new BadRequestException("Code size exceeded 64KB");
+        }
         String id = UUID.randomUUID().toString();
         modelFactory.uploadNewModel(id,command.code());
         Image image = new Image(
@@ -75,7 +77,7 @@ public class ImageController {
 
     /* TODO: this method gets the model of the image to toggle off constraints and preferences.
       What actually should happen is image toggling off functions should be called, instead of
-      directly calling mode methods.
+      directly calling model methods.
     */
     @Transactional
     public SolutionDTO solve(SolveCommandDTO command) throws Exception {
@@ -154,105 +156,21 @@ public class ImageController {
     }
 
     @Transactional
-public void overrideImage(ImageConfigDTO imgConfig) throws Exception {
-    ImageDTO imageDTO = imgConfig.image();
-    String imageId = imgConfig.imageId();
-    
-    // Find the image by ID
-    Image image = imageRepository.findById(imageId)
-            .orElseThrow(() -> new BadRequestException("Invalid imageId in image config"));
-    
-    // Update basic properties
-    if (imageDTO.isPrivate() != null) {
-        image.setIsPrivate(imageDTO.isPrivate());
-    }
-    
-    // Update solver scripts
-    image.setSolverScripts(imageDTO.solverSettings());
-    
-    // Get the model
-    ModelInterface model = image.getModel();
-    
-    // Validate DTO inputs
-    BadRequestException.requireNotNull(imageDTO.variablesModule().variablesOfInterest(), 
-            "Bad DTO during image config, variablesOfInterest is null");
-    BadRequestException.requireNotNull(imageDTO.variablesModule().inputParams(), 
-            "Bad DTO during image config, inputParams is null");
-    BadRequestException.requireNotNull(imageDTO.variablesModule().inputSets(), 
-            "Bad DTO during image config, inputSets is null");
-    
-    // Clear existing modules first (since we're doing a full replacement)
-    // This properly handles orphanRemoval
-    image.getConstraintsModules().clear();
-    image.getPreferenceModules().clear();
-    
-    // Handle variables module
-    Map<String, ModelVariable> variables = new HashMap<>();
-    for (VariableDTO variable : imageDTO.variablesModule().variablesOfInterest()) {
-        ModelVariable modelVariable = model.getVariable(variable.identifier());
-        if (modelVariable == null) {
-            throw new BadRequestException("Invalid variable name: " + variable.identifier());
-        }
+    public void updateImage(ImageConfigDTO imgConfig) throws Exception {
+        ImageDTO imageDTO = imgConfig.image();
+        String imageId = imgConfig.imageId();
         
-        modelVariable.setTags(variable.tags().toArray(new String[0]));
-        modelVariable.setBoundSet(model.getSet(variable.boundSet()));
-        variables.put(variable.identifier(), modelVariable);
-    }
-    
-    // Update input sets and parameters
-    Set<String> inputSetNames = imageDTO.variablesModule().inputSets().stream()
-            .map(SetDefinitionDTO::name)
-            .collect(Collectors.toSet());
-    
-    Set<String> inputParamNames = imageDTO.variablesModule().inputParams().stream()
-            .map(ParameterDefinitionDTO::name)
-            .collect(Collectors.toSet());
-    
-    // Reset variables and configure inputs
-    image.reset(variables, inputSetNames, inputParamNames);
-    image.configureModelInputs(imageDTO.variablesModule().inputSets(), 
-                              imageDTO.variablesModule().inputParams());
-    
-    // Add constraint modules
-    for (ConstraintModuleDTO constraintModule : imageDTO.constraintModules()) {
-        image.addConstraintModule(
-                constraintModule.moduleName(),
-                constraintModule.description(),
-                constraintModule.constraints(),
-                constraintModule.inputSets().stream()
-                        .map(SetDefinitionDTO::name)
-                        .collect(Collectors.toSet()),
-                constraintModule.inputParams().stream()
-                        .map(ParameterDefinitionDTO::name)
-                        .collect(Collectors.toSet())
-        );
+        // Find the image by ID
+        Image image = imageRepository.findById(imageId)
+                .orElseThrow(() -> new BadRequestException("Invalid imageId in image config"));
+
+        // Update the image with the new DTO data
+        image.update(imageDTO);
         
-        image.configureModelInputs(constraintModule.inputSets(), constraintModule.inputParams());
+        // Save the updated entity
+        imageRepository.save(image);
     }
-    
-    // Add preference modules
-    for (PreferenceModuleDTO preferenceModule : imageDTO.preferenceModules()) {
-        image.addPreferenceModule(
-                preferenceModule.moduleName(),
-                preferenceModule.description(),
-                preferenceModule.preferences(),
-                preferenceModule.inputSets().stream()
-                        .map(SetDefinitionDTO::name)
-                        .collect(Collectors.toSet()),
-                preferenceModule.inputParams().stream()
-                        .map(ParameterDefinitionDTO::name)
-                        .collect(Collectors.toSet()),
-                preferenceModule.costParams().stream()
-                        .map(ParameterDefinitionDTO::name)
-                        .collect(Collectors.toSet())
-        );
-        
-        image.configureModelInputs(preferenceModule.inputSets(), preferenceModule.inputParams());
-    }
-    
-    // Save the updated entity
-    imageRepository.save(image);
-}
+
     @Transactional
     public ImageDTO getImage(String id) {
         Image image = currentlyCached != null && currentlyCached.getId().equals(id) ? currentlyCached : imageRepository.findById(id).get();
