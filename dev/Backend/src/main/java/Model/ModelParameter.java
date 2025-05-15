@@ -12,7 +12,7 @@ import jakarta.persistence.DiscriminatorColumn;
 import jakarta.persistence.DiscriminatorValue;
 
 //import parser.FormulationParser.ParamDeclContext;
-
+import org.springframework.transaction.annotation.Transactional;
 
 @Entity
 @Table(name="parameters")
@@ -34,7 +34,7 @@ public class ModelParameter extends ModelInput {
             List<ModelParameter> basicParams, List<ModelFunction> funcDep) {
         super(imageId, paramName, type, basicSets, basicParams, funcDep);
     }
-
+    @Transactional
     public void update(ParameterDefinitionDTO dto) throws Exception{
         if(dto.alias() != null && !dto.alias().equals(""))
             this.setAlias(dto.alias());

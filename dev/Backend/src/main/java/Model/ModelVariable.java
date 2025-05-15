@@ -1,7 +1,7 @@
 package Model;
 
 import java.util.List;
-
+import org.springframework.transaction.annotation.Transactional;
 import DTO.Records.Model.ModelDefinition.VariableDTO;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
@@ -38,10 +38,12 @@ public class ModelVariable extends ModelOutput {
         this.isComplex = isComplex;
     }
 
+    @Transactional
     public void update(VariableDTO dto) throws Exception {
         
         if(dto.tags() != null && dto.tags().size() == dto.type().size())
             this.setTags(dto.tags().toArray(new String[0]));
+        
         
         //TODO: this is not possible in the current design, therefore the 
         // VariablesModule sets it. Find a solution (perhaps make ModelComponent hold Model)

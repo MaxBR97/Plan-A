@@ -129,7 +129,7 @@ public class ServiceTest {
 
             ImageConfigDTO configImage = new ConfigureImageRequestBuilder(imageName, result)
                 .setVariablesModule(Set.of("myVar"), Set.of("mySet"), Set.of())
-                .addConstraintsModule("Test module const", "PeanutButter", Set.of("sampleConstraint"), Set.of("mySet"), Set.of("x"))
+                .addConstraintsModule("Test module const", "PeanutButter", Set.of("sampleConstraint"), Set.of(), Set.of("x"))
                 .addPreferencesModule("Test module pref", "PeanutButter", Set.of("myVar[3]"),Set.of(),Set.of(),Set.of())
                 .build();
 
@@ -160,7 +160,7 @@ public class ServiceTest {
             assertEquals("Test module const", constModule.moduleName());
             assertEquals("PeanutButter", constModule.description());
             assertEquals(Set.of("sampleConstraint"), constModule.constraints());
-            assertEquals(Set.of("mySet"), constModule.inputSets().stream()
+            assertEquals(Set.of(), constModule.inputSets().stream()
                 .map(s -> s.name())
                 .collect(Collectors.toSet()));
             assertEquals(Set.of("x"), constModule.inputParams().stream()

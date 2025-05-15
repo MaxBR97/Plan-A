@@ -175,6 +175,7 @@ public class Image {
 
     
     //TODO: make this correspond to patch semantics - fields that are null - are not updated.
+    @Transactional
     public void update(ImageDTO imageDTO) throws Exception {
         // Update basic properties
         if (imageDTO.imageName() != null) {
@@ -215,6 +216,21 @@ public class Image {
                 this.addPreferenceModule(preferenceModule);
             }
         }
+    }
+
+    @Transactional
+    public void reset(Map<String,ModelVariable> variables, Collection<String> sets, Collection<String> params) {
+        HashSet<ModelSet> inputSets = new HashSet<>();
+        HashSet<ModelParameter> inputParams = new HashSet<>();
+        for(String set : sets){
+            inputSets.add(model.getSet(set));
+        }
+        for(String param : params){
+            inputParams.add(model.getParameter(param));
+        }
+        constraintsModules.clear();
+        preferenceModules.clear();
+        getVariablesModule().override(variables,inputSets,inputParams);
     }
 
     @Transactional

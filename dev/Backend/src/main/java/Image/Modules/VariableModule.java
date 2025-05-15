@@ -51,6 +51,7 @@ public class VariableModule extends Module {
             ModelVariable var = image.getModel().getVariable(varDTO.identifier());
             this.variables.put(varDTO.identifier(), var);
             var.update(varDTO);
+            var.setModuleName(this.getName());
             if (varDTO.boundSet() != null) {
                 var.setBoundSet(image.getModel().getSet(varDTO.boundSet()));
             }
@@ -71,16 +72,6 @@ public class VariableModule extends Module {
         super(image, VariableModule.getVariableModuleName(), "", inputSets, inputParams);
         this.variables = new HashMap<>(variables);
     }
-
-    // @Transactional
-    // public void override(Map<String, ModelVariable> variables, Collection<ModelSet> inputSets, Collection<ModelParameter> inputParams) {
-    //     this.variables.clear();
-    //     this.inputSets.clear();
-    //     this.inputParams.clear();
-    //     this.variables.putAll(variables);
-    //     this.inputSets.addAll(inputSets);
-    //     this.inputParams.addAll(inputParams);
-    // }
 
     public static String getVariableModuleName() {
         return VARIABLE_MODULE_NAME;
@@ -151,14 +142,27 @@ public class VariableModule extends Module {
 
         // Update input sets
         inputSets.clear();
-        for (var setDTO : dto.inputSets()) {
+        for (SetDefinitionDTO setDTO : dto.inputSets()) {
             addSet(image.getModel().getSet(setDTO.name()));
+            //this.inputSets.add(image.getModel().getSet(setDTO.name()));
         }
 
         // Update input parameters
         inputParams.clear();
-        for (var paramDTO : dto.inputParams()) {
+        for (ParameterDefinitionDTO paramDTO : dto.inputParams()) {
             addParam(image.getModel().getParameter(paramDTO.name()));
+            // this.inputParams.add(image.getModel().getParameter(paramDTO.name()));
         }
     }
+    
+    // @Transactional
+    // public void override(Map<String, ModelVariable> variables, Collection<ModelSet> inputSets, Collection<ModelParameter> inputParams) {
+    //     this.variables.clear();
+    //     this.inputSets.clear();
+    //     this.inputParams.clear();
+    //     this.variables.putAll(variables);
+    //     this.inputSets.addAll(inputSets);
+    //     this.inputParams.addAll(inputParams);
+    // }
+
 }
