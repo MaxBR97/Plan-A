@@ -39,6 +39,8 @@ import Model.ModelType;
 import Model.ModelVariable;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
+import SolverService.SolverServiceInterface;
+
 
 @RestController
 public class ImageController {
@@ -48,14 +50,16 @@ public class ImageController {
     private EntityManager entityManager;
     //should be enabled only when running in desktop app
     private Image currentlyCached;
+    private SolverServiceInterface solverService;
 
 
     @Autowired
-    public ImageController(ImageRepository imageRepository, ModelFactory modelFactory, EntityManager em) {
+    public ImageController(ImageRepository imageRepository, ModelFactory modelFactory, EntityManager em, SolverServiceInterface solverService) {
         this.imageRepository = imageRepository;
         this.modelFactory = modelFactory;
         this.entityManager = em;
         Image.setModelFactory(modelFactory);
+        this.solverService = solverService;
     }
 
     @Transactional
