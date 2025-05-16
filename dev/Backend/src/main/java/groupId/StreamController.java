@@ -41,7 +41,9 @@ import DTO.Records.Requests.Commands.SolveCommandDTO;
 import DTO.Records.Requests.Responses.CreateImageResponseDTO;
 import Model.ModelInterface;
 import jakarta.validation.Valid;
-
+import SolverService.SolverService;
+import SolverService.Solver;
+import SolverService.StreamSolver;
 
 @RestController
 @RequestMapping("/")
@@ -49,7 +51,7 @@ public class StreamController {
 
     private final ImageController controller;
     private final SimpMessagingTemplate messagingTemplate;
-    private ModelInterface model;
+    private StreamSolver model;
     private CompletableFuture<SolutionDTO> futureSolution;
 
     @Autowired
@@ -58,23 +60,12 @@ public class StreamController {
         this.messagingTemplate = messagingTemplate;
     }
 
-    /**
-     * Start a new SCIP solving process
-     */
+
     @PostMapping("/solve/start")
     public ResponseEntity<SolutionDTO> startSolve(@RequestBody SolveCommandDTO request) throws Exception {
-        futureSolution = controller.solveAsync(request,false);
-        model = controller.getModelCurrentlySolving();
+        futureSolution = controller.solveAsync(request, false);
+        model = controller.getSolver();
         return ResponseEntity.ok(futureSolution.get());
-    }
-
-    /**
-     * Pause the solving process
-     */
-    @PostMapping("/solve/pause")
-    public ResponseEntity<String> pauseSolve() throws Exception {
-        model.pause();
-        return ResponseEntity.ok("pause");
     }
 
     /**
@@ -85,7 +76,7 @@ public class StreamController {
         if(request != null && request.timeout() > 0)
             futureSolution = controller.solveAsync(request,true);
         else
-            futureSolution = controller.solveAsync(request, true);
+            futureSolution = controller.solveAsync(request,true);
         return ResponseEntity.ok(futureSolution.get());
     }
 
@@ -94,28 +85,8 @@ public class StreamController {
      */
     @PostMapping("/solve/poll")
     public ResponseEntity<String> pollLog() throws Exception{
-        String ans = model.poll();
+        String ans = model.pollLog();
         return ResponseEntity.ok(ans);
-    }
-
-    /**
-     
-     */
-    @PostMapping("/solve/pollSolution")
-    public ResponseEntity<SolutionDTO> pollSolution() throws Exception {
-        if(futureSolution.isDone())
-            return ResponseEntity.ok(futureSolution.get());
-        else   
-            return ResponseEntity.ok(null);
-    }
-
-    /**
-     * Finish the solving process
-     */
-    @PostMapping("/solve/finish")
-    public ResponseEntity<String> finishSolve() throws Exception {
-        model.finish();
-        return ResponseEntity.ok("finish");
     }
 
     // @Scheduled(fixedRate = 1000)

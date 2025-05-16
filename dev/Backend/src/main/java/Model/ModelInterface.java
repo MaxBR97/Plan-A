@@ -157,12 +157,14 @@ public abstract class ModelInterface {
 
     abstract public ModelComponent getComponent(String identifier);
 
-    abstract public CompletableFuture<Solution> solveAsync(float timeout, String suffix, String script) throws Exception;
-    abstract public String poll() throws Exception;
-    abstract public void pause() throws Exception;
-    abstract public CompletableFuture<Solution> continueProcess(int extraTime) throws Exception;
-    abstract  public void finish() throws Exception;
+    // abstract public CompletableFuture<Solution> solveAsync(float timeout, String suffix, String script) throws Exception;
+    // abstract public String poll() throws Exception;
+    // abstract public void pause() throws Exception;
+    // abstract public CompletableFuture<Solution> continueProcess(int extraTime) throws Exception;
+    // abstract  public void finish() throws Exception;
     
     abstract public void setModelComponent(ModelComponent mc)  throws Exception;
+    public abstract void commentOutToggledFunctionalities() throws Exception;
+    public abstract void restoreToggledFunctionalities() throws Exception;
 
 }

@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import Model.ModelInput.StructureBlock;
+
 import parser.*;
 import parser.FormulationBaseVisitor;
 import parser.FormulationLexer;
@@ -62,7 +63,7 @@ public class Model extends ModelInterface {
     private final String zimplSolveScript = "src/main/resources/zimpl/solve.sh" ;
     private String originalSource;
 
-    private ScipController scipController;
+    // private ScipController scipController;
     
     private Process currentProcess;
     private BufferedWriter processInput;
@@ -76,65 +77,65 @@ public class Model extends ModelInterface {
     //TODO: avoid wrirting the solution to tmpSolution and then re-writing it via writeSolution() - inefficient
     //TODO: find a better way to wait for the solution file from the scip process
     //TODO: factor out "solutionFileSufix"
-    public CompletableFuture<Solution> solveAsync(float timeout, String solutionFileSuffix, String solverScript) throws Exception {
-        if(scipController != null){
-            finish();
-        }
-        this.solutionFileSuffix = solutionFileSuffix;
-        scipController = new ScipController((int) timeout, getSourcePathToFile());
-        scipController.setStartupSolverSettings(solverScript);
-        scipController.start();
+    // public CompletableFuture<Solution> solveAsync(float timeout, String solutionFileSuffix, String solverScript) throws Exception {
+    //     if(scipController != null){
+    //         finish();
+    //     }
+    //     this.solutionFileSuffix = solutionFileSuffix;
+    //     scipController = new ScipController((int) timeout, getSourcePathToFile());
+    //     scipController.setStartupSolverSettings(solverScript);
+    //     scipController.start();
         
-        return getNextSolution();
-    }
+    //     return getNextSolution();
+    // }
 
-    public CompletableFuture<Solution> getNextSolution(){
-        CompletableFuture<Solution> sol = CompletableFuture.supplyAsync(() -> {
-            try {
-                scipController.pipeInput(" write solution tmpSolution ");
-                File tmpFile = new File(Path.of(".","tmpSolution").toString());
-                while(!tmpFile.exists()){
-                    Thread.sleep(70);
-                }
-                Thread.sleep(100);
-                String tmp = new String(Files.readAllBytes(Path.of(".", "tmpSolution")));
-                writeSolution(tmp, solutionFileSuffix);
-                Files.delete(Path.of(".", "tmpSolution"));
-                return new Solution(getSolutionPathToFile(solutionFileSuffix));
-            } catch (Exception e) {
-                return null;
-            }
-        });
-        return sol;
-    }
+    // public CompletableFuture<Solution> getNextSolution(){
+    //     CompletableFuture<Solution> sol = CompletableFuture.supplyAsync(() -> {
+    //         try {
+    //             scipController.pipeInput(" write solution tmpSolution ");
+    //             File tmpFile = new File(Path.of(".","tmpSolution").toString());
+    //             while(!tmpFile.exists()){
+    //                 Thread.sleep(70);
+    //             }
+    //             Thread.sleep(100);
+    //             String tmp = new String(Files.readAllBytes(Path.of(".", "tmpSolution")));
+    //             writeSolution(tmp, solutionFileSuffix);
+    //             Files.delete(Path.of(".", "tmpSolution"));
+    //             return new Solution(getSolutionPathToFile(solutionFileSuffix));
+    //         } catch (Exception e) {
+    //             return null;
+    //         }
+    //     });
+    //     return sol;
+    // }
 
-    public String poll() throws Exception {
-        String ans = "";
-        String line;
-        while((line = scipController.pollLog()) != null){
-            ans += line + "\n";
-        }
-        return ans + " \nCurrent Status: " + scipController.getStatus();
-    }
+    // public String poll() throws Exception {
+    //     String ans = "";
+    //     String line;
+    //     while((line = scipController.pollLog()) != null){
+    //         ans += line + "\n";
+    //     }
+    //     return ans + " \nCurrent Status: " + scipController.getStatus();
+    // }
 
-    //TODO: delete this function ultimately.
-    public void pause()  throws Exception {
-        // scipController.sendSigint();
-    }
+    // //TODO: delete this function ultimately.
+    // public void pause()  throws Exception {
+    //     // scipController.sendSigint();
+    // }
 
-    // TODO: throw exception if this method is called while scip is mid-solving
-    public CompletableFuture<Solution> continueProcess(int extraTime) throws Exception {
-        int newTimeout = scipController.getTimeout() + extraTime;
-        scipController.setTimeout(newTimeout);
-        scipController.pipeInput("set limit time " + newTimeout + " optimize ");
-        scipController.setStatus("solving");
-        return getNextSolution();
-    }
+    // // TODO: throw exception if this method is called while scip is mid-solving
+    // public CompletableFuture<Solution> continueProcess(int extraTime) throws Exception {
+    //     int newTimeout = scipController.getTimeout() + extraTime;
+    //     scipController.setTimeout(newTimeout);
+    //     scipController.pipeInput("set limit time " + newTimeout + " optimize ");
+    //     scipController.setStatus("solving");
+    //     return getNextSolution();
+    // }
 
-    //TODO: wait synchronously until process stops.
-    public void finish () throws Exception {
-        scipController.stopProcess();
-    }
+    // //TODO: wait synchronously until process stops.
+    // public void finish () throws Exception {
+    //     scipController.stopProcess();
+    // }
 
     public Model(ModelRepository repo, String id) throws Exception {
         modelRepository = repo;
@@ -305,7 +306,7 @@ public class Model extends ModelInterface {
         }
     }
 
-    void commentOutToggledFunctionalities() throws Exception {
+    public void commentOutToggledFunctionalities() throws Exception {
         if (toggledOffFunctionalities.isEmpty()) {
             return;
         }
@@ -322,7 +323,7 @@ public class Model extends ModelInterface {
         }
     }
 
-    void restoreToggledFunctionalities() throws Exception {
+    public void restoreToggledFunctionalities() throws Exception {
         if (toggledOffFunctionalities.isEmpty()) {
             return;
         }

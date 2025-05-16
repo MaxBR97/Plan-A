@@ -34,6 +34,7 @@ import Model.ModelInterface;
 import Model.ModelParameter;
 import Model.ModelPreference;
 import Model.ModelSet;
+import Model.ModelType;
 import Model.ModelVariable;
 import Model.Solution;
 import jakarta.persistence.CascadeType;
@@ -350,27 +351,6 @@ public class Image {
         return getVariablesModule().getVariables();
     }
 
-    /*public void addVariable(ModelVariable variable) {
-        variables.put(variable.getIdentifier(), variable);
-    }
-    public void removeVariable(ModelVariable variable) {
-        variables.remove(variable.getIdentifier());
-    }
-    public void removeVariable(String name) {
-        variables.remove(name);
-    }
-    /*
-     */
-
-    /*
-    public void TogglePreference(String name){
-            Objects.requireNonNull(name,"Null value during Toggle Preference in Image");
-            model.toggleFunctionality();
-    }
-    public void ToggleConstraint(String name){
-            Objects.requireNonNull(name,"Null value during Toggle Constraint in Image");
-            constraintsModules.get(name).ToggleModule();
-    }*/
     public SolutionDTO solve(int timeout, String solverScript) throws Exception{
         Solution solution=model.solve(timeout, "SOLUTION", solverScript);
         try {
@@ -379,71 +359,59 @@ public class Image {
             throw new RuntimeException("IO exception while parsing solution file, message: "+ e);
         }
         return RecordFactory.makeDTO(solution);
-        /*Objects.requireNonNull(input,"Input is null in solve method in image");
-        for(String constraint:input.constraintsToggledOff()){
-            toggleOffConstraint(constraint);
-        }
-        for(String preference:input.preferencesToggledOff()){
-            toggleOffPreference(preference);
-        }
-        return RecordFactory.makeDTO(model.solve(defaultTimeout));*/
     }
 
-     public CompletableFuture<SolutionDTO> solveAsync(int timeout, String solverScript, boolean continueLast) {
-        CompletableFuture<SolutionDTO> futureSolutionDTO = new CompletableFuture<>();
-        
+    public SolutionDTO parseSolution(Solution solution) {
         try {
-            CompletableFuture<Solution> futureSolution;
-            if(!continueLast){
-                futureSolution = model.solveAsync(timeout,
-                    "SOLUTION", solverScript
-                );
-            } else {
-                futureSolution = model.continueProcess(timeout);
-            }
-            
-            // When the solution is ready, convert it to DTO and complete our future
-            futureSolution.thenAccept(solution -> {
-                try {
-                    // Parse the solution as in the synchronous method
-                    solution.parseSolution(model, getVariablesModule().getIdentifiers());
-                    
-                    // Convert to DTO
-                    SolutionDTO solutionDTO = RecordFactory.makeDTO(solution);
-                    
-                    // Complete the future with the DTO
-                    futureSolutionDTO.complete(solutionDTO);
-                } catch (Exception e) {
-                    futureSolutionDTO.completeExceptionally(
-                        new RuntimeException("IO exception while parsing solution file, message: " + e)
-                    );
-                }
-            }).exceptionally(ex -> {
-                // Forward any exceptions from the model's solve method
-                futureSolutionDTO.completeExceptionally(ex);
-                return null;
-            });
-            
+            solution.parseSolution(model, getVariablesModule().getIdentifiers());
         } catch (Exception e) {
-            // Complete exceptionally if we can't start the solve process
-            futureSolutionDTO.completeExceptionally(e);
+            throw new RuntimeException("IO exception while parsing solution file, message: "+ e);
         }
-        
-        return futureSolutionDTO;
+        return RecordFactory.makeDTO(solution);
     }
 
-    private void toggleOffConstraint(String name){
-        Objects.requireNonNull(name,"Null value during Toggle Preference in Image");
-        ModelConstraint constraint=model.getConstraint(name);
-        Objects.requireNonNull(constraint,"Invalid constraint name in Toggle Constraint in Image");
-        model.toggleFunctionality(constraint, false);
-    }
-    private void toggleOffPreference(String name){
-        Objects.requireNonNull(name,"Null value during Toggle Preference in Image");
-        ModelPreference preference=model.getPreference(name);
-        Objects.requireNonNull(preference,"Invalid preference name in Toggle Preference in Image");
-        model.toggleFunctionality(preference, false);
-    }
+    //  public CompletableFuture<SolutionDTO> solveAsync(int timeout, String solverScript, boolean continueLast) {
+    //     CompletableFuture<SolutionDTO> futureSolutionDTO = new CompletableFuture<>();
+        
+    //     try {
+    //         CompletableFuture<Solution> futureSolution;
+    //         if(!continueLast){
+    //             futureSolution = model.solveAsync(timeout,
+    //                 "SOLUTION", solverScript
+    //             );
+    //         } else {
+    //             futureSolution = model.continueProcess(timeout);
+    //         }
+            
+    //         // When the solution is ready, convert it to DTO and complete our future
+    //         futureSolution.thenAccept(solution -> {
+    //             try {
+    //                 // Parse the solution as in the synchronous method
+    //                 solution.parseSolution(model, getVariablesModule().getIdentifiers());
+                    
+    //                 // Convert to DTO
+    //                 SolutionDTO solutionDTO = RecordFactory.makeDTO(solution);
+                    
+    //                 // Complete the future with the DTO
+    //                 futureSolutionDTO.complete(solutionDTO);
+    //             } catch (Exception e) {
+    //                 futureSolutionDTO.completeExceptionally(
+    //                     new RuntimeException("IO exception while parsing solution file, message: " + e)
+    //                 );
+    //             }
+    //         }).exceptionally(ex -> {
+    //             // Forward any exceptions from the model's solve method
+    //             futureSolutionDTO.completeExceptionally(ex);
+    //             return null;
+    //         });
+            
+    //     } catch (Exception e) {
+    //         // Complete exceptionally if we can't start the solve process
+    //         futureSolutionDTO.completeExceptionally(e);
+    //     }
+        
+    //     return futureSolutionDTO;
+    // }
 
     public ModelInterface getModel() {
         return this.model;
@@ -597,21 +565,6 @@ public class Image {
         }
     }
 
-    // @Transactional
-    // public void reset(Map<String,ModelVariable> variables, Collection<String> sets, Collection<String> params) {
-    //     HashSet<ModelSet> inputSets = new HashSet<>();
-    //     HashSet<ModelParameter> inputParams = new HashSet<>();
-    //     for(String set : sets){
-    //         inputSets.add(model.getSet(set));
-    //     }
-    //     for(String param : params){
-    //         inputParams.add(model.getParameter(param));
-    //     }
-    //     constraintsModules.clear();
-    //     preferenceModules.clear();
-    //     getVariablesModule().override(variables,inputSets,inputParams);
-    // }
-
     @Transactional
     public void setConstraintsModule(ConstraintModuleDTO moduleDTO) {
         // Create or get the constraint module
@@ -650,5 +603,57 @@ public class Image {
         } catch (Exception e) {
             throw new RuntimeException("Failed to update preferences module: " + e.getMessage(), e);
         }
+    }
+
+    @Transactional
+    public void prepareInput(InputDTO input) throws Exception {
+        // Set input for sets
+        for (Map.Entry<String,List<List<String>>> set : input.setsToValues().entrySet()) {
+            List<String> setElements = new LinkedList<>();
+            for(List<String> element : set.getValue()) {
+                String tuple = ModelType.convertArrayOfAtoms(
+                    element.toArray(new String[0]),
+                    model.getSet(set.getKey()).getType()
+                );
+                setElements.add(tuple);
+            }
+            model.setInput(model.getSet(set.getKey()), setElements.toArray(new String[0]));
+        }
+
+        // Set input for parameters
+        for (Map.Entry<String,List<String>> parameter : input.paramsToValues().entrySet()) {
+            model.setInput(
+                model.getParameter(parameter.getKey()),
+                ModelType.convertArrayOfAtoms(
+                    parameter.getValue().toArray(new String[0]),
+                    model.getParameter(parameter.getKey()).getType()
+                )
+            );
+        }
+
+        // Handle toggled off constraint modules
+        for (String constraintModule : input.constraintModulesToggledOff()) {
+            Collection<ModelConstraint> constraintsToToggleOff = this.getConstraintsModule(constraintModule)
+                .getConstraints()
+                .values();
+            for(ModelConstraint mc : constraintsToToggleOff) {
+                model.toggleFunctionality(model.getConstraint(mc.getIdentifier()), false);
+            }
+        }
+
+        // Handle toggled off preference modules
+        for (String preferenceModule : input.preferenceModulesToggledOff()) {
+            Collection<ModelPreference> preferencesToToggleOff = this.getPreferencesModule(preferenceModule)
+                .getPreferences()
+                .values();
+            for(ModelPreference mp : preferencesToToggleOff) {
+                model.toggleFunctionality(model.getPreference(mp.getIdentifier()), false);
+            }
+        }
+        model.commentOutToggledFunctionalities();
+    }
+
+    public void restoreInput() throws Exception {
+        model.restoreToggledFunctionalities();
     }
 }

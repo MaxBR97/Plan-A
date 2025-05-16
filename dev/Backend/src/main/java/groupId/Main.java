@@ -16,7 +16,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import Model.Model;
 import Model.ModelSet;
 import SolverService.GrpcSolverService;
-import SolverService.SolverServiceApplication;
+import SolverService.SolverApplication;
 import parser.*;
 
 //TODO: Make an order in maven pom file, and make a proper pom hierarchy.

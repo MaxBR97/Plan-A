@@ -39,22 +39,26 @@ import Model.ModelType;
 import Model.ModelVariable;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
-import SolverService.SolverServiceInterface;
-
+import SolverService.Solver;
+import SolverService.StreamSolver;
+import Model.Solution;
 
 @RestController
 public class ImageController {
     //private final Map<UUID,Image> images;
+    @Autowired
     private final ImageRepository imageRepository;
+    @Autowired
     private final ModelFactory modelFactory;
+    @Autowired
     private EntityManager entityManager;
     //should be enabled only when running in desktop app
     private Image currentlyCached;
-    private SolverServiceInterface solverService;
-
+    private StreamSolver solverService;
+    private ModelInterface currentlySolving;
 
     @Autowired
-    public ImageController(ImageRepository imageRepository, ModelFactory modelFactory, EntityManager em, SolverServiceInterface solverService) {
+    public ImageController(ImageRepository imageRepository, ModelFactory modelFactory, EntityManager em, StreamSolver solverService) {
         this.imageRepository = imageRepository;
         this.modelFactory = modelFactory;
         this.entityManager = em;
@@ -78,107 +82,53 @@ public class ImageController {
         imageRepository.save(image);
         return RecordFactory.makeDTO(id, image.getModel());
     }
-
-    /* TODO: this method gets the model of the image to toggle off constraints and preferences.
-      What actually should happen is image toggling off functions should be called, instead of
-      directly calling model methods.
-    */
+    
     @Transactional
     public SolutionDTO solve(SolveCommandDTO command) throws Exception {
         Image image = imageRepository.findById(command.imageId()).get();
-        ModelInterface model = image.getModel();
-        for (Map.Entry<String,List<List<String>>> set : command.input().setsToValues().entrySet()){
-            List<String> setElements = new LinkedList<>();
-            for(List<String> element : set.getValue()){
-                String tuple = ModelType.convertArrayOfAtoms((element.toArray(new String[0])),model.getSet(set.getKey()).getType());
-                setElements.add(tuple);
-            }
-            model.setInput(model.getSet(set.getKey()), setElements.toArray(new String[0]));
+        image.prepareInput(command.input());
+        Solution solution = solverService.solve(image.getId(), command.timeout(), command.solverSettings());
+        try {
+            image.restoreInput();
+        } catch (Exception e) {
+            throw new RuntimeException("IO exception while restoring input, message: "+ e);
         }
-
-        for (Map.Entry<String,List<String>> parameter : command.input().paramsToValues().entrySet()){
-            model.setInput(model.getParameter(parameter.getKey()), ModelType.convertArrayOfAtoms(parameter.getValue().toArray(new String[0]), model.getParameter(parameter.getKey()).getType()));
-        }
-
-        for (String constraintModule : command.input().constraintModulesToggledOff()){
-            Collection<ModelConstraint> constraintsToToggleOff = image.getConstraintsModule(constraintModule).getConstraints().values();
-            for(ModelConstraint mc : constraintsToToggleOff){
-                model.toggleFunctionality(model.getConstraint(mc.getIdentifier()), false);
-            }
-        }
-
-        for (String preferenceModule : command.input().preferenceModulesToggledOff()){
-            Collection<ModelPreference> preferencesToToggleOff = image.getPreferencesModule(preferenceModule).getPreferences().values();
-            for(ModelPreference mp : preferencesToToggleOff){
-                model.toggleFunctionality(model.getPreference(mp.getIdentifier()), false);
-            }
-        }
-
-        return image.solve(command.timeout(), command.solverSettings());
+        return image.parseSolution(solution);
     }
 
-    private ModelInterface currentlySolving;
-    public ModelInterface getModelCurrentlySolving(){
-        return currentlySolving;
-    }
-
-    //TODO: same as with solve(...)
     @Transactional
     public CompletableFuture<SolutionDTO> solveAsync(SolveCommandDTO command, boolean continueLast) throws Exception {
         Image image = currentlyCached != null ? currentlyCached : imageRepository.findById(command.imageId()).get();
-        currentlyCached = image;
-        ModelInterface model = image.getModel();
-        for (Map.Entry<String,List<List<String>>> set : command.input().setsToValues().entrySet()){
-            List<String> setElements = new LinkedList<>();
-            for(List<String> element : set.getValue()){
-                String tuple = ModelType.convertArrayOfAtoms((element.toArray(new String[0])),model.getSet(set.getKey()).getType());
-                setElements.add(tuple);
+        // currentlyCached = image;
+        // currentlySolving = image.getModel();
+        image.prepareInput(command.input());
+        CompletableFuture<Solution> solution = continueLast ? solverService.continueSolve(command.timeout()) : solverService.solveAsync(image.getId(), command.timeout(), command.solverSettings());
+        return solution.thenApply(sol -> {
+            try {
+                image.restoreInput();
+            } catch (Exception e) {
+                throw new RuntimeException("IO exception while restoring input, message: "+ e);
             }
-            model.setInput(model.getSet(set.getKey()), setElements.toArray(new String[0]));
-        }
-
-        for (Map.Entry<String,List<String>> parameter : command.input().paramsToValues().entrySet()){
-            model.setInput(model.getParameter(parameter.getKey()), ModelType.convertArrayOfAtoms(parameter.getValue().toArray(new String[0]), model.getParameter(parameter.getKey()).getType()));
-        }
-
-        for (String constraintModule : command.input().constraintModulesToggledOff()){
-            Collection<ModelConstraint> constraintsToToggleOff = image.getConstraintsModule(constraintModule).getConstraints().values();
-            for(ModelConstraint mc : constraintsToToggleOff){
-                model.toggleFunctionality(model.getConstraint(mc.getIdentifier()), false);
-            }
-        }
-
-        for (String preferenceModule : command.input().preferenceModulesToggledOff()){
-            Collection<ModelPreference> preferencesToToggleOff = image.getPreferencesModule(preferenceModule).getPreferences().values();
-            for(ModelPreference mp : preferencesToToggleOff){
-                model.toggleFunctionality(model.getPreference(mp.getIdentifier()), false);
-            }
-        }
-        currentlySolving = model;
-        CompletableFuture<SolutionDTO> futureAns = image.solveAsync(command.timeout(), command.solverSettings(), continueLast);
-        return futureAns;
+            return image.parseSolution(sol);
+        });
     }
 
     @Transactional
     public void updateImage(ImageConfigDTO imgConfig) throws Exception {
         ImageDTO imageDTO = imgConfig.image();
         String imageId = imgConfig.imageId();
-        
-        // Find the image by ID
         Image image = imageRepository.findById(imageId)
                 .orElseThrow(() -> new BadRequestException("Invalid imageId in image config"));
 
-        // Update the image with the new DTO data
         image.update(imageDTO);
-        
-        // Save the updated entity
+
         imageRepository.save(image);
     }
 
     @Transactional
     public ImageDTO getImage(String id) {
         Image image = currentlyCached != null && currentlyCached.getId().equals(id) ? currentlyCached : imageRepository.findById(id).get();
-        currentlyCached = image;
+        // currentlyCached = image;
         return RecordFactory.makeDTO(image);
     }
 
@@ -201,8 +151,11 @@ public class ImageController {
         imageRepository.deleteById(imageId);
         System.gc();
         modelFactory.deleteModel(imageId);
-        if(currentlyCached.getId().equals(imageId))
-            currentlyCached = null;
+        // if(currentlyCached.getId().equals(imageId))
+        //     currentlyCached = null;
     }
 
+    public StreamSolver getSolver(){
+        return solverService;
+    }
 }

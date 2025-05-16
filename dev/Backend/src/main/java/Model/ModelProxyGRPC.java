@@ -255,34 +255,42 @@ public class ModelProxyGRPC extends ModelInterface {
         localModel.setModelComponent(mc);
     }
 
+    // @Override
+    // public CompletableFuture<Solution> solveAsync(float timeout, String suffix, String script) throws Exception {
+    //     // TODO Auto-generated method stub
+    //     throw new UnsupportedOperationException("Unimplemented method 'solveAsync'");
+    // }
+
+    // @Override
+    // public String poll() throws Exception {
+    //     // TODO Auto-generated method stub
+    //     throw new UnsupportedOperationException("Unimplemented method 'poll'");
+    // }
+
+    // @Override
+    // public void pause() throws Exception {
+    //     // TODO Auto-generated method stub
+    //     throw new UnsupportedOperationException("Unimplemented method 'pause'");
+    // }
+
+    // @Override
+    // public CompletableFuture<Solution> continueProcess(int extraTimeout) throws Exception {
+    //     // TODO Auto-generated method stub
+    //     throw new UnsupportedOperationException("Unimplemented method 'continueProcess'");
+    // }
+
+    // @Override
+    // public void finish() throws Exception {
+    //     // TODO Auto-generated method stub
+    //     throw new UnsupportedOperationException("Unimplemented method 'finish'");
+    // }
     @Override
-    public CompletableFuture<Solution> solveAsync(float timeout, String suffix, String script) throws Exception {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'solveAsync'");
+    public void commentOutToggledFunctionalities() throws Exception {
+        localModel.commentOutToggledFunctionalities();
     }
 
-    @Override
-    public String poll() throws Exception {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'poll'");
+    @Override 
+    public void restoreToggledFunctionalities() throws Exception {
+        localModel.restoreToggledFunctionalities();
     }
-
-    @Override
-    public void pause() throws Exception {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'pause'");
-    }
-
-    @Override
-    public CompletableFuture<Solution> continueProcess(int extraTimeout) throws Exception {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'continueProcess'");
-    }
-
-    @Override
-    public void finish() throws Exception {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'finish'");
-    }
-
 }
