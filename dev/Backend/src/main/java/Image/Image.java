@@ -219,21 +219,6 @@ public class Image {
     }
 
     @Transactional
-    public void reset(Map<String,ModelVariable> variables, Collection<String> sets, Collection<String> params) {
-        HashSet<ModelSet> inputSets = new HashSet<>();
-        HashSet<ModelParameter> inputParams = new HashSet<>();
-        for(String set : sets){
-            inputSets.add(model.getSet(set));
-        }
-        for(String param : params){
-            inputParams.add(model.getParameter(param));
-        }
-        constraintsModules.clear();
-        preferenceModules.clear();
-        getVariablesModule().override(variables,inputSets,inputParams);
-    }
-
-    @Transactional
     public String getName(){
         return this.name;
     }
@@ -612,4 +597,58 @@ public class Image {
         }
     }
 
+    // @Transactional
+    // public void reset(Map<String,ModelVariable> variables, Collection<String> sets, Collection<String> params) {
+    //     HashSet<ModelSet> inputSets = new HashSet<>();
+    //     HashSet<ModelParameter> inputParams = new HashSet<>();
+    //     for(String set : sets){
+    //         inputSets.add(model.getSet(set));
+    //     }
+    //     for(String param : params){
+    //         inputParams.add(model.getParameter(param));
+    //     }
+    //     constraintsModules.clear();
+    //     preferenceModules.clear();
+    //     getVariablesModule().override(variables,inputSets,inputParams);
+    // }
+
+    @Transactional
+    public void setConstraintsModule(ConstraintModuleDTO moduleDTO) {
+        // Create or get the constraint module
+        if (this.constraintsModules == null) {
+            this.constraintsModules = new HashMap<>();
+        }
+        
+        ConstraintModule module = this.constraintsModules.get(moduleDTO.moduleName());
+        if (module == null) {
+            module = new ConstraintModule(this, moduleDTO.moduleName(), "");
+            this.constraintsModules.put(moduleDTO.moduleName(), module);
+        }
+        
+        try {
+            module.update(moduleDTO);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to update constraints module: " + e.getMessage(), e);
+        }
+    }
+
+    @Transactional
+    public void setPreferencesModule(PreferenceModuleDTO moduleDTO) {
+        // Create or get the preference module
+        if (this.preferenceModules == null) {
+            this.preferenceModules = new HashMap<>();
+        }
+        
+        PreferenceModule module = this.preferenceModules.get(moduleDTO.moduleName());
+        if (module == null) {
+            module = new PreferenceModule(this, moduleDTO.moduleName(), "");
+            this.preferenceModules.put(moduleDTO.moduleName(), module);
+        }
+        
+        try {
+            module.update(moduleDTO);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to update preferences module: " + e.getMessage(), e);
+        }
+    }
 }

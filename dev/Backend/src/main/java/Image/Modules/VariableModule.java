@@ -77,12 +77,7 @@ public class VariableModule extends Module {
         return VARIABLE_MODULE_NAME;
     }
 
-    @Transactional
-    public void clear() {
-        variables.clear();
-        inputSets.clear();
-        inputParams.clear();
-    }
+    
 
     public Set<String> getIdentifiers() {
         return variables.keySet();
@@ -155,14 +150,20 @@ public class VariableModule extends Module {
         }
     }
     
-    @Transactional
-    public void override(Map<String, ModelVariable> variables, Collection<ModelSet> inputSets, Collection<ModelParameter> inputParams) {
-        this.variables.clear();
-        this.inputSets.clear();
-        this.inputParams.clear();
-        this.variables.putAll(variables);
-        this.inputSets.addAll(inputSets);
-        this.inputParams.addAll(inputParams);
-    }
+    // @Transactional
+    // public void override(Map<String, ModelVariable> variables, Collection<ModelSet> inputSets, Collection<ModelParameter> inputParams) {
+    //     this.variables.clear();
+    //     this.inputSets.clear();
+    //     this.inputParams.clear();
+    //     this.variables.putAll(variables);
+    //     this.inputSets.addAll(inputSets);
+    //     this.inputParams.addAll(inputParams);
+    // }
 
+    // @Transactional
+    // public void clear() {
+    //     variables.clear();
+    //     inputSets.clear();
+    //     inputParams.clear();
+    // }
 }

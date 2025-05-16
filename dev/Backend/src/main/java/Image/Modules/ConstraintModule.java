@@ -8,6 +8,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import DTO.Records.Image.ConstraintModuleDTO;
+import DTO.Records.Model.ModelData.ParameterDefinitionDTO;
+import DTO.Records.Model.ModelData.SetDefinitionDTO;
 import DTO.Records.Model.ModelDefinition.VariableDTO;
 import Image.Image;
 import Model.ModelConstraint;
@@ -112,5 +114,29 @@ public class ConstraintModule extends Module{
     public void removeConstraint(String identifier){
         constraints.remove(identifier);
     }
-}
 
+    @Transactional
+    public void update(ConstraintModuleDTO dto) throws Exception {
+        // Update constraints
+        for (String constraintId : dto.constraints()) {
+            ModelConstraint modelConstraint = image.getModel().getConstraint(constraintId);
+            if (modelConstraint == null) {
+                throw new IllegalArgumentException("Invalid constraint name: " + constraintId);
+            }
+            modelConstraint.setModuleName(this.getName());
+            constraints.put(constraintId, modelConstraint);
+        }
+
+        // Update input sets
+        inputSets.clear();
+        for (SetDefinitionDTO setDTO : dto.inputSets()) {
+            addSet(image.getModel().getSet(setDTO.name()));
+        }
+
+        // Update input parameters
+        inputParams.clear();
+        for (ParameterDefinitionDTO paramDTO : dto.inputParams()) {
+            addParam(image.getModel().getParameter(paramDTO.name()));
+        }
+    }
+}

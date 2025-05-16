@@ -150,4 +150,38 @@ public class PreferenceModule extends Module{
             gatherCostParameters();
         return this.costParameter;
     }
+
+    @Transactional
+    public void update(PreferenceModuleDTO dto) throws Exception {
+        // Update preferences
+        for (String prefId : dto.preferences()) {
+            ModelPreference modelPreference = image.getModel().getPreference(prefId);
+            if (modelPreference == null) {
+                throw new IllegalArgumentException("Invalid preference name: " + prefId);
+            }
+            modelPreference.setModuleName(this.getName());
+            preferences.put(prefId, modelPreference);
+        }
+
+        // Update input sets
+        inputSets.clear();
+        for (SetDefinitionDTO setDTO : dto.inputSets()) {
+            addSet(image.getModel().getSet(setDTO.name()));
+        }
+
+        // Update input parameters
+        inputParams.clear();
+        for (ParameterDefinitionDTO paramDTO : dto.inputParams()) {
+            addParam(image.getModel().getParameter(paramDTO.name()));
+        }
+
+        // Update cost parameters
+        costParameter = new HashSet<>();
+        for (ParameterDefinitionDTO paramDTO : dto.costParams()) {
+            ModelParameter param = image.getModel().getParameter(paramDTO.name());
+            param.update(paramDTO);
+            param.setCostParameter(true);
+            costParameter.add(param);
+        }
+    }
 }
