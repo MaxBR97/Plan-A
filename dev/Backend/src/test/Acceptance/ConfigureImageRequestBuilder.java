@@ -26,21 +26,21 @@ public class ConfigureImageRequestBuilder implements RequestBuilder{
     ImageDTO imageDTO;
 
     public ConfigureImageRequestBuilder(String imageName, CreateImageResponseDTO createdImageReponse){
-        // this.context = createdImageReponse;
-        // imageDTO = new ImageDTO(context.imageId(),
-        //                       imageName,
-        //                       null,  // description
-        //                       null,  // owner
-        //                       null,  // isPrivate
-        //                       null,  // solverSettings
-        //                       null,  // variablesModule
-        //                       null,  // constraintModules
-        //                       null   // preferenceModules
-        //                       );
         this.context = createdImageReponse;
-        imageDTO=new ImageDTO(context.imageId(),imageName,null, null, null, null,  new VariableModuleDTO(Set.of(),Set.of(),Set.of()),
-                                                Set.of(),
-                                                Set.of());
+        imageDTO = new ImageDTO(context.imageId(),
+                              imageName,
+                              null,  // description
+                              null,  // owner
+                              null,  // isPrivate
+                              null,  // solverSettings
+                              null,  // variablesModule
+                              null,  // constraintModules
+                              null   // preferenceModules
+                              );
+        // this.context = createdImageReponse;
+        // imageDTO=new ImageDTO(context.imageId(),imageName,null, null, null, null,  new VariableModuleDTO(Set.of(),Set.of(),Set.of()),
+        //                                         Set.of(),
+        //                                         Set.of());
     }
 
     public ConfigureImageRequestBuilder setVariablesModule(Set<String> vars, Set<String> setInputs, Set<String> paramInputs){

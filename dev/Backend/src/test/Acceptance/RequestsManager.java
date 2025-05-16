@@ -13,12 +13,26 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
+import org.springframework.messaging.simp.stomp.StompFrameHandler;
+import org.springframework.messaging.simp.stomp.StompHeaders;
+import org.springframework.messaging.simp.stomp.StompSession;
+import org.springframework.messaging.simp.stomp.StompSessionHandler;
+import org.springframework.messaging.simp.stomp.StompCommand;
+import org.springframework.web.socket.client.standard.StandardWebSocketClient;
+import org.springframework.web.socket.messaging.WebSocketStompClient;
+import org.springframework.messaging.converter.MappingJackson2MessageConverter;
 
+import java.lang.reflect.Type;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.function.Consumer;
 
 public class RequestsManager {
     int port;
     WebClient webClient;
+    private StompSession stompSession;
+    private WebSocketStompClient stompClient;
 
     CreateImageRequestBuilder createImageReq;
     ConfigureImageRequestBuilder configImageReq;
@@ -70,6 +84,53 @@ public class RequestsManager {
                     .bodyToMono(SolutionDTO.class)
                     .block();
             return ResponseEntity.ok(result);
+        } catch (WebClientResponseException ex) {
+            ExceptionDTO errorResponse = ex.getResponseBodyAs(ExceptionDTO.class);
+            return ResponseEntity.status(ex.getStatusCode()).body(errorResponse);
+        }
+    }
+
+    public ResponseEntity<?> sendPersistentSolve(SolveCommandDTO body) {
+        try {
+            return webClient.post()
+                    .uri("/solve/start")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .bodyValue(body)
+                    .retrieve()
+                    .toBodilessEntity()
+                    .map(response -> ResponseEntity.ok().build())
+                    .block();
+        } catch (WebClientResponseException ex) {
+            ExceptionDTO errorResponse = ex.getResponseBodyAs(ExceptionDTO.class);
+            return ResponseEntity.status(ex.getStatusCode()).body(errorResponse);
+        }
+    }
+
+    public ResponseEntity<?> sendPollPersistentSolve() {
+        try {
+            String result = webClient.post()
+                    .uri("/solve/poll")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .retrieve()
+                    .bodyToMono(String.class)
+                    .block();
+            return ResponseEntity.ok(result);
+        } catch (WebClientResponseException ex) {
+            ExceptionDTO errorResponse = ex.getResponseBodyAs(ExceptionDTO.class);
+            return ResponseEntity.status(ex.getStatusCode()).body(errorResponse);
+        }
+    }
+
+    public ResponseEntity<?> sendContinuePersistentSolve(SolveCommandDTO body) {
+        try {
+            return webClient.post()
+                    .uri("/solve/continue")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .bodyValue(body)
+                    .retrieve()
+                    .toBodilessEntity()
+                    .map(response -> ResponseEntity.ok().build())
+                    .block();
         } catch (WebClientResponseException ex) {
             ExceptionDTO errorResponse = ex.getResponseBodyAs(ExceptionDTO.class);
             return ResponseEntity.status(ex.getStatusCode()).body(errorResponse);
