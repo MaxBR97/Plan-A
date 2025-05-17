@@ -5,8 +5,8 @@ import java.util.concurrent.CompletableFuture;
 import Model.Solution;
 
 public interface Solver {
-    public Solution solve(String zplFile, int timeout, String solverScript) throws Exception;
-    public CompletableFuture<Solution> solveAsync(String zplFile, int timeout, String solverScript) throws Exception;
-    public boolean isCompiling(String zplFile);
-    public CompletableFuture<Boolean> isCompilingAsync(String zplFile);
+    public Solution solve(String fileId, int timeout, String solverScript) throws Exception;
+    public CompletableFuture<Solution> solveAsync(String fileId, int timeout, String solverScript) throws Exception;
+    public String isCompiling(String fileId, int timeout) throws Exception;
+    public CompletableFuture<String> isCompilingAsync(String fileId, int timeout) throws Exception;
 }

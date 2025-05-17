@@ -351,16 +351,7 @@ public class Image {
         return getVariablesModule().getVariables();
     }
 
-    public SolutionDTO solve(int timeout, String solverScript) throws Exception{
-        Solution solution=model.solve(timeout, "SOLUTION", solverScript);
-        try {
-            solution.parseSolution(model, getVariablesModule().getIdentifiers());
-        } catch (Exception e) {
-            throw new RuntimeException("IO exception while parsing solution file, message: "+ e);
-        }
-        return RecordFactory.makeDTO(solution);
-    }
-
+    
     public SolutionDTO parseSolution(Solution solution) {
         try {
             solution.parseSolution(model, getVariablesModule().getIdentifiers());

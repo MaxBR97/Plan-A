@@ -8,7 +8,7 @@ import java.io.OutputStreamWriter;
 import java.io.RandomAccessFile;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -26,67 +26,49 @@ public class ScipProcess {
 
     private Process scipProcess;
     private ProcessBuilder processBuilder;
-    private List<String> startupCommand;
     private BufferedWriter processInput;
     private BlockingQueue<String> circularBuffer;
     private Thread readerThread;
     private volatile boolean isRunning;
-
+    private int currentTimeLimit;
+    private String compilationErrorMessage;
     
     /* statuses: 
      * "not started" -  process not started/problem not read. starting status
      * "reading" - reading problem
+     * "compilation error" - compilation error is found
      * "problem read" - problem read, but no started solving\presolving
      * "presolving" - in presolving process
      * "solving" - post presolving. identfied by not being in "paused" or "solved" status, and presolving already occoured.
      * "paused" - solving process is interrupted
      * "solved" - solving process came to a conclusion (infeasible/found optimal)
-     * 
-     * TODO: make an Enum for this instead of holding a status in a string
-    */
+     */
     private String processStatus = "not started";
+    
     private final Pattern readingPattern = Pattern.compile("^read problem <.*>$");
-    private final Pattern problemReadPattern = Pattern.compile("^original problem has \\d+ variables (\\d+ bin, \\d+ int, \\d+ impl, \\d+ cont) and \\d+ constraints$");
+    private final Pattern compilationErrorPattern = Pattern.compile("^\\*\\*\\* Error \\d+:.*$");
+    private final Pattern problemReadPattern = Pattern.compile("^original problem has \\d+ variables \\(\\d+ bin, \\d+ int, \\d+ impl, \\d+ cont\\) and \\d+ constraints$");
     private final Pattern presolvingPattern = Pattern.compile("^presolving:$");
     private final Pattern finishedPresolvingPattern = Pattern.compile("^Presolving Time: .*$");
     private final Pattern pausedPattern = Pattern.compile("SCIP Status\\s+:\\s+solving was interrupted");
     private final Pattern solvedPattern = Pattern.compile("SCIP Status\\s+:\\s+problem is solved");
-    private String solverSettings;
-    private int timeout;
 
-    public ScipProcess(int timeout, String problemSourceFile) {
+    public ScipProcess() {
         processBuilder = new ProcessBuilder();
         processBuilder.redirectErrorStream(true);
         processBuilder.redirectInput(ProcessBuilder.Redirect.PIPE);
-        
-        this.timeout = timeout;
         this.circularBuffer = new ArrayBlockingQueue<>(BUFFER_SIZE);
-        
-        String commandString = String.join(" ", List.of(
-            " set timing reading TRUE ",
-            " read " + problemSourceFile + " "
-        ));
-        
-        startupCommand = new LinkedList<>(List.of("scip", "-c", commandString));
-        this.solverSettings = "";
+        this.currentTimeLimit = 0;
+        this.compilationErrorMessage = null;
     }
-    
-    // sets solver settings by piping into it a short settings script
-    public void setStartupSolverSettings(String solverScript) {
-        this.solverSettings =  new String(solverScript);
-    }
-    
-    // starts reading the problem
+
     public void start() throws Exception {
-        String fullCommand = startupCommand.get(2) + solverSettings + " set limit time " + timeout + " optimize ";
-        System.out.println("FULL SCIP COMMAND: " + fullCommand);
-        
         if (System.getProperty("os.name").toLowerCase().contains("win")) {
-            processBuilder.command("scip", "-c", fullCommand);
+            processBuilder.command("scip");
         } else {
-            processBuilder.command("scip", "-c", fullCommand);
+            processBuilder.command("scip");
         }
-    
+        
         scipProcess = processBuilder.start();
         processInput = new BufferedWriter(new OutputStreamWriter(scipProcess.getOutputStream()));
         
@@ -113,44 +95,66 @@ public class ScipProcess {
         readerThread.start();
     }
 
-    public int getTimeout(){
-        return this.timeout;
-    }
-    
-    public void setTimeout(int newTimeout){
-        this.timeout = newTimeout;
-    }
-    
-    // Pipes the string into the stdin of the solving process
-    public void pipeInput(String in) throws Exception{
-        processInput.write(in + "\n"); // the linefeed is crucial
-        processInput.flush();
-    }
-    
-    // polls the output of scipProcess - starting from the first unread line.
-    // the returned String must be up to a new line.
-    // The remaining part of a line will be left for the next call of this method.
-    //TODO: make a pollLog which polls all available logs at once, instead of one line.
-    public String pollLog() {
-        StringBuilder result = new StringBuilder();
-        String line;
-        while ((line = circularBuffer.poll()) != null) {
-            result.append(line).append("\n");
-        }
-        return result.length() > 0 ? result.toString() : null;
+    public void read(String file) throws Exception {
+        pipeInput("read " + file);
     }
 
-    public void stopProcess() throws Exception {
+    public void solverSettings(String settings) throws Exception {
+        pipeInput(settings);
+    }
+
+    public void setTimeLimit(int seconds) throws Exception {
+        this.currentTimeLimit = seconds;
+        pipeInput("set limit time " + seconds);
+    }
+
+    public int getCurrentTimeLimit() {
+        return this.currentTimeLimit;
+    }
+
+    public void optimize() throws Exception {
+        pipeInput("optimize");
+    }
+
+    public String getStatus() {
+        return processStatus;
+    }
+
+    public String getCompilationError() {
+        return compilationErrorMessage;
+    }
+
+    public void exit() throws Exception {
         isRunning = false;
         if (readerThread != null) {
             readerThread.interrupt();
         }
-        scipProcess.destroyForcibly();
-        scipProcess.waitFor();
+        // if (processInput != null) {
+        //     pipeInput("quit");
+        //     processInput.close();
+        // }
+        if (scipProcess != null) {
+            scipProcess.destroyForcibly();
+            scipProcess.waitFor();
+        }
     }
 
-    public void setStatus(String status){
-        this.processStatus = status;
+    public String pollLog() {
+        return circularBuffer.poll();
+    }
+
+    public List<String> pollLogAll() {
+        List<String> logs = new ArrayList<>();
+        String line;
+        while ((line = circularBuffer.poll()) != null) {
+            logs.add(line);
+        }
+        return logs;
+    }
+
+    private void pipeInput(String input) throws Exception {
+        processInput.write(input + "\n");
+        processInput.flush();
     }
 
     private void updateStatus(String line) {
@@ -160,6 +164,7 @@ public class ScipProcess {
         Matcher finishedPresolvingMatcher = finishedPresolvingPattern.matcher(line);
         Matcher pausedMatcher = pausedPattern.matcher(line);
         Matcher solvedMatcher = solvedPattern.matcher(line);
+        Matcher compilationErrorMatcher = compilationErrorPattern.matcher(line);
 
         if (readingMatcher.find()) {
             processStatus = "reading";
@@ -173,11 +178,9 @@ public class ScipProcess {
             processStatus = "paused";
         } else if (solvedMatcher.find()) {
             processStatus = "solved";
+        } else if (compilationErrorMatcher.find()) {
+            processStatus = "compilation error";
+            compilationErrorMessage = line;
         }
     }
-
-    public String getStatus(){
-        return this.processStatus;
-    }
-    
 }

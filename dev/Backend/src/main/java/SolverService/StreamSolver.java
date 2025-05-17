@@ -5,6 +5,6 @@ import java.util.concurrent.CompletableFuture;
 import Model.Solution;
 
 public interface StreamSolver extends Solver {
+    public void setContinue(boolean continueSolve);
     public String pollLog();
-    public CompletableFuture<Solution> continueSolve(int timeout) throws Exception;
 }

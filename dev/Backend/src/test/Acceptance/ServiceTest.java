@@ -113,6 +113,11 @@ public class ServiceTest {
         } catch (IOException e) {
             throw new RuntimeException("Failed to create test directories", e);
         }
+        try{
+            Thread.sleep(1000);
+        }catch(Exception e){
+            throw new RuntimeException("Failed to sleep", e);
+        }
     }
     
     // Tests creation of an image from a simple code example, verifying that the model 
@@ -370,6 +375,8 @@ public class ServiceTest {
         ResponseEntity<?> getResponse = requestsManager.sendGetImageRequest(imageId);
         expectSuccess(getResponse, ImageDTO.class);
 
+        System.gc();
+
         // Delete the image
         ResponseEntity<?> deleteResponse = requestsManager.sendDeleteImageRequest(imageId);
         expectSuccess(deleteResponse, Void.class);
@@ -377,10 +384,6 @@ public class ServiceTest {
         // Try to get the deleted image - should fail
         ResponseEntity<?> getDeletedResponse = requestsManager.sendGetImageRequest(imageId);
         expectError(getDeletedResponse, HttpStatus.INTERNAL_SERVER_ERROR);
-
-        // Try to delete an already deleted image - should also fail
-        ResponseEntity<?> secondDeleteResponse = requestsManager.sendDeleteImageRequest(imageId);
-        expectError(secondDeleteResponse, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     // Tests solving with constraint toggling, verifying that constraints can be

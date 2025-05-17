@@ -54,7 +54,8 @@ public class ImageController {
     private EntityManager entityManager;
     //should be enabled only when running in desktop app
     private Image currentlyCached;
-    private StreamSolver solverService;
+    @Autowired
+    private Solver solverService;
     private ModelInterface currentlySolving;
 
     @Autowired
@@ -97,12 +98,12 @@ public class ImageController {
     }
 
     @Transactional
-    public CompletableFuture<SolutionDTO> solveAsync(SolveCommandDTO command, boolean continueLast) throws Exception {
+    public CompletableFuture<SolutionDTO> solveAsync(SolveCommandDTO command) throws Exception {
         Image image = currentlyCached != null ? currentlyCached : imageRepository.findById(command.imageId()).get();
         // currentlyCached = image;
         // currentlySolving = image.getModel();
         image.prepareInput(command.input());
-        CompletableFuture<Solution> solution = continueLast ? solverService.continueSolve(command.timeout()) : solverService.solveAsync(image.getId(), command.timeout(), command.solverSettings());
+        CompletableFuture<Solution> solution = solverService.solveAsync(image.getId(), command.timeout(), command.solverSettings());
         return solution.thenApply(sol -> {
             try {
                 image.restoreInput();
@@ -155,7 +156,7 @@ public class ImageController {
         //     currentlyCached = null;
     }
 
-    public StreamSolver getSolver(){
+    public Solver getSolver(){
         return solverService;
     }
 }

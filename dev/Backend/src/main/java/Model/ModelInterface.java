@@ -78,22 +78,6 @@ public abstract class ModelInterface {
     public abstract void toggleFunctionality(ModelFunctionality mf, boolean turnOn);
 
     /**
-     * Checks if the model compiles successfully.
-     * 
-     * @param timeout Maximum time in seconds to wait for compilation
-     * @return true if compilation succeeds, false otherwise
-     */
-    public abstract boolean isCompiling(float timeout) throws Exception;
-
-    /**
-     * Solves the model and returns the solution.
-     * 
-     * @param timeout Maximum time in seconds to wait for solving
-     * @return Solution object if solving succeeds, null otherwise
-     */
-    public abstract Solution solve(float timeout, String solutionFileSufix, String solverScript) throws Exception;
-
-    /**
      * Retrieves a set by its identifier.
      * 
      * @param identifier The set identifier

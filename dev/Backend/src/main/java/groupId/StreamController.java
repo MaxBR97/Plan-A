@@ -51,6 +51,7 @@ public class StreamController {
 
     private final ImageController controller;
     private final SimpMessagingTemplate messagingTemplate;
+    @Autowired
     private StreamSolver model;
     private CompletableFuture<SolutionDTO> futureSolution;
 
@@ -63,8 +64,8 @@ public class StreamController {
 
     @PostMapping("/solve/start")
     public ResponseEntity<SolutionDTO> startSolve(@RequestBody SolveCommandDTO request) throws Exception {
-        futureSolution = controller.solveAsync(request, false);
-        model = controller.getSolver();
+        model.setContinue(false);
+        futureSolution = controller.solveAsync(request);
         return ResponseEntity.ok(futureSolution.get());
     }
 
@@ -73,10 +74,11 @@ public class StreamController {
      */
     @PostMapping("/solve/continue")
     public ResponseEntity<SolutionDTO> continueSolve(@RequestBody SolveCommandDTO request) throws Exception {
+        model.setContinue(true);
         if(request != null && request.timeout() > 0)
-            futureSolution = controller.solveAsync(request,true);
+            futureSolution = controller.solveAsync(request);
         else
-            futureSolution = controller.solveAsync(request,true);
+            futureSolution = controller.solveAsync(request);
         return ResponseEntity.ok(futureSolution.get());
     }
 

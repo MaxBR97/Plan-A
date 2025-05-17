@@ -14,74 +14,139 @@ import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class SolverService implements StreamSolver {
 
     private ScipProcess scipProcess;
-    private final String SOLUTION_FILE_SUFFIX = "solution";
-    private String id;
+    private final String SOLUTION_FILE_SUFFIX = "SOLUTION";
+    private String fileId;
     @Autowired
     private ModelRepository modelRepository;
+    private boolean continueSolve;
 
     public SolverService() {
+        this.continueSolve = false;
     }
 
     @Override
-    public Solution solve(String zplFile, int timeout, String solverScript) throws Exception {
-        return solveAsync(zplFile, timeout, solverScript).get();
+    public Solution solve(String fileId, int timeout, String solverScript) throws Exception {
+        return solveAsync(fileId, timeout, solverScript).get();
     }
 
     @Override
-    public CompletableFuture<Solution> solveAsync(String id, int timeout, String solverScript) throws Exception {
+    public CompletableFuture<Solution> solveAsync(String fileId, int timeout, String solverScript) throws Exception {
+        if(continueSolve){
+            return continueSolve(timeout);
+        }
+
         if(scipProcess != null){
             finish();
         }
-        this.id = id;
-        scipProcess = new ScipProcess(timeout, modelRepository.getLocalStoreDir().resolve(id+".zpl").toString());
-        scipProcess.setStartupSolverSettings(solverScript);
+        
+        this.fileId = fileId;
+        scipProcess = new ScipProcess();
         scipProcess.start();
         
-        return getNextSolution(id);
+        // Configure SCIP settings
+        scipProcess.solverSettings("set timing reading TRUE");
+        scipProcess.setTimeLimit(timeout);
+        if (!solverScript.isEmpty()) {
+            scipProcess.solverSettings(solverScript);
+        }
+        
+        // Read the problem file
+        scipProcess.read(modelRepository.getLocalStoreDir().resolve(fileId+".zpl").toString());
+        
+        // Start optimization
+        scipProcess.optimize();
+
+        return getNextSolution(fileId);
     }
 
     @Override
-    public boolean isCompiling(String zplFile) {
+    public void setContinue(boolean continueSolve) {
+        this.continueSolve = continueSolve;
+    }
+
+    @Override
+    public String isCompiling(String fileId, int timeout) {
         try{
-            return  isCompilingAsync(zplFile).get();
+            return isCompilingAsync(fileId, timeout).get();
         } catch(Exception e){
-            return false;
+            return "Compilation Error";
         }
     }
 
-    @Override
-    public CompletableFuture<Boolean> isCompilingAsync(String zplFile) {
-        return CompletableFuture.completedFuture(true);
+    @Override   
+    public CompletableFuture<String> isCompilingAsync(String fileId, int timeout) {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                // Stop any existing process
+                if (scipProcess != null) {
+                    finish();
+                }
+                
+                // Start new process for compilation check
+                ScipProcess compilationProcess = new ScipProcess();
+                compilationProcess.start();
+                
+                // Read the problem file
+                String problemFile = modelRepository.getLocalStoreDir().resolve(fileId+".zpl").toString();
+                compilationProcess.read(problemFile);
+                
+                // Check status every 100ms
+                String status;
+                long startTime = System.currentTimeMillis();
+                long timeoutMillis = timeout * 1000L;
+                
+                while (System.currentTimeMillis() - startTime < timeoutMillis) {
+                    status = compilationProcess.getStatus();
+                    
+                    if ("compilation error".equals(status)) {
+                        String errorMsg = compilationProcess.getCompilationError();
+                        compilationProcess.exit();
+                        return errorMsg != null ? errorMsg : "Compilation Error";
+                    } else if (!"not started".equals(status) && !"reading".equals(status)) {
+                        compilationProcess.exit();
+                        return "";
+                    }
+                    
+                    Thread.sleep(100);
+                }
+                
+                // Cleanup if timeout reached
+                compilationProcess.exit();
+                return "Timeout while checking compilation";
+                
+            } catch (Exception e) {
+                return "Error checking compilation: " + e.getMessage();
+            }
+        });
     }
 
     @Override
     public String pollLog() {
-        String ans = "";
-        String line;
-        while((line = scipProcess.pollLog()) != null){
-            ans += line + "\n";
+        List<String> logs = scipProcess.pollLogAll();
+        if (logs.isEmpty()) {
+            return " \nCurrent Status: " + scipProcess.getStatus();
         }
-        return ans + " \nCurrent Status: " + scipProcess.getStatus();
+        return String.join("\n", logs) + " \nCurrent Status: " + scipProcess.getStatus();
     }
 
-    @Override
-    public CompletableFuture<Solution> continueSolve(int extraTime) throws Exception  {
-        int newTimeout = scipProcess.getTimeout() + extraTime;
-        scipProcess.setTimeout(newTimeout);
-        scipProcess.pipeInput("set limit time " + newTimeout + " optimize ");
-        scipProcess.setStatus("solving");
-        return getNextSolution(id);
+    private CompletableFuture<Solution> continueSolve(int extraTime) throws Exception {
+        int newTimeLimit = scipProcess.getCurrentTimeLimit() + extraTime;
+        scipProcess.setTimeLimit(newTimeLimit);
+        scipProcess.optimize();
+        return getNextSolution(fileId);
     }   
 
     private CompletableFuture<Solution> getNextSolution(String id){
         CompletableFuture<Solution> sol = CompletableFuture.supplyAsync(() -> {
             try {
-                scipProcess.pipeInput(" write solution tmpSolution ");
+                scipProcess.solverSettings("write solution tmpSolution");
                 File tmpFile = new File(Path.of(".","tmpSolution").toString());
                 while(!tmpFile.exists()){
                     Thread.sleep(70);
@@ -98,18 +163,17 @@ public class SolverService implements StreamSolver {
         return sol;
     }
 
-    private void finish () throws Exception {
-        scipProcess.stopProcess();
+    private void finish() throws Exception {
+        scipProcess.exit();
     }
 
     private String getSolutionPathToFile(String suffix) throws Exception {
-        return modelRepository.getLocalStoreDir().resolve(id+suffix+".zpl").toString();
+        return modelRepository.getLocalStoreDir().resolve(fileId+suffix+".zpl").toString();
     }
 
-    private void writeSolution(String id, String content, String suffix) throws Exception {
+    private void writeSolution(String fileId, String content, String suffix) throws Exception {
         InputStream inputStream = new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
-        modelRepository.uploadDocument(id + suffix, inputStream);
-        modelRepository.downloadDocument(id + suffix);
+        modelRepository.uploadDocument(fileId + suffix, inputStream);
+        modelRepository.downloadDocument(fileId + suffix);
     }
-
 }
