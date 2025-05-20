@@ -25,7 +25,7 @@ function App() {
                     <Route path="/configure-variables" element={<ConfigureVariablesPage />} />
                     <Route path="/configure-constraints" element={<ConfigureConstraintsPage />} />
                     <Route path="/configure-preferences" element={<ConfigurePreferencesPage />} />
-                    <Route path="/solution-preview" element={<SolutionPreviewPage isDesktop={true}/>} />
+                    <Route path="/solution-preview" element={<SolutionPreviewPage isDesktop={false}/>} />
                     <Route path="/configure-sets-params" element={<ConfigureSetsAndParamsPage />} />
                     <Route path="/configure-solver-options" element={<ConfigureSolverOptionsPage />} />
                     {/* <Route path="/login" element={<LoginPage/>} /> */}

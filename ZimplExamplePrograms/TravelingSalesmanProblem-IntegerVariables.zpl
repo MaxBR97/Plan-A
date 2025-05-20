@@ -1,5 +1,7 @@
-set Cities := {<"Tel Aviv",5,16>, <"Yafo",6,18>, <"Jerusalem",25,8>, <"Tveria",32,90>, <"Nahariya",6,95>, <"Eilat",30,-103>,
-                <"Dimona",70,-20>, <"Ashkelon",2,-10>, <"Ashdod",3,3>, <"Beer Sheva",-7,-23>, <"Kiryat Arba",68,40>};
+set Cities := {<"Tel Aviv",5,16>, <"Yafo",5,14>, <"Jerusalem",25,8>, <"Tveria",40,90>, <"Nahariya",6,95>, <"Eilat",30,-103>,
+                <"Dimona",70,-20>, <"Ashkelon",2,-10>, <"Ashdod",3,3>, <"Beer Sheva",-7,-23>, <"Kiryat Arba",68,40>,                
+                <"Akko",23,85>, <"Hermon",80,130>, <"Beit Shean",75,50>, <"Katserin",50,95>, <"Ein Gedi",75,15>, <"Hadera",8,50>,
+                <"Ramat Gan",6,17>, <"Kfar Saba",8,23>, <"Mitzpe Ramon",31,-80>, <"Yotvata",28,-89>, <"Beit Shemesh",22,9>};
 param StartingCity := "Tel Aviv";
 param citiesToVisit := card(Cities);
 
