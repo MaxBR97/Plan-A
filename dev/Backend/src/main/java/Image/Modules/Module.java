@@ -4,8 +4,11 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
+import DTO.Records.Model.ModelData.ParameterDefinitionDTO;
+import DTO.Records.Model.ModelData.SetDefinitionDTO;
 import Image.Image;
 import Model.ModelComponent;
+import Model.ModelComponentId;
 import Model.ModelParameter;
 import Model.ModelSet;
 import jakarta.persistence.CascadeType;
@@ -20,6 +23,8 @@ import jakarta.persistence.JoinColumns;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import jakarta.persistence.AttributeOverrides;
+import jakarta.persistence.AttributeOverride;
 import jakarta.transaction.Transactional;
 
 @Entity
@@ -34,19 +39,6 @@ public abstract class Module {
     @Column(name = "description")
     private String description;
 
-    /*
-     *  inputSets - sets chosen to be modifiable by the user - to recieve inputs. 
-     *  These are not necessarily all input dependencies of the module.
-     */
-        // @ElementCollection
-        // @CollectionTable(
-        //     name = "input_sets",
-        //     joinColumns = {
-        //         @JoinColumn(name = "image_id", referencedColumnName = "image_id", nullable = false),
-        //         @JoinColumn(name = "module_name", referencedColumnName = "name", nullable = false)
-        //     }
-        // )
-        // @Column(name = "input_set")
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumns({
         @JoinColumn(name = "module_name", referencedColumnName = "name", nullable=false),
@@ -72,7 +64,8 @@ public abstract class Module {
 
     @ManyToOne
     @JoinColumn(name = "image_id", referencedColumnName = "image_id", insertable=false, updatable=false)
-    private Image image;
+    protected Image image;
+
 
     protected Module() {
         // Required by JPA
@@ -86,7 +79,6 @@ public abstract class Module {
         this.id = new ModuleId(image.getId(), name);
         this.description = description;
         this.image = image;
-     //   isActive=true;
         this.inputSets = new HashSet<>();
         this.inputParams = new HashSet<>();
     }
@@ -95,15 +87,36 @@ public abstract class Module {
         this.id = new ModuleId(image.getId(), name);
         this.description = description;
         this.image = image;
-        //   isActive=true;
-       this.inputSets = new HashSet<>(inputSets);
-       this.inputParams = new HashSet<>(inputParams);
-       for(ModelSet s : inputSets){
-        s.setModuleName(this.getName());
-       }
-       for(ModelParameter p : inputParams){
-        p.setModuleName(this.getName());
-       }
+        this.inputSets = new HashSet<>(inputSets);
+        this.inputParams = new HashSet<>(inputParams);
+        for(ModelSet s : inputSets){
+            s.setModuleName(this.getName());
+        }
+        for(ModelParameter p : inputParams){
+            p.setModuleName(this.getName());
+        }
+    }
+
+    public Module(Image image, String moduleName, String description, Set<SetDefinitionDTO> inputSets, Set<ParameterDefinitionDTO> inputParams) {
+        this.id = new ModuleId(image.getId(), moduleName);
+        this.description = description;
+        this.image = image;
+        this.inputSets = new HashSet<>();
+        this.inputParams = new HashSet<>();
+        
+        // Convert DTOs to model objects
+        for (SetDefinitionDTO setDTO : inputSets) {
+            ModelSet set = image.getModel().getSet(setDTO.name());
+            this.addSet(set);
+
+            //consider adding s.setModuleName(this.getName());
+        }
+        
+        for (ParameterDefinitionDTO paramDTO : inputParams) {
+            ModelParameter param = image.getModel().getParameter(paramDTO.name());
+            this.addParam(param);
+            //consider adding p.setModuleName(this.getName());
+        }
     }
 
     public String getId() {
@@ -144,26 +157,27 @@ public abstract class Module {
     public abstract Set<ModelParameter> getInvolvedParameters();
 
     @Transactional
-    public void addParam(ModelParameter param){
+    public void addParam(ModelParameter param) {
         inputParams.add(param);
         param.setModuleName(this.getName());
+        param.getModelComponentId().setImageId(this.getId());
     }
 
     @Transactional
-    public void addSet(ModelSet set){
+    public void addSet(ModelSet set) {
         inputSets.add(set);
         set.setModuleName(this.getName());
+        set.getModelComponentId().setImageId(this.getId());
     }
 
     @Transactional
     public void removeSet(ModelSet set){
         inputSets.remove(set);
-        
     }
 
     @Transactional
     public void removeParam(ModelParameter param){
-                inputParams.remove(param);
+        inputParams.remove(param);
     }
 
 }

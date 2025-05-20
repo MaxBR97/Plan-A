@@ -81,6 +81,42 @@ public class Solution {
         return variableTypes.get(identifier);
     }
 
+    /**
+     * Parses only the solution status from the solution file and sets the solved field.
+     * This is a lightweight alternative to parseSolution when only the status is needed.
+     * @return this Solution object for method chaining
+     * @throws IOException if there's an error reading the solution file
+     */
+    public Solution parseSolutionStatus() throws IOException {
+        if(this.solutionPath == null) {
+            return this;
+        }
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(solutionPath))) {
+            String line;
+            Pattern optimalSolutionPattern = Pattern.compile("solution status: optimal solution found");
+            Pattern objectiveValuePattern = Pattern.compile("objective value:\\s+(-?\\d+(\\.\\d+)?|[+|-]infinity)");
+            
+            while ((line = reader.readLine()) != null) {
+                Matcher optimalMatcher = optimalSolutionPattern.matcher(line);
+                if (optimalMatcher.find()) {
+                    solved = SolutionStatus.OPTIMAL;
+                    return this;
+                }
+                
+                // If we find an objective value but haven't found "optimal", it's suboptimal
+                Matcher objectiveMatcher = objectiveValuePattern.matcher(line);
+                if (objectiveMatcher.find()) {
+                    if (solved == SolutionStatus.UNSOLVED) {
+                        solved = SolutionStatus.SUBOPTIMAL;
+                        return this;
+                    }
+                }
+            }
+        }
+        return this;
+    }
+
     //Implement as lazy call or run during initialization?
     public void parseSolution(ModelInterface model, Set<String> varsToParse) throws IOException {
         if(this.solutionPath == null)
@@ -220,5 +256,66 @@ public class Solution {
 
     public List<String> getVariableStructure(String variableName) {
         return variableStructure.get(variableName);
+    }
+
+    /**
+     * Parses the solution file without requiring Model context.
+     * This method extracts all variables and their values directly from the solution file.
+     * @return this Solution object for method chaining
+     * @throws IOException if there's an error reading the solution file
+     */
+    public Solution parseSolution() throws IOException {
+        if(this.solutionPath == null) {
+            return this;
+        }
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(solutionPath))) {
+            String line;
+            Pattern statusPattern = Pattern.compile("solution status: (.*)");
+            Pattern objectivePattern = Pattern.compile("objective value:\\s+(-?\\d+(\\.\\d+)?|[+|-]infinity)");
+            Pattern variablePattern = Pattern.compile("^(.+?)\\s+(\\d+(?:\\.\\d+)?|(?:-)?infinity)\\s+\\(obj:(-?\\d+(?:\\.\\d+)?)\\)");
+
+            // Clear existing data
+            variableSolution.clear();
+            
+            while ((line = reader.readLine()) != null) {
+                Matcher statusMatcher = statusPattern.matcher(line);
+                Matcher objectiveMatcher = objectivePattern.matcher(line);
+                Matcher variableMatcher = variablePattern.matcher(line);
+
+                if (statusMatcher.find()) {
+                    String status = statusMatcher.group(1);
+                    if (status.contains("optimal solution found")) {
+                        solved = SolutionStatus.OPTIMAL;
+                    } else if (status.contains("infeasible")) {
+                        solved = SolutionStatus.UNSOLVED;
+                    } else if (status.contains("time limit")) {
+                        solved = SolutionStatus.SUBOPTIMAL;
+                    }
+                } 
+                else if (objectiveMatcher.find()) {
+                    objectiveValue = Double.parseDouble(objectiveMatcher.group(1));
+                }
+                else if (variableMatcher.find()) {
+                    String varName = variableMatcher.group(1).trim();
+                    double value = Double.parseDouble(variableMatcher.group(2));
+                    double objCoeff = Double.parseDouble(variableMatcher.group(3));
+                    
+                    // Split variable name by # to separate indices
+                    String[] parts = varName.split("#");
+                    String baseVarName = parts[0];
+                    List<String> indices = new ArrayList<>();
+                    if (parts.length > 1) {
+                        indices.add(parts[1]);
+                    }
+
+                    // Create or get the list for this variable
+                    variableSolution.computeIfAbsent(baseVarName, k -> new ArrayList<>())
+                                  .add(new Tuple<>(indices, value));
+                }
+            }
+            parsed = true;
+        }
+        return this;
     }
 }

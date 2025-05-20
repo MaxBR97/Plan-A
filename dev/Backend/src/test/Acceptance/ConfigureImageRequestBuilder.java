@@ -27,9 +27,20 @@ public class ConfigureImageRequestBuilder implements RequestBuilder{
 
     public ConfigureImageRequestBuilder(String imageName, CreateImageResponseDTO createdImageReponse){
         this.context = createdImageReponse;
-        imageDTO=new ImageDTO(context.imageId(),imageName,"", null, null, null,  new VariableModuleDTO(Set.of(),Set.of(),Set.of()),
-                                                Set.of(),
-                                                Set.of());
+        imageDTO = new ImageDTO(context.imageId(),
+                              imageName,
+                              null,  // description
+                              null,  // owner
+                              null,  // isPrivate
+                              null,  // solverSettings
+                              null,  // variablesModule
+                              null,  // constraintModules
+                              null   // preferenceModules
+                              );
+        // this.context = createdImageReponse;
+        // imageDTO=new ImageDTO(context.imageId(),imageName,null, null, null, null,  new VariableModuleDTO(Set.of(),Set.of(),Set.of()),
+        //                                         Set.of(),
+        //                                         Set.of());
     }
 
     public ConfigureImageRequestBuilder setVariablesModule(Set<String> vars, Set<String> setInputs, Set<String> paramInputs){
@@ -95,7 +106,8 @@ public class ConfigureImageRequestBuilder implements RequestBuilder{
     
 
     public ConfigureImageRequestBuilder addConstraintsModule(String name, String desc, Set<String> constraints, Set<String> setInputs, Set<String> paramInputs){
-        Set<ConstraintModuleDTO> tmp = new HashSet<>(imageDTO.constraintModules());
+        Set<ConstraintModuleDTO> tmp = imageDTO.constraintModules() == null ? 
+            new HashSet<>() : new HashSet<>(imageDTO.constraintModules());
         Set<SetDefinitionDTO> sets = new HashSet<>();
         Set<ParameterDefinitionDTO> params = new HashSet<>();
         for(String s : setInputs){
@@ -117,7 +129,8 @@ public class ConfigureImageRequestBuilder implements RequestBuilder{
     }
 
     public ConfigureImageRequestBuilder addPreferencesModule(String name, String desc, Set<String> prefs, Set<String> setInputs, Set<String> paramInputs, Set<String> costParams){
-        Set<PreferenceModuleDTO> tmp = new HashSet<>(imageDTO.preferenceModules());
+        Set<PreferenceModuleDTO> tmp = imageDTO.preferenceModules() == null ? 
+            new HashSet<>() : new HashSet<>(imageDTO.preferenceModules());
         Set<SetDefinitionDTO> sets = new HashSet<>();
         Set<ParameterDefinitionDTO> params = new HashSet<>();
         Set<ParameterDefinitionDTO> costs = new HashSet<>();

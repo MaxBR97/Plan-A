@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import Model.ModelInput.StructureBlock;
+
 import parser.*;
 import parser.FormulationBaseVisitor;
 import parser.FormulationLexer;
@@ -62,7 +63,7 @@ public class Model extends ModelInterface {
     private final String zimplSolveScript = "src/main/resources/zimpl/solve.sh" ;
     private String originalSource;
 
-    private ScipController scipController;
+    // private ScipController scipController;
     
     private Process currentProcess;
     private BufferedWriter processInput;
@@ -76,65 +77,65 @@ public class Model extends ModelInterface {
     //TODO: avoid wrirting the solution to tmpSolution and then re-writing it via writeSolution() - inefficient
     //TODO: find a better way to wait for the solution file from the scip process
     //TODO: factor out "solutionFileSufix"
-    public CompletableFuture<Solution> solveAsync(float timeout, String solutionFileSuffix, String solverScript) throws Exception {
-        if(scipController != null){
-            finish();
-        }
-        this.solutionFileSuffix = solutionFileSuffix;
-        scipController = new ScipController((int) timeout, getSourcePathToFile());
-        scipController.setStartupSolverSettings(solverScript);
-        scipController.start();
+    // public CompletableFuture<Solution> solveAsync(float timeout, String solutionFileSuffix, String solverScript) throws Exception {
+    //     if(scipController != null){
+    //         finish();
+    //     }
+    //     this.solutionFileSuffix = solutionFileSuffix;
+    //     scipController = new ScipController((int) timeout, getSourcePathToFile());
+    //     scipController.setStartupSolverSettings(solverScript);
+    //     scipController.start();
         
-        return getNextSolution();
-    }
+    //     return getNextSolution();
+    // }
 
-    public CompletableFuture<Solution> getNextSolution(){
-        CompletableFuture<Solution> sol = CompletableFuture.supplyAsync(() -> {
-            try {
-                scipController.pipeInput(" write solution tmpSolution ");
-                File tmpFile = new File(Path.of(".","tmpSolution").toString());
-                while(!tmpFile.exists()){
-                    Thread.sleep(70);
-                }
-                Thread.sleep(100);
-                String tmp = new String(Files.readAllBytes(Path.of(".", "tmpSolution")));
-                writeSolution(tmp, solutionFileSuffix);
-                Files.delete(Path.of(".", "tmpSolution"));
-                return new Solution(getSolutionPathToFile(solutionFileSuffix));
-            } catch (Exception e) {
-                return null;
-            }
-        });
-        return sol;
-    }
+    // public CompletableFuture<Solution> getNextSolution(){
+    //     CompletableFuture<Solution> sol = CompletableFuture.supplyAsync(() -> {
+    //         try {
+    //             scipController.pipeInput(" write solution tmpSolution ");
+    //             File tmpFile = new File(Path.of(".","tmpSolution").toString());
+    //             while(!tmpFile.exists()){
+    //                 Thread.sleep(70);
+    //             }
+    //             Thread.sleep(100);
+    //             String tmp = new String(Files.readAllBytes(Path.of(".", "tmpSolution")));
+    //             writeSolution(tmp, solutionFileSuffix);
+    //             Files.delete(Path.of(".", "tmpSolution"));
+    //             return new Solution(getSolutionPathToFile(solutionFileSuffix));
+    //         } catch (Exception e) {
+    //             return null;
+    //         }
+    //     });
+    //     return sol;
+    // }
 
-    public String poll() throws Exception {
-        String ans = "";
-        String line;
-        while((line = scipController.pollLog()) != null){
-            ans += line + "\n";
-        }
-        return ans + " \nCurrent Status: " + scipController.getStatus();
-    }
+    // public String poll() throws Exception {
+    //     String ans = "";
+    //     String line;
+    //     while((line = scipController.pollLog()) != null){
+    //         ans += line + "\n";
+    //     }
+    //     return ans + " \nCurrent Status: " + scipController.getStatus();
+    // }
 
-    //TODO: delete this function ultimately.
-    public void pause()  throws Exception {
-        // scipController.sendSigint();
-    }
+    // //TODO: delete this function ultimately.
+    // public void pause()  throws Exception {
+    //     // scipController.sendSigint();
+    // }
 
-    // TODO: throw exception if this method is called while scip is mid-solving
-    public CompletableFuture<Solution> continueProcess(int extraTime) throws Exception {
-        int newTimeout = scipController.getTimeout() + extraTime;
-        scipController.setTimeout(newTimeout);
-        scipController.pipeInput("set limit time " + newTimeout + " optimize ");
-        scipController.setStatus("solving");
-        return getNextSolution();
-    }
+    // // TODO: throw exception if this method is called while scip is mid-solving
+    // public CompletableFuture<Solution> continueProcess(int extraTime) throws Exception {
+    //     int newTimeout = scipController.getTimeout() + extraTime;
+    //     scipController.setTimeout(newTimeout);
+    //     scipController.pipeInput("set limit time " + newTimeout + " optimize ");
+    //     scipController.setStatus("solving");
+    //     return getNextSolution();
+    // }
 
-    //TODO: wait synchronously until process stops.
-    public void finish () throws Exception {
-        scipController.stopProcess();
-    }
+    // //TODO: wait synchronously until process stops.
+    // public void finish () throws Exception {
+    //     scipController.stopProcess();
+    // }
 
     public Model(ModelRepository repo, String id) throws Exception {
         modelRepository = repo;
@@ -305,7 +306,7 @@ public class Model extends ModelInterface {
         }
     }
 
-    void commentOutToggledFunctionalities() throws Exception {
+    public void commentOutToggledFunctionalities() throws Exception {
         if (toggledOffFunctionalities.isEmpty()) {
             return;
         }
@@ -322,7 +323,7 @@ public class Model extends ModelInterface {
         }
     }
 
-    void restoreToggledFunctionalities() throws Exception {
+    public void restoreToggledFunctionalities() throws Exception {
         if (toggledOffFunctionalities.isEmpty()) {
             return;
         }
@@ -402,274 +403,7 @@ public class Model extends ModelInterface {
             return false;
         }
     }
-    //TODO: remove solutionFileSufix, it should be dedcided internally in Model class
-    // public Solution solve(float timeout, String solutionFileSufix, String solverScript) throws BadRequestException {
-    //     if(solutionFileSufix == null)
-    //         throw new BadRequestException("solutionFileSufix is null");
-    //     Solution ans = null;
-    //     try {
-    //         commentOutToggledFunctionalities();
-            
-    //         ProcessBuilder processBuilder = new ProcessBuilder(
-    //             "scip", "-c", 
-    //             " set limits time "+ timeout + 
-    //             " set timing reading TRUE " +
-    //             solverScript +
-    //             " read " + getSourcePathToFile() + 
-    //             " optimize "+
-    //             " write solution tmpSolution " +
-    //             " display solution q"
-    //         );
-    //         processBuilder.redirectErrorStream(true);
-    //         processBuilder.redirectInput(ProcessBuilder.Redirect.PIPE); // Prevents waiting for input
-
-            
-    //         Process process;
-    //         try {
-    //             process = processBuilder.start();
-    //         } catch (IOException e) {
-    //             // Check if it's specifically a command not found error
-    //             if (e.getMessage().contains("Cannot run program \"scip\"") || 
-    //                 e.getMessage().contains("error=2")) {
-    //                 throw new BadRequestException("SCIP solver not found. Please ensure SCIP is installed and available in system PATH");
-    //             }
-    //             throw e; // Rethrow other IOExceptions
-    //         }
     
-    //         // Executor service to handle timeouts
-    //         ExecutorService executor = Executors.newSingleThreadExecutor();
-    //         Future<Solution> future = executor.submit(() -> {
-    //             BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-    //             StringBuilder buffer = new StringBuilder();
-    //             boolean capture = false;
-    //             String line;
-    //             while ((line = reader.readLine()) != null) {
-    //                 if (line.startsWith("@@")) continue;  // Ignore certain lines
-    //                 if (line.trim().isEmpty() && (buffer.length() == 0 || buffer.toString().endsWith("\n"))) {
-    //                     continue;
-    //                 }
-    //                 if (line.matches("file .* not found"))
-    //                     throw new BadRequestException("Error: Tried solving non-existing file: " + line);
-    //                 if (line.matches(".*Error [0-9]{1,4}:.*")) {
-    //                     while ((line = reader.readLine()) != null) {} // Consume remaining error messages
-    //                     throw new BadRequestException("Error: Solving unsuccessful: " + line);
-    //                 }
-    //                 if (line.contains("SCIP Status")) {
-    //                     buffer.setLength(0);
-    //                     capture = true;
-    //                 }
-    //                 if (capture) 
-    //                     buffer.append(line).append("\n");
-    //             }
-            
-    //             String filteredOutput = buffer.toString().lines()
-    //                 .collect(Collectors.joining("\n"));
-    //             writeSolution(filteredOutput, solutionFileSufix);
-    //             return new Solution(getSolutionPathToFile(solutionFileSufix));
-    //         });
-            
-    //         try {
-    //             ans = future.get((long) timeout + 2, TimeUnit.SECONDS);
-    //         } catch (TimeoutException e) {
-    //             process.destroy(); 
-    //             ans = null;
-    //         } finally {
-    //             executor.shutdown();
-    //         }
-    
-    //         restoreToggledFunctionalities();
-    //         if(ans == null)
-    //             return new Solution();
-    //         return ans;
-    //     } catch (Exception e) {
-    //         try {
-    //             restoreToggledFunctionalities();
-    //         } catch (Exception ex) {
-    //             ex.printStackTrace();
-    //         }
-            
-    //         // If it's our SCIP not found exception, rethrow it
-    //         if (e instanceof BadRequestException) {
-    //             throw (BadRequestException) e;
-    //         }
-            
-    //         e.printStackTrace();
-    //         if(ans == null)
-    //             return new Solution();
-    //         return null;
-    //     }
-    // }
-    public Solution solve(float timeout, String solutionFileSufix, String solverScript) throws BadRequestException {
-        if(solutionFileSufix == null)
-            throw new BadRequestException("solutionFileSufix is null");
-        Solution ans = null;
-        try {
-            commentOutToggledFunctionalities();
-            
-            ProcessBuilder processBuilder = new ProcessBuilder(
-                "scip", "-c", 
-                " set limits time "+ timeout + 
-                " set timing reading TRUE " +
-                solverScript +
-                " read " + getSourcePathToFile() + 
-                " optimize "+
-                " write solution tmpSolution "+
-                "  q"
-            );
-            processBuilder.redirectErrorStream(true);
-            // Redirect the process output to a log file or to /dev/null
-            processBuilder.redirectOutput(ProcessBuilder.Redirect.DISCARD);
-
-            
-            Process process;
-            try {
-                process = processBuilder.start();
-            } catch (IOException e) {
-                // Check if it's specifically a command not found error
-                if (e.getMessage().contains("Cannot run program \"scip\"") || 
-                    e.getMessage().contains("error=2")) {
-                    throw new BadRequestException("SCIP solver not found. Please ensure SCIP is installed and available in system PATH");
-                }
-                throw e; // Rethrow other IOExceptions
-            }
-    
-            // Executor service to handle timeouts
-            ExecutorService executor = Executors.newSingleThreadExecutor();
-            Future<Solution> future = executor.submit(() -> {
-                process.waitFor();
-                Thread.sleep(100);
-                String tmp = new String(Files.readAllBytes(Path.of(".", "tmpSolution")));
-                writeSolution(tmp, solutionFileSufix);
-                Files.delete(Path.of(".", "tmpSolution"));
-                return new Solution(getSolutionPathToFile(solutionFileSufix));
-            });
-            
-            try {
-                ans = future.get((long) timeout + 2, TimeUnit.SECONDS);
-            } catch (TimeoutException e) {
-                process.destroy(); 
-                ans = null;
-            } finally {
-                executor.shutdown();
-            }
-    
-            restoreToggledFunctionalities();
-            if(ans == null)
-                return new Solution();
-            return ans;
-        } catch (Exception e) {
-            try {
-                restoreToggledFunctionalities();
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
-            
-            // If it's our SCIP not found exception, rethrow it
-            if (e instanceof BadRequestException) {
-                throw (BadRequestException) e;
-            }
-            
-            e.printStackTrace();
-            if(ans == null)
-                return new Solution();
-            return null;
-        }
-    }
-
-    // public Future<Solution> solve(String solutionFileSufix, String solverScript) throws BadRequestException {
-    //     if(solutionFileSufix == null)
-    //         throw new BadRequestException("solutionFileSufix is null");
-    //     Solution ans = null;
-    //     try {
-    //         commentOutToggledFunctionalities();
-            
-    //         ProcessBuilder processBuilder = new ProcessBuilder(
-    //             "scip", "-c", 
-    //             " set timing reading TRUE " +
-    //             solverScript +
-    //             " read " + getSourcePathToFile() + 
-    //             " optimize"+
-    //             " display solution q"
-    //         );
-    //         processBuilder.redirectErrorStream(true);
-    //         processBuilder.redirectInput(ProcessBuilder.Redirect.PIPE); // Prevents waiting for input
-
-            
-    //         Process process;
-    //         try {
-    //             process = processBuilder.start();
-    //         } catch (IOException e) {
-    //             // Check if it's specifically a command not found error
-    //             if (e.getMessage().contains("Cannot run program \"scip\"") || 
-    //                 e.getMessage().contains("error=2")) {
-    //                 throw new BadRequestException("SCIP solver not found. Please ensure SCIP is installed and available in system PATH");
-    //             }
-    //             throw e; // Rethrow other IOExceptions
-    //         }
-    
-    //         // Executor service to handle timeouts
-    //         ExecutorService executor = Executors.newSingleThreadExecutor();
-    //         Future<Solution> future = executor.submit(() -> {
-
-    //             BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-    //             StringBuilder buffer = new StringBuilder();
-    //             boolean capture = false;
-    //             String line;
-    //             while ((line = reader.readLine()) != null) {
-    //                 if (line.startsWith("@@")) continue;  // Ignore certain lines
-    //                 if (line.trim().isEmpty() && (buffer.length() == 0 || buffer.toString().endsWith("\n"))) {
-    //                     continue;
-    //                 }
-    //                 if (line.matches("file .* not found"))
-    //                     throw new BadRequestException("Error: Tried solving non-existing file: " + line);
-    //                 if (line.matches(".*Error [0-9]{1,4}:.*")) {
-    //                     while ((line = reader.readLine()) != null) {} // Consume remaining error messages
-    //                     throw new BadRequestException("Error: Solving unsuccessful: " + line);
-    //                 }
-    //                 if (line.contains("SCIP Status")) {
-    //                     buffer.setLength(0);
-    //                     capture = true;
-    //                 }
-    //                 if (capture) 
-    //                     buffer.append(line).append("\n");
-    //             }
-            
-    //             String filteredOutput = buffer.toString().lines()
-    //                 .collect(Collectors.joining("\n"));
-    //             writeSolution(filteredOutput, solutionFileSufix);
-    //             return new Solution(getSolutionPathToFile(solutionFileSufix));
-    //         });
-            
-    //         try {
-    //             ans = future.get();
-    //         } finally {
-    //             executor.shutdown();
-    //         }
-    
-    //         restoreToggledFunctionalities();
-    //         if(ans == null)
-    //             return new Solution();
-    //         return ans;
-    //     } catch (Exception e) {
-    //         try {
-    //             restoreToggledFunctionalities();
-    //         } catch (Exception ex) {
-    //             ex.printStackTrace();
-    //         }
-            
-    //         // If it's our SCIP not found exception, rethrow it
-    //         if (e instanceof BadRequestException) {
-    //             throw (BadRequestException) e;
-    //         }
-            
-    //         e.printStackTrace();
-    //         if(ans == null)
-    //             return new Solution();
-    //         return null;
-    //     }
-    // }
-
-
     List<FormulationParser.UExprContext> findComponentContexts(FormulationParser.NExprContext ctx) {
         List<FormulationParser.UExprContext> components = new ArrayList<>();
         findComponentContextsRecursive(ctx.uExpr(), components);

@@ -12,6 +12,8 @@ import jakarta.persistence.ElementCollection;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.MappedSuperclass;
 import jakarta.persistence.Transient;
+import jakarta.persistence.Inheritance;
+import jakarta.persistence.InheritanceType;
 
 @MappedSuperclass
 public abstract class ModelInput extends ModelComponent {

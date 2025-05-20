@@ -45,6 +45,7 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
+
         </dependencies>
     </dependencyManagement>
 
@@ -126,13 +127,6 @@
     <artifactId>junit-jupiter-api</artifactId>
     <scope>test</scope>
 	</dependency>
-
-    <!-- Spring Boot Starter Test (for writing tests) -->
-    <dependency>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-test</artifactId>
-        <scope>test</scope>
-    </dependency>
 
      <!-- <dependency>
             <groupId>io.grpc</groupId>
@@ -264,6 +258,24 @@
         <artifactId>jna-platform</artifactId>
         <version>5.13.0</version>
     </dependency>
+
+    <!-- OpenFeign for microservice communication -->
+    <dependency>
+        <groupId>org.springframework.cloud</groupId>
+        <artifactId>spring-cloud-starter-openfeign</artifactId>
+        <version>4.0.3</version>
+    </dependency>
+    
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-actuator</artifactId>
+    </dependency>
+    <dependency>
+        <groupId>io.github.resilience4j</groupId>
+        <artifactId>resilience4j-spring-boot3</artifactId> <!-- Use spring-boot2 if you're on Spring Boot 2 -->
+        <version>2.1.0</version> <!-- Use the latest version compatible with your Spring Boot version -->
+    </dependency>
+
 
 </dependencies>
 

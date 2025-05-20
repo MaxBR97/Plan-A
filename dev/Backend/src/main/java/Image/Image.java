@@ -14,12 +14,17 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import DTO.Factories.RecordFactory;
+import DTO.Records.Image.ConstraintModuleDTO;
+import DTO.Records.Image.ImageDTO;
+import DTO.Records.Image.PreferenceModuleDTO;
 import DTO.Records.Image.SolutionDTO;
+import DTO.Records.Image.VariableModuleDTO;
 import DTO.Records.Model.ModelData.InputDTO;
 import DTO.Records.Model.ModelData.ParameterDefinitionDTO;
 import DTO.Records.Model.ModelData.SetDefinitionDTO;
 import DTO.Records.Model.ModelDefinition.ConstraintDTO;
 import DTO.Records.Model.ModelDefinition.PreferenceDTO;
+import DTO.Records.Model.ModelDefinition.VariableDTO;
 import Image.Modules.ConstraintModule;
 import Image.Modules.PreferenceModule;
 import Image.Modules.VariableModule;
@@ -29,6 +34,7 @@ import Model.ModelInterface;
 import Model.ModelParameter;
 import Model.ModelPreference;
 import Model.ModelSet;
+import Model.ModelType;
 import Model.ModelVariable;
 import Model.Solution;
 import jakarta.persistence.CascadeType;
@@ -106,12 +112,6 @@ public class Image {
 
     @Transient
     private static ModelFactory modelFactory;
-    // public Image(ModelInterface model) {
-    //     constraintsModules = new HashMap<>();
-    //     preferenceModules = new HashMap<>();
-    //     variables = new VariableModule(this, Map.of(), List.of(),List.of());
-    //     this.model = model;
-    // }
 
     protected Image () throws Exception {
         constraintsModules = new HashMap<>();
@@ -129,12 +129,14 @@ public class Image {
         this.description = description;
         constraintsModules = new HashMap<>();
         preferenceModules = new HashMap<>();
-        setVariableModule(new VariableModule(this, Map.of(), List.of(),List.of()));
+        variables = new HashMap<>();
+        VariableModule module = new VariableModule(this, VariableModule.getVariableModuleName(), "");
+        variables.put(VariableModule.getVariableModuleName(), module);
         this.model = modelFactory.getModel(id);
         solverScripts = new HashMap<>();
         savedSolutions = new LinkedList<>();
         this.owner = ownerUser;
-        this.isPrivate = isPrivate == null ? true  : isPrivate ;
+        this.isPrivate = isPrivate == null ? true : isPrivate;
     }
 
     public static void setModelFactory(ModelFactory factory){
@@ -143,10 +145,12 @@ public class Image {
 
     @PostLoad
     private void initializeTransientFields() throws Exception {
-        if(variables == null || variables.isEmpty())
-            setVariableModule(new VariableModule(this, Map.of(), List.of(),List.of()));
+        if (variables == null || variables.isEmpty()) {
+            variables = new HashMap<>();
+            VariableModule module = new VariableModule(this, VariableModule.getVariableModuleName(), "");
+            variables.put(VariableModule.getVariableModuleName(), module);
+        }
         this.model = modelFactory.getModel(id, getAllInputSets(), getAllInputParameters());
-        //setModelWithPersistedData();
     }
 
     private void setModelWithPersistedData() throws Exception {
@@ -170,11 +174,50 @@ public class Image {
         return this.solverScripts;
     }
 
-    // //will probably have to use an adapter layer, or change types to DTOs
-    // @Transactional
-    // public void addConstraintModule(ConstraintModule module) {
-    //     constraintsModules.put(module.getName(), module);
-    // }
+    
+    //TODO: make this correspond to patch semantics - fields that are null - are not updated.
+    @Transactional
+    public void update(ImageDTO imageDTO) throws Exception {
+        // Update basic properties
+        if (imageDTO.imageName() != null) {
+            this.name = imageDTO.imageName();
+        }
+        if (imageDTO.imageDescription() != null) {
+            this.description = imageDTO.imageDescription();
+        }
+        if (imageDTO.owner() != null) {
+            this.owner = imageDTO.owner();
+        }
+        if (imageDTO.isPrivate() != null) {
+            this.setIsPrivate(imageDTO.isPrivate());
+        }
+        
+        // Update solver scripts only if not null
+        if (imageDTO.solverSettings() != null) {
+            this.setSolverScripts(imageDTO.solverSettings());
+        }
+        
+        // Update variables module only if not null
+        if (imageDTO.variablesModule() != null) {
+            this.setVariablesModule(imageDTO.variablesModule());
+        }
+        
+        // Update constraint modules only if not null
+        if (imageDTO.constraintModules() != null) {
+            this.getConstraintsModules().clear();
+            for (ConstraintModuleDTO constraintModule : imageDTO.constraintModules()) {
+                this.addConstraintModule(constraintModule);
+            }
+        }
+        
+        // Update preference modules only if not null
+        if (imageDTO.preferenceModules() != null) {
+            this.getPreferenceModules().clear();
+            for (PreferenceModuleDTO preferenceModule : imageDTO.preferenceModules()) {
+                this.addPreferenceModule(preferenceModule);
+            }
+        }
+    }
 
     @Transactional
     public String getName(){
@@ -207,22 +250,8 @@ public class Image {
     }
     
     @Transactional
-    public void addConstraintModule(String moduleName, String description, Collection<String> constraints, Collection<String> inputSets, Collection<String> inputParams) {
-        HashSet<ModelConstraint> modelConstraints = new HashSet<>();
-        HashSet<ModelSet> sets = new HashSet<>();
-        HashSet<ModelParameter> params = new HashSet<>();
-        for (String name : constraints) {
-            ModelConstraint constraint = model.getConstraint(name);
-            Objects.requireNonNull(constraint,"Invalid constraint name in add constraint in image");
-            modelConstraints.add(constraint);
-        }
-        for(String set : inputSets){
-            sets.add(model.getSet(set));
-        }
-        for(String param : inputParams){
-            params.add(model.getParameter(param));
-        }
-        constraintsModules.put(moduleName, new ConstraintModule(this, moduleName, description, modelConstraints, sets, params));
+    public void addConstraintModule(ConstraintModuleDTO module) throws Exception {
+        constraintsModules.put(module.moduleName(), new ConstraintModule(this, module));
     }
     @Transactional
     public void setConstraintsModules(HashMap<String,ConstraintModule> constraintsModules){
@@ -233,39 +262,14 @@ public class Image {
         this.preferenceModules = prefs;
     }
 
-    // @Transactional
-    // public void addPreferenceModule(PreferenceModule module) {
-    //     preferenceModules.put(module.getName(), module);
-    // }
-
     @Transactional
     public void addPreferenceModule(String moduleName, String description) {
         preferenceModules.put(moduleName, new PreferenceModule(this, moduleName, description));
     }
 
     @Transactional
-    public void addPreferenceModule(String moduleName, String description, Collection<String> preferences, Collection<String> inputSets, Collection<String> inputParams, Collection<String> costParameters) {
-        HashSet<ModelPreference> modelPreferences = new HashSet<>();
-        HashSet<ModelSet> sets = new HashSet<>();
-        HashSet<ModelParameter> params = new HashSet<>();
-        HashSet<ModelParameter> costs = new HashSet<>();
-        for (String name : preferences) {
-            ModelPreference preference = model.getPreference(name);
-            Objects.requireNonNull(preference,"Invalid preference name in add preference module");
-            modelPreferences.add(preference);
-        }
-        for(String set : inputSets){
-            sets.add(model.getSet(set));
-        }
-        for(String param : inputParams){
-            params.add(model.getParameter(param));
-        }
-        if(costParameters != null){
-            for(String param : costParameters){
-                costs.add(model.getParameter(param));
-            }
-        }
-        preferenceModules.put(moduleName, new PreferenceModule(this, moduleName, description, modelPreferences,sets,params,costs));
+    public void addPreferenceModule(PreferenceModuleDTO module) throws Exception {
+        preferenceModules.put(module.moduleName(), new PreferenceModule(this,  module));
     }
 
     @Transactional
@@ -285,7 +289,7 @@ public class Image {
         return preferenceModules;
     }
    
-
+    //Adds a constraint to a Module
     @Transactional
     public void addConstraint(String moduleName, ConstraintDTO constraint) {
         if(!constraintsModules.containsKey(moduleName))
@@ -293,6 +297,9 @@ public class Image {
         constraintsModules.get(moduleName).addConstraint(model.getConstraint(constraint.identifier()));
     }
 
+    
+
+    //Removes a certain constraint from a Module
     @Transactional
     public void removeConstraint(String moduleName, ConstraintDTO constraint) {
         if(!constraintsModules.containsKey(moduleName))
@@ -308,16 +315,28 @@ public class Image {
     }
 
     @Transactional
-    public void setVariablesModule(Set<ModelVariable> map1, Collection<String> sets, Collection<String> params ){
-        HashSet<ModelSet> inputSets = new HashSet<>();
-        HashSet<ModelParameter> inputParams = new HashSet<>();
-        for(String set : sets){
-            inputSets.add(model.getSet(set));
+    public void setVariablesModule(VariableModuleDTO moduleDTO) {
+        // Create or get the variable module
+        if (this.variables == null) {
+            this.variables = new HashMap<>();
         }
-        for(String param : params){
-            inputParams.add(model.getParameter(param));
+        
+        VariableModule module = this.variables.get(VariableModule.getVariableModuleName());
+        if (module == null) {
+            module = new VariableModule(this, VariableModule.getVariableModuleName(), "");
+            this.variables.put(VariableModule.getVariableModuleName(), module);
         }
-        setVariableModule(new VariableModule(this, map1, inputSets, inputParams));
+        
+        try {
+            module.update(moduleDTO);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to update variables module: " + e.getMessage(), e);
+        }
+    }
+    
+    @Transactional
+    public VariableModule getVariablesModule() {
+        return variables.get(VariableModule.getVariableModuleName());
     }
 
     @Transactional
@@ -326,117 +345,64 @@ public class Image {
             throw new IllegalArgumentException("No preference module with name: " + moduleName);
         preferenceModules.get(moduleName).removePreference(model.getPreference(preferenceDTO.identifier()));
     }
+
     @Transactional
     public Map<String,ModelVariable> getVariables() {
-        return getVariableModule().getVariables();
+        return getVariablesModule().getVariables();
     }
 
     
-    @Transactional
-    public void setVariableModule(VariableModule module){
-        if (this.variables == null)
-            this.variables = new HashMap<>();
-        this.variables.put(VariableModule.getVariableModuleName(), module);
-    }
-    @Transactional
-    public VariableModule getVariableModule(){
-        return this.variables.get(VariableModule.getVariableModuleName());
-    }
-
-    /*public void addVariable(ModelVariable variable) {
-        variables.put(variable.getIdentifier(), variable);
-    }
-    public void removeVariable(ModelVariable variable) {
-        variables.remove(variable.getIdentifier());
-    }
-    public void removeVariable(String name) {
-        variables.remove(name);
-    }
-    /*
-     */
-
-    /*
-    public void TogglePreference(String name){
-            Objects.requireNonNull(name,"Null value during Toggle Preference in Image");
-            model.toggleFunctionality();
-    }
-    public void ToggleConstraint(String name){
-            Objects.requireNonNull(name,"Null value during Toggle Constraint in Image");
-            constraintsModules.get(name).ToggleModule();
-    }*/
-    public SolutionDTO solve(int timeout, String solverScript) throws Exception{
-        Solution solution=model.solve(timeout, "SOLUTION", solverScript);
+    public SolutionDTO parseSolution(Solution solution) {
         try {
-            solution.parseSolution(model, getVariableModule().getIdentifiers());
+            solution.parseSolution(model, getVariablesModule().getIdentifiers());
         } catch (Exception e) {
             throw new RuntimeException("IO exception while parsing solution file, message: "+ e);
         }
         return RecordFactory.makeDTO(solution);
-        /*Objects.requireNonNull(input,"Input is null in solve method in image");
-        for(String constraint:input.constraintsToggledOff()){
-            toggleOffConstraint(constraint);
-        }
-        for(String preference:input.preferencesToggledOff()){
-            toggleOffPreference(preference);
-        }
-        return RecordFactory.makeDTO(model.solve(defaultTimeout));*/
     }
 
-     public CompletableFuture<SolutionDTO> solveAsync(int timeout, String solverScript, boolean continueLast) {
-        CompletableFuture<SolutionDTO> futureSolutionDTO = new CompletableFuture<>();
+    //  public CompletableFuture<SolutionDTO> solveAsync(int timeout, String solverScript, boolean continueLast) {
+    //     CompletableFuture<SolutionDTO> futureSolutionDTO = new CompletableFuture<>();
         
-        try {
-            CompletableFuture<Solution> futureSolution;
-            if(!continueLast){
-                futureSolution = model.solveAsync(timeout,
-                    "SOLUTION", solverScript
-                );
-            } else {
-                futureSolution = model.continueProcess(timeout);
-            }
+    //     try {
+    //         CompletableFuture<Solution> futureSolution;
+    //         if(!continueLast){
+    //             futureSolution = model.solveAsync(timeout,
+    //                 "SOLUTION", solverScript
+    //             );
+    //         } else {
+    //             futureSolution = model.continueProcess(timeout);
+    //         }
             
-            // When the solution is ready, convert it to DTO and complete our future
-            futureSolution.thenAccept(solution -> {
-                try {
-                    // Parse the solution as in the synchronous method
-                    solution.parseSolution(model, getVariableModule().getIdentifiers());
+    //         // When the solution is ready, convert it to DTO and complete our future
+    //         futureSolution.thenAccept(solution -> {
+    //             try {
+    //                 // Parse the solution as in the synchronous method
+    //                 solution.parseSolution(model, getVariablesModule().getIdentifiers());
                     
-                    // Convert to DTO
-                    SolutionDTO solutionDTO = RecordFactory.makeDTO(solution);
+    //                 // Convert to DTO
+    //                 SolutionDTO solutionDTO = RecordFactory.makeDTO(solution);
                     
-                    // Complete the future with the DTO
-                    futureSolutionDTO.complete(solutionDTO);
-                } catch (Exception e) {
-                    futureSolutionDTO.completeExceptionally(
-                        new RuntimeException("IO exception while parsing solution file, message: " + e)
-                    );
-                }
-            }).exceptionally(ex -> {
-                // Forward any exceptions from the model's solve method
-                futureSolutionDTO.completeExceptionally(ex);
-                return null;
-            });
+    //                 // Complete the future with the DTO
+    //                 futureSolutionDTO.complete(solutionDTO);
+    //             } catch (Exception e) {
+    //                 futureSolutionDTO.completeExceptionally(
+    //                     new RuntimeException("IO exception while parsing solution file, message: " + e)
+    //                 );
+    //             }
+    //         }).exceptionally(ex -> {
+    //             // Forward any exceptions from the model's solve method
+    //             futureSolutionDTO.completeExceptionally(ex);
+    //             return null;
+    //         });
             
-        } catch (Exception e) {
-            // Complete exceptionally if we can't start the solve process
-            futureSolutionDTO.completeExceptionally(e);
-        }
+    //     } catch (Exception e) {
+    //         // Complete exceptionally if we can't start the solve process
+    //         futureSolutionDTO.completeExceptionally(e);
+    //     }
         
-        return futureSolutionDTO;
-    }
-
-    private void toggleOffConstraint(String name){
-        Objects.requireNonNull(name,"Null value during Toggle Preference in Image");
-        ModelConstraint constraint=model.getConstraint(name);
-        Objects.requireNonNull(constraint,"Invalid constraint name in Toggle Constraint in Image");
-        model.toggleFunctionality(constraint, false);
-    }
-    private void toggleOffPreference(String name){
-        Objects.requireNonNull(name,"Null value during Toggle Preference in Image");
-        ModelPreference preference=model.getPreference(name);
-        Objects.requireNonNull(preference,"Invalid preference name in Toggle Preference in Image");
-        model.toggleFunctionality(preference, false);
-    }
+    //     return futureSolutionDTO;
+    // }
 
     public ModelInterface getModel() {
         return this.model;
@@ -447,18 +413,37 @@ public class Image {
     }
 
     @Transactional
-    public void reset(Map<String,ModelVariable> variables, Collection<String> sets, Collection<String> params) {
-        HashSet<ModelSet> inputSets = new HashSet<>();
-        HashSet<ModelParameter> inputParams = new HashSet<>();
-        for(String set : sets){
-            inputSets.add(model.getSet(set));
+    public void setVariablesModule(Map<String, ModelVariable> variables, Collection<String> sets, Collection<String> params) {
+        // Create a new module with the model data
+        VariableModule module = new VariableModule(
+            this,
+            VariableModule.getVariableModuleName(),
+            ""
+        );
+        
+        // Set the variables
+        for (Map.Entry<String, ModelVariable> entry : variables.entrySet()) {
+            module.addVariable(entry.getValue());
         }
-        for(String param : params){
-            inputParams.add(model.getParameter(param));
+        
+        // Set the input sets
+        for (String setName : sets) {
+            ModelSet set = model.getSet(setName);
+            if (set != null) {
+                module.addSet(set);
+            }
         }
-        constraintsModules.clear();
-        preferenceModules.clear();
-        getVariableModule().override(variables,inputSets,inputParams);
+        
+        // Set the input parameters
+        for (String paramName : params) {
+            ModelParameter param = model.getParameter(paramName);
+            if (param != null) {
+                module.addParam(param);
+            }
+        }
+        
+        // Store the module
+        this.variables.put(VariableModule.getVariableModuleName(), module);
     }
 
     public Set<ModelSet> getAllInvolvedSets() {
@@ -474,7 +459,7 @@ public class Image {
             allSets.addAll(preferenceModule.getInvolvedSets());
         }
             
-        allSets.addAll(getVariableModule().getInvolvedSets());
+        allSets.addAll(getVariablesModule().getInvolvedSets());
 
         return allSets;
     }
@@ -492,7 +477,7 @@ public class Image {
             allParams.addAll(preferenceModule.getInvolvedParameters());
         }
 
-        allParams.addAll(getVariableModule().getInvolvedParameters());
+        allParams.addAll(getVariablesModule().getInvolvedParameters());
 
         return allParams;
     }
@@ -510,7 +495,7 @@ public class Image {
             allSets.addAll(preferenceModule.getInputSets());
         }
             
-        allSets.addAll(getVariableModule().getInputSets());
+        allSets.addAll(getVariablesModule().getInputSets());
 
         return allSets;
     }
@@ -528,7 +513,7 @@ public class Image {
             allParams.addAll(preferenceModule.getInputParams());
         }
 
-        allParams.addAll(getVariableModule().getInputParams());
+        allParams.addAll(getVariablesModule().getInputParams());
 
         return allParams;
     }
@@ -562,13 +547,104 @@ public class Image {
             Set<ParameterDefinitionDTO> inputParams) throws Exception {
         for(SetDefinitionDTO setDTO : inputSets){
             ModelSet set = model.getSet(setDTO.name());
-            set.modify(setDTO);
+            set.update(setDTO);
         }
         
         for(ParameterDefinitionDTO paramDTO : inputParams){
             ModelParameter param = model.getParameter(paramDTO.name());
-            param.modify(paramDTO);
+            param.update(paramDTO);
         }
     }
 
+    @Transactional
+    public void setConstraintsModule(ConstraintModuleDTO moduleDTO) {
+        // Create or get the constraint module
+        if (this.constraintsModules == null) {
+            this.constraintsModules = new HashMap<>();
+        }
+        
+        ConstraintModule module = this.constraintsModules.get(moduleDTO.moduleName());
+        if (module == null) {
+            module = new ConstraintModule(this, moduleDTO.moduleName(), "");
+            this.constraintsModules.put(moduleDTO.moduleName(), module);
+        }
+        
+        try {
+            module.update(moduleDTO);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to update constraints module: " + e.getMessage(), e);
+        }
+    }
+
+    @Transactional
+    public void setPreferencesModule(PreferenceModuleDTO moduleDTO) {
+        // Create or get the preference module
+        if (this.preferenceModules == null) {
+            this.preferenceModules = new HashMap<>();
+        }
+        
+        PreferenceModule module = this.preferenceModules.get(moduleDTO.moduleName());
+        if (module == null) {
+            module = new PreferenceModule(this, moduleDTO.moduleName(), "");
+            this.preferenceModules.put(moduleDTO.moduleName(), module);
+        }
+        
+        try {
+            module.update(moduleDTO);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to update preferences module: " + e.getMessage(), e);
+        }
+    }
+
+    @Transactional
+    public void prepareInput(InputDTO input) throws Exception {
+        // Set input for sets
+        for (Map.Entry<String,List<List<String>>> set : input.setsToValues().entrySet()) {
+            List<String> setElements = new LinkedList<>();
+            for(List<String> element : set.getValue()) {
+                String tuple = ModelType.convertArrayOfAtoms(
+                    element.toArray(new String[0]),
+                    model.getSet(set.getKey()).getType()
+                );
+                setElements.add(tuple);
+            }
+            model.setInput(model.getSet(set.getKey()), setElements.toArray(new String[0]));
+        }
+
+        // Set input for parameters
+        for (Map.Entry<String,List<String>> parameter : input.paramsToValues().entrySet()) {
+            model.setInput(
+                model.getParameter(parameter.getKey()),
+                ModelType.convertArrayOfAtoms(
+                    parameter.getValue().toArray(new String[0]),
+                    model.getParameter(parameter.getKey()).getType()
+                )
+            );
+        }
+
+        // Handle toggled off constraint modules
+        for (String constraintModule : input.constraintModulesToggledOff()) {
+            Collection<ModelConstraint> constraintsToToggleOff = this.getConstraintsModule(constraintModule)
+                .getConstraints()
+                .values();
+            for(ModelConstraint mc : constraintsToToggleOff) {
+                model.toggleFunctionality(model.getConstraint(mc.getIdentifier()), false);
+            }
+        }
+
+        // Handle toggled off preference modules
+        for (String preferenceModule : input.preferenceModulesToggledOff()) {
+            Collection<ModelPreference> preferencesToToggleOff = this.getPreferencesModule(preferenceModule)
+                .getPreferences()
+                .values();
+            for(ModelPreference mp : preferencesToToggleOff) {
+                model.toggleFunctionality(model.getPreference(mp.getIdentifier()), false);
+            }
+        }
+        model.commentOutToggledFunctionalities();
+    }
+
+    public void restoreInput() throws Exception {
+        model.restoreToggledFunctionalities();
+    }
 }

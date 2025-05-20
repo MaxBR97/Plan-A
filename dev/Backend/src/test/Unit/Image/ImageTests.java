@@ -1,31 +1,33 @@
 package Unit.Image;
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.HashSet;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 
 import org.junit.jupiter.api.AfterAll;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
+import org.junit.jupiter.api.MethodOrderer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 import DataAccess.ImageRepository;
 import DataAccess.ModelRepository;
@@ -35,17 +37,26 @@ import Model.ModelInterface;
 import Model.ModelParameter;
 import Model.ModelSet;
 import Model.ModelVariable;
+import Model.ModelType;
+import DTO.Records.Image.ConstraintModuleDTO;
+import DTO.Records.Image.VariableModuleDTO;
+import DTO.Records.Model.ModelData.ParameterDefinitionDTO;
+import DTO.Records.Model.ModelData.SetDefinitionDTO;
+import DTO.Records.Model.ModelDefinition.VariableDTO;
+import DTO.Records.Model.ModelDefinition.DependenciesDTO;
 import groupId.Main;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+
 @SpringBootTest(classes = Main.class)
-//@ComponentScan(basePackages = {"Model", "DataAccess","DataAccess.LocalStorage", "Image.Modules"})
-//@ExtendWith(SpringExtension.class)
 @ActiveProfiles({"H2mem", "S3-test", "securityAndGateway"})
 @TestMethodOrder(MethodOrderer.Alphanumeric.class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-public class ImageTests {
+public class ImageTests extends TestWithPersistence {
 
     private static String sourcePath = "src/main/resources/zimpl/ExampleZimplProgram.zpl";
     private static String TEST_FILE_PATH = "src/main/resources/zimpl/ExampleZimplProgramINSTANCE.zpl";
@@ -89,42 +100,7 @@ public class ImageTests {
         InputStream inputStream = new ByteArrayInputStream(Files.readAllBytes(Path.of(TEST_FILE_PATH)));
         modelRepository.uploadDocument(sourceId, inputStream);
         inputStream.close();
-        image = new Image(sourceId, "myImage", "desc", "admin", false);
-    }
-
-    @Test
-    public void testTest() throws Exception {
-        assertTrue(true);
-    }
-
-    public void printAllTables() {
-        List<Map<String, Object>> tableNamesResult = getAllTableNames();
-
-        for (Map<String, Object> tableNameRow : tableNamesResult) {
-            String tableName = (String) tableNameRow.get("TABLE_NAME"); // Assuming "TABLE_NAME" is the key
-            if (tableName != null) {
-                System.out.println("\n--- Table: " + tableName + " ---");
-                printTable(tableName);
-            }
-        }
-    }
-
-    private List<Map<String, Object>> getAllTableNames() {
-        String sql = "SHOW TABLES;";
-        return jdbcTemplate.queryForList(sql);
-    }
-
-    private void printTable(String tableName) {
-        String sql = "SELECT * FROM "+tableName; // Use DESCRIBE or equivalent in your DBMS (works in MySQL, MariaDB, etc.)
-        System.out.println("TABLE: "+tableName);
-        jdbcTemplate.queryForList(sql).forEach(row -> {
-            System.out.println("ROW:"+row);
-        });
-    }
-
-    private void commit(){
-        entityManager.flush();
-        entityManager.clear();
+        image = new Image(sourceId, "Test Image", "Test Description", "testUser", false);
     }
     
     @Test
@@ -145,8 +121,56 @@ public class ImageTests {
         .filter((String name) -> name.matches("soldiers"))  
         .collect(Collectors.toSet());
 
-        image.setVariablesModule(vars,sets,params);
-        image.getVariableModule().getVariables().get("edge").getTags();
+        // Create VariableModuleDTO
+        Set<VariableDTO> variableDTOs = new HashSet<>();
+        Set<SetDefinitionDTO> setDTOs = new HashSet<>();
+        Set<ParameterDefinitionDTO> paramDTOs = new HashSet<>();
+
+        // Convert variables to DTOs
+        for (ModelVariable var : vars) {
+            List<String> types = var.getType().typeList();
+            Set<ModelSet> setDeps = new HashSet<>();
+            Set<ModelParameter> paramDeps = new HashSet<>();
+            var.getPrimitiveSets(setDeps);
+            var.getPrimitiveParameters(paramDeps);
+            
+            variableDTOs.add(new VariableDTO(
+                var.getIdentifier(),
+                Arrays.asList(var.getTags()),
+                types,
+                new DependenciesDTO(
+                    setDeps.stream().map(ModelSet::getIdentifier).collect(Collectors.toSet()),
+                    paramDeps.stream().map(ModelParameter::getIdentifier).collect(Collectors.toSet())
+                ),
+                var.getBoundSet() != null ? var.getBoundSet().getIdentifier() : null
+            ));
+        }
+
+        // Convert sets to DTOs
+        for (String setName : sets) {
+            ModelSet set = m.getSet(setName);
+            setDTOs.add(new SetDefinitionDTO(
+                set.getIdentifier(),
+                Arrays.asList(set.getTags()),
+                set.getType().typeList(),
+                set.getIdentifier()
+            ));
+        }
+
+        // Convert parameters to DTOs
+        for (String paramName : params) {
+            ModelParameter param = m.getParameter(paramName);
+            paramDTOs.add(new ParameterDefinitionDTO(
+                param.getIdentifier(),
+                param.getTags()[0],
+                param.getType().toString(),
+                param.getIdentifier()
+            ));
+        }
+
+        VariableModuleDTO moduleDTO = new VariableModuleDTO(variableDTOs, setDTOs, paramDTOs);
+        image.setVariablesModule(moduleDTO);
+        
         imageRepository.save(image);
         commit();
         imageRepository.deleteById(image.getId());
@@ -162,7 +186,14 @@ public class ImageTests {
         assertEquals(fetchedIm.getVariables().keySet().stream().collect(Collectors.toSet()),
                     image.getVariables().keySet().stream().collect(Collectors.toSet()));
 
-        image.addConstraintModule("myConstraint", "desc", List.of("trivial4","trivial5"), List.of(), List.of());
+        // Create a ConstraintModuleDTO with the constraints we want to add
+        Set<String> constraints = new HashSet<>(Arrays.asList("trivial4", "trivial5"));
+        Set<SetDefinitionDTO> inputSets = new HashSet<>();
+        Set<ParameterDefinitionDTO> inputParams = new HashSet<>();
+        
+        ConstraintModuleDTO constraintModuleDTO = new ConstraintModuleDTO("myConstraint", "desc", constraints, inputSets, inputParams);
+        image.addConstraintModule(constraintModuleDTO);
+        
         imageRepository.save(image);
         commit();
         fetchedIm = imageRepository.findById(sourceId).get();

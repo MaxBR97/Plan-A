@@ -1,4 +1,4 @@
-package Unit;
+package Unit.Model;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -44,7 +44,7 @@ import Model.ModelVariable;
 import Model.Solution;
 import Model.Tuple;
 import groupId.Main;
-
+import SolverService.*;
 
 @SpringBootTest(classes = Main.class)
 //@ComponentScan(basePackages = {"Model", "DataAccess","DataAccess.LocalStorage", "Image.Modules"})
@@ -62,16 +62,18 @@ public class ModelTest {
     private static String SOLVE_FILE_PATH = "src/test/Unit/TestFile2.zpl";
     private static String sourceId = "TestFileINSTANCE";
     private static String sourceSolveId = "TestFile2";
-    private static float compilationBaselineTime = 6;
+    private static int compilationBaselineTime = 6;
     private static String[][] expectedParameters = {{"Conditioner","10"}, {"soldiers", "9"}, {"absoluteMinimalRivuah", "8"}};
     
     private static ModelRepository modelRepository;
     private static ModelFactory modelFactory;
+    private static Solver solverService;
 
     @Autowired
-    public void setModelRepository(ModelFactory factory) {
+    public void setModelRepository(ModelFactory factory, Solver solverService) {
         this.modelFactory = factory;
         this.modelRepository = factory.getRepository();
+        this.solverService = solverService;
         // Model.injectRepository(modelRepository);
     }
 
@@ -118,7 +120,7 @@ public class ModelTest {
     @Test
     public void testModelConstruction() throws Exception {
         assertNotNull(model);
-        assertTrue(model.isCompiling(compilationBaselineTime));
+        assertTrue(solverService.isCompiling(sourceId, compilationBaselineTime).equals(""));
     }
     
     @Test
@@ -147,7 +149,7 @@ public class ModelTest {
         testSet = getSet(model, setName);
         assertTrue(testSet.getElements().contains(addValue));
 
-        assertTrue(model.isCompiling(compilationBaselineTime));
+        assertTrue(solverService.isCompiling(sourceId, compilationBaselineTime).equals(""));
 
 
         // Test remove
@@ -155,7 +157,7 @@ public class ModelTest {
         testSet = getSet(model, setName);
         assertFalse(testSet.getElements().contains(addValue));
 
-        assertTrue(model.isCompiling(compilationBaselineTime));
+        assertTrue(solverService.isCompiling(sourceId, compilationBaselineTime).equals(""));
 
     }
     
@@ -172,7 +174,7 @@ public class ModelTest {
         param = getParameter(model, parameter);
         Assertions.assertEquals( param.getValue(), valueToSet);
 
-        assertTrue(model.isCompiling(compilationBaselineTime));
+        assertTrue(solverService.isCompiling(sourceId, compilationBaselineTime).equals(""));
 
     }
 
@@ -188,7 +190,7 @@ public class ModelTest {
         mySet = getSet(model, set);
         Assertions.assertArrayEquals( mySet.getElements().toArray(), valueToSet);
 
-        assertTrue(model.isCompiling(compilationBaselineTime));
+        assertTrue(solverService.isCompiling(sourceId, compilationBaselineTime).equals(""));
 
     }
     
@@ -201,11 +203,11 @@ public class ModelTest {
         assertNotNull(mf);
         model.toggleFunctionality(mf, false);
 
-        assertTrue(model.isCompiling(compilationBaselineTime));
+        assertTrue(solverService.isCompiling(sourceId, compilationBaselineTime).equals(""));
 
         model.toggleFunctionality(mf, true);
         assertNotNull(getConstraint(model, testConstraint));
-        assertTrue(model.isCompiling(compilationBaselineTime));
+        assertTrue(solverService.isCompiling(sourceId, compilationBaselineTime).equals(""));
     }
 
     //TODO: Toggling Preferences doesnt work perfectly, but somewhat works 
@@ -220,24 +222,24 @@ public class ModelTest {
         assertNotNull(mf);
         model.toggleFunctionality(mf, false);
 
-        assertTrue(model.isCompiling(compilationBaselineTime));
+        assertTrue(solverService.isCompiling(sourceId, compilationBaselineTime).equals(""));
 
         model.toggleFunctionality(mf, true);
         assertNotNull(getPreference(model, testPreference));
-        assertTrue(model.isCompiling(compilationBaselineTime));
+        assertTrue(solverService.isCompiling(sourceId, compilationBaselineTime).equals(""));
     }
 
 
     @Test
     public void testBasicCompilation() throws Exception{
-        assertFalse(model.isCompiling(0.00000000001f));
-        assertTrue(model.isCompiling(compilationBaselineTime));
+        assertFalse(solverService.isCompiling(sourceId, 0).equals("Compilation Error"));
+        assertTrue(solverService.isCompiling(sourceId, compilationBaselineTime).equals(""));
         try{
         String gibbrish = "gfsgfd;";
         InputStream original = modelRepository.downloadDocument(sourceId);
         InputStream broken = new ByteArrayInputStream(new String(new String(original.readAllBytes()) + gibbrish).getBytes());
         modelRepository.uploadDocument(sourceId, broken);
-        assertFalse(model.isCompiling(compilationBaselineTime));
+        assertFalse(solverService.isCompiling(sourceId, compilationBaselineTime).equals("Compilation Error"));
         original.close();
         broken.close();
         } catch (Exception e){
@@ -258,7 +260,7 @@ public class ModelTest {
         try{
         
         m = modelFactory.getModel(this.sourceSolveId);
-        Solution sol = m.solve(15,"SOLUTION", "");
+        Solution sol = solverService.solve(sourceSolveId, 15, "");
         
         assertNotNull(sol);
         Set<String> stringVariables = m.getVariables().stream()
@@ -286,7 +288,7 @@ public class ModelTest {
         //approximately 1-2 seconds reading time
         //approx. 1 seconds presolve time
         //aprox. 137 seconds solve for optimal
-        Solution sol = m.solve(6,"SOLUTION", "");
+        Solution sol = solverService.solve(sourceSolveId, 6, "");
         
         assertNotNull(sol);
         Set<String> stringVariables = m.getVariables().stream()
@@ -310,7 +312,7 @@ public class ModelTest {
         m.setInput(m.getParameter("absoluteMinimalSpacing"),"0");
 
         //reading takes approx 8 sec
-        Solution sol = m.solve(1,"SOLUTION","");
+        Solution sol = solverService.solve(sourceSolveId, 1,"");
         
         assertNotNull(sol);
         Set<String> stringVariables = m.getVariables().stream()
@@ -375,7 +377,7 @@ public class ModelTest {
         assertTrue(model.getSet(id) != null || model.getConstraint(id) != null || model.getParameter(id) != null || model.getPreference(id) != null || model.getVariable(id) != null);
     }
 
-    //TODO:The parsing of preferences must be tested further!
+    // //TODO:The parsing of preferences must be tested further!
 
 
     @AfterAll

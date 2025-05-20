@@ -8,7 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import Model.ModelInput.StructureBlock;
-import SolverService.GrpcSolverService;
+// import SolverService.GrpcSolverService;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import parser.*;
@@ -131,60 +131,60 @@ public class ModelProxyGRPC extends ModelInterface {
         localModel.toggleFunctionality(mf, turnOn);
     }
 
-    //TODO: convert isCompiling and solve to asynchronous calls.
-    //TODO: much refactoring and optimisation needed.
-    @Override
-    public boolean isCompiling(float timeout) throws Exception {
-        String serviceBHost = this.solverHost;
-        int serviceBPort = this.solverPort;
+    // //TODO: convert isCompiling and solve to asynchronous calls.
+    // //TODO: much refactoring and optimisation needed.
+    // @Override
+    // public boolean isCompiling(float timeout) throws Exception {
+    //     String serviceBHost = this.solverHost;
+    //     int serviceBPort = this.solverPort;
 
-        ManagedChannel channel = NettyChannelBuilder.forAddress(serviceBHost, serviceBPort)
-                .usePlaintext()
-                .build();
+    //     ManagedChannel channel = NettyChannelBuilder.forAddress(serviceBHost, serviceBPort)
+    //             .usePlaintext()
+    //             .build();
 
-        SolverServiceGrpc.SolverServiceBlockingStub stub = SolverServiceGrpc.newBlockingStub(channel);
+    //     SolverServiceGrpc.SolverServiceBlockingStub stub = SolverServiceGrpc.newBlockingStub(channel);
 
-        ExecutionRequest request = ExecutionRequest.newBuilder()
-                .setId(id)
-                //.setCode(this.originalSource)
-                .setTimeout(timeout)
-                .build();
+    //     ExecutionRequest request = ExecutionRequest.newBuilder()
+    //             .setId(id)
+    //             //.setCode(this.originalSource)
+    //             .setTimeout(timeout)
+    //             .build();
 
-        localModel.commentOutToggledFunctionalities();
-        CompilationResult response = stub.isCompiling(request);
-        localModel.restoreToggledFunctionalities();
+    //     localModel.commentOutToggledFunctionalities();
+    //     CompilationResult response = stub.isCompiling(request);
+    //     localModel.restoreToggledFunctionalities();
 
-        channel.shutdown().awaitTermination(5, TimeUnit.SECONDS);
-        return response.getResult();
-    }
+    //     channel.shutdown().awaitTermination(5, TimeUnit.SECONDS);
+    //     return response.getResult();
+    // }
     
-    public Solution solve(float timeout, String solutionFileSufix, String SolverScript) throws Exception {
-        String serviceBHost = this.solverHost;
-        int serviceBPort = this.solverPort;
+    // public Solution solve(float timeout, String solutionFileSufix, String SolverScript) throws Exception {
+    //     String serviceBHost = this.solverHost;
+    //     int serviceBPort = this.solverPort;
 
-        ManagedChannel channel = NettyChannelBuilder.forAddress(serviceBHost, serviceBPort)
-                .usePlaintext()
-                .build();
+    //     ManagedChannel channel = NettyChannelBuilder.forAddress(serviceBHost, serviceBPort)
+    //             .usePlaintext()
+    //             .build();
 
-        SolverServiceGrpc.SolverServiceBlockingStub stub = SolverServiceGrpc.newBlockingStub(channel);
+    //     SolverServiceGrpc.SolverServiceBlockingStub stub = SolverServiceGrpc.newBlockingStub(channel);
 
-        ExecutionRequest request = ExecutionRequest.newBuilder()
-                .setId(id)
-                .setTimeout(timeout)
-                .build();
+    //     ExecutionRequest request = ExecutionRequest.newBuilder()
+    //             .setId(id)
+    //             .setTimeout(timeout)
+    //             .build();
 
-        localModel.commentOutToggledFunctionalities();                
-        GRPC.Solution response = stub.solve(request);
-        localModel.restoreToggledFunctionalities();
-        modelRepository.downloadDocument(response.getSolution());
-        if(response.getSolution().equals("null"))
-            return null;
-        Path pathToSolution = modelRepository.getLocalyCachedFile(response.getSolution());
-        Solution sol = new Solution(pathToSolution.toString());
+    //     localModel.commentOutToggledFunctionalities();                
+    //     GRPC.Solution response = stub.solve(request);
+    //     localModel.restoreToggledFunctionalities();
+    //     modelRepository.downloadDocument(response.getSolution());
+    //     if(response.getSolution().equals("null"))
+    //         return null;
+    //     Path pathToSolution = modelRepository.getLocalyCachedFile(response.getSolution());
+    //     Solution sol = new Solution(pathToSolution.toString());
 
-        channel.shutdown().awaitTermination(5, TimeUnit.SECONDS);
-        return sol;
-    }
+    //     channel.shutdown().awaitTermination(5, TimeUnit.SECONDS);
+    //     return sol;
+    // }
 
     public ModelSet getSet(String identifier) {
         return localModel.getSet(identifier);
@@ -255,34 +255,42 @@ public class ModelProxyGRPC extends ModelInterface {
         localModel.setModelComponent(mc);
     }
 
+    // @Override
+    // public CompletableFuture<Solution> solveAsync(float timeout, String suffix, String script) throws Exception {
+    //     // TODO Auto-generated method stub
+    //     throw new UnsupportedOperationException("Unimplemented method 'solveAsync'");
+    // }
+
+    // @Override
+    // public String poll() throws Exception {
+    //     // TODO Auto-generated method stub
+    //     throw new UnsupportedOperationException("Unimplemented method 'poll'");
+    // }
+
+    // @Override
+    // public void pause() throws Exception {
+    //     // TODO Auto-generated method stub
+    //     throw new UnsupportedOperationException("Unimplemented method 'pause'");
+    // }
+
+    // @Override
+    // public CompletableFuture<Solution> continueProcess(int extraTimeout) throws Exception {
+    //     // TODO Auto-generated method stub
+    //     throw new UnsupportedOperationException("Unimplemented method 'continueProcess'");
+    // }
+
+    // @Override
+    // public void finish() throws Exception {
+    //     // TODO Auto-generated method stub
+    //     throw new UnsupportedOperationException("Unimplemented method 'finish'");
+    // }
     @Override
-    public CompletableFuture<Solution> solveAsync(float timeout, String suffix, String script) throws Exception {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'solveAsync'");
+    public void commentOutToggledFunctionalities() throws Exception {
+        localModel.commentOutToggledFunctionalities();
     }
 
-    @Override
-    public String poll() throws Exception {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'poll'");
+    @Override 
+    public void restoreToggledFunctionalities() throws Exception {
+        localModel.restoreToggledFunctionalities();
     }
-
-    @Override
-    public void pause() throws Exception {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'pause'");
-    }
-
-    @Override
-    public CompletableFuture<Solution> continueProcess(int extraTimeout) throws Exception {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'continueProcess'");
-    }
-
-    @Override
-    public void finish() throws Exception {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'finish'");
-    }
-
 }

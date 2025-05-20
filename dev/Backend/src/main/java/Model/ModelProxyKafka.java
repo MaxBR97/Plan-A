@@ -143,49 +143,49 @@ public class ModelProxyKafka extends ModelInterface {
         localModel.toggleFunctionality(mf, turnOn);
     }
 
-    @Override
-    public boolean isCompiling(float timeout) throws Exception {
-        localModel.commentOutToggledFunctionalities();
+    // @Override
+    // public boolean isCompiling(float timeout) throws Exception {
+    //     localModel.commentOutToggledFunctionalities();
 
-        KafkaCompileRequestDTO requestDTO = new KafkaCompileRequestDTO(id, timeout);
-        ProducerRecord<String, KafkaCompileRequestDTO> record = new ProducerRecord<>("compile_request", requestDTO);
-        // record.headers().add(KafkaHeaders.REPLY_TOPIC, "compile_response".getBytes(StandardCharsets.UTF_8));
-        RequestReplyFuture<String, KafkaCompileRequestDTO, KafkaCompileResponseDTO> future = compileTemplate.sendAndReceive(record);
+    //     KafkaCompileRequestDTO requestDTO = new KafkaCompileRequestDTO(id, timeout);
+    //     ProducerRecord<String, KafkaCompileRequestDTO> record = new ProducerRecord<>("compile_request", requestDTO);
+    //     // record.headers().add(KafkaHeaders.REPLY_TOPIC, "compile_response".getBytes(StandardCharsets.UTF_8));
+    //     RequestReplyFuture<String, KafkaCompileRequestDTO, KafkaCompileResponseDTO> future = compileTemplate.sendAndReceive(record);
 
-        ConsumerRecord<String, KafkaCompileResponseDTO> response = future.get((long) timeout, TimeUnit.SECONDS);
+    //     ConsumerRecord<String, KafkaCompileResponseDTO> response = future.get((long) timeout, TimeUnit.SECONDS);
 
-        localModel.restoreToggledFunctionalities();
+    //     localModel.restoreToggledFunctionalities();
 
-        return response.value().result();
-    }
+    //     return response.value().result();
+    // }
 
 
-    //TODO: If using a remote worker, the local service should not access the model document
-    // meanning, should not use: modelRepository.downloadDocument(...).
-    @Override
-    public Solution solve(float timeout, String solutionFileSuffix, String solverScript) throws Exception {
+    // //TODO: If using a remote worker, the local service should not access the model document
+    // // meanning, should not use: modelRepository.downloadDocument(...).
+    // @Override
+    // public Solution solve(float timeout, String solutionFileSuffix, String solverScript) throws Exception {
         
-        localModel.commentOutToggledFunctionalities();
+    //     localModel.commentOutToggledFunctionalities();
 
-        KafkaSolveRequestDTO requestDTO = new KafkaSolveRequestDTO(id, timeout, solverScript);
-        ProducerRecord<String, KafkaSolveRequestDTO> record = new ProducerRecord<>("solve_request", requestDTO);
-        // record.headers().add(KafkaHeaders.REPLY_TOPIC, "solve_response".getBytes(StandardCharsets.UTF_8));
-        RequestReplyFuture<String, KafkaSolveRequestDTO, KafkaSolveResponseDTO> future = solveTemplate.sendAndReceive(record);
-        System.out.println("Reply Received456" + future.get((long) timeout, TimeUnit.SECONDS).toString());
-        ConsumerRecord<String, KafkaSolveResponseDTO> response = future.get((long) timeout, TimeUnit.SECONDS);
-        System.out.println("Reply Received456");
-        localModel.restoreToggledFunctionalities();
+    //     KafkaSolveRequestDTO requestDTO = new KafkaSolveRequestDTO(id, timeout, solverScript);
+    //     ProducerRecord<String, KafkaSolveRequestDTO> record = new ProducerRecord<>("solve_request", requestDTO);
+    //     // record.headers().add(KafkaHeaders.REPLY_TOPIC, "solve_response".getBytes(StandardCharsets.UTF_8));
+    //     RequestReplyFuture<String, KafkaSolveRequestDTO, KafkaSolveResponseDTO> future = solveTemplate.sendAndReceive(record);
+    //     System.out.println("Reply Received456" + future.get((long) timeout, TimeUnit.SECONDS).toString());
+    //     ConsumerRecord<String, KafkaSolveResponseDTO> response = future.get((long) timeout, TimeUnit.SECONDS);
+    //     System.out.println("Reply Received456");
+    //     localModel.restoreToggledFunctionalities();
 
-        String solutionName = response.value().solution();
-        modelRepository.downloadDocument(solutionName);
+    //     String solutionName = response.value().solution();
+    //     modelRepository.downloadDocument(solutionName);
 
-        if ("null".equals(solutionName)) {
-            return null;
-        }
+    //     if ("null".equals(solutionName)) {
+    //         return null;
+    //     }
 
-        Path pathToSolution = modelRepository.getLocalyCachedFile(solutionName);
-        return new Solution(pathToSolution.toString());
-    }
+    //     Path pathToSolution = modelRepository.getLocalyCachedFile(solutionName);
+    //     return new Solution(pathToSolution.toString());
+    // }
     
     
 
@@ -258,34 +258,43 @@ public class ModelProxyKafka extends ModelInterface {
         localModel.setModelComponent(mc);
     }
 
-    @Override
-    public CompletableFuture<Solution> solveAsync(float timeout, String suffix, String script) throws Exception {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'solveAsync'");
-    }
+    // @Override
+    // public CompletableFuture<Solution> solveAsync(float timeout, String suffix, String script) throws Exception {
+    //     // TODO Auto-generated method stub
+    //     throw new UnsupportedOperationException("Unimplemented method 'solveAsync'");
+    // }
 
-    @Override
-    public String poll() throws Exception {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'poll'");
-    }
+    // @Override
+    // public String poll() throws Exception {
+    //     // TODO Auto-generated method stub
+    //     throw new UnsupportedOperationException("Unimplemented method 'poll'");
+    // }
 
-    @Override
-    public void pause() throws Exception {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'pause'");
-    }
+    // @Override
+    // public void pause() throws Exception {
+    //     // TODO Auto-generated method stub
+    //     throw new UnsupportedOperationException("Unimplemented method 'pause'");
+    // }
 
-    @Override
-    public CompletableFuture<Solution> continueProcess(int extraTimeout) throws Exception {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'continueProcess'");
-    }
+    // @Override
+    // public CompletableFuture<Solution> continueProcess(int extraTimeout) throws Exception {
+    //     // TODO Auto-generated method stub
+    //     throw new UnsupportedOperationException("Unimplemented method 'continueProcess'");
+    // }
 
-    @Override
-    public void finish() throws Exception {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'finish'");
-    }
+    // @Override
+    // public void finish() throws Exception {
+    //     // TODO Auto-generated method stub
+    //     throw new UnsupportedOperationException("Unimplemented method 'finish'");
+    // }
     
+    @Override
+    public void commentOutToggledFunctionalities() throws Exception {
+        localModel.commentOutToggledFunctionalities();
+    }
+
+    @Override 
+    public void restoreToggledFunctionalities() throws Exception {
+        localModel.restoreToggledFunctionalities();
+    }
 }

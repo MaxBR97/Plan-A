@@ -41,15 +41,21 @@ import DTO.Records.Requests.Commands.SolveCommandDTO;
 import DTO.Records.Requests.Responses.CreateImageResponseDTO;
 import Model.ModelInterface;
 import jakarta.validation.Valid;
+import SolverService.SolverService;
+import SolverService.Solver;
+import SolverService.StreamSolver;
 
+import org.springframework.context.annotation.Profile;
 
 @RestController
 @RequestMapping("/")
+@Profile("streamSolver")
 public class StreamController {
 
     private final ImageController controller;
     private final SimpMessagingTemplate messagingTemplate;
-    private ModelInterface model;
+    @Autowired
+    private StreamSolver model;
     private CompletableFuture<SolutionDTO> futureSolution;
 
     @Autowired
@@ -58,23 +64,12 @@ public class StreamController {
         this.messagingTemplate = messagingTemplate;
     }
 
-    /**
-     * Start a new SCIP solving process
-     */
+
     @PostMapping("/solve/start")
     public ResponseEntity<SolutionDTO> startSolve(@RequestBody SolveCommandDTO request) throws Exception {
-        futureSolution = controller.solveAsync(request,false);
-        model = controller.getModelCurrentlySolving();
+        model.setContinue(false);
+        futureSolution = controller.solveAsync(request);
         return ResponseEntity.ok(futureSolution.get());
-    }
-
-    /**
-     * Pause the solving process
-     */
-    @PostMapping("/solve/pause")
-    public ResponseEntity<String> pauseSolve() throws Exception {
-        model.pause();
-        return ResponseEntity.ok("pause");
     }
 
     /**
@@ -82,10 +77,11 @@ public class StreamController {
      */
     @PostMapping("/solve/continue")
     public ResponseEntity<SolutionDTO> continueSolve(@RequestBody SolveCommandDTO request) throws Exception {
+        model.setContinue(true);
         if(request != null && request.timeout() > 0)
-            futureSolution = controller.solveAsync(request,true);
+            futureSolution = controller.solveAsync(request);
         else
-            futureSolution = controller.solveAsync(request, true);
+            futureSolution = controller.solveAsync(request);
         return ResponseEntity.ok(futureSolution.get());
     }
 
@@ -94,28 +90,8 @@ public class StreamController {
      */
     @PostMapping("/solve/poll")
     public ResponseEntity<String> pollLog() throws Exception{
-        String ans = model.poll();
+        String ans = model.pollLog();
         return ResponseEntity.ok(ans);
-    }
-
-    /**
-     
-     */
-    @PostMapping("/solve/pollSolution")
-    public ResponseEntity<SolutionDTO> pollSolution() throws Exception {
-        if(futureSolution.isDone())
-            return ResponseEntity.ok(futureSolution.get());
-        else   
-            return ResponseEntity.ok(null);
-    }
-
-    /**
-     * Finish the solving process
-     */
-    @PostMapping("/solve/finish")
-    public ResponseEntity<String> finishSolve() throws Exception {
-        model.finish();
-        return ResponseEntity.ok("finish");
     }
 
     // @Scheduled(fixedRate = 1000)

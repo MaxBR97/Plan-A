@@ -15,9 +15,11 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 import Model.Model;
 import Model.ModelSet;
-import SolverService.GrpcSolverService;
-import SolverService.SolverServiceApplication;
+// import SolverService.GrpcSolverService;
+import org.springframework.cloud.openfeign.EnableFeignClients;
+
 import parser.*;
+
 
 //TODO: Make an order in maven pom file, and make a proper pom hierarchy.
 
@@ -25,6 +27,7 @@ import parser.*;
 @EnableJpaRepositories(basePackages = {"DataAccess", "Model","Image", "Unit","Image.Modules"})
 @ComponentScan(basePackages = {"groupId", "DataAccess", "Model", "Image", "Unit","Image.Modules","SolverService"})
 @EntityScan(basePackages = {"DataAccess", "Model", "Unit", "groupId", "Image","Image.Modules"})
+@EnableFeignClients(basePackages = "SolverService")
 
 public class Main {
     public static void main(String[] args) {

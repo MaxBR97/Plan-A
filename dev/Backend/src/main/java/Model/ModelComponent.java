@@ -68,6 +68,10 @@ public ModelComponent(String imageId, String identifier, List<ModelSet> setDep, 
         return this.id.getIdentifier();
     }
 
+    public ModelComponentId getModelComponentId() {
+        return this.id;
+    }
+
     public ModelSet findSetDependency(String identifier){
         for( ModelSet s : setDependencies){
             if(s.id.getIdentifier().equals(identifier))
