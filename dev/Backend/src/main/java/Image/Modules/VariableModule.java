@@ -36,7 +36,6 @@ public class VariableModule extends Module {
         @JoinColumn(name = "module_name", referencedColumnName = "name", nullable = false)
     })
     @MapKey(name = "id.identifier")
-    //@Transient
     private Map<String, ModelVariable> variables;
 
 
@@ -44,17 +43,15 @@ public class VariableModule extends Module {
         return variables;
     }
 
-    public VariableModule(Image image, VariableModuleDTO dto) throws Exception {
-        super(image, getVariableModuleName(), "", dto.inputSets(), dto.inputParams());
+    public VariableModule(Image image, VariableModuleDTO dto) throws Exception{
+        super(image,VARIABLE_MODULE_NAME,"", dto.inputSets(), dto.inputParams());
         this.variables = new HashMap<>();
-        for (VariableDTO varDTO : dto.variablesOfInterest()) {
+        for (VariableDTO varDTO : dto.variablesOfInterest()){
             ModelVariable var = image.getModel().getVariable(varDTO.identifier());
-            this.variables.put(varDTO.identifier(), var);
+            this.variables.put(varDTO.identifier(),var);
             var.update(varDTO);
-            var.setModuleName(this.getName());
-            if (varDTO.boundSet() != null) {
+            if(varDTO.boundSet() != null)
                 var.setBoundSet(image.getModel().getSet(varDTO.boundSet()));
-            }
         }
     }
 
@@ -73,11 +70,26 @@ public class VariableModule extends Module {
         this.variables = new HashMap<>(variables);
     }
 
+    // @Transactional
+    // public void override(Map<String, ModelVariable> variables, Collection<ModelSet> inputSets, Collection<ModelParameter> inputParams) {
+    //     this.variables.clear();
+    //     this.inputSets.clear();
+    //     this.inputParams.clear();
+    //     this.variables.putAll(variables);
+    //     this.inputSets.addAll(inputSets);
+    //     this.inputParams.addAll(inputParams);
+    // }
+
     public static String getVariableModuleName() {
         return VARIABLE_MODULE_NAME;
     }
 
-    
+    @Transactional
+    public void clear() {
+        variables.clear();
+        inputSets.clear();
+        inputParams.clear();
+    }
 
     public Set<String> getIdentifiers() {
         return variables.keySet();
@@ -137,33 +149,14 @@ public class VariableModule extends Module {
 
         // Update input sets
         inputSets.clear();
-        for (SetDefinitionDTO setDTO : dto.inputSets()) {
+        for (var setDTO : dto.inputSets()) {
             addSet(image.getModel().getSet(setDTO.name()));
-            //this.inputSets.add(image.getModel().getSet(setDTO.name()));
         }
 
         // Update input parameters
         inputParams.clear();
-        for (ParameterDefinitionDTO paramDTO : dto.inputParams()) {
+        for (var paramDTO : dto.inputParams()) {
             addParam(image.getModel().getParameter(paramDTO.name()));
-            // this.inputParams.add(image.getModel().getParameter(paramDTO.name()));
         }
     }
-    
-    // @Transactional
-    // public void override(Map<String, ModelVariable> variables, Collection<ModelSet> inputSets, Collection<ModelParameter> inputParams) {
-    //     this.variables.clear();
-    //     this.inputSets.clear();
-    //     this.inputParams.clear();
-    //     this.variables.putAll(variables);
-    //     this.inputSets.addAll(inputSets);
-    //     this.inputParams.addAll(inputParams);
-    // }
-
-    // @Transactional
-    // public void clear() {
-    //     variables.clear();
-    //     inputSets.clear();
-    //     inputParams.clear();
-    // }
 }

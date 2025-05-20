@@ -59,7 +59,7 @@ public class ImageController {
     private ModelInterface currentlySolving;
 
     @Autowired
-    public ImageController(ImageRepository imageRepository, ModelFactory modelFactory, EntityManager em, StreamSolver solverService) {
+    public ImageController(ImageRepository imageRepository, ModelFactory modelFactory, EntityManager em, Solver solverService) {
         this.imageRepository = imageRepository;
         this.modelFactory = modelFactory;
         this.entityManager = em;

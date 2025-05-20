@@ -53,5 +53,5 @@ param distances[<src,x1,y1,dest,x2,y2> in Cities * Cities] := sqrt((x1-x2)**2 + 
 
 minimize distance:    
     sum <step,src,x1,y1,dest,x2,y2> in Steps * Cities * Cities | src != dest: 
-        Edges[step,src,dest] * distances[src,x1,y1,dest,x2,y2];
+        Edges[step,src,dest] * distances[src,x1,y1,dest,x2,y2]
     - ((citiesToVisit+1)*10)**2;

@@ -24,7 +24,7 @@ import SolverService.StreamSolver;
 import groupId.Main;
 
 @SpringBootTest(classes = Main.class)
-@ActiveProfiles({"H2mem","securityAndGateway"})
+@ActiveProfiles({"H2mem","securityAndGateway","streamSolver"})
 @TestMethodOrder(MethodOrderer.Alphanumeric.class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @TestPropertySource(properties = {

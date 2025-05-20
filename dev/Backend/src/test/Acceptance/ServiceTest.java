@@ -56,7 +56,7 @@ import groupId.Main;
 import groupId.Service;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,classes = Main.class)
-@ActiveProfiles({"H2mem", "securityAndGateway"})
+@ActiveProfiles({"H2mem", "securityAndGateway", "streamSolver"})
 @TestPropertySource(properties = {
     "app.file.storage-dir=../Test/Models"
 })

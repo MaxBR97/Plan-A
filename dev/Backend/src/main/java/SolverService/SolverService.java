@@ -16,18 +16,20 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.springframework.context.annotation.Profile;
 
 @Service
+@Profile("!kafka")
 public class SolverService implements StreamSolver {
 
     private ScipProcess scipProcess;
     private final String SOLUTION_FILE_SUFFIX = "SOLUTION";
     private String fileId;
-    @Autowired
     private ModelRepository modelRepository;
     private boolean continueSolve;
 
-    public SolverService() {
+    public SolverService(ModelRepository modelRepository) {
+        this.modelRepository = modelRepository;
         this.continueSolve = false;
     }
 

@@ -8,9 +8,11 @@ set Cities := {
     "Tiberias", "Nazareth", "Ashdod", "Ashkelon", "Netanya",
     "Herzliya", "Ramat Gan", "Petah Tikva", "Rishon LeZion", "Rehovot",
     "Bat Yam", "Holon", "Raanana", "Kfar Saba", "Modiin",
-    "Acre",
-    "Nahariya", "Kiryat Shmona", "Safed", "Dimona",
-    "Arad", "Mitzpe Ramon", "Sderot", "Yavne", "Lod"
+    # "Acre",
+     "Nahariya", "Kiryat Shmona", "Safed", "Dimona",
+    #  "Arad",
+    #  "Mitzpe Ramon", "Sderot", "Yavne",
+     "Lod"
 };
 
 # Define x coordinates for each city
@@ -35,16 +37,16 @@ param x[Cities] :=
     <"Raanana">       9   ,
     <"Kfar Saba">     11  ,
     <"Modiin">        15  ,
-    <"Acre">          3   
-    ,
+    # <"Acre">          3   
+    # ,
     <"Nahariya">      2   ,
     <"Kiryat Shmona"> 45  ,
     <"Safed">         35  ,
     <"Dimona">        20  ,
-    <"Arad">          25  ,
-    <"Mitzpe Ramon">  15  ,
-    <"Sderot">        -2  ,
-    <"Yavne">         4   ,
+    #  <"Arad">          25  ,
+    # <"Mitzpe Ramon">  15  ,
+    # <"Sderot">        -2  ,
+    # <"Yavne">         4   ,
     <"Lod">           8   ;
 
 # Define y coordinates for each city
@@ -69,16 +71,16 @@ param y[Cities] :=
     <"Raanana">       30    ,
     <"Kfar Saba">     32    ,
     <"Modiin">        15    ,
-    <"Acre">          98    
-    ,
+    # <"Acre">          98    
+    # ,
     <"Nahariya">      105   ,
     <"Kiryat Shmona"> 120   ,
     <"Safed">         100   ,
     <"Dimona">        -35   ,
-    <"Arad">          -30   ,
-    <"Mitzpe Ramon">  -70   ,
-    <"Sderot">        -15   ,
-    <"Yavne">         2     ,
+    #  <"Arad">          -30   ,
+    # <"Mitzpe Ramon">  -70   ,
+    # <"Sderot">        -15   ,
+    # <"Yavne">         2     ,
     <"Lod">           12    ;
 
 # Calculate Euclidean distances between cities
@@ -94,7 +96,7 @@ subto degree: forall <i> in Cities:
     (sum <j> in Cities | i != j: edge[j,i]) == 1;
 
 # # Subtour elimination constraints using Miller-Tucker-Zemlin formulation
-var u[Cities] real >= 0;  # Auxiliary variables for subtour elimination
+var u[Cities] integer >= 0;  # Auxiliary variables for subtour elimination
 param n := card(Cities);
 
 subto subtour: forall <i,j> in Cities * Cities with i != j and i != ord(Cities, 1,1) and j != ord(Cities, 1,1):

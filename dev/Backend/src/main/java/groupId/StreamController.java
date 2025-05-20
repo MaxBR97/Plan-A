@@ -45,8 +45,11 @@ import SolverService.SolverService;
 import SolverService.Solver;
 import SolverService.StreamSolver;
 
+import org.springframework.context.annotation.Profile;
+
 @RestController
 @RequestMapping("/")
+@Profile("streamSolver")
 public class StreamController {
 
     private final ImageController controller;
