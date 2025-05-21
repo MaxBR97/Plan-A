@@ -120,9 +120,8 @@ public class SolverTest {
         String filePath = "HardOptimality";
         
         // Start solving
-        CompletableFuture<Solution> futureSolution = solverService.solveAsync(filePath, 2, "");
-        Thread.sleep(1000); // Let it solve for 1 second
-        Solution firstSolution = futureSolution.get(3, TimeUnit.SECONDS).parseSolution();
+        CompletableFuture<Solution> futureSolution = solverService.solveAsync(filePath, 3, "");
+        Solution firstSolution = futureSolution.get(4, TimeUnit.SECONDS).parseSolution();
         double firstObjectiveValue = firstSolution.getObjectiveValue();
         
         // Continue solving
