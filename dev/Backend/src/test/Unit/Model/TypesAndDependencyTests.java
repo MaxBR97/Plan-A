@@ -6,7 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
     import static org.junit.jupiter.api.Assertions.assertThrows;
     import static org.junit.jupiter.api.Assertions.assertTrue;
     import static org.junit.jupiter.api.Assertions.fail;
-
+    import java.util.HashSet;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -51,15 +51,6 @@ import groupId.Main;
     
 
 @SpringBootTest(classes = Main.class)
-//@ComponentScan(basePackages = {"Model", "DataAccess","DataAccess.LocalStorage", "Image.Modules"})
-//@ExtendWith(SpringExtension.class)
-//@ActiveProfiles("test") 
-//@Transactional
-// @TestPropertySource(properties = {
-//     "storage.type=local",
-//     "spring.jpa.hibernate.ddl-auto=create-drop",
-//     "spring.jpa.show-sql=true"
-// })
 @TestMethodOrder(MethodOrderer.Alphanumeric.class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @ActiveProfiles({"inMemory-local","securityAndGateway"}) 
@@ -456,6 +447,8 @@ public class TypesAndDependencyTests {
 
     //TODO: tests that check types, may be converted to parameterized tests.
 
+
+
     @Test
     public void typeForTest7(){
         ModelInput s = model.getParameter("forTest7");
@@ -506,6 +499,13 @@ public class TypesAndDependencyTests {
     }
 
     @Test
+    public void typeForTest1(){
+        ModelInput s = model.getSet("forTest1");
+        ModelType expectedType =  new Tuple(new ModelPrimitives[]{ModelPrimitives.TEXT,  ModelPrimitives.INT,ModelPrimitives.INT,ModelPrimitives.INT,ModelPrimitives.INT});
+        assertTrue( s.isCompatible(expectedType));
+    }
+
+    @Test
     public void typeForTest15(){
         ModelInput s = model.getSet("forTest15");
         ModelType expectedType = new Tuple(new ModelPrimitives[]{ModelPrimitives.TEXT,  ModelPrimitives.FLOAT});
@@ -532,6 +532,15 @@ public class TypesAndDependencyTests {
         ModelInput s = model.getSet("forTest18");
         ModelType expectedType = ModelPrimitives.FLOAT;
         assertTrue( s.isCompatible(expectedType), "type: "+ s.getType().toString() +" expected: " + expectedType.toString());
+    }
+
+    //TODO: set forTest19 := {<x,y> in Times * Soldiers: <huehott(x+y)>}; this works
+    // set forTest19 := {<x,y> in Times * Soldiers: huehott(x+y)}; but this doesn't - need to fix and test exactly that.
+    @Test
+    public void typeForTest19(){
+        ModelInput s = model.getSet("forTest19");
+        ModelType expectedType =  ModelPrimitives.TEXT;
+        assertTrue( s.isCompatible(expectedType));
     }
 
     @Test

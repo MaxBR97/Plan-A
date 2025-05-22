@@ -24,19 +24,24 @@ public class ModelVariable extends ModelOutput {
         @JoinColumn(name = "bound_set_name", referencedColumnName = "name")
     })
     protected ModelSet boundSet;
+
+    @Column(name = "is_binary", nullable = false)
+    protected boolean isBinary;
     
-    public ModelVariable(String imageId, String identifier) {
+    public ModelVariable(String imageId, String identifier, boolean isBinary) {
         super(imageId, identifier);
         this.isComplex = false;
+        this.isBinary = isBinary;
     }
 
     protected ModelVariable(){
         super();
     }
 
-    public ModelVariable(String imageId, String ident, List<ModelSet> dep, List<ModelParameter> paramDep,List<ModelFunction> basicFuncs, ModelType type, boolean isComplex) {
+    public ModelVariable(String imageId, String ident, List<ModelSet> dep, List<ModelParameter> paramDep,List<ModelFunction> basicFuncs, ModelType type, boolean isComplex, boolean isBinary) {
         super(imageId, ident,dep,paramDep,basicFuncs,type);
         this.isComplex = isComplex;
+        this.isBinary = isBinary;
     }
 
     @Transactional
@@ -58,6 +63,10 @@ public class ModelVariable extends ModelOutput {
 
     public ModelSet getBoundSet(){
         return this.boundSet;
+    }
+
+    public boolean isBinary(){
+        return this.isBinary;
     }
 
 }

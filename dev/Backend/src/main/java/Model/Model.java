@@ -568,7 +568,7 @@ public class Model extends ModelInterface {
                 isComplex = ((FormulationParser.SqRefCsvContext)(ctx.sqRef())).csv() == null ? false : true;
             }
             if(!variables.containsKey(varName))
-                variables.put(varName, new ModelVariable(id,varName, visitor.getBasicSets(), visitor.getBasicParams(),visitor.getBasicFuncs(),visitor.type,isComplex));
+                variables.put(varName, new ModelVariable(id,varName, visitor.getBasicSets(), visitor.getBasicParams(),visitor.getBasicFuncs(),visitor.type,isComplex,ctx.VAR_TYPE() == null ? false : ctx.VAR_TYPE().getText().equals("binary")));
             return super.visitVariable(ctx);
         }
 

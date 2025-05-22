@@ -14,5 +14,6 @@ public record VariableDTO(
     @Valid 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     DependenciesDTO dep,
-    String boundSet
+    String boundSet,
+    boolean isBinary
 ) {}

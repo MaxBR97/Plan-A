@@ -38,11 +38,19 @@ set Times := {0 .. planTimeRange};
 set Shifts := {<station, stationInterval, requiredPeople, time> in Stations * Times | time mod stationInterval == 0 and time + stationInterval <= planTimeRange};
 set SoldiersToShifts := Soldiers * proj(Shifts,<1,4>);
 set FormalTimes := {<day,hour,minute> in  Emdot * Soldiers * Times | myBool(minute,conditioner)  };
-
+set forTest19 := {<x,y> in Times * Soldiers: <huehott(x+y)>};
 
 var edge[CxS] binary;
 var couples[CxSxS] binary;
 var varForTest1[CxS *{"A","a"} * S * {1 .. 5}];
+
+param sudoku_size := 9;
+set I := {1 .. sudoku_size};  # rows
+set J := {1 .. sudoku_size};  # columns
+set N := {1 .. sudoku_size};  # numbers
+
+# Decision variables: x[i,j,n] = 1 if number n is placed at position (i,j)
+var board[I*J*N] binary;
 
 param paramForTest1 := card(Zmanim);
 subto condForTest1:

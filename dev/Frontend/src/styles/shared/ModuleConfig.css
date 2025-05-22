@@ -1,0 +1,122 @@
+.page-title {
+    color: #2c3e50;
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
+.page-description {
+    text-align: center;
+    color: #666;
+    max-width: 800px;
+    margin: 0 auto 2rem;
+    line-height: 1.6;
+    font-size: 1.1rem;
+}
+
+.panel-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.panel-header h2 {
+    margin: 0;
+    color: #2c3e50;
+}
+
+.info-icon {
+    cursor: help;
+    font-size: 1.2rem;
+    color: #3498db;
+    transition: color 0.2s ease;
+}
+
+.info-icon:hover {
+    color: #2980b9;
+}
+
+/* Tooltip styles */
+[title] {
+    position: relative;
+}
+
+[title]:hover::after {
+    content: attr(title);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 0.5rem 1rem;
+    background: #2c3e50;
+    color: white;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    white-space: normal;
+    width: max-content;
+    max-width: 300px;
+    z-index: 1000;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+[title]:hover::before {
+    content: '';
+    position: absolute;
+    bottom: calc(100% - 5px);
+    left: 50%;
+    transform: translateX(-50%);
+    border-width: 5px;
+    border-style: solid;
+    border-color: #2c3e50 transparent transparent transparent;
+    z-index: 1000;
+}
+
+/* Module item styles */
+.module-item {
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.module-item:hover {
+    border-color: #3498db;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.module-item.selected {
+    border-color: #3498db;
+    background-color: #f8f9fa;
+    box-shadow: 0 0 0 2px #3498db;
+}
+
+/* Config panel styles */
+.module-config-panel {
+    position: relative;
+    min-width: 0;
+}
+
+.module-config-panel::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: #3498db;
+    border-radius: 10px 10px 0 0;
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+    transform-origin: left;
+}
+
+.module-config-panel.has-selection::before {
+    transform: scaleX(1);
+} 

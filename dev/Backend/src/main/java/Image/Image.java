@@ -361,49 +361,6 @@ public class Image {
         return RecordFactory.makeDTO(solution);
     }
 
-    //  public CompletableFuture<SolutionDTO> solveAsync(int timeout, String solverScript, boolean continueLast) {
-    //     CompletableFuture<SolutionDTO> futureSolutionDTO = new CompletableFuture<>();
-        
-    //     try {
-    //         CompletableFuture<Solution> futureSolution;
-    //         if(!continueLast){
-    //             futureSolution = model.solveAsync(timeout,
-    //                 "SOLUTION", solverScript
-    //             );
-    //         } else {
-    //             futureSolution = model.continueProcess(timeout);
-    //         }
-            
-    //         // When the solution is ready, convert it to DTO and complete our future
-    //         futureSolution.thenAccept(solution -> {
-    //             try {
-    //                 // Parse the solution as in the synchronous method
-    //                 solution.parseSolution(model, getVariablesModule().getIdentifiers());
-                    
-    //                 // Convert to DTO
-    //                 SolutionDTO solutionDTO = RecordFactory.makeDTO(solution);
-                    
-    //                 // Complete the future with the DTO
-    //                 futureSolutionDTO.complete(solutionDTO);
-    //             } catch (Exception e) {
-    //                 futureSolutionDTO.completeExceptionally(
-    //                     new RuntimeException("IO exception while parsing solution file, message: " + e)
-    //                 );
-    //             }
-    //         }).exceptionally(ex -> {
-    //             // Forward any exceptions from the model's solve method
-    //             futureSolutionDTO.completeExceptionally(ex);
-    //             return null;
-    //         });
-            
-    //     } catch (Exception e) {
-    //         // Complete exceptionally if we can't start the solve process
-    //         futureSolutionDTO.completeExceptionally(e);
-    //     }
-        
-    //     return futureSolutionDTO;
-    // }
-
     public ModelInterface getModel() {
         return this.model;
     }
@@ -604,6 +561,7 @@ public class Image {
             for(List<String> element : set.getValue()) {
                 String tuple = ModelType.convertArrayOfAtoms(
                     element.toArray(new String[0]),
+                    //TODO: fix a bug by fetching an input set from the modules instead from the parsed file. fix a bug by fetching an input set from the modules instead from the parsed file.
                     model.getSet(set.getKey()).getType()
                 );
                 setElements.add(tuple);

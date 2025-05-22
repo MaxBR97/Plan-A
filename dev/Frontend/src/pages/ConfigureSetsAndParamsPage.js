@@ -284,10 +284,10 @@ const ConfigureSetsAndParamsPage = () => {
       </section>
       
       <div className="navigation-buttons">
-        <Link to="/configure-preferences" className="continue-button" onClick={handleContinue}>
+        <Link to="/configuration-menu" className="continue-button" onClick={handleContinue}>
           Continue
         </Link>
-        <Link to="/" className="back-button">
+        <Link to="/configuration-menu" className="back-button">
           Back
         </Link>
       </div>

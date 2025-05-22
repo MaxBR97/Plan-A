@@ -1,11 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useZPL } from "../context/ZPLContext";
-import "./ConfigureVariablesPage.css";
-import Checkbox from "../reusableComponents/Checkbox.js";
-import TagConfigure from "../reusableComponents/TagConfigure.js";
+import "./ConfigureSolverOptionsPage.css";
 
-const ConfigureVariablesPage = () => {
+const ConfigureSolverOptionsPage = () => {
   const {
     image,
     model,
@@ -119,10 +117,10 @@ const ConfigureVariablesPage = () => {
       </button>
       
       <div className="navigation-buttons">
-        <Link to="/" className="back-button">
+        <Link to="/configuration-menu" className="back-button">
           Back
         </Link>
-        <Link to="/configure-preferences" className="continue-button" onClick={handleContinue}>
+        <Link to="/configuration-menu" className="continue-button" onClick={handleContinue}>
           Continue
         </Link>
       </div>
@@ -130,4 +128,4 @@ const ConfigureVariablesPage = () => {
   );
 };
 
-export default ConfigureVariablesPage;
+export default ConfigureSolverOptionsPage;

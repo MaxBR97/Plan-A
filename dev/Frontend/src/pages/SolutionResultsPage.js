@@ -37,9 +37,10 @@ const SolutionResultsPage = ({ globalSelectedTuples, setGlobalSelectedTuples }) 
       return solutionResponse.solution[variable]?.setStructure || [];
   };
 
-  const isBinary = (variable) => solutionResponse.solution[variable].solutions.every(
-    (sol) => sol.objectiveValue < 0.00001 && sol.objectiveValue > -0.00001 || 
-              sol.objectiveValue > 0.99999  && sol.objectiveValue < 1.00001
+  const isBinary = (variable) => solutionResponse.solution[variable].solutions.every( 
+    (sol) => {
+      return image.variablesModule.variablesOfInterest.find((varObj) => varObj.identifier == variable).isBinary
+    }
   );
 
   // Deep clone function for solutions
@@ -304,7 +305,7 @@ const SolutionResultsPage = ({ globalSelectedTuples, setGlobalSelectedTuples }) 
       <div className="w-1/3 pl-4 border-l">
         <h2 className="text-xl font-bold mb-3">Result Representation</h2>
         
-        <div className="mb-4">
+        {/* <div className="mb-4">
           <Checkbox
             label="Display Value Column"
             checked={displayValue}
@@ -312,7 +313,7 @@ const SolutionResultsPage = ({ globalSelectedTuples, setGlobalSelectedTuples }) 
             onChange={(checked) => handleDisplayValue(checked)}
             name="Display Value"
           />
-        </div>
+        </div> */}
         
         <h3 className="font-semibold mb-2">Dimension Order (Drag to Reorder)</h3>
         <DragDropContext onDragEnd={onDragEnd}>

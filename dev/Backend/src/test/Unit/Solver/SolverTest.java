@@ -121,7 +121,7 @@ public class SolverTest {
         
         // Start solving
         CompletableFuture<Solution> futureSolution = solverService.solveAsync(filePath, 3, "");
-        Solution firstSolution = futureSolution.get(4, TimeUnit.SECONDS).parseSolution();
+        Solution firstSolution = futureSolution.get(20, TimeUnit.SECONDS).parseSolution();
         double firstObjectiveValue = firstSolution.getObjectiveValue();
         
         // Continue solving

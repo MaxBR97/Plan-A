@@ -3,170 +3,334 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 20px;
+    padding: 2rem;
     font-family: Arial, sans-serif;
+    max-width: 1400px;
+    margin: 0 auto;
 }
 
 .page-title {
-    font-size: 24px;
-    margin-bottom: 20px;
+    font-size: 2rem;
+    color: #333;
+    margin-bottom: 2rem;
+    text-align: center;
 }
 
 .constraints-layout {
-    display: flex;
-    justify-content: space-between;
+    display: grid;
+    grid-template-columns: 30% 40% 30%;
+    gap: 2rem;
     width: 100%;
-    max-width: 1200px;
-    gap: 20px;
+    margin-top: 2rem;
 }
 
-/* Constraint Modules Section */
-.constraint-modules,
-.define-constraint-module,
-.available-constraints {
-    flex: 1;
-    padding: 15px;
-    border: 1px solid #ccc;
+/* Module List Panel */
+.module-list-panel {
+    background: #f8f9fa;
     border-radius: 8px;
-    background: #f9f9f9;
+    padding: 1.5rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     overflow: hidden;
-}
-
-h2 {
-    font-size: 18px;
-    margin-bottom: 10px;
-}
-
-input[type="text"] {
-    width: 100%;
-    padding: 8px;
-    margin-bottom: 10px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-}
-
-button {
-    padding: 8px 12px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    background-color: #007bff;
-    color: white;
-    transition: background 0.3s;
-}
-
-button:hover {
-    background-color: #0056b3;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
 }
 
 .module-list {
-    margin-top: 10px;
-    max-height: 300px;
+    flex: 1;
     overflow-y: auto;
-}
-
-.module-item-container {
-    display: flex;
-    align-items: center;
-    margin-bottom: 5px;
-    width: 100%;
-    overflow: hidden;
+    margin-top: 1rem;
 }
 
 .module-item {
-    flex-grow: 1;
-    text-align: left;
-    padding: 8px;
-    border-radius: 4px;
-    background: #e9ecef;
-    border: none;
+    background: white;
+    border-radius: 6px;
+    padding: 1rem;
+    margin-bottom: 0.8rem;
     cursor: pointer;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    color: black;
+    transition: all 0.2s ease;
+    border: 1px solid #e9ecef;
 }
 
-.module-item:hover,
+.module-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
 .module-item.selected {
-    background: #007bff;
-    color: white;
+    border-color: #007bff;
+    background: #f0f7ff;
 }
 
-.delete-module-button {
-    margin-left: 10px;
-    background: transparent;
-    color: red;
-    font-size: 16px;
+.module-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.module-name {
+    font-weight: 500;
+    color: #333;
+}
+
+.delete-button {
+    background: none;
+    border: none;
+    color: #dc3545;
+    font-size: 1.2rem;
     cursor: pointer;
+    padding: 0;
+    line-height: 1;
 }
 
-/* Define Constraint Module Section */
-textarea {
-    width: calc(100% - 20px);
-    padding: 8px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    resize: none;
-    max-width: calc(100% - 20px);
-    max-height: 150px;
-    overflow: hidden;
-    margin: 0 10px;
+.module-item-details {
+    font-size: 0.9rem;
+    color: #6c757d;
 }
 
-.module-drop-area {
-    padding: 10px;
-    background: #eef;
+/* Module Configuration Panel */
+.module-config-panel {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    overflow-y: auto;
+    min-width: 0;
+}
+
+.module-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    padding-right: 1rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding-right: 1rem;
+}
+
+.form-group label {
+    font-weight: 500;
+    color: #495057;
+}
+
+.form-group input,
+.form-group textarea {
+    padding: 0.75rem;
+    border: 1px solid #ced4da;
     border-radius: 4px;
-    min-height: 50px;
+    font-size: 1rem;
+    transition: border-color 0.2s ease;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+.selected-constraints {
     display: flex;
     flex-wrap: wrap;
-    gap: 5px;
-}
-
-.dropped-constraint {
-    background: #17a2b8;
-    color: white;
-    padding: 5px 10px;
+    gap: 0.5rem;
+    min-height: 50px;
+    padding: 0.5rem;
+    background: #e9ecef;
     border-radius: 4px;
+}
+
+.selected-constraint {
+    background: #007bff;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
     cursor: pointer;
+    transition: all 0.2s ease;
 }
 
-/* Available Constraints */
-.constraint-item-container {
-    margin-bottom: 5px;
+.selected-constraint:hover {
+    background: #0056b3;
 }
 
-.constraint-item {
+.constraint-item.selected {
+    background: #e9ecef;
+    border-color: #007bff;
+}
+
+.remove-constraint {
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    padding: 0;
+    font-size: 1.2rem;
+    line-height: 1;
+}
+
+.input-sets,
+.input-params {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    max-height: 200px;
+    overflow-y: auto;
+    padding: 0.5rem;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    background-color: white;
+}
+
+.input-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
+    background-color: #f8f9fa;
+}
+
+.input-item:hover {
+    background-color: #e9ecef;
+}
+
+.save-module-button {
     background: #28a745;
     color: white;
-    padding: 8px;
-    width: 100%;
-    text-align: left;
+    border: none;
+    padding: 0.75rem;
     border-radius: 4px;
+    font-size: 1rem;
     cursor: pointer;
+    transition: background-color 0.2s ease;
 }
 
-.constraint-item:hover {
+.save-module-button:hover {
     background: #218838;
 }
 
-/* Buttons */
+.save-module-button:disabled {
+    background: #6c757d;
+    cursor: not-allowed;
+}
+
+/* Available Constraints Panel */
+.available-constraints-panel {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.constraints-list {
+    flex: 1;
+    overflow-y: auto;
+    margin-top: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding-right: 0.5rem;
+}
+
+.constraint-item {
+    padding: 0.75rem 1rem;
+    background: #f5f5f5;
+    border-radius: 4px;
+    margin-bottom: 0.5rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    word-wrap: break-word;
+    white-space: normal;
+    height: auto;
+    min-height: fit-content;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.constraint-item:hover {
+    background: #e9ecef;
+    transform: translateX(4px);
+}
+
+.constraint-item.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: #e0e0e0;
+}
+
+/* Navigation Buttons */
+.navigation-buttons {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+.back-button,
 .continue-button {
-    margin-top: 20px;
-    background: #28a745;
+    padding: 0.75rem 2rem;
+    border-radius: 4px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
 }
 
 .back-button {
-    margin-top: 10px;
-    display: inline-block;
-    padding: 8px 12px;
-    color: white;
     background: #6c757d;
-    border-radius: 4px;
-    text-decoration: none;
+    color: white;
+    border: none;
 }
 
 .back-button:hover {
     background: #5a6268;
+}
+
+.continue-button {
+    background: #007bff;
+    color: white;
+    border: none;
+}
+
+.continue-button:hover {
+    background: #0056b3;
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+/* Override tooltip styles from ModuleConfig.css */
+[title]:hover::after {
+    white-space: normal;
+    width: max-content;
+    max-width: 300px;
+    position: absolute;
+    z-index: 1000;
+    left: 50%;
+    transform: translateX(-50%);
 }

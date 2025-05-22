@@ -142,7 +142,7 @@ public class ImageTests extends TestWithPersistence {
                     setDeps.stream().map(ModelSet::getIdentifier).collect(Collectors.toSet()),
                     paramDeps.stream().map(ModelParameter::getIdentifier).collect(Collectors.toSet())
                 ),
-                var.getBoundSet() != null ? var.getBoundSet().getIdentifier() : null
+                var.getBoundSet() != null ? var.getBoundSet().getIdentifier() : null,var.isBinary()
             ));
         }
 

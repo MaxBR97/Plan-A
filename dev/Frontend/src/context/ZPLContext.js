@@ -13,7 +13,7 @@ const initialImageState = {
   imageId: null,
   owner: "guest",
   isPrivate: true,
-  solverSettings: undefined,
+  solverSettings: {"default": ""},
   constraintModules: [],
   preferenceModules: [],
   // variables: [],

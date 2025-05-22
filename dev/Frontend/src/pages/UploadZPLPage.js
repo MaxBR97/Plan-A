@@ -116,7 +116,7 @@ minimize distributeShiftsEqually:
             updateModel(model);
 
             setMessage("File uploaded successfully!");
-            navigate("/configure-variables");
+            navigate("/configuration-menu");
         } catch (error) {
             if (error.response) {
                 setMessage(`Error: ${error.response.status} - ${error.response.data?.msg || "Unknown error occurred"}`);

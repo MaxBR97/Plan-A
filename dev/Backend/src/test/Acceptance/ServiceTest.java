@@ -55,6 +55,21 @@ import DataAccess.ModelRepository;
 import groupId.Main;
 import groupId.Service;
 
+/*TODO: Add test for creating a preference module
+* with a cost param that doesnt appear in the inputSets list.
+*/
+
+/*TODO: Add test creating an image with an initial empty input set (set x := {};)
+* and try to put correct inputs to it and solve it.
+*/
+
+/*TODO: Add test for toggling off a preference module and make sure it behaves properly. 
+ * 
+ */
+
+ /*TODO: Add test for passing an integer value to float param.
+ * 
+ */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,classes = Main.class)
 @ActiveProfiles({"H2mem", "securityAndGateway", "streamSolver"})
 @TestPropertySource(properties = {
@@ -134,7 +149,7 @@ public class ServiceTest {
               Set.of(new ConstraintDTO("sampleConstraint", new DependenciesDTO(Set.of(),Set.of("x"))),
                     new ConstraintDTO("optionalConstraint", new DependenciesDTO(Set.of(),Set.of()))),
                 Set.of(new PreferenceDTO("myVar[3]", new DependenciesDTO(Set.of(),Set.of()))),
-                Set.of(new VariableDTO("myVar",List.of("INT"),List.of("INT"), new DependenciesDTO(Set.of("mySet"),Set.of()),null)),
+                Set.of(new VariableDTO("myVar",List.of("INT"),List.of("INT"), new DependenciesDTO(Set.of("mySet"),Set.of()),null,false)),
                 Map.of("mySet",List.of("INT")),
                 Map.of("x","INT"),
                 Map.of("myVar",List.of("INT"))));
@@ -223,8 +238,8 @@ public class ServiceTest {
               new ConstraintDTO("drisha3", new DependenciesDTO(Set.of("People","Emdot"),Set.of("shiftTime","restHours"))),
               new ConstraintDTO("drisha4", new DependenciesDTO(Set.of("Emdot","People"),Set.of("shiftTime")))),
                 Set.of(new PreferenceDTO("sum<person>inPeople:(TotalMishmarot[person]**2)", new DependenciesDTO(Set.of("People"),Set.of()))),
-                Set.of(new VariableDTO("Shibutsim",List.of("TEXT","TEXT","INT"),List.of("TEXT","TEXT","INT") , new DependenciesDTO(Set.of("People","Emdot"),Set.of("shiftTime")),null),
-                        new VariableDTO("TotalMishmarot", List.of("TEXT"),List.of("TEXT"),new DependenciesDTO(Set.of("People"),Set.of()),null)),
+                Set.of(new VariableDTO("Shibutsim",List.of("TEXT","TEXT","INT"),List.of("TEXT","TEXT","INT") , new DependenciesDTO(Set.of("People","Emdot"),Set.of("shiftTime")),null,true),
+                        new VariableDTO("TotalMishmarot", List.of("TEXT"),List.of("TEXT"),new DependenciesDTO(Set.of("People"),Set.of()),null,false)),
               Map.of(
                 "People",List.of("TEXT"),
                 "Emdot",List.of("TEXT")),

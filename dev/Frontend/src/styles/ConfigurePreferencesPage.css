@@ -1,0 +1,114 @@
+.configure-preferences-page {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+    min-height: 100vh;
+    background-color: #f8f9fa;
+}
+
+.preferences-layout {
+    display: grid;
+    grid-template-columns: 1fr 2fr 1fr;
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+.module-list-panel,
+.module-config-panel,
+.available-preferences-panel {
+    background: white;
+    border-radius: 10px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.module-item {
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.module-item:hover {
+    border-color: #3498db;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.module-item.selected {
+    border-color: #3498db;
+    background-color: #f8f9fa;
+    box-shadow: 0 0 0 2px #3498db;
+}
+
+.module-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.module-name {
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.delete-button {
+    background: none;
+    border: none;
+    color: #e74c3c;
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.delete-button:hover {
+    background-color: #e74c3c;
+    color: white;
+}
+
+.module-item-details {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.preference-name {
+    font-style: italic;
+}
+
+.cost-param {
+    color: #27ae60;
+}
+
+.module-config-panel {
+    position: relative;
+}
+
+.module-config-panel::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: #3498db;
+    border-radius: 10px 10px 0 0;
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+    transform-origin: left;
+}
+
+.module-config-panel.has-selection::before {
+    transform: scaleX(1);
+}
+
+/* ... rest of your existing styles ... */ 

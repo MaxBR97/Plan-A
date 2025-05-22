@@ -435,13 +435,11 @@ clearInterval(timer); // Stop the timer once response is received
   }
 
 };
-
+  // console.log("variablesModule.inputSets: ", variablesModule.inputSets);
   const [responseData, setResponseData] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState(null);
 
-  // const selectedParams = image.variablesModule?.inputParams ?? [];
-// console.log("Sending SOLVE request:", JSON.stringify(requestBody, null, 2));
   return (
     <div className="solution-preview-page">
       <h1 className="page-title">{image.imageName}</h1>
@@ -661,7 +659,7 @@ clearInterval(timer); // Stop the timer once response is received
               <h2>Solution Status:</h2>
               <pre>{solutionStatus}</pre>
             </div>
-            <div><LogBoard/></div>
+            {isDesktop && <div><LogBoard/></div>}
           </div>
         )}
         <div className="results">
@@ -674,8 +672,8 @@ clearInterval(timer); // Stop the timer once response is received
         ← Back to Home
       </button>
       </div>
-      <Link to="/configure-constraints" className="back-button">
-        Back
+      <Link to="/configuration-menu" className="back-button">
+        Back to Configuration
       </Link>
 
       {/* <WebSocketTester /> */}

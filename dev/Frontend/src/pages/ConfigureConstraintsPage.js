@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useZPL } from '../context/ZPLContext';
 import './ConfigureConstraintsPage.css';
+import '../styles/shared/ModuleConfig.css';
 import Checkbox from '../reusableComponents/Checkbox';
 
 const ConfigureConstraintsPage = () => {
@@ -9,24 +10,25 @@ const ConfigureConstraintsPage = () => {
     const {
         image,
         model,
-        solutionResponse,
-        updateImage,
-        updateImageField,
-        updateModel,
-        updateSolutionResponse,
-        initialImageState
+        updateImageField
     } = useZPL();
-
-    const [availableConstraints, setAvailableConstraints] = useState([]);
-    const [moduleName, setModuleName] = useState('');
-    const [selectedModuleIndex, setSelectedModuleIndex] = useState(null);
     const bannedSets = [...new Set(Array.from(model.variables).flatMap(v => v.dep?.setDependencies || []))];
     const bannedParams = [...new Set(Array.from(model.variables).flatMap(v => v.dep?.paramDependencies || []))];
+    const [availableConstraints, setAvailableConstraints] = useState([]);
+    const [moduleName, setModuleName] = useState('');
+    const [moduleDescription, setModuleDescription] = useState('');
+    const [selectedModuleIndex, setSelectedModuleIndex] = useState(null);
     const [allModules, setAllModules] = useState(Array.from(image.constraintModules) || []);
     const [involvedSets, setInvolvedSets] = useState([]);
     const [involvedParams, setInvolvedParams] = useState([]);
-    
+    const [selectedSets, setSelectedSets] = useState([]);
+    const [selectedParams, setSelectedParams] = useState([]);
+    const [selectedConstraints, setSelectedConstraints] = useState([]);
+    console.log("cur image:", image);
+    console.log("bannedSets:", bannedSets);
+    console.log("involvedSets:", involvedSets);
     useEffect(() => {
+        // Initialize available constraints
         setAvailableConstraints(Array.from(model.constraints).filter((c) => 
             allModules.every((module) => 
                 !module.constraints.some(constraint => 
@@ -36,438 +38,411 @@ const ConfigureConstraintsPage = () => {
                 )
             )
         ));
-        if(selectedModuleIndex != null && allModules.length > 0){
-            setInvolvedSets(
-                Array.from(
-                  new Set(
-                    Array.from(model.constraints)
-                      .flatMap((constraint) => 
-                        Array.from(allModules[selectedModuleIndex].constraints).includes(constraint.identifier) 
-                          ? Array.from(constraint.dep?.setDependencies || []).filter(setDep => {
-                              // Check if this setDep doesn't appear in any variable's setDependencies
-                              return !Array.from(model.variables || []).some(variable => 
-                                variable.dep?.setDependencies?.includes(setDep) || 
-                                (Array.isArray(variable.dep?.setDependencies) && 
-                                 variable.dep.setDependencies.includes(setDep))
-                              );
-                            })
-                          : []
-                      )
-                  )
-                )
-              );
-              setInvolvedParams(
-                Array.from(
-                  new Set(
-                    Array.from(model.constraints)
-                      .flatMap((constraint) => 
-                        Array.from(allModules[selectedModuleIndex].constraints).includes(constraint.identifier) 
-                          ? Array.from(constraint.dep?.paramDependencies || []).filter(paramDep => {
-                              // Check if this paramDep doesn't appear in any variable's paramDependencies
-                              return !Array.from(model.variables || []).some(variable => 
-                                variable.dep?.paramDependencies?.includes(paramDep) || 
-                                (Array.isArray(variable.dep?.paramDependencies) && 
-                                 variable.dep.paramDependencies.includes(paramDep))
-                              );
-                            })
-                          : []
-                      )
-                  )
-                )
-              );
-            }
-    }, [model.constraints, allModules, selectedModuleIndex]);
+    }, [model.constraints, allModules]);
 
-    const addConstraintModule = () => {
-        if (moduleName.trim() !== '') {
-            setAllModules(
-            [ ...allModules,
-                {   
-                    moduleName: moduleName,
-                    description: "", 
-                    constraints: [], 
-                    inputSets: [],
-                    inputParams: []
-                }
-            ]);
-            setModuleName('');
-        }
-    };
-
-    const updateModuleDescription = (newDescription) => {
-        setAllModules(
-            allModules.map((module, idx) =>
-                idx === selectedModuleIndex ? { ...module, description: newDescription } : module
-            )
-        );
-    };
-
-    const addConstraintToModule = (constraint) => {
-        if (selectedModuleIndex === null) {
-            alert('Please select a module first!');
-            return;
-        }
-
-        setAllModules(
-            allModules.map((module, idx) => {
-                if (idx === selectedModuleIndex) {
-                    if (!module.constraints.some(c => typeof c === 'string' ? c === constraint.identifier : c.identifier === constraint.identifier)) {
-                        // Get sets and params from this constraint
-                        const constraintSets = constraint.dep?.setDependencies || [];
-                        const constraintParams = constraint.dep?.paramDependencies || [];
-                        
-                        // Filter out banned sets and params
-                        const newSets = constraintSets.filter(set => !bannedSets.includes(set));
-                        const newParams = constraintParams.filter(param => !bannedParams.includes(param));
-                        
-                        // Convert sets to SetDefinitionDTO format
-                        const newSetDTOs = newSets.map(setName => ({
-                            name: setName,
-                            tags: model.setTypes?.[setName] || [],
-                            type: model.setTypes?.[setName] || []
-                        }));
-                        
-                        // Convert params to ParameterDefinitionDTO format
-                        const newParamDTOs = newParams.map(paramName => ({
-                            name: paramName,
-                            tag: model.paramTypes?.[paramName] ,
-                            type: model.paramTypes?.[paramName] 
-                        }));
-                        
-                        // Add new sets and params without duplicates
-                        const updatedInputSets = [
-                            ...module.inputSets,
-                            ...newSetDTOs.filter(newSet => 
-                                !module.inputSets.some(existingSet => 
-                                    existingSet.name === newSet.name
-                                )
-                            )
-                        ];
-                        
-                        const updatedInputParams = [
-                            ...module.inputParams,
-                            ...newParamDTOs.filter(newParam => 
-                                !module.inputParams.some(existingParam => 
-                                    existingParam.name === newParam.name
-                                )
-                            )
-                        ];
-                        
-                        return {
-                            ...module,
-                            constraints: [...module.constraints, constraint.identifier], // Just store the identifier
-                            inputSets: updatedInputSets,
-                            inputParams: updatedInputParams
-                        };
-                    }
-                }
-                return module;
-            })
-        );
-        
-        setAvailableConstraints((prev) => {
-            const filteredConstraints = prev.filter((c) => c.identifier !== constraint.identifier);
-            const uniqueConstraints = Array.from(
-                new Map(filteredConstraints.map(item => [item.identifier, item])).values()
-            );
+    useEffect(() => {
+        if (selectedModuleIndex !== null && allModules.length > 0) {
+            const module = allModules[selectedModuleIndex];
+            setModuleName(module.moduleName);
+            setModuleDescription(module.description);
+            setSelectedConstraints(module.constraints);
             
-            return uniqueConstraints;
-        });
+            // Calculate involved sets and params
+            const moduleConstraints = module.constraints.map(c => 
+                Array.from(model.constraints).find(mc => mc.identifier === c)
+            ).filter(Boolean);
+
+            const sets = new Set();
+            const params = new Set();
+
+            moduleConstraints.forEach(constraint => {
+                (constraint.dep?.setDependencies || []).filter(set => !bannedSets.includes(set)).forEach(set => sets.add(set));
+                (constraint.dep?.paramDependencies || []).filter(param => !bannedParams.includes(param)).forEach(param => params.add(param));
+            });
+
+            setInvolvedSets(Array.from(sets));
+            setInvolvedParams(Array.from(params));
+        } else {
+            setModuleName('');
+            setModuleDescription('');
+            setSelectedConstraints([]);
+            setInvolvedSets([]);
+            setInvolvedParams([]);
+            setSelectedSets([]);
+            setSelectedParams([]);
+        }
+    }, [selectedModuleIndex, allModules]);
+
+    const handleCreateModule = () => {
+        if (!moduleName.trim()) return;
+
+        const newModule = {
+            moduleName: moduleName.trim(),
+            description: moduleDescription.trim(),
+            constraints: selectedConstraints,
+            inputSets: selectedSets.map(setName => ({
+                name: setName,
+                tags: model.setTypes?.[setName] || [],
+                type: model.setTypes?.[setName] || []
+            })),
+            inputParams: selectedParams.map(paramName => ({
+                name: paramName,
+                tag: model.paramTypes?.[paramName],
+                type: model.paramTypes?.[paramName]
+            }))
+        };
+
+        setAllModules([...allModules, newModule]);
+        setModuleName('');
+        setModuleDescription('');
+        setSelectedConstraints([]);
+        setInvolvedSets([]);
+        setInvolvedParams([]);
+        setSelectedSets([]);
+        setSelectedParams([]);
+        setSelectedModuleIndex(null);
     };
 
-    const removeConstraintFromModule = (constraint) => {
-        if (selectedModuleIndex === null) return;
+    const handleUpdateModule = () => {
+        if (selectedModuleIndex === null || !moduleName.trim()) return;
 
-        const constraintId = typeof constraint === 'string' ? constraint : constraint.identifier;
+        const updatedModules = [...allModules];
+        updatedModules[selectedModuleIndex] = {
+            moduleName: moduleName.trim(),
+            description: moduleDescription.trim(),
+            constraints: selectedConstraints,
+            inputSets: selectedSets.map(setName => ({
+                name: setName,
+                tags: model.setTypes?.[setName] || [],
+                type: model.setTypes?.[setName] || []
+            })),
+            inputParams: selectedParams.map(paramName => ({
+                name: paramName,
+                tag: model.paramTypes?.[paramName],
+                type: model.paramTypes?.[paramName]
+            }))
+        };
 
-        setAllModules(
-            allModules.map((module, idx) => {
-                if (idx === selectedModuleIndex) {
-                    const newConstraints = module.constraints.filter(c => 
-                        typeof c === 'string' ? c !== constraintId : c.identifier !== constraintId
-                    );
-                    
-                    // Recalculate all needed sets and params from remaining constraints
-                    const remainingConstraintObjects = newConstraints.map(c => {
-                        if (typeof c === 'string') {
-                            // Find the full constraint object from available constraints or model
-                            return availableConstraints.find(ac => ac.identifier === c) || 
-                                   Array.from(model.constraints).find(mc => mc.identifier === c);
-                        }
-                        return c;
-                    }).filter(Boolean); // Remove any undefined values
-                    
-                    const allSetDependencies = new Set();
-                    const allParamDependencies = new Set();
-                    
-                    // Collect all dependencies from remaining constraints
-                    remainingConstraintObjects.forEach(c => {
-                        (c.dep?.setDependencies || [])
-                            .filter(set => !bannedSets.includes(set))
-                            .forEach(set => allSetDependencies.add(set));
-                            
-                        (c.dep?.paramDependencies || [])
-                            .filter(param => !bannedParams.includes(param))
-                            .forEach(param => allParamDependencies.add(param));
-                    });
-                    
-                    // Filter existing DTOs to only keep relevant ones
-                    const updatedInputSets = module.inputSets.filter(
-                        setDTO => allSetDependencies.has(setDTO.name)
-                    );
-                    
-                    const updatedInputParams = module.inputParams.filter(
-                        paramDTO => allParamDependencies.has(paramDTO.name)
-                    );
-                    
-                    return {
-                        ...module,
-                        constraints: newConstraints,
-                        inputSets: updatedInputSets,
-                        inputParams: updatedInputParams
-                    };
-                }
-                return module;
-            })
-        );
-        
-        setAvailableConstraints((prev) => prev.some(c => c.identifier === constraintId) ? prev : [...prev, constraint]);
+        setAllModules(updatedModules);
     };
 
-    const deleteModule = (index) => {
-        // Get all constraints from the module being deleted
-        const moduleConstraints = allModules[index].constraints;
-        
-        // Add them back to available constraints
-        moduleConstraints.forEach(constraint => {
-            const constraintObj = typeof constraint === 'string' 
-                ? Array.from(model.constraints).find(c => c.identifier === constraint)
-                : constraint;
-                
-            if (constraintObj) {
-                setAvailableConstraints(prev => 
-                    prev.some(c => c.identifier === constraintObj.identifier) 
-                        ? prev 
-                        : [...prev, constraintObj]
-                );
-            }
-        });
-        
-        // Remove the module
+    const handleDeleteModule = (index) => {
+        const moduleToDelete = allModules[index];
+        const constraintsToRestore = moduleToDelete.constraints.map(c => 
+            Array.from(model.constraints).find(mc => mc.identifier === c)
+        ).filter(Boolean);
+
+        setAvailableConstraints([...availableConstraints, ...constraintsToRestore]);
         setAllModules(allModules.filter((_, i) => i !== index));
-    
-        // Reset selection if the deleted module was selected
+        
         if (selectedModuleIndex === index) {
             setSelectedModuleIndex(null);
         } else if (selectedModuleIndex > index) {
-            setSelectedModuleIndex(selectedModuleIndex - 1); // Adjust index if needed
+            setSelectedModuleIndex(selectedModuleIndex - 1);
         }
     };
 
-    const handleToggleInvolvedSet = (setName) => {
-        setAllModules(
-            allModules.map((module, idx) => {
-                if (idx === selectedModuleIndex) {
-                    // Check if the set is already in inputSets
-                    const isSetIncluded = module.inputSets.some(s => s.name === setName);
-                    let updatedInputSets;
-                    
-                    if (isSetIncluded) {
-                        // Remove if already included
-                        updatedInputSets = module.inputSets.filter(s => s.name !== setName);
-                    } else {
-                        // Add if not included
-                        const newSetDTO = {
-                            name: setName,
-                            tags: model.setTypes?.[setName] || [],
-                            type: model.setTypes?.[setName] || []
-                        };
-                        updatedInputSets = [...module.inputSets, newSetDTO];
-                    }
-                    
-                    return { ...module, inputSets: updatedInputSets };
-                }
-                return module;
-            })
-        );
+    // Add this function to filter out already used sets and params
+    const getAvailableSetsAndParams = (constraint) => {
+        const usedSets = new Set([
+            ...Array.from(model.variables).flatMap(v => v.dep?.setDependencies || []),
+            ...allModules.flatMap(m => m.inputSets.map(s => s.name))
+        ]);
+
+        const usedParams = new Set([
+            ...Array.from(model.variables).flatMap(v => v.dep?.paramDependencies || []),
+            ...allModules.flatMap(m => m.inputParams.map(p => p.name))
+        ]);
+
+        const availableSets = (constraint.dep?.setDependencies || [])
+            .filter(set => !usedSets.has(set));
+        
+        const availableParams = (constraint.dep?.paramDependencies || [])
+            .filter(param => !usedParams.has(param));
+
+        return { availableSets, availableParams };
     };
-    
-    const handleToggleInvolvedParam = (paramName) => {
-        setAllModules(
-            allModules.map((module, idx) => {
-                if (idx === selectedModuleIndex) {
-                    // Check if the param is already in inputParams
-                    const isParamIncluded = module.inputParams.some(p => p.name === paramName);
-                    let updatedParams;
-                    
-                    if (isParamIncluded) {
-                        // Remove if included
-                        updatedParams = module.inputParams.filter(p => p.name !== paramName);
-                    } else {
-                        // Add if not included
-                        const newParamDTO = {
-                            name: paramName,
-                            tag: model.paramTypes?.[paramName] ,
-                            type: model.paramTypes?.[paramName] 
-                        };
-                        updatedParams = [...module.inputParams, newParamDTO];
-                    }
-    
-                    return { ...module, inputParams: updatedParams };
-                }
-                return module;
-            })
+
+    // Add this function to check if an input is available
+    const isInputAvailable = (inputName, isSet = true) => {
+        // Check if used in variables configuration
+        const usedInVariables = Array.from(model.variables).some(v => 
+            isSet 
+                ? v.dep?.setDependencies?.includes(inputName)
+                : v.dep?.paramDependencies?.includes(inputName)
+        );
+        if (usedInVariables) return false;
+
+        // Check if used in other modules
+        const usedInOtherModules = allModules.some(module => 
+            isSet 
+                ? module.inputSets.some(s => s.name === inputName)
+                : module.inputParams.some(p => p.name === inputName)
+        );
+        if (usedInOtherModules) return false;
+
+        return true;
+    };
+
+    const handleConstraintSelect = (constraint) => {
+        if (selectedConstraints.includes(constraint.identifier)) {
+            // If clicking a selected constraint, remove it
+            setSelectedConstraints(selectedConstraints.filter(c => c !== constraint.identifier));
+            
+            // Recalculate involved sets and params
+            const remainingConstraints = selectedConstraints
+                .filter(c => c !== constraint.identifier)
+                .map(c => Array.from(model.constraints).find(mc => mc.identifier === c))
+                .filter(Boolean);
+
+            const sets = new Set();
+            const params = new Set();
+
+            remainingConstraints.forEach(constraint => {
+                const availableSets = (constraint.dep?.setDependencies || [])
+                    .filter(set => isInputAvailable(set, true));
+                const availableParams = (constraint.dep?.paramDependencies || [])
+                    .filter(param => isInputAvailable(param, false));
+                
+                availableSets.forEach(set => sets.add(set));
+                availableParams.forEach(param => params.add(param));
+            });
+
+            setInvolvedSets(Array.from(sets));
+            setInvolvedParams(Array.from(params));
+            setSelectedSets(Array.from(sets));
+            setSelectedParams(Array.from(params));
+        } else {
+            setSelectedConstraints([...selectedConstraints, constraint.identifier]);
+            
+            // Add new sets and params
+            const newSets = new Set(involvedSets);
+            const newParams = new Set(involvedParams);
+
+            const availableSets = (constraint.dep?.setDependencies || [])
+                .filter(set => isInputAvailable(set, true));
+            const availableParams = (constraint.dep?.paramDependencies || [])
+                .filter(param => isInputAvailable(param, false));
+
+            availableSets.forEach(set => newSets.add(set));
+            availableParams.forEach(param => newParams.add(param));
+
+            setInvolvedSets(Array.from(newSets));
+            setInvolvedParams(Array.from(newParams));
+            setSelectedSets(Array.from(newSets));
+            setSelectedParams(Array.from(newParams));
+        }
+    };
+
+    const handleSetToggle = (setName) => {
+        setSelectedSets(prev => 
+            prev.includes(setName) 
+                ? prev.filter(s => s !== setName)
+                : [...prev, setName]
         );
     };
 
-    const saveCurrentState = () => {
-        updateImageField("constraintModules", allModules)
-    }
-    
-    const handleContinue = () => {
-        console.log("Leaving constraint config with: ", allModules);
-        saveCurrentState();
-        navigate('/configure-preferences');
+    const handleParamToggle = (paramName) => {
+        setSelectedParams(prev => 
+            prev.includes(paramName) 
+                ? prev.filter(p => p !== paramName)
+                : [...prev, paramName]
+        );
     };
-    
+
+    const handleContinue = () => {
+        updateImageField("constraintModules", allModules);
+        console.log("CONTINUE CLIECK, cur image:", image);
+        navigate('/configuration-menu');
+    };
+
     const handleBack = () => {
-        console.log("Leaving constraint config with: ", allModules);
-        saveCurrentState();
-        navigate('/');
+        // updateImageField("constraintModules", allModules);
+        navigate('/configuration-menu');
+    };
+
+    const handlePageClick = () => {
+        // Clear the form and selection when clicking outside
+        setSelectedModuleIndex(null);
+        setModuleName('');
+        setModuleDescription('');
+        setSelectedConstraints([]);
+        setInvolvedSets([]);
+        setInvolvedParams([]);
+        setSelectedSets([]);
+        setSelectedParams([]);
+    };
+
+    const handleModuleClick = (e) => {
+        // Prevent click from propagating to the page container
+        e.stopPropagation();
     };
 
     return (
-        <div className="configure-constraints-page">
+        <div className="configure-constraints-page" onClick={handlePageClick}>
             <h1 className="page-title">Configure Constraint Modules</h1>
-
+            <p className="page-description">
+                Create and manage constraint modules to define the logical rules and relationships in your optimization problem. Group related constraints together for better organization and reusability.
+            </p>
+            
             <div className="constraints-layout">
-                {/* Constraint Modules Section */}
-                <div className="constraint-modules">
-                    <h2>Constraint Modules</h2>
-                    <input
-                        type="text"
-                        placeholder="Module Name"
-                        value={moduleName}
-                        onChange={(e) => setModuleName(e.target.value)}
-                    />
-                    <button onClick={addConstraintModule}>Add Constraint Module</button>
+                {/* Left Panel - Module List */}
+                <div className="module-list-panel" onClick={handleModuleClick}>
+                    <div className="panel-header">
+                        <h2>Constraint Modules</h2>
+                        <div className="info-icon" title="Constraint modules group related rules together. Each module can contain multiple constraints that work together to define a specific aspect of your problem.">
+                            ℹ️
+                        </div>
+                    </div>
                     <div className="module-list">
                         {allModules.map((module, index) => (
-                            <div key={index} className="module-item-container">
-                                <button 
-                                    className={`module-item ${selectedModuleIndex === index ? 'selected' : ''}`} 
-                                    onClick={() => setSelectedModuleIndex(index)}
-                                >
-                                    {module.moduleName}
-                                </button>
-                                <button 
-                                    className="delete-module-button"
-                                    onClick={(e) => {
-                                        e.stopPropagation(); // Prevent selecting the module when clicking delete
-                                        deleteModule(index);
-                                    }}
-                                >
-                                    ❌
-                                </button>
+                            <div 
+                                key={index} 
+                                className={`module-item ${selectedModuleIndex === index ? 'selected' : ''}`}
+                                onClick={() => setSelectedModuleIndex(index)}
+                            >
+                                <div className="module-item-header">
+                                    <span className="module-name">{module.moduleName}</span>
+                                    <button 
+                                        className="delete-button"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleDeleteModule(index);
+                                        }}
+                                    >
+                                        ×
+                                    </button>
+                                </div>
+                                <div className="module-item-details">
+                                    <span className="constraint-count">
+                                        {module.constraints.length} constraint{module.constraints.length !== 1 ? 's' : ''}
+                                    </span>
+                                </div>
                             </div>
                         ))}
                     </div>
                 </div>
 
-                {/* Define Constraint Module Section */}
-                <div className="define-constraint-module">
-                    <h2>Define Constraint Module</h2>
-                    {selectedModuleIndex === null ? (
-                        <p>Select a module</p>
-                    ) : (
-                        <>
-                            <h3>{allModules[selectedModuleIndex]?.name || 'Unnamed Module'}</h3>
-                            <label>Description:</label>
-                            <hr />
-                            <textarea
-                                value={allModules[selectedModuleIndex]?.description || ""}
-                                onChange={(e) => updateModuleDescription(e.target.value)}
-                                placeholder="Enter module description..."
-                                style={{ resize: "none", width: "100%", height: "80px" }}
+                {/* Middle Panel - Module Configuration */}
+                <div className={`module-config-panel ${selectedModuleIndex !== null ? 'has-selection' : ''}`} onClick={handleModuleClick}>
+                    <h2>{selectedModuleIndex === null ? 'Create New Module' : 'Edit Module'}</h2>
+                    <div className="module-form">
+                        <div className="form-group">
+                            <label>Module Name</label>
+                            <input
+                                type="text"
+                                value={moduleName}
+                                onChange={(e) => setModuleName(e.target.value)}
+                                placeholder="Enter module name"
                             />
-                            <p>This module's constraints:</p>
-                            <hr />
-                            <div className="module-drop-area">
-                                {allModules[selectedModuleIndex]?.constraints?.length > 0 ? (
-                                    allModules[selectedModuleIndex].constraints.map((c, i) => (
+                        </div>
+                        <div className="form-group">
+                            <label>Description</label>
+                            <textarea
+                                value={moduleDescription}
+                                onChange={(e) => setModuleDescription(e.target.value)}
+                                placeholder="Enter module description"
+                                rows="3"
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label>Selected Constraints</label>
+                            <div className="selected-constraints">
+                                {selectedConstraints.map(constraintId => {
+                                    const constraint = Array.from(model.constraints)
+                                        .find(c => c.identifier === constraintId);
+                                    return (
                                         <div 
-                                            key={i} 
-                                            className="dropped-constraint constraint-box"
-                                            onClick={() => removeConstraintFromModule(c)}
+                                            key={constraintId} 
+                                            className="selected-constraint"
+                                            onClick={() => handleConstraintSelect(constraint)}
                                         >
-                                            {c}
+                                            {constraint?.identifier}
                                         </div>
-                                    ))
-                                ) : (
-                                    <p>No constraints added</p>
-                                )}
+                                    );
+                                })}
                             </div>
-
-                            <h3>Select input Sets:</h3>
-                            <div>
-                                {involvedSets.map((set, i) => (
-                                    <div key={i}>
-                                        <Checkbox 
-                                            type="checkbox" 
-                                            checked={allModules[selectedModuleIndex]?.inputSets.some(inputSet => inputSet.name === set)} 
-                                            onChange={() => handleToggleInvolvedSet(set)}
-                                        /> {set}
+                        </div>
+                        {selectedConstraints.length > 0 && (
+                            <>
+                                {involvedSets.length > 0 && <div className="form-group">
+                                    <label>Input Sets</label>
+                                    <div className="input-sets">
+                                        {involvedSets.map(set => (
+                                            <div key={set} className="input-item">
+                                                <Checkbox
+                                                    checked={selectedSets.includes(set)}
+                                                    onChange={() => handleSetToggle(set)}
+                                                    label={set}
+                                                />
+                                            </div>
+                                        ))}
                                     </div>
-                                ))}
-                            </div>
-
-                            <h3>Select input Parameters:</h3>
-                            <div>
-                                {involvedParams.map((param, i) => (
-                                    <div key={i}>
-                                        <Checkbox 
-                                            type="checkbox" 
-                                            checked={allModules[selectedModuleIndex]?.inputParams.some(inputParams => inputParams.name === param)} 
-                                            onChange={() => handleToggleInvolvedParam(param)}
-                                        /> {param}
+                                </div>}
+                                {involvedParams.length > 0 && <div className="form-group">
+                                    <label>Input Parameters</label>
+                                    <div className="input-params">
+                                        {involvedParams.map(param => (
+                                            <div key={param} className="input-item">
+                                                <Checkbox
+                                                    checked={selectedParams.includes(param)}
+                                                    onChange={() => handleParamToggle(param)}
+                                                    label={param}
+                                                />
+                                            </div>
+                                        ))}
                                     </div>
-                                ))}
-                            </div>
-
-                        </>
-                    )}
+                                </div>}
+                            </>
+                        )}
+                        <button 
+                            className="save-module-button"
+                            onClick={selectedModuleIndex === null ? handleCreateModule : handleUpdateModule}
+                            disabled={!moduleName.trim()}
+                        >
+                            {selectedModuleIndex === null ? 'Create Module' : 'Update Module'}
+                        </button>
+                    </div>
                 </div>
 
-                {/* Available Constraints Section */}
-                <div className="available-constraints">
-                    <h2>Available Constraints</h2>
-                    {availableConstraints.length > 0 ? (
-                        availableConstraints.map((constraint, idx) => (
-                            <div key={idx} className="constraint-item-container">
-                                <button className="constraint-item" onClick={() => addConstraintToModule(constraint)}>
+                {/* Right Panel - Available Constraints */}
+                <div className="available-constraints-panel" onClick={handleModuleClick}>
+                    <div className="panel-header">
+                        <h2>Available Constraints</h2>
+                        <div className="info-icon" title="Select from these available constraints to add to your module. Constraints can be used in multiple modules if needed.">
+                            ℹ️
+                        </div>
+                    </div>
+                    <div className="constraints-list">
+                        {availableConstraints.map(constraint => {
+                            const availableSets = (constraint.dep?.setDependencies || [])
+                                .filter(set => isInputAvailable(set, true));
+                            const availableParams = (constraint.dep?.paramDependencies || [])
+                                .filter(param => isInputAvailable(param, false));
+                            const hasAvailableInputs = availableSets.length > 0 || availableParams.length > 0;
+                            
+                            return (
+                                <div 
+                                    key={constraint.identifier}
+                                    className={`constraint-item ${selectedConstraints.includes(constraint.identifier) ? 'selected' : ''}`}
+                                    onClick={() => handleConstraintSelect(constraint)}
+                                >
                                     {constraint.identifier}
-                                </button>
-                            </div>
-                        ))
-                    ) : (
-                        <p>No constraints available</p>
-                    )}
+                                </div>
+                            );
+                        })}
+                    </div>
                 </div>
             </div>
 
-            <button
-    className="continue-button"
-    onClick={handleContinue}
->
-    Continue
-</button>
-
-<button
-    className="back-button"
-    onClick={handleBack}
->
-    Back
-</button>
+            <div className="navigation-buttons" onClick={handleModuleClick}>
+                <button className="back-button" onClick={handleBack}>
+                    Back
+                </button>
+                <button className="continue-button" onClick={handleContinue}>
+                    Continue
+                </button>
+            </div>
         </div>
     );
 };

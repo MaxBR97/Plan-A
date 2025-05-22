@@ -84,8 +84,8 @@ param y[Cities] :=
     <"Lod">           12    ;
 
 # Calculate Euclidean distances between cities
-param dist[<city1, city2> in Cities * Cities] := 
-    sqrt((x[city1] - x[city2])**2 + (y[city1] - y[city2])**2);
+param dist[<i, j> in Cities * Cities] := 
+    sqrt((x[i] - x[j])**2 + (y[i] - y[j])**2);
 
 # Binary variable indicating if we use the edge between cities i and j
 var edge[Cities * Cities] binary;
@@ -96,7 +96,7 @@ subto degree: forall <i> in Cities:
     (sum <j> in Cities | i != j: edge[j,i]) == 1;
 
 # # Subtour elimination constraints using Miller-Tucker-Zemlin formulation
-var u[Cities] integer >= 0;  # Auxiliary variables for subtour elimination
+var u[Cities] integer >= 0 <= card(Cities);  # Auxiliary variables for subtour elimination
 param n := card(Cities);
 
 subto subtour: forall <i,j> in Cities * Cities with i != j and i != ord(Cities, 1,1) and j != ord(Cities, 1,1):
