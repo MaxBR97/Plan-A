@@ -103,6 +103,7 @@ public class ImageTests extends TestWithPersistence {
         image = new Image(sourceId, "Test Image", "Test Description", "testUser", false);
     }
     
+    //Generic test for saving an image to the repository.
     @Test
     @Transactional
     public void testSavingToRepository() throws Exception {

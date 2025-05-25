@@ -547,7 +547,7 @@ clearInterval(timer); // Stop the timer once response is received
             <p className="empty-message">No preference modules available.</p>
           )}
           
-          {preferenceModules.length > 0 && (
+          { preferenceModules.length > 0 && (
             Array.from(costParams).length > 0 ? <DraggableBar 
             min={0}
             max={100}
@@ -570,7 +570,8 @@ clearInterval(timer); // Stop the timer once response is received
         
 <div className="module-section">
   <h2 className="section-title">Variable Sets</h2>
-  {variablesModule.inputSets.map((setDef, index) => (
+  {variablesModule.inputSets.filter(set => !variablesModule.variablesOfInterest.some(v => v.boundSet === set.name))
+                            .map((setDef, index) => (
   <SetInputBox
     index={index}
     typeList={setDef.type}

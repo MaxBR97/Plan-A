@@ -184,4 +184,12 @@ public class PreferenceModule extends Module{
             costParameter.add(param);
         }
     }
+
+    //Gets the input sets including the Bonud set
+    public Set<ModelParameter> getInputParameters() {
+        Set<ModelParameter> params = new HashSet<>();
+        params.addAll(this.getCostParameters());
+        params.addAll(super.getInputParams());
+        return params;
+    }
 }

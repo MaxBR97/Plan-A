@@ -70,6 +70,38 @@ import groupId.Service;
  /*TODO: Add test for passing an integer value to float param.
  * 
  */
+
+ /*TODO: 
+ * add test for defining a paramter as both in variaablesmodule , preference and constraint module.
+ */
+
+ /*TODO: 
+ * add a test for defining a paramter as both in variablesmodule and preference's costParam.
+ * 
+ */
+
+ /*TODO: 
+    * add a test for defining a parameter as both inputParam and costParam of a preference module.
+ */
+
+ /*TODO: 
+  * add a test for defining a paramaeter as input for two different modules.
+ */
+
+ /*TODO: 
+  * add a test for defining a set as input for two diffeeretn variables.
+ */
+
+ /*
+  * TODO:
+  * add a test for toggling off multiple modules.
+  */
+
+  /*TODO:
+  * add a test for defining a param as part of a module, reconfigure the image,
+  * and make that param part of variables module and try to solve while toggling off the module it used to be part of.
+  */
+  
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,classes = Main.class)
 @ActiveProfiles({"H2mem", "securityAndGateway", "streamSolver"})
 @TestPropertySource(properties = {

@@ -403,6 +403,7 @@ public class Image {
         this.variables.put(VariableModule.getVariableModuleName(), module);
     }
 
+    //Involved means all dependency sets of all modules
     public Set<ModelSet> getAllInvolvedSets() {
         Set<ModelSet> allSets = new HashSet<>();
 
@@ -421,6 +422,7 @@ public class Image {
         return allSets;
     }
 
+    //Involved means all dependency params of all modules
     public Set<ModelParameter> getAllInvolvedParams() {
         Set<ModelParameter> allParams = new HashSet<>();
 
