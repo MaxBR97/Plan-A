@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
+import java.util.Arrays;
 
 import DTO.Records.Image.ConstraintModuleDTO;
 import DTO.Records.Image.PreferenceModuleDTO;
@@ -191,5 +192,14 @@ public class PreferenceModule extends Module{
         params.addAll(this.getCostParameters());
         params.addAll(super.getInputParams());
         return params;
+    }
+
+    @Transactional
+    @Override
+    public boolean isInput(String id) {
+        if (costParameter == null) {
+            gatherCostParameters();
+        }
+        return super.isInput(id) || costParameter.stream().anyMatch(param -> param.getIdentifier().equals(id));
     }
 }

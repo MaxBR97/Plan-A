@@ -9,10 +9,13 @@ set Times := {0,4,8,12,16,20};
 set S := Stations * Times;
 set CxS := C * S;
 set CxSxS := {<i,a,b,c,d> in C * S * S | b < d };
+set preassign_soldier_shifts := {<1,"Fillbox",4>};
 
 var edge[CxS] binary;
 var couples[CxSxS] binary;
 
+subto preassign:
+    forall <i,a,b> in preassign_soldier_shifts: edge[i,a,b] == 1;
 
 subto trivial1:
     forall <j,a1,a2,b1,b2> in CxSxS | a1 != b1 or a2 != b2 : vif couples[j,a1,a2,b1,b2] == 1 then edge[j,a1,a2] == 1  end;

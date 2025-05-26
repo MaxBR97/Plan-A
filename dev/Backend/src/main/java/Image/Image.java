@@ -12,6 +12,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import DTO.Factories.RecordFactory;
 import DTO.Records.Image.ConstraintModuleDTO;
@@ -178,7 +179,14 @@ public class Image {
     //TODO: make this correspond to patch semantics - fields that are null - are not updated.
     @Transactional
     public void update(ImageDTO imageDTO) throws Exception {
-        // Update basic properties
+        // First validate all modules together before making any changes
+        validateModulesCompatibility(
+            imageDTO.variablesModule(),
+            imageDTO.constraintModules(),
+            imageDTO.preferenceModules()
+        );
+
+        // If validation passed, proceed with the update
         if (imageDTO.imageName() != null) {
             this.name = imageDTO.imageName();
         }
@@ -192,17 +200,14 @@ public class Image {
             this.setIsPrivate(imageDTO.isPrivate());
         }
         
-        // Update solver scripts only if not null
         if (imageDTO.solverSettings() != null) {
             this.setSolverScripts(imageDTO.solverSettings());
         }
         
-        // Update variables module only if not null
         if (imageDTO.variablesModule() != null) {
             this.setVariablesModule(imageDTO.variablesModule());
         }
         
-        // Update constraint modules only if not null
         if (imageDTO.constraintModules() != null) {
             this.getConstraintsModules().clear();
             for (ConstraintModuleDTO constraintModule : imageDTO.constraintModules()) {
@@ -210,12 +215,102 @@ public class Image {
             }
         }
         
-        // Update preference modules only if not null
         if (imageDTO.preferenceModules() != null) {
             this.getPreferenceModules().clear();
             for (PreferenceModuleDTO preferenceModule : imageDTO.preferenceModules()) {
                 this.addPreferenceModule(preferenceModule);
             }
+        }
+    }
+
+    private void validateModulesCompatibility(
+        VariableModuleDTO variablesModule,
+        Set<ConstraintModuleDTO> constraintModules,
+        Set<PreferenceModuleDTO> preferenceModules
+    ) {
+        // Create maps to track which inputs belong to which modules
+        Map<String, List<String>> setOwnership = new HashMap<>();
+        Map<String, List<String>> paramOwnership = new HashMap<>();
+        
+        // Check variables module
+        if (variablesModule != null) {
+            // Track regular inputs
+            for (SetDefinitionDTO set : variablesModule.inputSets()) {
+                setOwnership.computeIfAbsent(set.name(), k -> new ArrayList<>())
+                    .add("Variables module");
+            }
+            for (ParameterDefinitionDTO param : variablesModule.inputParams()) {
+                paramOwnership.computeIfAbsent(param.name(), k -> new ArrayList<>())
+                    .add("Variables module");
+            }
+            
+            // Track bound sets
+            for (VariableDTO var : variablesModule.variablesOfInterest()) {
+                if (var.boundSet() != null) {
+                    setOwnership.computeIfAbsent(var.boundSet(), k -> new ArrayList<>())
+                        .add("Variables module (bound set)");
+                }
+            }
+        }
+        
+        // Check constraint modules
+        if (constraintModules != null) {
+            for (ConstraintModuleDTO module : constraintModules) {
+                for (SetDefinitionDTO set : module.inputSets()) {
+                    setOwnership.computeIfAbsent(set.name(), k -> new ArrayList<>())
+                        .add("Constraint module '" + module.moduleName() + "'");
+                }
+                for (ParameterDefinitionDTO param : module.inputParams()) {
+                    paramOwnership.computeIfAbsent(param.name(), k -> new ArrayList<>())
+                        .add("Constraint module '" + module.moduleName() + "'");
+                }
+            }
+        }
+        
+        // Check preference modules
+        if (preferenceModules != null) {
+            for (PreferenceModuleDTO module : preferenceModules) {
+                for (SetDefinitionDTO set : module.inputSets()) {
+                    setOwnership.computeIfAbsent(set.name(), k -> new ArrayList<>())
+                        .add("Preference module '" + module.moduleName() + "'");
+                }
+                for (ParameterDefinitionDTO param : module.inputParams()) {
+                    paramOwnership.computeIfAbsent(param.name(), k -> new ArrayList<>())
+                        .add("Preference module '" + module.moduleName() + "'");
+                }
+                // Track cost parameters
+                for (ParameterDefinitionDTO costParam : module.costParams()) {
+                    paramOwnership.computeIfAbsent(costParam.name(), k -> new ArrayList<>())
+                        .add("Preference module '" + module.moduleName() + "' (cost parameter)");
+                }
+            }
+        }
+        
+        // Check for conflicts and build error message
+        StringBuilder errorMessage = new StringBuilder();
+        
+        // Check set conflicts
+        setOwnership.forEach((setName, owners) -> {
+            if (owners.size() > 1) {
+                errorMessage.append(String.format("Set conflict:%n"));
+                errorMessage.append(String.format("- Set '%s' is used in multiple modules:%n", setName));
+                owners.forEach(owner -> errorMessage.append(String.format("  * %s%n", owner)));
+            }
+        });
+        
+        // Check parameter conflicts
+        paramOwnership.forEach((paramName, owners) -> {
+            if (owners.size() > 1) {
+                errorMessage.append(String.format("Parameter conflict:%n"));
+                errorMessage.append(String.format("- Parameter '%s' is used in multiple modules:%n", paramName));
+                owners.forEach(owner -> errorMessage.append(String.format("  * %s%n", owner)));
+            }
+        });
+        
+        if (errorMessage.length() > 0) {
+            throw new IllegalArgumentException(
+                String.format("Module conflicts detected:%n%s", errorMessage.toString())
+            );
         }
     }
 
@@ -251,6 +346,14 @@ public class Image {
     
     @Transactional
     public void addConstraintModule(ConstraintModuleDTO module) throws Exception {
+        validateModulesCompatibility(
+            RecordFactory.makeDTO(this).variablesModule(),
+            Stream.concat(
+                getConstraintsModules().values().stream().map(m -> RecordFactory.makeDTO(m)),
+                Stream.of(module)
+            ).collect(Collectors.toSet()),
+            getPreferenceModules().values().stream().map(m -> RecordFactory.makeDTO(m)).collect(Collectors.toSet())
+        );
         constraintsModules.put(module.moduleName(), new ConstraintModule(this, module));
     }
     @Transactional
@@ -269,7 +372,15 @@ public class Image {
 
     @Transactional
     public void addPreferenceModule(PreferenceModuleDTO module) throws Exception {
-        preferenceModules.put(module.moduleName(), new PreferenceModule(this,  module));
+        validateModulesCompatibility(
+            RecordFactory.makeDTO(this).variablesModule(),
+            getConstraintsModules().values().stream().map(m -> RecordFactory.makeDTO(m)).collect(Collectors.toSet()),
+            Stream.concat(
+                getPreferenceModules().values().stream().map(m -> RecordFactory.makeDTO(m)),
+                Stream.of(module)
+            ).collect(Collectors.toSet())
+        );
+        preferenceModules.put(module.moduleName(), new PreferenceModule(this, module));
     }
 
     @Transactional
@@ -315,23 +426,18 @@ public class Image {
     }
 
     @Transactional
-    public void setVariablesModule(VariableModuleDTO moduleDTO) {
-        // Create or get the variable module
-        if (this.variables == null) {
-            this.variables = new HashMap<>();
-        }
-        
+    public void setVariablesModule(VariableModuleDTO moduleDTO) throws Exception {
+        validateModulesCompatibility(
+            moduleDTO,
+            getConstraintsModules().values().stream().map(m -> RecordFactory.makeDTO(m)).collect(Collectors.toSet()),
+            getPreferenceModules().values().stream().map(m -> RecordFactory.makeDTO(m)).collect(Collectors.toSet())
+        );
         VariableModule module = this.variables.get(VariableModule.getVariableModuleName());
         if (module == null) {
             module = new VariableModule(this, VariableModule.getVariableModuleName(), "");
             this.variables.put(VariableModule.getVariableModuleName(), module);
         }
-        
-        try {
-            module.update(moduleDTO);
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to update variables module: " + e.getMessage(), e);
-        }
+        module.update(moduleDTO);
     }
     
     @Transactional
@@ -529,6 +635,14 @@ public class Image {
         }
         
         try {
+            Set<String> setIds = moduleDTO.inputSets().stream()
+                .map(SetDefinitionDTO::name)
+                .collect(Collectors.toSet());
+            Set<String> paramIds = moduleDTO.inputParams().stream()
+                .map(ParameterDefinitionDTO::name)
+                .collect(Collectors.toSet());
+                
+            validateInputExclusivity(setIds, paramIds, moduleDTO.moduleName());
             module.update(moduleDTO);
         } catch (Exception e) {
             throw new RuntimeException("Failed to update constraints module: " + e.getMessage(), e);
@@ -549,6 +663,14 @@ public class Image {
         }
         
         try {
+            Set<String> setIds = moduleDTO.inputSets().stream()
+                .map(SetDefinitionDTO::name)
+                .collect(Collectors.toSet());
+            Set<String> paramIds = moduleDTO.inputParams().stream()
+                .map(ParameterDefinitionDTO::name)
+                .collect(Collectors.toSet());
+                
+            validateInputExclusivity(setIds, paramIds, moduleDTO.moduleName());
             module.update(moduleDTO);
         } catch (Exception e) {
             throw new RuntimeException("Failed to update preferences module: " + e.getMessage(), e);
@@ -606,5 +728,106 @@ public class Image {
 
     public void restoreInput() throws Exception {
         model.restoreToggledFunctionalities();
+    }
+    
+    private void validateInputExclusivity(Set<String> newSetIds, Set<String> newParamIds, String moduleId) throws IllegalArgumentException {
+        // Check against constraint modules
+        for (Map.Entry<String, ConstraintModule> entry : constraintsModules.entrySet()) {
+            if (!entry.getKey().equals(moduleId)) {
+                Set<String> conflictingSets = newSetIds.stream()
+                    .filter(newSetId -> entry.getValue().isInput(newSetId))
+                    .collect(Collectors.toSet());
+                
+                Set<String> conflictingParams = newParamIds.stream()
+                    .filter(newParamId -> entry.getValue().isInput(newParamId))
+                    .collect(Collectors.toSet());
+                
+                if (!conflictingSets.isEmpty() || !conflictingParams.isEmpty()) {
+                    throw new IllegalArgumentException(
+                        String.format("Input conflict between modules:%n" +
+                            "- Constraint module '%s'%n" +
+                            "- Attempting to use in module '%s'%n" +
+                            "Conflicting inputs:%n" +
+                            "%s%s",
+                            entry.getKey(),
+                            moduleId,
+                            conflictingSets.isEmpty() ? "" : String.format("- Sets: %s%n", String.join(", ", conflictingSets)),
+                            conflictingParams.isEmpty() ? "" : String.format("- Parameters: %s%n", String.join(", ", conflictingParams)))
+                    );
+                }
+            }
+        }
+
+        // Check against preference modules
+        for (Map.Entry<String, PreferenceModule> entry : preferenceModules.entrySet()) {
+            if (!entry.getKey().equals(moduleId)) {
+                Set<String> conflictingSets = newSetIds.stream()
+                    .filter(newSetId -> entry.getValue().isInput(newSetId))
+                    .collect(Collectors.toSet());
+                
+                Set<String> conflictingParams = newParamIds.stream()
+                    .filter(newParamId -> entry.getValue().isInput(newParamId))
+                    .collect(Collectors.toSet());
+                
+                Set<String> costParamConflicts = newParamIds.stream()
+                    .filter(newParamId -> entry.getValue().isInput(newParamId) && entry.getValue().getCostParameters().stream()
+                        .anyMatch(param -> param.getIdentifier().equals(newParamId)))
+                    .collect(Collectors.toSet());
+                
+                if (!conflictingSets.isEmpty() || !conflictingParams.isEmpty()) {
+                    String conflictType = !costParamConflicts.isEmpty() ? 
+                        String.format("Cost parameter conflict:%n- Parameters used as cost parameters in preference module: %s%n", 
+                            String.join(", ", costParamConflicts)) :
+                        String.format("Input conflict:%n%s%s",
+                            conflictingSets.isEmpty() ? "" : String.format("- Sets: %s%n", String.join(", ", conflictingSets)),
+                            conflictingParams.isEmpty() ? "" : String.format("- Parameters: %s%n", String.join(", ", conflictingParams)));
+                    
+                    throw new IllegalArgumentException(
+                        String.format("Conflict between modules:%n" +
+                            "- Preference module '%s'%n" +
+                            "- Attempting to use in module '%s'%n" +
+                            "%s",
+                            entry.getKey(),
+                            moduleId,
+                            conflictType)
+                    );
+                }
+            }
+        }
+
+        // Check against variables module if this is not the variables module
+        if (!VariableModule.getVariableModuleName().equals(moduleId)) {
+            VariableModule variablesModule = getVariablesModule();
+            Set<String> conflictingSets = newSetIds.stream()
+                .filter(newSetId -> variablesModule.isInput(newSetId))
+                .collect(Collectors.toSet());
+            
+            Set<String> boundSetConflicts = newSetIds.stream()
+                .filter(newSetId -> variablesModule.getVariables().values().stream()
+                    .anyMatch(var -> var.getBoundSet() != null && var.getBoundSet().getIdentifier().equals(newSetId)))
+                .collect(Collectors.toSet());
+            
+            Set<String> conflictingParams = newParamIds.stream()
+                .filter(newParamId -> variablesModule.isInput(newParamId))
+                .collect(Collectors.toSet());
+            
+            if (!conflictingSets.isEmpty() || !conflictingParams.isEmpty()) {
+                String conflictType = !boundSetConflicts.isEmpty() ? 
+                    String.format("Bound set conflict:%n- Sets used as bound sets in variables module: %s%n", 
+                        String.join(", ", boundSetConflicts)) :
+                    String.format("Input conflict:%n%s%s",
+                        conflictingSets.isEmpty() ? "" : String.format("- Sets: %s%n", String.join(", ", conflictingSets)),
+                        conflictingParams.isEmpty() ? "" : String.format("- Parameters: %s%n", String.join(", ", conflictingParams)));
+                
+                throw new IllegalArgumentException(
+                    String.format("Conflict between modules:%n" +
+                        "- Variables module%n" +
+                        "- Attempting to use in module '%s'%n" +
+                        "%s",
+                        moduleId,
+                        conflictType)
+                );
+            }
+        }
     }
 }

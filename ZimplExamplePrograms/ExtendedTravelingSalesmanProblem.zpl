@@ -76,7 +76,3 @@ minimize distance:
 
     - (citiesVisitedCoefficient*(sum <step,src,dest> in AllPossibleCombinations: Edges[step,src,dest]));
     
-
-
-
-# <1,Tel Aviv, Yafo>   <2,Yafo,Jerusalem>

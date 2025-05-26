@@ -3,6 +3,7 @@ package Image.Modules;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import DTO.Records.Model.ModelData.ParameterDefinitionDTO;
 import DTO.Records.Model.ModelData.SetDefinitionDTO;
@@ -180,4 +181,13 @@ public abstract class Module {
         inputParams.remove(param);
     }
 
+    /**
+     * Checks if the given model input (set or parameter) is an input of this module
+     * @param modelInputId The identifier of the model input to check
+     * @return true if the input belongs to this module, false otherwise
+     */
+    public boolean isInput(String modelInputId) {
+        return inputSets.stream().anyMatch(set -> set.getIdentifier().equals(modelInputId)) ||
+               inputParams.stream().anyMatch(param -> param.getIdentifier().equals(modelInputId));
+    }
 }

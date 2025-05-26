@@ -39,7 +39,9 @@ import Model.ModelSet;
 import Model.ModelVariable;
 import Model.ModelType;
 import DTO.Records.Image.ConstraintModuleDTO;
+import DTO.Records.Image.PreferenceModuleDTO;
 import DTO.Records.Image.VariableModuleDTO;
+import DTO.Records.Image.ImageDTO;
 import DTO.Records.Model.ModelData.ParameterDefinitionDTO;
 import DTO.Records.Model.ModelData.SetDefinitionDTO;
 import DTO.Records.Model.ModelDefinition.VariableDTO;
@@ -51,6 +53,10 @@ import jakarta.transaction.Transactional;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import DTO.Records.Model.ModelDefinition.ConstraintDTO;
+import DTO.Records.Model.ModelDefinition.DependenciesDTO;
+import DTO.Records.Model.ModelDefinition.PreferenceDTO;
+
 
 @SpringBootTest(classes = Main.class)
 @ActiveProfiles({"H2mem", "S3-test", "securityAndGateway"})
@@ -68,15 +74,97 @@ public class ImageTests extends TestWithPersistence {
     private static ImageRepository imageRepository;
     private static ModelFactory modelFactory;
 
-    @Autowired
-    private EntityManager entityManager;
-    
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
+    // Common SetDefinitionDTOs
+    SetDefinitionDTO preassign_soldier_shifts = new SetDefinitionDTO(
+            "preassign_soldier_shifts",
+            Arrays.asList("tag1","tag2","tag3"),
+            Arrays.asList("INT","TEXT","INT"),
+            "some alias"
+    );
 
+        SetDefinitionDTO stations = new SetDefinitionDTO(
+            "Stations",
+            Arrays.asList("tag1"),
+            Arrays.asList("TEXT"),
+            "stations"
+        );
 
-    private static int numberOfImagesToCreate = 4;
-    private static List<Image> images;
+        SetDefinitionDTO times = new SetDefinitionDTO(
+            "Times",
+            Arrays.asList("tag1"),
+            Arrays.asList("INT"),
+            "times alias"
+        );
+
+    // Common ParameterDefinitionDTOs
+    ParameterDefinitionDTO soldiers = new ParameterDefinitionDTO(
+        "soldiers",
+        "tag1",
+        "INT",
+        "soldiers alias"
+    );
+
+    ParameterDefinitionDTO weight = new ParameterDefinitionDTO(
+        "weight",
+        "tag1",
+        "INT",
+        "weight alias"
+    );
+
+    // Common VariableDTOs
+    VariableDTO edge = new VariableDTO(
+        "edge",
+        Arrays.asList("tag1","tag2","tag3"),
+        Arrays.asList("INT","TEXT","INT"),
+        new DependenciesDTO(Set.of("Stations","Times"), Set.of("soldiers")),
+        null,
+        true
+    );
+
+    ConstraintDTO preassign = new ConstraintDTO(
+        "preassign",
+        new DependenciesDTO(Set.of(preassign_soldier_shifts.name()), Set.of())
+    );
+
+    // Common ConstraintDTOs
+    ConstraintDTO trivial4 = new ConstraintDTO(
+        "trivial4", 
+        new DependenciesDTO(Set.of("Stations","Times"), Set.of("soldiers"))
+    );
+
+    ConstraintDTO trivial5 = new ConstraintDTO(
+        "trivial5", 
+        new DependenciesDTO(Set.of("Stations","Times"), Set.of("soldiers"))
+    );
+
+    PreferenceDTO pref1 = new PreferenceDTO(
+        "((maxGuards-minGuards)+weight)**3",
+        new DependenciesDTO(Set.of(), Set.of("weight"))
+    );
+
+    // Common ModuleDTOs
+    ConstraintModuleDTO defaultConstraintModule = new ConstraintModuleDTO(
+        "myConstraint",
+        "Test module",
+        Set.of(trivial4.identifier()),
+        new HashSet<>(),
+        new HashSet<>()
+    );
+
+    PreferenceModuleDTO defaultPreferenceModule = new PreferenceModuleDTO(
+        "myPreference",
+        "Test module",
+        Set.of(pref1.identifier()),
+        new HashSet<>(),
+        new HashSet<>(),
+        new HashSet<>()
+    );
+
+    VariableModuleDTO defaultVariableModule = new VariableModuleDTO(
+        new HashSet<>(),
+        new HashSet<>(),
+        new HashSet<>()
+    );
 
     @Autowired
     public void setModelRepository(ImageRepository injected1, ModelFactory factory) {
@@ -266,6 +354,315 @@ public class ImageTests extends TestWithPersistence {
     @Transactional
     public void test_Constraint_Superior_To_Preference(){
 
+    }
+
+    @Test
+    @Transactional
+    public void When_Adding_Modules_With_Conflicting_Inputs_Then_Exception_Is_Thrown() throws Exception {
+        // Create first module with Stations set and soldiers parameter
+        ConstraintModuleDTO module1 = new ConstraintModuleDTO(
+            "module1",
+            "First module",
+            Set.of(trivial4.identifier()),
+            Set.of(stations),
+            Set.of(soldiers)
+        );
+
+        // Successfully add first module
+        image.addConstraintModule(module1);
+
+        // Try to create second module with same input set
+        ConstraintModuleDTO module2 = new ConstraintModuleDTO(
+            "module2",
+            "Second module",
+            Set.of(trivial5.identifier()),
+            Set.of(stations), // Same set as module1
+            new HashSet<>()
+        );
+
+        // This should throw an IllegalArgumentException
+        Exception exception = assertThrows(Exception.class, () -> {
+            image.addConstraintModule(module2);
+        });
+        assertTrue(exception.getMessage().contains("module1"));
+        assertTrue(exception.getMessage().contains("module2"));
+        assertTrue(exception.getMessage().toLowerCase().contains("constraint"));
+        assertTrue(exception.getMessage().contains("Stations"));
+
+        // Try to create third module with same parameter
+        ConstraintModuleDTO module3 = new ConstraintModuleDTO(
+            "module3",
+            "Third module",
+            Set.of(trivial5.identifier()),
+            new HashSet<>(),
+            Set.of(soldiers) // Same parameter as module1
+        );
+
+        // This should throw an IllegalArgumentException
+        exception = assertThrows(RuntimeException.class, () -> {
+            image.addConstraintModule(module3);
+        });
+
+        assertTrue(exception.getMessage().contains("module1"));
+        assertTrue(exception.getMessage().contains("module3"));
+        assertTrue(exception.getMessage().toLowerCase().contains("constraint"));
+        assertTrue(exception.getMessage().contains("soldiers"));
+
+        // Verify that only the first module was added
+        assertEquals(1, image.getConstraintsModules().size());
+        assertTrue(image.getConstraintsModules().containsKey("module1"));
+    }
+
+    @Test
+    @Transactional
+    public void When_Updating_Image_With_Modules_With_Conflicting_Inputs_Then_Exception_Is_Thrown() throws Exception {
+        // Create initial state with a variables module using soldiers parameter
+        VariableModuleDTO variablesModule = new VariableModuleDTO(
+            new HashSet<>(),
+            new HashSet<>(),
+            Set.of(soldiers)
+        );
+        
+        // Create a constraints module trying to use the same parameter
+        ConstraintModuleDTO constraintModule = new ConstraintModuleDTO(
+            "constraintModule",
+            "Test module",
+            Set.of(trivial4.identifier()),
+            new HashSet<>(),
+            Set.of(soldiers) // Try to use the same parameter
+        );
+        
+        // Create a preferences module also trying to use the same parameter
+        PreferenceModuleDTO preferenceModule = new PreferenceModuleDTO(
+            "preferenceModule",
+            "Test module",
+            Set.of("pref1"),
+            new HashSet<>(),
+            new HashSet<>(),
+            Set.of(soldiers) // Use the same parameter as cost parameter
+        );
+        
+        // Create ImageDTO with conflicting modules
+        ImageDTO imageDTO = new ImageDTO(
+            image.getId(),
+            image.getName(),
+            image.getDescription(),
+            image.getOwner(),
+            image.isPrivate(),
+            image.getSolverScripts(),
+            variablesModule,
+            Set.of(constraintModule),
+            Set.of(preferenceModule)
+        );
+        
+        // This should throw an exception
+        Exception exception = assertThrows(RuntimeException.class, () -> {
+            image.update(imageDTO);
+        });
+        
+        // Verify the exception message contains relevant information
+        String message = exception.getMessage();
+        assertTrue(message.contains(preferenceModule.moduleName()));
+        assertTrue(message.contains(constraintModule.moduleName()));
+        assertTrue(message.toLowerCase().contains("preference"));
+        assertTrue(message.contains("soldiers"));
+        
+        // Verify persistence - the original state should remain unchanged
+        imageRepository.save(image);
+        commit();
+        
+        Image fetchedImage = imageRepository.findById(image.getId()).get();
+        assertEquals(0, fetchedImage.getVariablesModule().getInputParams().size());
+        assertFalse(fetchedImage.getVariablesModule().isInput("soldiers"));
+        assertTrue(fetchedImage.getConstraintsModules().isEmpty());
+        assertTrue(fetchedImage.getPreferenceModules().isEmpty());
+    }
+
+    @Test
+    @Transactional
+    public void When_VariablesModule_BoundSet_Conflicts_With_ConstraintModule_InputSet_Then_Exception_Is_Thrown() throws Exception {
+        // Create a variables module with a bound set
+        VariableDTO boundEdge = new VariableDTO(
+            edge.identifier(),
+            edge.tags(),
+            edge.type(),
+            edge.dep(),
+            preassign_soldier_shifts.name(),
+            edge.isBinary()
+        );
+        
+        VariableModuleDTO variablesModule = new VariableModuleDTO(
+            Set.of(boundEdge),
+            Set.of(),
+            new HashSet<>()
+        );
+        image.setVariablesModule(variablesModule);
+        
+        // Create a constraints module trying to use the same set as input
+        ConstraintModuleDTO constraintModule = new ConstraintModuleDTO(
+            "myConstraint",
+            "Test module",
+            Set.of(preassign.identifier()),
+            Set.of(preassign_soldier_shifts),
+            new HashSet<>()
+        );
+        
+        // Create ImageDTO with the conflicting modules
+        ImageDTO imageDTO = new ImageDTO(
+            image.getId(),
+            image.getName(),
+            image.getDescription()+"add this to description",
+            image.getOwner(),
+            image.isPrivate(),
+            image.getSolverScripts(),
+            variablesModule,
+            Set.of(constraintModule),
+            Set.of()
+        );
+        
+        // This should throw an exception
+        Exception exception = assertThrows(RuntimeException.class, () -> {
+            image.update(imageDTO);
+        });
+        
+        // Verify the exception message contains relevant information
+        String message = exception.getMessage();
+        assertTrue(message.contains(preassign_soldier_shifts.name()),"the real message: "+message);
+        
+        // Verify persistence - the original state should remain unchanged
+        imageRepository.save(image);
+        commit();
+        
+        Image fetchedImage = imageRepository.findById(image.getId()).get();
+        assertEquals(1, fetchedImage.getVariablesModule().getVariables().size());
+        assertEquals(preassign_soldier_shifts.name(), fetchedImage.getVariablesModule().getVariables().get(boundEdge.identifier()).getBoundSet().getIdentifier());
+        assertTrue(fetchedImage.getConstraintsModules().isEmpty());
+        assertTrue(fetchedImage.getDescription().equals(image.getDescription())); // since the update failed, updating the description should also fail.
+    }
+
+    @Test
+    @Transactional
+    public void When_PreferenceModule_CostParam_Conflicts_With_VariablesModule_InputParam_Then_Exception_Is_Thrown() throws Exception {
+        // Create a variables module with an input parameter
+        VariableModuleDTO variablesModule = new VariableModuleDTO(
+            new HashSet<>(),
+            new HashSet<>(),
+            Set.of(weight)
+        );
+        
+        // Create a preferences module with the same parameter as cost parameter
+        PreferenceModuleDTO preferenceModule = new PreferenceModuleDTO(
+            "myPreference",
+            "Test module",
+            Set.of(pref1.identifier()),
+            new HashSet<>(),
+            new HashSet<>(),
+            Set.of(weight)
+        );
+        
+        // Create ImageDTO with the conflicting modules
+        ImageDTO imageDTO = new ImageDTO(
+            image.getId(),
+            image.getName(),
+            image.getDescription(),
+            image.getOwner(),
+            image.isPrivate(),
+            image.getSolverScripts(),
+            variablesModule,
+            Set.of(),
+            Set.of(preferenceModule)
+        );
+        
+        // This should throw an exception
+        Exception exception = assertThrows(RuntimeException.class, () -> {
+            image.update(imageDTO);
+        });
+        
+        // Verify the exception message contains relevant information
+        String message = exception.getMessage();
+        assertTrue(message.contains(preferenceModule.moduleName()));
+        assertTrue(message.contains(weight.name()));
+        
+        // Verify persistence - the original state should remain unchanged
+        imageRepository.save(image);
+        commit();
+        
+        Image fetchedImage = imageRepository.findById(image.getId()).get();
+        assertEquals(0, fetchedImage.getVariablesModule().getInputParams().size());
+        assertFalse(fetchedImage.getVariablesModule().isInput(weight.name()));
+        assertTrue(fetchedImage.getPreferenceModules().isEmpty());
+    }
+
+    @Test
+    @Transactional
+    public void When_Image_Updated_Succeed() throws Exception {
+        // First create an initial state with some modules
+        VariableModuleDTO initialVarModule = new VariableModuleDTO(
+            new HashSet<>(Set.of(edge)),
+            new HashSet<>(),
+            Set.of(soldiers)
+        );
+        
+        // Create initial ImageDTO with constraint module
+        ImageDTO initialImageDTO = new ImageDTO(
+            image.getId(),
+            image.getName(),
+            image.getDescription(),
+            image.getOwner(),
+            image.isPrivate(),
+            image.getSolverScripts(),
+            initialVarModule,
+            Set.of(defaultConstraintModule),
+            Set.of()
+        );
+        
+        // Update image with initial state
+        image.update(initialImageDTO);
+        imageRepository.save(image);
+        commit();
+        
+            // Create update ImageDTO with completely different modules
+        VariableModuleDTO newVarModule = new VariableModuleDTO(
+            new HashSet<>(Set.of(edge)),
+            new HashSet<>(Set.of(stations,times)),
+            Set.of()
+        );
+        
+        ImageDTO updateImageDTO = new ImageDTO(
+            image.getId(),
+            "Updated Name",
+            "Updated Description",
+            image.getOwner(),
+            false, // change privacy
+            Map.of("newScript", "script content"),
+            newVarModule,
+            Set.of(),
+            Set.of(defaultPreferenceModule)
+        );
+        
+        // Update the image
+        image.update(updateImageDTO);
+        imageRepository.save(image);
+        commit();
+        
+        // Verify the update was successful
+        Image fetchedImage = imageRepository.findById(image.getId()).get();
+        
+        // Check basic properties were updated
+        assertEquals("Updated Name", fetchedImage.getName());
+        assertEquals("Updated Description", fetchedImage.getDescription());
+        assertFalse(fetchedImage.isPrivate());
+        assertEquals("script content", fetchedImage.getSolverScripts().get("newScript"));
+        
+        // Check modules were completely replaced
+        assertTrue(fetchedImage.getConstraintsModules().isEmpty());
+        assertEquals(1, fetchedImage.getPreferenceModules().size());
+        assertTrue(fetchedImage.getPreferenceModules().containsKey(defaultPreferenceModule.moduleName()));
+        
+        // Check variables module was updated
+        assertEquals(0, fetchedImage.getVariablesModule().getInputParams().size());
+        assertEquals(2, fetchedImage.getVariablesModule().getInputSets().size());
+        assertFalse(fetchedImage.getVariablesModule().isInput(weight.name()));
     }
 
     @AfterAll

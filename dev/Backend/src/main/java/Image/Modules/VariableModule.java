@@ -5,12 +5,15 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.Arrays;
+import java.util.stream.Collectors;
 
 import DTO.Records.Image.ConstraintModuleDTO;
 import DTO.Records.Image.VariableModuleDTO;
 import DTO.Records.Model.ModelData.ParameterDefinitionDTO;
 import DTO.Records.Model.ModelData.SetDefinitionDTO;
 import DTO.Records.Model.ModelDefinition.VariableDTO;
+import DTO.Records.Model.ModelDefinition.DependenciesDTO;
 import Image.Image;
 import Model.ModelParameter;
 import Model.ModelSet;
@@ -164,5 +167,12 @@ public class VariableModule extends Module {
         for (var paramDTO : dto.inputParams()) {
             addParam(image.getModel().getParameter(paramDTO.name()));
         }
+    }
+
+    @Transactional
+    @Override
+    public boolean isInput(String id) {
+        return super.isInput(id) || variables.values().stream()
+            .anyMatch(var -> var.getBoundSet() != null && var.getBoundSet().getIdentifier().equals(id));
     }
 }
