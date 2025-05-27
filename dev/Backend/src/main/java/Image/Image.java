@@ -231,6 +231,28 @@ public class Image {
         // Create maps to track which inputs belong to which modules
         Map<String, List<String>> setOwnership = new HashMap<>();
         Map<String, List<String>> paramOwnership = new HashMap<>();
+        Map<String, List<String>> boundSetOwnership = new HashMap<>();
+        Map<String, String> moduleNames = new HashMap<>(); // Track module names and their types
+        StringBuilder errorMessage = new StringBuilder();
+        
+        // Check for duplicate module names across all types
+        if (constraintModules != null) {
+            for (ConstraintModuleDTO module : constraintModules) {
+                if (moduleNames.containsKey(module.moduleName())) {
+                    throw new RuntimeException("two modules have the same name: " + module.moduleName());
+                }
+                moduleNames.put(module.moduleName(), "constraint");
+            }
+        }
+        
+        if (preferenceModules != null) {
+            for (PreferenceModuleDTO module : preferenceModules) {
+                if (moduleNames.containsKey(module.moduleName())) {
+                    throw new RuntimeException("two modules have the same name: " + module.moduleName());
+                }
+                moduleNames.put(module.moduleName(), "preference");
+            }
+        }
         
         // Check variables module
         if (variablesModule != null) {
@@ -247,8 +269,8 @@ public class Image {
             // Track bound sets
             for (VariableDTO var : variablesModule.variablesOfInterest()) {
                 if (var.boundSet() != null) {
-                    setOwnership.computeIfAbsent(var.boundSet(), k -> new ArrayList<>())
-                        .add("Variables module (bound set)");
+                    boundSetOwnership.computeIfAbsent(var.boundSet(), k -> new ArrayList<>())
+                        .add("Variable '" + var.identifier() + "'");
                 }
             }
         }
@@ -270,31 +292,67 @@ public class Image {
         // Check preference modules
         if (preferenceModules != null) {
             for (PreferenceModuleDTO module : preferenceModules) {
+                // Create a list of all parameters used by this module
+                List<String> moduleParams = new ArrayList<>();
+                
                 for (SetDefinitionDTO set : module.inputSets()) {
                     setOwnership.computeIfAbsent(set.name(), k -> new ArrayList<>())
                         .add("Preference module '" + module.moduleName() + "'");
                 }
+                
+                // Track input parameters
                 for (ParameterDefinitionDTO param : module.inputParams()) {
+                    moduleParams.add(param.name());
                     paramOwnership.computeIfAbsent(param.name(), k -> new ArrayList<>())
                         .add("Preference module '" + module.moduleName() + "'");
                 }
-                // Track cost parameters
-                for (ParameterDefinitionDTO costParam : module.costParams()) {
-                    paramOwnership.computeIfAbsent(costParam.name(), k -> new ArrayList<>())
-                        .add("Preference module '" + module.moduleName() + "' (cost parameter)");
+                
+                // Track cost parameters, but only add to ownership if not already an input parameter
+                for (ParameterDefinitionDTO param : module.costParams()) {
+                    if (!moduleParams.contains(param.name())) {
+                        paramOwnership.computeIfAbsent(param.name(), k -> new ArrayList<>())
+                            .add("Preference module '" + module.moduleName() + "' (cost parameter)");
+                    }
                 }
             }
         }
-        
-        // Check for conflicts and build error message
-        StringBuilder errorMessage = new StringBuilder();
+
+        // Check for bound set conflicts - but allow a set to be both bound set and input set in variables module
+        boundSetOwnership.forEach((setName, variables) -> {
+            if (variables.size() > 1) {
+                errorMessage.append(String.format("Bound set conflict:%n"));
+                errorMessage.append(String.format("- Set '%s' is used as bound set by multiple variables:%n", setName));
+                variables.forEach(variable -> errorMessage.append(String.format("  * %s%n", variable)));
+            }
+            if (setOwnership.containsKey(setName)) {
+                List<String> owners = setOwnership.get(setName);
+                // Only report conflict if the set is used by modules other than the variables module
+                boolean usedByOtherModules = owners.stream()
+                    .anyMatch(owner -> !owner.equals("Variables module"));
+                
+                if (usedByOtherModules) {
+                    errorMessage.append(String.format("Bound set conflict:%n"));
+                    errorMessage.append(String.format("- Set '%s' is used as bound set by:%n", setName));
+                    variables.forEach(variable -> errorMessage.append(String.format("  * %s%n", variable)));
+                    errorMessage.append("And is also used as input by:%n");
+                    owners.forEach(owner -> errorMessage.append(String.format("  * %s%n", owner)));
+                }
+            }
+        });
         
         // Check set conflicts
         setOwnership.forEach((setName, owners) -> {
             if (owners.size() > 1) {
-                errorMessage.append(String.format("Set conflict:%n"));
-                errorMessage.append(String.format("- Set '%s' is used in multiple modules:%n", setName));
-                owners.forEach(owner -> errorMessage.append(String.format("  * %s%n", owner)));
+                // Filter out cases where it's only used by variables module
+                List<String> nonVarModuleOwners = owners.stream()
+                    .filter(owner -> !owner.equals("Variables module"))
+                    .collect(Collectors.toList());
+                
+                if (nonVarModuleOwners.size() > 0) {
+                    errorMessage.append(String.format("Set conflict:%n"));
+                    errorMessage.append(String.format("- Set '%s' is used in multiple modules:%n", setName));
+                    owners.forEach(owner -> errorMessage.append(String.format("  * %s%n", owner)));
+                }
             }
         });
         

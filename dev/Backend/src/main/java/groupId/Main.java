@@ -22,7 +22,9 @@ import parser.*;
 
 
 //TODO: Make an order in maven pom file, and make a proper pom hierarchy.
-
+//TODO: Make Unit tests the same package as their tested unit
+//TODO: Delete ModelFactory.
+//TODO: Make Image tests that stub Model object.
 @SpringBootApplication(scanBasePackages = {"groupId", "DataAccess", "Model", "Image", " Unit", "Integration", "Acceptance", "DTO", "Exceptions", "Image.Modules","Exceptions.UserErrors","SolverService"})
 @EnableJpaRepositories(basePackages = {"DataAccess", "Model","Image", "Unit","Image.Modules"})
 @ComponentScan(basePackages = {"groupId", "DataAccess", "Model", "Image", "Unit","Image.Modules","SolverService"})

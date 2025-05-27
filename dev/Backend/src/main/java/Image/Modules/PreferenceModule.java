@@ -9,6 +9,8 @@ import java.util.Set;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.Arrays;
+import java.util.stream.Stream;
+import java.util.Objects;
 
 import DTO.Records.Image.ConstraintModuleDTO;
 import DTO.Records.Image.PreferenceModuleDTO;
@@ -29,6 +31,11 @@ import jakarta.persistence.MapKey;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Transient;
 import jakarta.transaction.Transactional;
+import jakarta.persistence.PostLoad;
+import jakarta.persistence.ElementCollection;
+import jakarta.persistence.CollectionTable;
+import jakarta.persistence.Column;
+import jakarta.persistence.FetchType;
 
 @Entity
 // @Table(name = "preference_module")
@@ -47,16 +54,28 @@ public class PreferenceModule extends Module{
     @MapKey(name = "id.identifier")
     private Map<String, ModelPreference> preferences;
 
-    @Transient
-    private Set<ModelParameter> costParameter;
-
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(
+        name = "preference_module_cost_params",
+        joinColumns = {
+            @JoinColumn(name = "image_id", referencedColumnName = "image_id"),
+            @JoinColumn(name = "module_name", referencedColumnName = "name")
+        }
+    )
+    @Column(name = "param_identifier")
+    private Set<String> costParameter;
 
     public PreferenceModule(Image image, PreferenceModuleDTO dto) throws Exception {
-        super(image, dto.moduleName(), dto.description(), dto.inputSets(), dto.inputParams());
+        super(image, dto.moduleName(), dto.description(), 
+            dto.inputSets(),
+            Stream.concat(dto.inputParams().stream(), dto.costParams().stream()).collect(Collectors.toSet())
+        );
+        
+        // Initialize cost parameters
         costParameter = new HashSet<>();
         for (ParameterDefinitionDTO paramDTO : dto.costParams()) {
             ModelParameter param = image.getModel().getParameter(paramDTO.name());
-            costParameter.add(param);
+            costParameter.add(param.getIdentifier());
             param.update(paramDTO);
             param.setCostParameter(true);
         }
@@ -80,7 +99,8 @@ public class PreferenceModule extends Module{
     }
 
     public PreferenceModule(Image image ,String name, String description, Collection<ModelPreference> preferences, Collection<ModelSet> inputSets, Collection<ModelParameter> inputParams, Collection<ModelParameter> coefficients) {
-        super(image , name, description,inputSets,inputParams);
+        super(image , name, description,inputSets,Stream.concat(inputParams.stream(), coefficients.stream()).collect(Collectors.toSet()));
+
         for(ModelParameter costParam : coefficients){
             this.addParam(costParam);
         }
@@ -94,13 +114,6 @@ public class PreferenceModule extends Module{
         }
     }
 
-    private void gatherCostParameters(){
-        this.costParameter = new HashSet<>();
-        for(ModelParameter param : this.inputParams) {
-            if(param.isCostParameter())
-                this.costParameter.add(param);
-        }
-    }
     
     /**
      * Fetch all ModelSets that are in use in any of the preferences in the module.
@@ -146,10 +159,14 @@ public class PreferenceModule extends Module{
     }
 
     @Transactional
-    public Set<ModelParameter> getCostParameters(){
-        if(costParameter == null)
-            gatherCostParameters();
-        return this.costParameter;
+    public Set<ModelParameter> getCostParameters() {
+        return this.costParameter.stream()
+            .map(id -> this.inputParams.stream()
+                .filter(param -> param.getIdentifier().equals(id))
+                .findFirst()
+                .orElse(null))
+            .filter(Objects::nonNull)
+            .collect(Collectors.toSet());
     }
 
     @Transactional
@@ -170,19 +187,20 @@ public class PreferenceModule extends Module{
             addSet(image.getModel().getSet(setDTO.name()));
         }
 
-        // Update input parameters
+        // Update input parameters and cost parameters
         inputParams.clear();
+        costParameter.clear();
+        
+        // Add all parameters (both input and cost) to inputParams
         for (ParameterDefinitionDTO paramDTO : dto.inputParams()) {
             addParam(image.getModel().getParameter(paramDTO.name()));
         }
-
-        // Update cost parameters
-        costParameter = new HashSet<>();
         for (ParameterDefinitionDTO paramDTO : dto.costParams()) {
             ModelParameter param = image.getModel().getParameter(paramDTO.name());
+            addParam(param);
             param.update(paramDTO);
             param.setCostParameter(true);
-            costParameter.add(param);
+            costParameter.add(param.getIdentifier());
         }
     }
 
@@ -197,9 +215,6 @@ public class PreferenceModule extends Module{
     @Transactional
     @Override
     public boolean isInput(String id) {
-        if (costParameter == null) {
-            gatherCostParameters();
-        }
-        return super.isInput(id) || costParameter.stream().anyMatch(param -> param.getIdentifier().equals(id));
+        return super.isInput(id) || costParameter.contains(id);
     }
 }

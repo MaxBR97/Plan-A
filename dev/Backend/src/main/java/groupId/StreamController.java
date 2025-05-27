@@ -82,6 +82,7 @@ public class StreamController {
             futureSolution = controller.solveAsync(request);
         else
             futureSolution = controller.solveAsync(request);
+        model.setContinue(false);
         return ResponseEntity.ok(futureSolution.get());
     }
 

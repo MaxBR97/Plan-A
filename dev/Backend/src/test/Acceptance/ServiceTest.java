@@ -12,9 +12,14 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.Arrays;
+
+import org.junit.jupiter.api.AfterAll;
+
 import jakarta.transaction.Transactional;
 
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -54,6 +59,7 @@ import DTO.Records.Requests.Responses.ExceptionDTO;
 import DataAccess.ModelRepository;
 import groupId.Main;
 import groupId.Service;
+import DTO.Records.Image.PreferenceModuleDTO;
 
 /*TODO: Add test for creating a preference module
 * with a cost param that doesnt appear in the inputSets list.
@@ -101,7 +107,7 @@ import groupId.Service;
   * add a test for defining a param as part of a module, reconfigure the image,
   * and make that param part of variables module and try to solve while toggling off the module it used to be part of.
   */
-  
+
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,classes = Main.class)
 @ActiveProfiles({"H2mem", "securityAndGateway", "streamSolver"})
 @TestPropertySource(properties = {
@@ -110,27 +116,12 @@ import groupId.Service;
 public class ServiceTest {
     @LocalServerPort
     private int port;
-    static String SimpleCodeExample = """
-          set mySet := {7,6,4};
-          param x := 10;
-         
-          var myVar[mySet] >= 0;
-        
-          subto sampleConstraint:
-              myVar[1] + myVar[2] + myVar[3] == x;
-            
-          subto optionalConstraint:
-              myVar[3] <= 5;
-
-          maximize myObjective:
-              myVar[3];
-            """;
-
-    static String pathToSoldiersExampleProgram2 =  Paths.get("..", "..", "ZimplExamplePrograms", "SoldiersExampleProgram2.zpl").toString();
-    static String pathToSoldiersExampleProgram3 =  Paths.get("..", "..","ZimplExamplePrograms","SoldiersExampleProgram3.zpl").toString();
-    static String pathToComplexSoldiersExampleProgram3 =  Paths.get("..","..", "ZimplExamplePrograms","ComplexSoldiersExampleProgram3.zpl").toString();
-    static String pathToLearningParity2 = Paths.get("..", "..", "ZimplExamplePrograms", "LearningParity2.zpl").toString();
-    static String pathToComplexSoldiersExampleProgram = Paths.get("..","..","ZimplExamplePrograms","ComplexSoldiersExampleProgram.zpl").toString();
+    static String pathToSimpleExample = Paths.get("src", "test", "resources", "ZimplExamples", "SimpleExample.zpl").toString();
+    static String pathToSoldiersExampleProgram3 =  Paths.get("src", "test", "resources","ZimplExamples" ,"SoldiersExampleProgram3.zpl").toString();
+    static String pathToComplexSoldiersExampleProgram3 =  Paths.get("src", "test", "resources","ZimplExamples" ,"ComplexSoldiersExampleProgram3.zpl").toString();
+    static String pathToLearningParity2 = Paths.get("src", "test", "resources","ZimplExamples" ,"LearningParity2.zpl").toString();
+    static String pathToCourseScheduling = Paths.get("src", "test", "resources","ZimplExamples" ,"Course_Scheduler_For_Students.zpl").toString();
+    
     static RequestsManager requestsManager;
     static String imageName="myImage";
     static String imageDescription="desc";
@@ -171,7 +162,7 @@ public class ServiceTest {
     // structure (constraints, preferences, variables, etc.) is correctly parsed
     @Test
     public void testCreateImage() {
-        CreateImageFromFileDTO body = new CreateImageRequestBuilder(imageName,imageDescription, "none", false, SimpleCodeExample).build();
+        CreateImageFromFileDTO body = new CreateImageRequestBuilder(imageName,imageDescription, "none", false, Path.of(pathToSimpleExample)).build();
         ResponseEntity<?> response = requestsManager.sendCreateImageRequest(body);
         CreateImageResponseDTO result = expectSuccess(response, CreateImageResponseDTO.class);
 
@@ -180,10 +171,10 @@ public class ServiceTest {
             "some imageId", new ModelDTO(
               Set.of(new ConstraintDTO("sampleConstraint", new DependenciesDTO(Set.of(),Set.of("x"))),
                     new ConstraintDTO("optionalConstraint", new DependenciesDTO(Set.of(),Set.of()))),
-                Set.of(new PreferenceDTO("myVar[3]", new DependenciesDTO(Set.of(),Set.of()))),
+                Set.of(new PreferenceDTO("coefficient*myVar[3]", new DependenciesDTO(Set.of(),Set.of("coefficient"))),new PreferenceDTO("myVar[1]", new DependenciesDTO(Set.of(),Set.of()))),
                 Set.of(new VariableDTO("myVar",List.of("INT"),List.of("INT"), new DependenciesDTO(Set.of("mySet"),Set.of()),null,false)),
                 Map.of("mySet",List.of("INT")),
-                Map.of("x","INT"),
+                Map.of("x","INT", "coefficient","INT"),
                 Map.of("myVar",List.of("INT"))));
 
         assertNotNull(result.imageId());
@@ -199,14 +190,14 @@ public class ServiceTest {
     // verifying that all components are correctly set and maintained
     @Test
     public void GivenImageDTO_WhenConfigImage_ImageIsCorrect() {
-        CreateImageFromFileDTO createImage = new CreateImageRequestBuilder(imageName,imageDescription, "none", false, SimpleCodeExample).build();
+        CreateImageFromFileDTO createImage = new CreateImageRequestBuilder(imageName,imageDescription, "none", false, Path.of(pathToSimpleExample)).build();
         ResponseEntity<?> response = requestsManager.sendCreateImageRequest(createImage);
         CreateImageResponseDTO result = expectSuccess(response, CreateImageResponseDTO.class);
 
         ImageConfigDTO configImage = new ConfigureImageRequestBuilder(imageName, result)
             .setVariablesModule(Set.of("myVar"), Set.of("mySet"), Set.of())
             .addConstraintsModule("Test module const", "PeanutButter", Set.of("sampleConstraint"), Set.of(), Set.of("x"))
-            .addPreferencesModule("Test module pref", "PeanutButter", Set.of("myVar[3]"),Set.of(),Set.of(),Set.of())
+            .addPreferencesModule("Test module pref", "PeanutButter", Set.of("coefficient*myVar[3]"),Set.of(),Set.of(),Set.of())
             .build();
 
         ResponseEntity<?> configResponse = requestsManager.sendConfigImageRequest(configImage);
@@ -248,7 +239,7 @@ public class ServiceTest {
         var prefModule = configuredImage.preferenceModules().iterator().next();
         assertEquals("Test module pref", prefModule.moduleName());
         assertEquals("PeanutButter", prefModule.description());
-        assertEquals(Set.of("myVar[3]"), prefModule.preferences());
+        assertEquals(Set.of("coefficient*myVar[3]"), prefModule.preferences());
         assertTrue(prefModule.inputSets().isEmpty());
         assertTrue(prefModule.inputParams().isEmpty());
         assertTrue(prefModule.costParams().isEmpty());
@@ -303,11 +294,11 @@ public class ServiceTest {
         @Test
         public void testSolve_Simple() {
             try {
-                CreateImageFromFileDTO createImage = new CreateImageRequestBuilder(imageName,imageDescription, "none", false, SimpleCodeExample).build();
+                CreateImageFromFileDTO createImage = new CreateImageRequestBuilder(imageName,imageDescription, "none", false, Path.of(pathToSimpleExample)).build();
                 CreateImageResponseDTO result = expectSuccess(requestsManager.sendCreateImageRequest(createImage), CreateImageResponseDTO.class);
 
             ImageConfigDTO configImage = new ConfigureImageRequestBuilder(imageName, result)
-                .setVariablesModule(Set.of("myVar"), Set.of(), Set.of())
+                .setVariablesModule(Set.of("myVar"), Set.of("mySet"), Set.of("x"))
                 .build();
             expectSuccess(requestsManager.sendConfigImageRequest(configImage), Void.class);
 
@@ -317,7 +308,7 @@ public class ServiceTest {
                 .build();
             SolutionDTO solution = expectSuccess(requestsManager.sendSolveRequest(solveRequest), SolutionDTO.class);
 
-                assertEquals(Set.of(new SolutionValueDTO(List.of("3"),5), new SolutionValueDTO(List.of("2"),5)), solution.solution().get("myVar").solutions());
+                assertEquals(Set.of(new SolutionValueDTO(List.of("3"),5), new SolutionValueDTO(List.of("1"),5)), solution.solution().get("myVar").solutions());
             } catch (Exception e) {
                 fail(e.getMessage());
             }
@@ -327,20 +318,20 @@ public class ServiceTest {
         @Test
         public void testLoadImageInput() {
             // create Image
-        CreateImageFromFileDTO createImage =  new CreateImageRequestBuilder(imageName,imageDescription, "none", false , SimpleCodeExample).build();
+        CreateImageFromFileDTO createImage =  new CreateImageRequestBuilder(imageName,imageDescription, "none", false , Path.of(pathToSimpleExample)).build();
         CreateImageResponseDTO responseCreateImage = expectSuccess(requestsManager.sendCreateImageRequest(createImage), CreateImageResponseDTO.class);
         
         ImageConfigDTO configImage =  new ConfigureImageRequestBuilder(imageName, responseCreateImage)
                 .setVariablesModule(Set.of("myVar"), Set.of("mySet"), Set.of())
                 .addConstraintsModule("MyConst", "", Set.of("sampleConstraint"), Set.of(), Set.of("x"))
-                .addPreferencesModule("MyPref", "desc", Set.of("myVar[3]"),Set.of(),Set.of(),Set.of())
+                .addPreferencesModule("MyPref", "desc", Set.of("coefficient*myVar[3]"),Set.of(),Set.of(),Set.of())
                 .build();
 
         Void responseConfigImage = expectSuccess(requestsManager.sendConfigImageRequest(configImage), Void.class);
     
         InputDTO expected = new InputDTO(
         Map.of(
-            "mySet", List.of(List.of("7"), List.of("6"),List.of("4"))
+            "mySet", List.of(List.of("1"), List.of("2"),List.of("3"),List.of("4"))
         ),
         Map.of(
             "x", List.of("10")
@@ -413,7 +404,7 @@ public class ServiceTest {
     @Test
     public void deleteImageTest() {
         // Create an image first
-        CreateImageFromFileDTO createImage = new CreateImageRequestBuilder(imageName,imageDescription, "none", false, SimpleCodeExample).build();
+        CreateImageFromFileDTO createImage = new CreateImageRequestBuilder(imageName,imageDescription, "none", false, Path.of(pathToSimpleExample)).build();
         ResponseEntity<?> response = requestsManager.sendCreateImageRequest(createImage);
         CreateImageResponseDTO createResult = expectSuccess(response, CreateImageResponseDTO.class);
         String imageId = createResult.imageId();
@@ -438,24 +429,90 @@ public class ServiceTest {
     @Test
     public void testSolve_WithToggleOff() {
         try {
-            CreateImageFromFileDTO createImage = new CreateImageRequestBuilder(imageName,imageDescription, "none", false, SimpleCodeExample).build();
+            // Use unique names for this test
+            String testImageName = "toggleTest";
+            String testConst1 = "MyConst1";
+            String testPref1 = "MyPref1";
+            String testPref2 = "MyPref2";
+            
+            CreateImageFromFileDTO createImage = new CreateImageRequestBuilder(testImageName, imageDescription, "none", false, Path.of(pathToSimpleExample)).build();
             CreateImageResponseDTO result = expectSuccess(requestsManager.sendCreateImageRequest(createImage), CreateImageResponseDTO.class);
 
-            ImageConfigDTO configImage = new ConfigureImageRequestBuilder(imageName, result)
-                .setVariablesModule(Set.of("myVar"), Set.of(), Set.of())
-                .addConstraintsModule("constraintToRemove", "", Set.of("optionalConstraint"), Set.of(), Set.of())
+            ImageConfigDTO configImage = new ConfigureImageRequestBuilder(testImageName, result)
+                .setVariablesModule(Set.of("myVar"), Set.of("mySet"), Set.of("x"))
+                .addConstraintsModule(testConst1, "", Set.of("optionalConstraint"), Set.of(), Set.of())
+                .addPreferencesModule(testPref1, "desc", Set.of("coefficient*myVar[3]"),Set.of(),Set.of(),Set.of("coefficient"))
+                .addPreferencesModule(testPref2, "desc", Set.of("myVar[1]"),Set.of(),Set.of(),Set.of())
                 .build();
 
             expectSuccess(requestsManager.sendConfigImageRequest(configImage), Void.class);
 
-            SolveCommandDTO solveRequest = new SolveCommandRequestBuilder(result)
+            // Case 1: Toggle off constraint, coefficient=10, x=10, expect myVar[3]=10
+            SolveCommandDTO solveRequest1 = new SolveCommandRequestBuilder(result)
                 .setSetInput("mySet",List.of(List.of("1"),List.of("2"),List.of("3")))
                 .setParamInput("x", List.of("10"))
-                .addToggleOffConstraintModule("constraintToRemove")
-                .build();
-            SolutionDTO solution = expectSuccess(requestsManager.sendSolveRequest(solveRequest), SolutionDTO.class);
+                .setParamInput("coefficient", List.of("10"))
+                .addToggleOffConstraintModule(testConst1)
+                .build();   
+            SolutionDTO solution1 = expectSuccess(requestsManager.sendSolveRequest(solveRequest1), SolutionDTO.class);
+            assertEquals(Set.of(new SolutionValueDTO(List.of("3"),10)), solution1.solution().get("myVar").solutions());
 
-            assertEquals(Set.of(new SolutionValueDTO(List.of("3"),10)), solution.solution().get("myVar").solutions());
+            // Case 2: Toggle off pref1, coefficient=10, x=10, expect myVar[1]=10
+            SolveCommandDTO solveRequest2 = new SolveCommandRequestBuilder(result)
+                .setSetInput("mySet",List.of(List.of("1"),List.of("2"),List.of("3")))
+                .setParamInput("x", List.of("10"))
+                .setParamInput("coefficient", List.of("10"))
+                .addToggleOffPreferenceModule(testPref1)
+                .build();   
+            SolutionDTO solution2 = expectSuccess(requestsManager.sendSolveRequest(solveRequest2), SolutionDTO.class);
+            assertEquals(Set.of(new SolutionValueDTO(List.of("1"),10)), solution2.solution().get("myVar").solutions());
+
+            // Case 3: Toggle off pref2, coefficient=-5, x=10, expect myVar[3]=0 (not in result)
+            SolveCommandDTO solveRequest3 = new SolveCommandRequestBuilder(result)
+                .setSetInput("mySet",List.of(List.of("1"),List.of("2"),List.of("3")))
+                .setParamInput("x", List.of("10"))
+                .setParamInput("coefficient", List.of("-5"))
+                .addToggleOffPreferenceModule(testPref2)
+                .build();   
+            SolutionDTO solution3 = expectSuccess(requestsManager.sendSolveRequest(solveRequest3), SolutionDTO.class);
+            assertTrue(solution3.solution().get("myVar").solutions().stream()
+                .noneMatch(sol -> sol.values().contains("3")), 
+                "myVar[3] should not be in the solution as its value is 0");
+
+            // Case 4: Toggle off constraint and pref2, coefficient=10, x=10, expect myVar[3]=10
+            SolveCommandDTO solveRequest4 = new SolveCommandRequestBuilder(result)
+                .setSetInput("mySet",List.of(List.of("1"),List.of("2"),List.of("3")))
+                .setParamInput("x", List.of("10"))
+                .setParamInput("coefficient", List.of("10"))
+                .addToggleOffConstraintModule(testConst1)
+                .addToggleOffPreferenceModule(testPref2)
+                .build();   
+            SolutionDTO solution4 = expectSuccess(requestsManager.sendSolveRequest(solveRequest4), SolutionDTO.class);
+            assertEquals(Set.of(new SolutionValueDTO(List.of("3"),10)), solution4.solution().get("myVar").solutions());
+
+            // Case 5: Toggle off all modules, coefficient=10, x=10, expect any solution
+            SolveCommandDTO solveRequest5 = new SolveCommandRequestBuilder(result)
+                .setSetInput("mySet",List.of(List.of("1"),List.of("2"),List.of("3")))
+                .setParamInput("x", List.of("10"))
+                .setParamInput("coefficient", List.of("10"))
+                .addToggleOffConstraintModule(testConst1)
+                .addToggleOffPreferenceModule(testPref1)
+                .addToggleOffPreferenceModule(testPref2)
+                .build();   
+            SolutionDTO solution5 = expectSuccess(requestsManager.sendSolveRequest(solveRequest5), SolutionDTO.class);
+            assertNotNull(solution5.solution().get("myVar").solutions(), "Should return some solution");
+            assertTrue(!solution5.solution().get("myVar").solutions().isEmpty(), "Should return non-empty solution");
+
+            // Case 6: Toggle off constraint, coefficient=10, x=-10, expect infeasible
+            SolveCommandDTO solveRequest6 = new SolveCommandRequestBuilder(result)
+                .setSetInput("mySet",List.of(List.of("1"),List.of("2"),List.of("3")))
+                .setParamInput("x", List.of("-10"))
+                .setParamInput("coefficient", List.of("10"))
+                .addToggleOffConstraintModule(testConst1)
+                .build();   
+            SolutionDTO solution6 = expectSuccess(requestsManager.sendSolveRequest(solveRequest6), SolutionDTO.class);
+            assertTrue(solution6.solution() == null || solution6.solution().isEmpty(), "Solution should be unsolved/infeasible");
+
         } catch (Exception e) {
             fail(e.getMessage());
         }
@@ -487,9 +544,9 @@ public class ServiceTest {
     @Test
     public void testUploadMultipleProgramsAndSolve() {
         List<String> uploadAll = List.of(
-            pathToSoldiersExampleProgram2,
             pathToSoldiersExampleProgram3,
-            pathToLearningParity2
+            pathToLearningParity2,
+            pathToComplexSoldiersExampleProgram3
         );
         List<String> respectiveImageIds = new LinkedList<>();
 
@@ -521,7 +578,7 @@ public class ServiceTest {
     public void testPersistentSolveWithHTTPPolling() {
         List<String> polledMessages = new LinkedList<>();
         
-        CreateImageFromFileDTO createImage = new CreateImageRequestBuilder(imageName,imageDescription, "none", false, SimpleCodeExample).build();
+        CreateImageFromFileDTO createImage = new CreateImageRequestBuilder(imageName,imageDescription, "none", false, Path.of(pathToSimpleExample)).build();
         ResponseEntity<?> response = requestsManager.sendCreateImageRequest(createImage);
         CreateImageResponseDTO result = expectSuccess(response, CreateImageResponseDTO.class);   
 
@@ -536,7 +593,6 @@ public class ServiceTest {
             .setSetInput("mySet", List.of(List.of("1"), List.of("2"), List.of("3")))
             .setParamInput("x", List.of("10"))
             .build();
-
         // Start persistent solve
         expectSuccess(requestsManager.sendPersistentSolve(solveRequest), Void.class);
 
@@ -549,7 +605,6 @@ public class ServiceTest {
         ResponseEntity<?> pollResponse = requestsManager.sendPollPersistentSolve();
         expectSuccess(pollResponse, String.class);
         polledMessages.add(pollResponse.getBody().toString());
-
         expectSuccess(requestsManager.sendContinuePersistentSolve(solveRequest), Void.class);
         
         try {
@@ -569,6 +624,135 @@ public class ServiceTest {
         assertTrue(firstPoll.contains("presolving:"), "First poll should contain 'presolving:', got: " + firstPoll); 
         assertTrue(firstPoll.contains("SCIP Status"), "First poll should contain 'SCIP Status', got: " + firstPoll);
         assertTrue(secondPoll.contains("problem is already solved"), "Second poll should indicate problem is solved, got: " + secondPoll);
+    }
+
+    @Test
+    public void testCourseSchedulerConfiguration() {
+        // Create image from Course Scheduler file
+        CreateImageFromFileDTO createImage = new CreateImageRequestBuilder(imageName, imageDescription, "none", false, Path.of(pathToCourseScheduling))
+            .build();
+        CreateImageResponseDTO result = expectSuccess(requestsManager.sendCreateImageRequest(createImage), CreateImageResponseDTO.class);
+
+        // Configure image with variables module and preference modules
+        ImageConfigDTO configImage = new ConfigureImageRequestBuilder(imageName, result)
+            .setVariablesModule(
+                Set.of("take_course", "choose_group", "day_has_class", "first_activity_of_the_day", "total_points", "assignment_presentation", "assignment_presentation_formatted"),
+                Set.of("CourseData", "Weekdays", "CourseSchedule"),
+                Set.of()
+            )
+            .addPreferencesModule(
+                "Points Preference",
+                "Minimize deviation from target points",
+                Set.of("weight_points * abs(total_points - target_points)".replaceAll("\\s+", "")),
+                Set.of(),
+                Set.of("target_points"),
+                Set.of("weight_points")
+            )
+            .addPreferencesModule(
+                "Days Preference",
+                "Minimize active days",
+                Set.of("weight_days * (sum <w> in Weekdays: day_has_class[w])".replaceAll("\\s+", "")),
+                Set.of(),
+                Set.of(),
+                Set.of("weight_days")
+            )
+            .addPreferencesModule(
+                "Early Start Preference",
+                "Prefer early start times",
+                Set.of("weight_day_start_early * (sum <c,g,w> in proj(CourseSchedule, <1,2,5>): (first_activity_of_the_day[c,g,w] * (min <c2,g2,t2,st2,wd2,sh2,eh2> in CourseSchedule | c == c2 and g == g2 and w == wd2: sh2)))".replaceAll("\\s+", "")),
+                Set.of(),
+                Set.of(),
+                Set.of("weight_day_start_early")
+            )
+            .addPreferencesModule(
+                "Preferred Courses",
+                "Maximize preferred courses",
+                Set.of("((-1 * weight_preffered_courses) * (sum <c> in Courses: (take_course[c] * getCourseRating(c)/sumOfPrefferedCoursesRatings)))".replaceAll("\\s+", "") ),
+                Set.of("preffered_courses"),
+                Set.of(),
+                Set.of("weight_preffered_courses")
+            )
+            .addPreferencesModule(
+                "Preferred Teachers",
+                "Maximize preferred teachers",
+                Set.of("((-1 * weight_preffered_teachers) * (sum <c> in Courses: (take_course[c] * getTeacherRating(c)/sumOfPrefferedTeachersRatings)))".replaceAll("\\s+", "")),
+                Set.of("preffered_teachers"),
+                Set.of(),
+                Set.of("weight_preffered_teachers")
+            )
+            .build();
+
+        expectSuccess(requestsManager.sendConfigImageRequest(configImage), Void.class);
+
+        // Get the configured image and verify its structure
+        ResponseEntity<?> getResponse = requestsManager.sendGetImageRequest(result.imageId());
+        ImageDTO configuredImage = expectSuccess(getResponse, ImageDTO.class);
+
+        // Verify image basic info
+        assertEquals(imageName, configuredImage.imageName());
+        assertEquals(imageDescription, configuredImage.imageDescription());
+
+        // Verify variables module
+        assertNotNull(configuredImage.variablesModule());
+        assertEquals(
+            Set.of("take_course", "choose_group", "day_has_class", "first_activity_of_the_day", "total_points", "assignment_presentation", "assignment_presentation_formatted"),
+            configuredImage.variablesModule().variablesOfInterest().stream()
+                .map(v -> v.identifier())
+                .collect(Collectors.toSet())
+        );
+        assertEquals(
+            Set.of("CourseData", "Weekdays", "CourseSchedule"),
+            configuredImage.variablesModule().inputSets().stream()
+                .map(s -> s.name())
+                .collect(Collectors.toSet())
+        );
+        assertTrue(configuredImage.variablesModule().inputParams().isEmpty());
+
+        // Verify no constraint modules
+        assertTrue(configuredImage.constraintModules().isEmpty());
+
+        // Verify preference modules
+        assertEquals(5, configuredImage.preferenceModules().size());
+        
+        // Helper function to find preference module by name
+        java.util.function.Function<String, PreferenceModuleDTO> findModule = 
+            name -> configuredImage.preferenceModules().stream()
+                .filter(m -> m.moduleName().equals(name))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("Module " + name + " not found"));
+
+        // Verify Points Preference module
+        var pointsModule = findModule.apply("Points Preference");
+        assertEquals(Set.of("weight_points * abs(total_points - target_points)".replaceAll("\\s+", "")), pointsModule.preferences());
+        assertTrue(pointsModule.inputSets().isEmpty());
+        assertEquals(Set.of("target_points", "weight_points"), pointsModule.inputParams().stream().map(p -> p.name()).collect(Collectors.toSet()));
+        assertEquals(Set.of("weight_points"), pointsModule.costParams().stream().map(p -> p.name()).collect(Collectors.toSet()));
+
+        // Verify Days Preference module
+        var daysModule = findModule.apply("Days Preference");
+        assertEquals(Set.of("weight_days * (sum <w> in Weekdays: day_has_class[w])".replaceAll("\\s+", "")), daysModule.preferences());
+        assertTrue(daysModule.inputSets().isEmpty());
+        assertEquals(Set.of( "weight_days"), daysModule.inputParams().stream().map(p -> p.name()).collect(Collectors.toSet()));
+        assertEquals(Set.of("weight_days"), daysModule.costParams().stream().map(p -> p.name()).collect(Collectors.toSet()));
+
+        // Verify Early Start Preference module
+        var earlyStartModule = findModule.apply("Early Start Preference");
+        assertEquals(Set.of("weight_day_start_early * (sum <c,g,w> in proj(CourseSchedule, <1,2,5>): (first_activity_of_the_day[c,g,w] * (min <c2,g2,t2,st2,wd2,sh2,eh2> in CourseSchedule | c == c2 and g == g2 and w == wd2: sh2)))".replaceAll("\\s+", "")), earlyStartModule.preferences());
+        assertTrue(earlyStartModule.inputSets().isEmpty());
+        assertEquals(Set.of("weight_day_start_early"), earlyStartModule.inputParams().stream().map(p -> p.name()).collect(Collectors.toSet()));
+        assertEquals(Set.of("weight_day_start_early"), earlyStartModule.costParams().stream().map(p -> p.name()).collect(Collectors.toSet()));
+
+        // Verify Preferred Courses module
+        var coursesModule = findModule.apply("Preferred Courses");
+        assertEquals(Set.of("((-1 * weight_preffered_courses) * (sum <c> in Courses: (take_course[c] * getCourseRating(c)/sumOfPrefferedCoursesRatings)))".replaceAll("\\s+", "")), coursesModule.preferences());
+        assertEquals(Set.of("preffered_courses"), coursesModule.inputSets().stream().map(s -> s.name()).collect(Collectors.toSet()));
+        assertEquals(Set.of("weight_preffered_courses"), coursesModule.costParams().stream().map(p -> p.name()).collect(Collectors.toSet()));
+
+        // Verify Preferred Teachers module
+        var teachersModule = findModule.apply("Preferred Teachers");
+        assertEquals(Set.of("((-1 * weight_preffered_teachers) * (sum <c> in Courses: (take_course[c] * getTeacherRating(c)/sumOfPrefferedTeachersRatings)))".replaceAll("\\s+", "")), teachersModule.preferences());
+        assertEquals(Set.of("preffered_teachers"), teachersModule.inputSets().stream().map(s -> s.name()).collect(Collectors.toSet()));
+        assertEquals(Set.of("weight_preffered_teachers"), teachersModule.costParams().stream().map(p -> p.name()).collect(Collectors.toSet()));
     }
 
     private <T> T expectSuccess(ResponseEntity<?> response, Class<T> expectedType) {
@@ -600,10 +784,11 @@ public class ServiceTest {
     @Transactional
     public void cleanUp() throws Exception {
         System.gc();
-        int count = 0;
-        while(count<20){
-            try{
-                Thread.sleep(100);
+        
+        // More aggressive cleanup with multiple retries
+        for (int attempt = 0; attempt < 3; attempt++) {
+            try {
+                // Clear model repository
                 modelRepository.deleteAll();
                 
                 // Clean up test files
@@ -614,9 +799,14 @@ public class ServiceTest {
                         .map(Path::toFile)
                         .forEach(File::delete);
                 }
+                
+                Thread.sleep(100); // Small delay between cleanup steps
                 break;
-            } catch (Exception e){
-                count++;
+            } catch (Exception e) {
+                if (attempt == 2) {
+                    throw new RuntimeException("Failed to clean up after 3 attempts", e);
+                }
+                Thread.sleep(200 * (attempt + 1)); // Exponential backoff
             }
         }
     }
