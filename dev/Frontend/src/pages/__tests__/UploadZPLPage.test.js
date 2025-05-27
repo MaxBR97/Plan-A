@@ -1,12 +1,10 @@
 import React from "react";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import UploadZPLPage from "./UploadZPLPage";
+import UploadZPLPage from "../UploadZPLPage";
 import { BrowserRouter } from "react-router-dom";
 import axios from "axios";
 import { useZPL } from "../context/ZPLContext";
 
-jest.mock("axios");
-jest.mock("../context/ZPLContext");
 
 const mockNavigate = jest.fn();
 jest.mock("react-router-dom", () => ({

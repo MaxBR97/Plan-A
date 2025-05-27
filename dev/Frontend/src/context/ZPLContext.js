@@ -9,18 +9,13 @@ const initialUser = {
 
 const initialImageState = {
   imageName: "My Image",
-  imageDescription: "default description",
+  imageDescription: "",
   imageId: null,
   owner: "guest",
   isPrivate: true,
   solverSettings: {"default": ""},
   constraintModules: [],
   preferenceModules: [],
-  // variables: [],
-  // setTypes: [],
-  // setTags: [],
-  // paramTypes: [],
-  // varTypes: [],
   variablesModule: null,
 };
 
@@ -78,8 +73,6 @@ export const ZPLProvider = ({ children }) => {
     }), callback);
   };
 
-
-
   // Function to update model state
   const updateModel = (newModelData) => {
     setModel({
@@ -97,13 +90,26 @@ export const ZPLProvider = ({ children }) => {
     setSolutionResponse(response);
   };
 
+  // Function to reset image state to initial values
   const resetImage = () => {
-    setImage(initialImageState)
-  }
+    setImage(initialImageState);
+  };
 
+  // Function to reset model state to initial values
   const resetModel = () => {
-    setModel(initialModelState)
-  }
+    setModel(initialModelState);
+  };
+
+  // Function to reset solution response to initial values
+  const resetSolutionResponse = () => {
+    setSolutionResponse({
+      solved: false,
+      solvingTime: -2,
+      objectiveValue: 0,
+      errorMsg: "",
+      solution: {},
+    });
+  };
 
   return (
     <ZPLContext.Provider
@@ -119,7 +125,8 @@ export const ZPLProvider = ({ children }) => {
         updateModel,
         updateSolutionResponse,
         resetImage,
-        resetModel
+        resetModel,
+        resetSolutionResponse
       }}
     >
       {children}

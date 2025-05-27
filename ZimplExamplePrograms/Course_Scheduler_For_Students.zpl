@@ -221,10 +221,10 @@ defnumb getTeacherRating(teacher) := ord({ <te, rating> in preffered_teachers | 
 
 # Weight parameters
 param weight_points := 100; # higher means aim closer to target points
-param weight_days := 1; # higher means more off days
-param weight_day_start_early := 1; # higher positive means start days early, low negative start days late, 0 means agnostic.
-param weight_preffered_courses := 1; # higher means more preffered courses
-param weight_preffered_teachers := 1; # higher means get preffered teachers more often
+param weight_days := 0; # higher means more off days
+param weight_day_start_early := 0; # higher positive means start days early, low negative start days late, 0 means agnostic.
+param weight_preffered_courses := 0; # higher means more preffered courses
+param weight_preffered_teachers := 0; # higher means get preffered teachers more often
 
 
 minimize objective:

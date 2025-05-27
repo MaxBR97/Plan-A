@@ -16,7 +16,9 @@ const MainPage = () => {
     const {
         user,
         updateUserField,
-        updateImage
+        updateImage,
+        resetImage,
+        resetModel
     } = useZPL();
     const navigate = useNavigate();
     const [myImages, setMyImages] = useState([]);
@@ -216,7 +218,10 @@ const MainPage = () => {
             </div>
             
             <div className="footer-button-container">
-                <Link to="/upload-zpl" className="footer-button create-button">
+                <Link 
+                    to="/upload-zpl" 
+                    className="footer-button create-button"
+                >
                     Create new image
                 </Link>
             </div>

@@ -1,4 +1,5 @@
-#
+# good settings:
+# set emph opt set presolv emph aggr
 # Define set of cities with embedded coordinates (name, x, y)
 set CitiesData := { 
     <"Tel Aviv", 5, 16>,
