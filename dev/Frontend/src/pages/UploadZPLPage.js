@@ -1,99 +1,82 @@
-import React from "react";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import UploadZPLPage from "./UploadZPLPage";
-import { BrowserRouter } from "react-router-dom";
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useZPL } from "../context/ZPLContext";
+import "./UploadZPLPage.css";
 
-jest.mock("axios");
-jest.mock("../context/ZPLContext");
+const UploadZPLPage = () => {
+  const navigate = useNavigate();
+  const { image, updateImageField, updateModel } = useZPL();
+  const [error, setError] = useState("");
+  const [zimplCode, setZimplCode] = useState("");
 
-const mockNavigate = jest.fn();
-jest.mock("react-router-dom", () => ({
-  ...jest.requireActual("react-router-dom"),
-  useNavigate: () => mockNavigate,
-}));
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
 
-describe("UploadZPLPage", () => {
-  const mockContext = {
-    user: { username: "testuser" },
-    image: { imageName: "", imageDescription: "" },
-    model: {},
-    updateImageField: jest.fn(),
-    updateModel: jest.fn(),
-    resetImage: jest.fn(),
-    resetModel: jest.fn(),
+    if (!image.imageName) {
+      setError("Image name cannot be empty");
+      return;
+    }
+
+    try {
+      const response = await axios.post("/api/upload-zpl", {
+        imageName: image.imageName,
+        imageDescription: image.imageDescription,
+        zimplCode,
+      });
+
+      updateImageField("imageId", response.data.imageId);
+      updateModel(response.data.model);
+      navigate("/configuration-menu");
+    } catch (err) {
+      setError(`Error: ${err.response.status} - ${err.response.data.msg}`);
+    }
   };
 
-  beforeEach(() => {
-    useZPL.mockReturnValue(mockContext);
-  });
+  return (
+    <div className="upload-zpl-container">
+      <h2>Upload ZIMPL Code</h2>
+      <form onSubmit={handleSubmit}>
+        <div className="form-group">
+          <label htmlFor="imageName">Image Name</label>
+          <input
+            type="text"
+            id="imageName"
+            value={image.imageName}
+            onChange={(e) => updateImageField("imageName", e.target.value)}
+          />
+        </div>
 
-  const renderPage = () =>
-    render(
-      <BrowserRouter>
-        <UploadZPLPage />
-      </BrowserRouter>
-    );
+        <div className="form-group">
+          <label htmlFor="zimplCode">ZIMPL Code</label>
+          <textarea
+            id="zimplCode"
+            value={zimplCode}
+            onChange={(e) => setZimplCode(e.target.value)}
+          />
+        </div>
 
-  test("renders all form elements", () => {
-    renderPage();
+        <div className="form-group">
+          <label htmlFor="imageDescription">Image Description</label>
+          <textarea
+            id="imageDescription"
+            value={image.imageDescription}
+            onChange={(e) => updateImageField("imageDescription", e.target.value)}
+          />
+        </div>
 
-    expect(screen.getByLabelText(/image name/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/zimpl code/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/image description/i)).toBeInTheDocument();
-    expect(screen.getByText(/upload/i)).toBeInTheDocument();
-    expect(screen.getByText(/back/i)).toBeInTheDocument();
-  });
+        {error && <div className="error-message">{error}</div>}
 
-  test("shows error message if image name is empty", async () => {
-    renderPage();
+        <div className="button-group">
+          <button type="button" onClick={() => navigate(-1)}>
+            Back
+          </button>
+          <button type="submit">Upload</button>
+        </div>
+      </form>
+    </div>
+  );
+};
 
-    const uploadButton = screen.getByRole("button", { name: /upload/i });
-    fireEvent.click(uploadButton);
-
-    await waitFor(() => {
-      expect(screen.getByText(/image name cannot be empty/i)).toBeInTheDocument();
-    });
-  });
-
-  test("submits data and navigates on success", async () => {
-    mockContext.image.imageName = "My Image";
-
-    axios.post.mockResolvedValue({
-      data: {
-        imageId: "123",
-        model: { dummy: true },
-      },
-    });
-
-    renderPage();
-
-    const uploadButton = screen.getByRole("button", { name: /upload/i });
-    fireEvent.click(uploadButton);
-
-    await waitFor(() => {
-      expect(mockContext.updateImageField).toHaveBeenCalledWith("imageId", "123");
-      expect(mockContext.updateModel).toHaveBeenCalledWith({ dummy: true });
-      expect(mockNavigate).toHaveBeenCalledWith("/configuration-menu");
-    });
-  });
-
-  test("handles axios error gracefully", async () => {
-    mockContext.image.imageName = "My Image";
-
-    axios.post.mockRejectedValue({
-      response: {
-        status: 400,
-        data: { msg: "Invalid data" },
-      },
-    });
-
-    renderPage();
-    fireEvent.click(screen.getByRole("button", { name: /upload/i }));
-
-    await waitFor(() => {
-      expect(screen.getByText(/error: 400 - invalid data/i)).toBeInTheDocument();
-    });
-  });
-});
+export default UploadZPLPage;

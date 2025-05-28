@@ -3,8 +3,24 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import UploadZPLPage from "../UploadZPLPage";
 import { BrowserRouter } from "react-router-dom";
 import axios from "axios";
-import { useZPL } from "../context/ZPLContext";
+import { useZPL } from "../../context/ZPLContext";
 
+jest.mock("axios");
+
+const mockContext = {
+  user: { username: "testuser" },
+  image: { imageName: "", imageDescription: "" },
+  model: {},
+  updateImageField: jest.fn(),
+  updateModel: jest.fn(),
+  resetImage: jest.fn(),
+  resetModel: jest.fn(),
+};
+
+// Mock the useZPL hook
+jest.mock("../../context/ZPLContext", () => ({
+  useZPL: () => mockContext
+}));
 
 const mockNavigate = jest.fn();
 jest.mock("react-router-dom", () => ({
@@ -13,18 +29,9 @@ jest.mock("react-router-dom", () => ({
 }));
 
 describe("UploadZPLPage", () => {
-  const mockContext = {
-    user: { username: "testuser" },
-    image: { imageName: "", imageDescription: "" },
-    model: {},
-    updateImageField: jest.fn(),
-    updateModel: jest.fn(),
-    resetImage: jest.fn(),
-    resetModel: jest.fn(),
-  };
-
   beforeEach(() => {
-    useZPL.mockReturnValue(mockContext);
+    jest.clearAllMocks();
+    mockContext.image.imageName = "";
   });
 
   const renderPage = () =>
