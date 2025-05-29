@@ -12,23 +12,42 @@ const ConfigureConstraintsPage = () => {
         model,
         updateImageField
     } = useZPL();
+
+    // Get banned sets and params from variables module
     const bannedSets = [...new Set(Array.from(model.variables).flatMap(v => v.dep?.setDependencies || []))];
     const bannedParams = [...new Set(Array.from(model.variables).flatMap(v => v.dep?.paramDependencies || []))];
+
+    // Initialize state from existing imageDTO values
     const [availableConstraints, setAvailableConstraints] = useState([]);
     const [moduleName, setModuleName] = useState('');
     const [moduleDescription, setModuleDescription] = useState('');
     const [selectedModuleIndex, setSelectedModuleIndex] = useState(null);
-    const [allModules, setAllModules] = useState(Array.from(image.constraintModules) || []);
+    
+    // Initialize modules from image DTO
+    const [allModules, setAllModules] = useState(() => {
+        return Array.from(image.constraintModules || []).map(module => ({
+            ...module,
+            constraints: Array.isArray(module.constraints) ? module.constraints : [],
+            inputSets: Array.isArray(module.inputSets) ? module.inputSets : [],
+            inputParams: Array.isArray(module.inputParams) ? module.inputParams : []
+        }));
+    });
+
     const [involvedSets, setInvolvedSets] = useState([]);
     const [involvedParams, setInvolvedParams] = useState([]);
     const [selectedSets, setSelectedSets] = useState([]);
     const [selectedParams, setSelectedParams] = useState([]);
     const [selectedConstraints, setSelectedConstraints] = useState([]);
+
     console.log("cur image:", image);
     console.log("bannedSets:", bannedSets);
     console.log("involvedSets:", involvedSets);
+
+    console.log("allModules:", allModules);
+
+
     useEffect(() => {
-        // Initialize available constraints
+        // Initialize available constraints based on what's not already used in modules
         setAvailableConstraints(Array.from(model.constraints).filter((c) => 
             allModules.every((module) => 
                 !module.constraints.some(constraint => 
@@ -92,7 +111,10 @@ const ConfigureConstraintsPage = () => {
             }))
         };
 
-        setAllModules([...allModules, newModule]);
+        const updatedModules = [...allModules, newModule];
+        setAllModules(updatedModules);
+        updateImageField("constraintModules", updatedModules);
+        
         setModuleName('');
         setModuleDescription('');
         setSelectedConstraints([]);
@@ -124,6 +146,7 @@ const ConfigureConstraintsPage = () => {
         };
 
         setAllModules(updatedModules);
+        updateImageField("constraintModules", updatedModules);
     };
 
     const handleDeleteModule = (index) => {
@@ -133,7 +156,9 @@ const ConfigureConstraintsPage = () => {
         ).filter(Boolean);
 
         setAvailableConstraints([...availableConstraints, ...constraintsToRestore]);
-        setAllModules(allModules.filter((_, i) => i !== index));
+        const updatedModules = allModules.filter((_, i) => i !== index);
+        setAllModules(updatedModules);
+        updateImageField("constraintModules", updatedModules);
         
         if (selectedModuleIndex === index) {
             setSelectedModuleIndex(null);
@@ -251,8 +276,7 @@ const ConfigureConstraintsPage = () => {
     };
 
     const handleContinue = () => {
-        updateImageField("constraintModules", allModules);
-        console.log("CONTINUE CLIECK, cur image:", image);
+        // No need to update here anymore as changes are persisted immediately
         navigate('/configuration-menu');
     };
 
@@ -294,12 +318,13 @@ const ConfigureConstraintsPage = () => {
                             ℹ️
                         </div>
                     </div>
-                    <div className="module-list">
+                    <div className="module-list" role="list" aria-label="constraint modules">
                         {allModules.map((module, index) => (
                             <div 
                                 key={index} 
                                 className={`module-item ${selectedModuleIndex === index ? 'selected' : ''}`}
                                 onClick={() => setSelectedModuleIndex(index)}
+                                role="listitem"
                             >
                                 <div className="module-item-header">
                                     <span className="module-name">{module.moduleName}</span>
@@ -436,9 +461,9 @@ const ConfigureConstraintsPage = () => {
             </div>
 
             <div className="navigation-buttons" onClick={handleModuleClick}>
-                <button className="back-button" onClick={handleBack}>
+                {/* <button className="back-button" onClick={handleBack}>
                     Back
-                </button>
+                </button> */}
                 <button className="continue-button" onClick={handleContinue}>
                     Continue
                 </button>

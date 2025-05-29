@@ -10,46 +10,74 @@ const ConfigurePreferencesPage = () => {
     const {
         image,
         model,
-        solutionResponse,
-        updateImage,
-        updateImageField,
-        updateImageFieldWithCallBack,
-        updateModel,
-        updateSolutionResponse,
-        initialImageState
+        updateImageField
     } = useZPL();
 
+    // Initialize state from existing imageDTO values
     const [availablePreferences, setAvailablePreferences] = useState([]);
     const [moduleName, setModuleName] = useState('');
     const [moduleDescription, setModuleDescription] = useState('');
     const [selectedModuleIndex, setSelectedModuleIndex] = useState(null);
+    
+    // Get banned sets and params from variables module
     const bannedSets = [...new Set(Array.from(model.variables).flatMap(v => v.dep?.setDependencies || []))];
     const bannedParams = [...new Set(Array.from(model.variables).flatMap(v => v.dep?.paramDependencies || []))];
-    const [allModules, setAllModules] = useState(Array.from(image.preferenceModules) || []);
+    
+    // Initialize modules from image DTO
+    const [allModules, setAllModules] = useState(() => {
+        console.log("Initializing allModules from image:", image.preferenceModules);
+        const modules = Array.isArray(image.preferenceModules) ? image.preferenceModules : [];
+        return modules.map(module => ({
+            ...module,
+            preferences: Array.isArray(module.preferences) ? module.preferences : [],
+            inputSets: Array.isArray(module.inputSets) ? module.inputSets : [],
+            inputParams: Array.isArray(module.inputParams) ? module.inputParams : [],
+            costParams: Array.isArray(module.costParams) ? module.costParams : []
+        }));
+    });
+
     const [involvedSets, setInvolvedSets] = useState([]);
     const [involvedParams, setInvolvedParams] = useState([]);
     const [selectedSets, setSelectedSets] = useState([]);
     const [selectedParams, setSelectedParams] = useState([]);
     const [selectedPreference, setSelectedPreference] = useState(null);
     const [selectedCostParam, setSelectedCostParam] = useState(null);
-    
+
+    console.log("Current abccc:", image);
+    console.log("Current image.preferenceModules:", image.preferenceModules);
+    console.log("Current allModules state:", allModules);
+    console.log("Current allModules state2:", model);
+
+    // Update allModules when image changes
+    useEffect(() => {
+        console.log("Image changed, updating allModules:", image.preferenceModules);
+        const modules = Array.isArray(image.preferenceModules) ? image.preferenceModules : [];
+        const updatedModules = modules.map(module => ({
+            ...module,
+            preferences: Array.isArray(module.preferences) ? module.preferences : [],
+            inputSets: Array.isArray(module.inputSets) ? module.inputSets : [],
+            inputParams: Array.isArray(module.inputParams) ? module.inputParams : [],
+            costParams: Array.isArray(module.costParams) ? module.costParams : []
+        }));
+        setAllModules(updatedModules);
+    }, [image.preferenceModules]);
 
     useEffect(() => {
-        // Initialize available preferences
-        setAvailablePreferences(Array.from(model.preferences).filter((p) => 
-            allModules.every((module) => 
-                module.preferences[0] !== p.identifier
-            )
-        ));
+        // Initialize available preferences based on what's not already used in modules
+        const usedPreferences = new Set(allModules.flatMap(m => m.preferences));
+        const available = Array.from(model.preferences).filter(p => !usedPreferences.has(p.identifier));
+        console.log("Setting available preferences:", available);
+        setAvailablePreferences(available);
     }, [model.preferences, allModules]);
 
     useEffect(() => {
         if (selectedModuleIndex !== null && allModules.length > 0) {
+            console.log("Loading module for editing:", allModules[selectedModuleIndex]);
             const module = allModules[selectedModuleIndex];
             setModuleName(module.moduleName);
             setModuleDescription(module.description);
             setSelectedPreference(module.preferences[0]);
-            setSelectedCostParam(module.costParam);
+            setSelectedCostParam(module.costParams?.[0]?.name);
             
             // Calculate involved sets and params
             const modulePreference = Array.from(model.preferences)
@@ -60,6 +88,8 @@ const ConfigurePreferencesPage = () => {
                 const params = new Set(modulePreference.dep?.paramDependencies || []);
                 setInvolvedSets(Array.from(sets));
                 setInvolvedParams(Array.from(params));
+                setSelectedSets(module.inputSets?.map(s => s.name) || []);
+                setSelectedParams(module.inputParams?.map(p => p.name) || []);
             }
         } else {
             setModuleName('');
@@ -100,6 +130,7 @@ const ConfigurePreferencesPage = () => {
         
         const updatedModules = [...allModules, newModule];
         setAllModules(updatedModules);
+        updateImageField("preferenceModules", updatedModules);
         
         // Update available preferences immediately
         setAvailablePreferences(prev => 
@@ -145,6 +176,7 @@ const ConfigurePreferencesPage = () => {
         };
 
         setAllModules(updatedModules);
+        updateImageField("preferenceModules", updatedModules);
     };
 
     const handleDeleteModule = (index) => {
@@ -156,7 +188,9 @@ const ConfigurePreferencesPage = () => {
             setAvailablePreferences([...availablePreferences, preferenceToRestore]);
         }
 
-        setAllModules(allModules.filter((_, i) => i !== index));
+        const updatedModules = allModules.filter((_, i) => i !== index);
+        setAllModules(updatedModules);
+        updateImageField("preferenceModules", updatedModules);
         
         if (selectedModuleIndex === index) {
             setSelectedModuleIndex(null);
@@ -166,7 +200,7 @@ const ConfigurePreferencesPage = () => {
     };
 
     const handleContinue = () => {
-        updateImageField("preferenceModules", allModules);
+        // No need to update here anymore as changes are persisted immediately
         navigate('/configuration-menu');
     };
 
@@ -307,12 +341,13 @@ const ConfigurePreferencesPage = () => {
                             ℹ️
                         </div>
                     </div>
-                    <div className="module-list">
+                    <div className="module-list" role="list" aria-label="preference modules" data-testid="module-list">
                         {allModules.map((module, index) => (
                             <div 
                                 key={index} 
                                 className={`module-item ${selectedModuleIndex === index ? 'selected' : ''}`}
                                 onClick={() => setSelectedModuleIndex(index)}
+                                role="listitem"
                             >
                                 <div className="module-item-header">
                                     <span className="module-name">{module.moduleName}</span>
@@ -322,6 +357,7 @@ const ConfigurePreferencesPage = () => {
                                             e.stopPropagation();
                                             handleDeleteModule(index);
                                         }}
+                                        aria-label={`Delete ${module.moduleName}`}
                                     >
                                         ×
                                     </button>
@@ -331,7 +367,7 @@ const ConfigurePreferencesPage = () => {
                                         {module.preferences[0]}
                                     </span>
                                     <span className="cost-param">
-                                        Cost: {module.costParam}
+                                        Cost: {module.costParams?.[0]?.name}
                                     </span>
                                 </div>
                             </div>
@@ -470,17 +506,11 @@ const ConfigurePreferencesPage = () => {
             </div>
 
             <div className="navigation-buttons" onClick={handleModuleClick}>
-                <button className="back-button" onClick={handleBack}>
+                {/* <button className="back-button" onClick={handleBack}>
                     Back
-                </button>
+                </button> */}
                 <button className="continue-button" onClick={handleContinue}>
                     Continue
-                </button>
-                <button className="config-button" onClick={handleConfigSetsAndParams}>
-                    Configure Sets & Params
-                </button>
-                <button className="config-button" onClick={handleConfigSolver}>
-                    Configure Solver
                 </button>
             </div>
         </div>

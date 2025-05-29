@@ -36,4 +36,5 @@ build/
 .vscode/
 
 User/Models
-
+data/
+Test

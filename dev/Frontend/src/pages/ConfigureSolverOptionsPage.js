@@ -15,22 +15,19 @@ const ConfigureSolverOptionsPage = () => {
     initialImageState
   } = useZPL();
 
-  // Initialize solverSettings from image or use default if empty
+  // Initialize solverSettings from image DTO
   const [solverSettings, setsolverSettings] = useState(() => {
-    const scripts = image?.solverSettings || {};
-    
-    // If there are no scripts, add the default one
-    if (Object.keys(scripts).length === 0) {
-      return { "default": "" };
-    }
-    
-    return scripts;
+    // Ensure we have a Map<String, String> as per ImageDTO
+    const settings = image?.solverSettings || {};
+    return Object.keys(settings).length > 0 ? { ...settings } : { "default": "" };
   });
 
   // Handle adding a new script pair
   const handleAddScript = () => {
     const newName = `script${Object.keys(solverSettings).length + 1}`;
-    setsolverSettings({ ...solverSettings, [newName]: "" });
+    const updatedScripts = { ...solverSettings, [newName]: "" };
+    setsolverSettings(updatedScripts);
+    updateImageField("solverSettings", updatedScripts);
   };
 
   // Handle removing a script pair
@@ -40,9 +37,12 @@ const ConfigureSolverOptionsPage = () => {
 
     // If all scripts were removed, add back the default one
     if (Object.keys(updatedScripts).length === 0) {
-      setsolverSettings({ "default": "" });
+      const defaultScripts = { "default": "" };
+      setsolverSettings(defaultScripts);
+      updateImageField("solverSettings", defaultScripts);
     } else {
       setsolverSettings(updatedScripts);
+      updateImageField("solverSettings", updatedScripts);
     }
   };
 
@@ -55,17 +55,20 @@ const ConfigureSolverOptionsPage = () => {
       updatedScripts[newName] = updatedScripts[oldName];
       delete updatedScripts[oldName];
       setsolverSettings(updatedScripts);
+      updateImageField("solverSettings", updatedScripts);
     }
   };
 
   // Handle changing script content
   const handleScriptChange = (name, value) => {
-    setsolverSettings({ ...solverSettings, [name]: value });
+    const updatedSettings = { ...solverSettings, [name]: value };
+    setsolverSettings(updatedSettings);
+    updateImageField("solverSettings", updatedSettings);
   };
 
   // Save solverSettings to image when continuing
   const handleContinue = () => {
-    updateImageField("solverSettings", solverSettings);
+    // No need to update here anymore as changes are persisted immediately
   };
 
   // Display scripts in a more organized fashion
@@ -117,9 +120,9 @@ const ConfigureSolverOptionsPage = () => {
       </button>
       
       <div className="navigation-buttons">
-        <Link to="/configuration-menu" className="back-button">
+        {/* <Link to="/configuration-menu" className="back-button">
           Back
-        </Link>
+        </Link> */}
         <Link to="/configuration-menu" className="continue-button" onClick={handleContinue}>
           Continue
         </Link>

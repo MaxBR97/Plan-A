@@ -17,53 +17,78 @@ const ConfigureInputsOutputs = () => {
         initialImageState
     } = useZPL();
 
-    const [selectedVars, setSelectedVars] = useState(Array.from(model.variables || []));
+    // Initialize state from existing imageDTO values
+    const [selectedVars, setSelectedVars] = useState(() => {
+        if (image.variablesModule?.variablesOfInterest) {
+            // Convert model.variables Set to Array and filter based on existing configuration
+            return Array.from(model.variables).filter(v => 
+                image.variablesModule.variablesOfInterest.some(vi => vi.identifier === v.identifier)
+            );
+        }
+        return Array.from(model.variables || []);
+    });
+
     const [displaySets, setDisplaySets] = useState([]);
     const [displayParams, setDisplayParams] = useState([]);
-    const [selectedSets, setSelectedSets] = useState([]);
-    const [selectedParams, setSelectedParams] = useState([]);
+    
+    // Initialize selected sets from existing configuration
+    const [selectedSets, setSelectedSets] = useState(() => {
+        return image.variablesModule?.inputSets?.map(s => s.name) || [];
+    });
+
+    // Initialize selected params from existing configuration
+    const [selectedParams, setSelectedParams] = useState(() => {
+        return image.variablesModule?.inputParams?.map(p => p.name) || [];
+    });
+
     const [hasInitialized, setHasInitialized] = useState(false);
-    const [variablesTags, setVariablesTags] = useState({});
-    const [variableBoundSets, setVariableBoundSets] = useState({});
 
-    useEffect(() => {
-        const calculatedVariableTags = {};
-                if (model.variables && model.varTypes) {
-                    Array.from(model.variables).forEach(variable => {
-                        const varIdentifier = variable.identifier;
-                        const varTypeArray = model.varTypes[varIdentifier];
-                        
-                        if (varTypeArray && Array.isArray(varTypeArray)) {
-                            calculatedVariableTags[varIdentifier] = varTypeArray.map((type, index) => {
-                                return `${varIdentifier}_${index + 1}`;
-                            });
-                        } else {
-                            // If varTypeArray is not found or not an array, assign empty tags
-                            calculatedVariableTags[varIdentifier] = [];
-                        }
-                    });
+    // Initialize variable tags from existing configuration
+    const [variablesTags, setVariablesTags] = useState(() => {
+        const tags = {};
+        if (image.variablesModule?.variablesOfInterest) {
+            image.variablesModule.variablesOfInterest.forEach(v => {
+                // Use the variable's type information from model.varTypes
+                const varType = model.varTypes[v.identifier] || [];
+                tags[v.identifier] = v.tags || varType.map((_, index) => `${v.identifier}_${index + 1}`);
+            });
+        }
+        return tags;
+    });
+
+    // Initialize bound sets from existing configuration
+    const [variableBoundSets, setVariableBoundSets] = useState(() => {
+        const boundSets = {};
+        if (image.variablesModule?.variablesOfInterest) {
+            image.variablesModule.variablesOfInterest.forEach(v => {
+                if (v.boundSet) {
+                    boundSets[v.identifier] = v.boundSet;
                 }
-                console.log("CALC",calculatedVariableTags);
-                setVariablesTags(calculatedVariableTags);
-    },  [model.variables, model.varTypes]);
+            });
+        }
+        return boundSets;
+    });
 
     useEffect(() => {
+        // Set display sets and params from model types
         const setNames = model.setTypes ? Object.keys(model.setTypes) : [];
         setDisplaySets(setNames);
         
         const paramNames = model.paramTypes ? Object.keys(model.paramTypes) : [];
         setDisplayParams(paramNames);
         
+        // Only initialize if not already done and there are sets/params
         if (!hasInitialized && setNames.length > 0) {
-            setSelectedSets(setNames);
-            setSelectedParams(paramNames);
+            // Only set if not already set from image configuration
+            if (selectedSets.length === 0) {
+                setSelectedSets(setNames);
+            }
+            if (selectedParams.length === 0) {
+                setSelectedParams(paramNames);
+            }
             setHasInitialized(true);
         }
-
-                
-       
-
-    }, [model.setTypes, model.paramTypes, hasInitialized]);
+    }, [model.setTypes, model.paramTypes, hasInitialized, selectedSets.length, selectedParams.length]);
 
     const handleVarCheckboxChange = (variable) => {
         setSelectedVars(prevSelectedVars => {
@@ -246,9 +271,9 @@ const ConfigureInputsOutputs = () => {
             <Link to="/configuration-menu" className="continue-button" onClick={handleContinue}>
                 Continue
             </Link>
-            <Link to="/configuration-menu" className="back-button">
+            {/* <Link to="/configuration-menu" className="back-button">
                 Back
-            </Link>
+            </Link> */}
         </div>
     );
 };

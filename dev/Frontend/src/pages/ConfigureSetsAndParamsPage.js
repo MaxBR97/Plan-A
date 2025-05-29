@@ -7,12 +7,91 @@ const ConfigureSetsAndParamsPage = () => {
   const { image, updateImageField } = useZPL();
   
   // Initialize state for sets and params from all modules
-  const [allSets, setAllSets] = useState([]);
-  const [allParams, setAllParams] = useState([]);
+  const [allSets, setAllSets] = useState(() => {
+    const sets = new Set();
+    
+    // Add sets from variablesModule
+    if (image.variablesModule?.inputSets) {
+      image.variablesModule.inputSets.forEach(set => sets.add(set));
+    }
+    
+    // Add sets from constraintModules
+    if (image.constraintModules) {
+      image.constraintModules.forEach(module => {
+        if (module.inputSets) {
+          module.inputSets.forEach(set => sets.add(set));
+        }
+      });
+    }
+    
+    // Add sets from preferenceModules
+    if (image.preferenceModules) {
+      image.preferenceModules.forEach(module => {
+        if (module.inputSets) {
+          module.inputSets.forEach(set => sets.add(set));
+        }
+      });
+    }
+    
+    return Array.from(sets);
+  });
+
+  const [allParams, setAllParams] = useState(() => {
+    const params = new Set();
+    
+    // Add params from variablesModule
+    if (image.variablesModule?.inputParams) {
+      image.variablesModule.inputParams.forEach(param => params.add(param));
+    }
+    
+    // Add params from constraintModules
+    if (image.constraintModules) {
+      image.constraintModules.forEach(module => {
+        if (module.inputParams) {
+          module.inputParams.forEach(param => params.add(param));
+        }
+      });
+    }
+    
+    // Add params from preferenceModules
+    if (image.preferenceModules) {
+      image.preferenceModules.forEach(module => {
+        if (module.inputParams) {
+          module.inputParams.forEach(param => params.add(param));
+        }
+        if (module.costParams) {
+          module.costParams.forEach(param => params.add(param));
+        }
+      });
+    }
+    
+    return Array.from(params);
+  });
   
   // State for edited values
-  const [editedSets, setEditedSets] = useState({});
-  const [editedParams, setEditedParams] = useState({});
+  const [editedSets, setEditedSets] = useState(() => {
+    const initialSets = {};
+    allSets.forEach(set => {
+      initialSets[set.name] = {
+        tags: Array.isArray(set.tags) ? [...set.tags] : (Array.isArray(set.type) ? [...set.type] : []),
+        alias: set.alias || set.name,
+        type: Array.isArray(set.type) ? [...set.type] : []
+      };
+    });
+    return initialSets;
+  });
+
+  const [editedParams, setEditedParams] = useState(() => {
+    const initialParams = {};
+    allParams.forEach(param => {
+      initialParams[param.name] = {
+        tag: param.tag || param.type || '',
+        alias: param.alias || param.name,
+        type: param.type || ''
+      };
+    });
+    return initialParams;
+  });
 
   useEffect(() => {
     // Collect all sets and parameters from all modules
@@ -63,16 +142,18 @@ const ConfigureSetsAndParamsPage = () => {
     const initialSets = {};
     sets.forEach(set => {
       initialSets[set.name] = {
-        tags: Array.isArray(set.tags) ? [...set.tags] : (set.type ? [...set.type] : []),
-        alias: set.alias || set.name
+        tags: Array.isArray(set.tags) ? [...set.tags] : (Array.isArray(set.type) ? [...set.type] : []),
+        alias: set.alias || set.name,
+        type: Array.isArray(set.type) ? [...set.type] : []
       };
     });
     
     const initialParams = {};
     params.forEach(param => {
       initialParams[param.name] = {
-        tag: param.tag || param.type,
-        alias: param.alias || param.name
+        tag: param.tag || param.type || '',
+        alias: param.alias || param.name,
+        type: param.type || ''
       };
     });
     
@@ -287,9 +368,9 @@ const ConfigureSetsAndParamsPage = () => {
         <Link to="/configuration-menu" className="continue-button" onClick={handleContinue}>
           Continue
         </Link>
-        <Link to="/configuration-menu" className="back-button">
+        {/* <Link to="/configuration-menu" className="back-button">
           Back
-        </Link>
+        </Link> */}
       </div>
     </div>
   );
