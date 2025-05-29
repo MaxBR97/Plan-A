@@ -286,6 +286,14 @@ const ConfigureSetsAndParamsPage = () => {
     <div className="configure-sets-params-page">
       <h1 className="page-title">Configure Sets and Parameters</h1>
       
+      <div className="info-section">
+        <h3>About this page</h3>
+        <p>
+          Here you can configure the aliases and tags for your sets and parameters. 
+          Aliases help make your data more readable in the output, while tags help organize and identify different components of your sets.
+        </p>
+      </div>
+      
       {/* Sets Section */}
       <section className="sets-section">
         <h2>Sets</h2>
@@ -306,21 +314,25 @@ const ConfigureSetsAndParamsPage = () => {
                     />
                   </div>
                   
-                  <div className="tags-group">
-                    <h4>Tags:</h4>
-                    {Array.from({ length: typeLength }).map((_, tagIndex) => (
-                      <div key={`set-${index}-tag-${tagIndex}`} className="tag-input">
-                        <label>Tag {tagIndex + 1}:</label>
-                        <input
-                          type="text"
-                          value={(editedSets[set.name]?.tags && editedSets[set.name]?.tags[tagIndex]) || 
-                                 (set.type && set.type[tagIndex]) || 
-                                 ""}
-                          onChange={(e) => handleSetTagChange(set.name, tagIndex, e.target.value)}
-                        />
+                  {typeLength > 0 && (
+                    <div className="field-group">
+                      <label>Tags:</label>
+                      <div className="tag-inputs-row">
+                        {Array.from({ length: typeLength }).map((_, tagIndex) => (
+                          <div key={`set-${index}-tag-${tagIndex}`} className="tag-input">
+                            <label>Tag {tagIndex + 1}:</label>
+                            <input
+                              type="text"
+                              value={(editedSets[set.name]?.tags && editedSets[set.name]?.tags[tagIndex]) || 
+                                     (set.type && set.type[tagIndex]) || 
+                                     ""}
+                              onChange={(e) => handleSetTagChange(set.name, tagIndex, e.target.value)}
+                            />
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
+                    </div>
+                  )}
                 </div>
               );
             })}

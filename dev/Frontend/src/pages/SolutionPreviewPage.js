@@ -641,10 +641,10 @@ clearInterval(timer); // Stop the timer once response is received
         </div>
         
         <button className="solve-button" onClick={() => handleSolve(false)}>
-          Solve
+          Optimize
         </button>
         {isDesktop && (<button className="solve-button" onClick={() => handleSolve(true)}>
-          Continue Solve
+          Continue Optimization
         </button>)}
         
         {/* Modal for Response */}
