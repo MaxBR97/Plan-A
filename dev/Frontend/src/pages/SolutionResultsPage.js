@@ -34,9 +34,7 @@ const SolutionResultsPage = ({
   const [showModal, setShowModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState(null);
   const [selectedScript, setSelectedScript] = useState(Object.keys(image.solverSettings)[0]);
-  console.log("dynamicSolutions", dynamicSolutions);
-  console.log("globalSelectedTuples", globalSelectedTuples);
-  console.log("selectedVariableValues", selectedVariableValues);
+  
   // Deep clone function for solutions
   const deepCloneSolutions = (solutions) => {
     return solutions.map(solution => ({
@@ -60,7 +58,7 @@ const SolutionResultsPage = ({
   // Handle solution updates from SuperTable
   const handleSolutionUpdate = (updatedSolutions) => {
     if (!selectedVariable) return;
-    console.log("handleSolutionUpdate", updatedSolutions);
+
     updateDynamicSolutions(selectedVariable, updatedSolutions);
   };
 
@@ -95,7 +93,6 @@ const SolutionResultsPage = ({
 
   // Update global selected tuples
   const updateSelectedTuples = (tuples) => {
-    console.log("updateSelectedTuples", tuples);
     setGlobalSelectedTuples(prev => ({
       ...prev,
       [selectedVariable]: tuples
@@ -122,9 +119,12 @@ const SolutionResultsPage = ({
   useEffect(() => {
     if (solutionResponse?.solution) {
       const variables = Object.keys(solutionResponse.solution);
+      // console.log("variables", variables, "selectedVariable", selectedVariable, "solutionResponse", solutionResponse);
       if (variables.length > 0 && !selectedVariable) {
         const firstVariable = variables[0];
+        
         const initialSetStructure = getSetStructure(firstVariable);
+        console.log("initialSetStructure", initialSetStructure);
         const initialDisplayValue = !isBinary(firstVariable);
         
         setSelectedVariable(firstVariable);
@@ -276,7 +276,6 @@ const SolutionResultsPage = ({
       }
     });
 
-    console.log("updatedSetsToValues after non-bound sets:", updatedSetsToValues);
 
     // Get all bound sets and their corresponding variables
     const boundSetToVariable = {};
@@ -309,8 +308,6 @@ const SolutionResultsPage = ({
 
     console.log("dynamicSolutions for request:", dynamicSolutions);
     console.log("globalSelectedTuples for request:", globalSelectedTuples);
-    console.log("bound sets mapping:", boundSetToVariable);
-    console.log("final sets in request:", updatedSetsToValues);
 
     const requestBody = {
       imageId: image.imageId,
@@ -389,174 +386,210 @@ const SolutionResultsPage = ({
   }, [solutionResponse?.solved]);
 
   return (
-    <div className="solution-results-page flex">
-      <div className="w-2/3 pr-4">
-        <h1 className="page-title text-2xl font-bold mb-4">Solution Results</h1>
-        
-        {/* Solve Controls Section - Always visible */}
-        <div className="solve-controls mb-6">
-          <div className="p-4">
+    <div className="solution-results-page">
+      {/* Control Panel */}
+      <div className="control-panel">
+        {/* Timeout Input */}
+        <div className="control-panel-section">
+          <div className="section-header">
+            <h3 className="section-title">Timeout Setting</h3>
+            <div className="info-icon">
+              i
+              <div className="info-tooltip">
+                Maximum time (in seconds) allowed for the solver to find a solution
+              </div>
+            </div>
+          </div>
+          <div className="timeout-input">
+            <label>Timeout (seconds):</label>
             <NumberInput 
               value={timeout}   
               onChange={setTimeout}
-              label="Timeout (seconds): "
               placeholder="Enter amount"
               min="0"
             />
           </div>
+        </div>
 
-          <div className="script-options mb-4">
-            <span className="font-semibold">Solver Settings: </span>
+        {/* Solver Settings */}
+        <div className="control-panel-section">
+          <div className="section-header">
+            <h3 className="section-title">Solver Settings</h3>
+            <div className="info-icon">
+              i
+              <div className="info-tooltip">
+                Choose the solver configuration to use for optimization
+              </div>
+            </div>
+          </div>
+          <div className="script-options">
             {Object.keys(image.solverSettings).map((key) => (
-              <div key={key} className="script-option inline-block ml-4">
+              <div key={key} className="script-option">
                 <input
                   type="radio"
                   id={`script-${key}`}
                   name="solver-script"
                   checked={selectedScript === key}
                   onChange={() => handleSelectScript(key)}
-                  className="mr-2"
                 />
                 <label htmlFor={`script-${key}`}>{key}</label>
               </div>
             ))}
           </div>
+        </div>
 
-          <div className="flex gap-4">
+        {/* Dimension Order */}
+        <div className="control-panel-section">
+          <div className="section-header">
+            <h3 className="section-title">Dimension Order</h3>
+            <div className="info-icon">
+              i
+              <div className="info-tooltip">
+                Drag and drop to reorder how dimensions are displayed in the table
+              </div>
+            </div>
+          </div>
+          <DragDropContext onDragEnd={onDragEnd}>
+            <Droppable droppableId="set-structure-list">
+              {(provided) => (
+                <div 
+                  {...provided.droppableProps} 
+                  ref={provided.innerRef}
+                  className="dimension-list"
+                >
+                  {displayStructure.map((set, index) => (
+                    <Draggable 
+                      key={`${set}-${index}`} 
+                      draggableId={`${set}-${index}`} 
+                      index={index}
+                    >
+                      {(provided) => (
+                        <div
+                          ref={provided.innerRef}
+                          {...provided.draggableProps}
+                          {...provided.dragHandleProps}
+                          className="dimension-item"
+                        >
+                          <span className="dimension-name">{set}</span>
+                          <span className="drag-handle">≡</span>
+                        </div>
+                      )}
+                    </Draggable>
+                  ))}
+                  {provided.placeholder}
+                </div>
+              )}
+            </Droppable>
+          </DragDropContext>
+        </div>
+
+        {/* Optimize Buttons */}
+        <div className="control-panel-section">
+          <div className="optimize-buttons">
             <button 
-              className="solve-button bg-blue-600 text-white px-4 py-2 rounded" 
+              className="optimize-button primary"
               onClick={() => handleSolve(false)}
             >
               Optimize
             </button>
             {isDesktop && (
               <button 
-                className="solve-button bg-green-600 text-white px-4 py-2 rounded" 
+                className="optimize-button secondary"
                 onClick={() => handleSolve(true)}
               >
                 Continue Optimization
               </button>
             )}
           </div>
-        </div>
 
-        {/* Table Controls - Always visible */}
-        <div className="solution-controls mb-4 flex flex-wrap items-center gap-4">
-          {solutionResponse?.solution && Object.keys(solutionResponse.solution).length > 0 && (
-            <div className="solution-dropdown flex items-center">
-              <label className="mr-2">Select Variable: </label>
-              <select 
-                onChange={handleVariableChange} 
-                value={selectedVariable || ''}
-                className="border rounded p-1"
-              >
-                {Object.keys(solutionResponse.solution).map((variable) => (
-                  <option key={variable} value={variable}>
-                    {variable}
-                  </option>
-                ))}
-              </select>
+          {/* Solution Status */}
+          {solutionStatus && (
+            <div className="solution-status">
+              <pre>{solutionStatus}</pre>
+              {errorMessage && (
+                <div className="error-message">
+                  {errorMessage}
+                </div>
+              )}
             </div>
           )}
+
+        </div>
+
+        {/* LogBoard - Only show if isDesktop */}
+        {isDesktop && (
+          <div className="control-panel-section">
+            <div className="section-header">
+              <h3 className="section-title">Solution Log</h3>
+              <div className="info-icon">
+                i
+                <div className="info-tooltip">
+                  Detailed log of the optimization process
+                </div>
+              </div>
+            </div>
+            <LogBoard />
+          </div>
+        )}
+      </div>
+
+      {/* Table Area */}
+      <div className="table-area">
+        <div className="table-header">
+          <div className="variable-selector">
+            {solutionResponse?.solution && Object.keys(solutionResponse.solution).length > 0 && (
+              <>
+                <label>Select Variable:</label>
+                <select 
+                  onChange={handleVariableChange} 
+                  value={selectedVariable || ''}
+                >
+                  {Object.keys(solutionResponse.solution).map((variable) => (
+                    <option key={variable} value={variable}>
+                      {variable}
+                    </option>
+                  ))}
+                </select>
+              </>
+            )}
+          </div>
           
-          <button 
-            onClick={toggleTableEditMode}
-            className={`px-3 py-1 rounded ${tableEditMode ? 'bg-blue-600 text-white' : 'bg-gray-200 hover:bg-gray-300'}`}
-          >
-            {tableEditMode ? 'Done Editing' : 'Edit Table'}
-          </button>
-          
-          {tableEditMode && (
+          <div className="table-controls">
             <button 
-              onClick={handleDeleteSelected}
-              className="px-3 py-1 rounded bg-red-500 text-white hover:bg-red-600"
-              disabled={!globalSelectedTuples[selectedVariable] || globalSelectedTuples[selectedVariable].length === 0}
+              onClick={toggleTableEditMode}
+              className={`edit-table-button ${tableEditMode ? 'active' : ''}`}
             >
-              Delete Selected
+              {tableEditMode ? 'Done Editing' : 'Edit Table'}
             </button>
-          )}
-        </div>
 
-        {/* Main Solution Table - Always show, empty if no data */}
-        <div className="solution-table-container max-h-[600px] overflow-auto">
-          <div className="min-w-[800px]">
-            <SuperTable 
-              solutions={displayValue ? addObjectiveValueToSolutions(solutions) : solutions} 
-              setStructure={displayValue ? [...setStructure, "value"] : setStructure}
-              displayStructure={displayStructure}
-              isDisplayBinary={!displayValue}
-              valueSetName="value"
-              editMode={tableEditMode}
-              onSolutionUpdate={handleSolutionUpdate}
-              onAddDimension={handleAddDimension}
-              selectedTuples={globalSelectedTuples[selectedVariable] || []}
-              onSelectedTuplesChange={updateSelectedTuples}
-              defaultObjectiveValue={displayValue ? 0 : 1}
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Draggable Set Structure Box - Always show */}
-      <div className="w-1/3 pl-4 border-l">
-        <h2 className="text-xl font-bold mb-3">Result Representation</h2>
-        
-        <h3 className="font-semibold mb-2">Dimension Order (Drag to Reorder)</h3>
-        <DragDropContext onDragEnd={onDragEnd}>
-          <Droppable droppableId="set-structure-list">
-            {(provided) => (
-              <div 
-                {...provided.droppableProps} 
-                ref={provided.innerRef}
-                className="dimension-list"
+            {tableEditMode && (
+              <button 
+                onClick={handleDeleteSelected}
+                className="delete-selected-button"
+                disabled={!globalSelectedTuples[selectedVariable] || globalSelectedTuples[selectedVariable].length === 0}
               >
-                {displayStructure.map((set, index) => (
-                  <Draggable 
-                    key={`${set}-${index}`} 
-                    draggableId={`${set}-${index}`} 
-                    index={index}
-                  >
-                    {(provided) => (
-                      <div
-                        ref={provided.innerRef}
-                        {...provided.draggableProps}
-                        {...provided.dragHandleProps}
-                        className="dimension-item"
-                      >
-                        <span className="dimension-name">{set}</span>
-                        <span className="drag-handle">≡</span>
-                      </div>
-                    )}
-                  </Draggable>
-                ))}
-                {provided.placeholder}
-              </div>
+                Delete Selected
+              </button>
             )}
-          </Droppable>
-        </DragDropContext>
-      </div>
-
-      {/* Modal for Response - Only show when solving */}
-      {showModal && (
-        <div className="response-modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-          <div className="modal-content bg-white p-6 rounded-lg max-w-2xl w-full mx-4">
-            <span
-              className="close-button absolute top-2 right-2 text-2xl cursor-pointer"
-              onClick={() => setShowModal(false)}
-            >
-              ×
-            </span>
-            <h2 className="text-xl font-bold mb-4">Solution Status:</h2>
-            <pre className="bg-gray-100 p-4 rounded">{solutionStatus}</pre>
-            {errorMessage && (
-              <div className="error-message text-red-600 mt-4">
-                {errorMessage}
-              </div>
-            )}
-            {isDesktop && <div className="mt-4"><LogBoard/></div>}
           </div>
         </div>
-      )}
+
+        <div className="table-container">
+          <SuperTable 
+            solutions={displayValue ? addObjectiveValueToSolutions(solutions) : solutions} 
+            setStructure={displayValue ? [...setStructure, "value"] : setStructure}
+            displayStructure={displayStructure}
+            isDisplayBinary={!displayValue}
+            valueSetName="value"
+            editMode={tableEditMode}
+            onSolutionUpdate={handleSolutionUpdate}
+            onAddDimension={handleAddDimension}
+            selectedTuples={globalSelectedTuples[selectedVariable] || []}
+            onSelectedTuplesChange={updateSelectedTuples}
+            defaultObjectiveValue={displayValue ? 0 : 1}
+          />
+        </div>
+      </div>
     </div>
   );
 };

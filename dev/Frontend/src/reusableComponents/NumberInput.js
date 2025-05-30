@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 
 const NumberInput = ({ 
-  label = "Number", 
+  label = "", 
   value = 10, 
   onChange, 
   placeholder = "Enter Number",
