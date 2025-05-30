@@ -41,16 +41,8 @@ const SolutionPreviewPage = ({isDesktop=false}) => {
   const [variablesModule, setVariablesModule] = useState(image.variablesModule);
   const [variables, setVariables] = useState([]);
   const [showResults, setShowResults] = useState(false);
-  const [timeout, setTimeout] = useState(10);
-  const [solutionStatus, setSolutionStatus] = useState(null);
-  const [globalSelectedTuples, setGlobalSelectedTuples] = useState({});
-  const [selectedScript, setSelectedScript] = useState(Object.keys(image.solverSettings)[0]);
+  const [errorMessage, setErrorMessage] = useState(null);
   const navigate = useNavigate(); 
-
-  const handleSelectScript = (key) => {
-    setSelectedScript(key);
-  };
-
 
   const handleAddValue = (setName) => {
     setVariableValues((prev) => ({
@@ -295,151 +287,6 @@ useEffect(() => {
   })();
 }, [image]);
 
-
-
-const handleSolve = async (isContinue = false) => {
-  setErrorMessage(null);
-  setResponseData(null);
-  console.log("global selected:",globalSelectedTuples)
- // Construct the POST request body for solving
-const transformedParamValues = Object.fromEntries(
-  Object.entries(paramValues).map(([key, value]) => [
-      key,
-      value
-  ])
-);
-
-// Create a copy of the existing setsToValues
-const updatedSetsToValues = { ...Object.entries(variableValues).reduce((acc, [setName, rows]) => {
-if (selectedVariableValues[setName]) {
-    const selectedRows = rows.filter((_, rowIndex) =>
-        selectedVariableValues[setName].includes(rowIndex)
-    );
-    if (selectedRows.length > 0) {
-        acc[setName] = selectedRows;
-    }
-}
-return acc;
-}, {}) };
-
-// First, identify all bound sets from the ImageDTO's variablesOfInterest
-const allBoundSets = new Set();
-if (image.variablesModule?.variablesOfInterest) {
-image.variablesModule.variablesOfInterest.forEach(variable => {
-    if (variable.boundSet) {
-        allBoundSets.add(variable.boundSet);
-    }
-});
-}
-
-// Initialize all bound sets with empty arrays if they don't exist in updatedSetsToValues
-allBoundSets.forEach(boundSetName => {
-if (!updatedSetsToValues[boundSetName]) {
-    updatedSetsToValues[boundSetName] = [];
-}
-});
-
-// Process globalSelectedTuples to add bound set data
-if (globalSelectedTuples && Object.keys(globalSelectedTuples).length > 0) {
-// Iterate through each variable in globalSelectedTuples
-Object.entries(globalSelectedTuples).forEach(([variableName, selectedTuples]) => {
-    // Find this variable in the image's variablesModule
-    const variableInfo = image.variablesModule?.variablesOfInterest?.find(
-        v => v.identifier === variableName
-    );
-    
-    // Check if the variable has a bound set
-    if (variableInfo && variableInfo.boundSet) {
-        const boundSetName = variableInfo.boundSet;
-        
-        // Check if we have the tuples data
-        if (Array.isArray(selectedTuples) && selectedTuples.length > 0) {
-            // Transform each tuple to have only values array with objectiveValue appended if present
-            const transformedTuples = selectedTuples.map(tuple => {
-                if (tuple.hasOwnProperty('objectiveValue') && tuple.objectiveValue !== undefined) {
-                    // Create a new tuple with just the values array, appending objectiveValue
-                    return [...tuple.values, tuple.objectiveValue];
-                    
-                }
-                // If no objectiveValue or it's undefined, keep just the values array
-                return [...tuple.values];
-            });
-            
-            // Add the transformed tuples to the bound set
-            transformedTuples.forEach(tuple => {
-                if (!updatedSetsToValues[boundSetName].some(
-                    existingTuple => JSON.stringify(existingTuple) === JSON.stringify(tuple)
-                )) {
-                    updatedSetsToValues[boundSetName].push(tuple);
-                }
-            });
-        }
-    }
-});
-}
-
-const requestBody = {
-imageId: image.imageId,
-input: {
-    setsToValues: updatedSetsToValues,
-    paramsToValues: transformedParamValues,
-    constraintModulesToggledOff: constraintsToggledOff,
-    preferenceModulesToggledOff: preferencesToggledOff,
-},
-timeout: timeout,
-solverSettings: image.solverSettings[selectedScript]
-};
-
-console.log("global:", globalSelectedTuples);
-console.log("request:", requestBody);
-console.log("Selected script ",selectedScript)
-try {
-let startTime = Date.now(); // Capture the start time
-
-// Start a timer to update solutionStatus every second
-const timer = setInterval(async ()  => {
-    setSolutionStatus("Solving " + ((Date.now() - startTime) / 1000).toFixed(1)); 
-    if(isDesktop){ 
-      const poll = await fetch("/solve/poll", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(requestBody),
-      }); window.appendLog( await poll.text() + "\n");
-    }
-}, 1000);
-setShowModal(true);
-const response = await fetch(isContinue ? "/solve/continue" : isDesktop ? "/solve/start" : "/solve", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(requestBody),
-});
-
-clearInterval(timer); // Stop the timer once response is received
-
-      const responseText = await response.text();
-
-      if (!response.ok) {
-          console.error("Server returned an error:", responseText);
-          throw new Error(`HTTP Error! Status: ${response.status} - ${responseText}`);
-      }
-
-      const data = JSON.parse(responseText);
-      console.log("Solve response: ", data);
-
-      updateSolutionResponse(data);
-      setSolutionStatus(data.solutionStatus);
-      setShowResults(true);
-  } catch (error) {
-      console.error("Error solving problem:", error);
-      setErrorMessage(`Failed to solve. ${error.message}`);
-  }
-
-};
-  // console.log("variablesModule.inputSets: ", variablesModule.inputSets);
-  const [responseData, setResponseData] = useState(null);
-  const [showModal, setShowModal] = useState(false);
-  const [errorMessage, setErrorMessage] = useState(null);
-
   return (
     <div className="solution-preview-page">
       <h1 className="page-title">{image.imageName}</h1>
@@ -606,72 +453,23 @@ clearInterval(timer); // Stop the timer once response is received
         ))}
     </div>
 
-        {/* Error Message */}
-        {errorMessage && (
-          <div className="error-container">
-            <p className="error-message">{errorMessage}</p>
-          </div>
-        )}
-
-        {/* Timeout Input */}
-        <div className="p-4">
-          <NumberInput 
-            value={timeout}   
-            onChange={setTimeout}
-            label="Timeout (seconds): "
-            placeholder="Enter amount"
-            min="0"
+        <div className="results">
+          <SolutionResultsPage 
+            // globalSelectedTuples={globalSelectedTuples} 
+            // setGlobalSelectedTuples={setGlobalSelectedTuples}
+            image={image}
+            variableValues={variableValues}
+            selectedVariableValues={selectedVariableValues}
+            paramValues={paramValues}
+            constraintsToggledOff={constraintsToggledOff}
+            preferencesToggledOff={preferencesToggledOff}
+            isDesktop={isDesktop}
           />
         </div>
 
-          <div className="script-options">
-          Solver Settings:
-    {Object.keys(image.solverSettings).map((key) => (
-      <div key={key} className="script-option">
-        <input
-          type="radio"
-          id={`script-${key}`}
-          name="solver-script"
-          checked={selectedScript == key}
-          onChange={() => handleSelectScript(key)}
-        />
-        <label htmlFor={`script-${key}`}>{key}</label>
-      </div>
-  ))}
-        </div>
-        
-        <button className="solve-button" onClick={() => handleSolve(false)}>
-          Optimize
+        <button className="home-button" onClick={() => navigate("/")}>
+          ← Back to Home
         </button>
-        {isDesktop && (<button className="solve-button" onClick={() => handleSolve(true)}>
-          Continue Optimization
-        </button>)}
-        
-        {/* Modal for Response */}
-        {showModal && (
-          <div className="response-modal">
-            <div className="modal-content">
-              <span
-                className="close-button"
-                onClick={() => setShowModal(false)}
-              >
-                ×
-              </span>
-              <h2>Solution Status:</h2>
-              <pre>{solutionStatus}</pre>
-            </div>
-            {isDesktop && <div><LogBoard/></div>}
-          </div>
-        )}
-        <div className="results">
-        {showResults && <SolutionResultsPage 
-            globalSelectedTuples={globalSelectedTuples} 
-            setGlobalSelectedTuples={setGlobalSelectedTuples}
-          />}
-        </div>
-      <button className="home-button" onClick={() => navigate("/")}>
-        ← Back to Home
-      </button>
       </div>
       <Link to="/configuration-menu" className="back-button">
         Back to Configuration

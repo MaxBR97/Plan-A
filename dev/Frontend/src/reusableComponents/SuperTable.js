@@ -379,36 +379,64 @@ const applyEdit = () => {
       const indexInSetStructure = setStructure.indexOf(dimensionKey);
       
       if (indexInSetStructure === -1) return; // Dimension not found
-      
-      // Create a new solution
-      const newSolution = {
-        values: Array(setStructure.length).fill("") // Default empty values
-      };
-      
-      // Fill in values from parent filters
-      Object.entries(parentFilters).forEach(([key, val]) => {
-        const idx = setStructure.indexOf(key);
-        if (idx !== -1) {
-          newSolution.values[idx] = val;
+
+      // Get all unique values for each dimension up to this level
+      const dimensionValues = {};
+      displayStructure.forEach((dim, idx) => {
+        if (idx <= level) {
+          const values = new Set(solutions.map(sol => sol.values[setStructure.indexOf(dim)]));
+          dimensionValues[dim] = Array.from(values).filter(v => v !== "");
         }
       });
+
+      const newSolutions = [];
       
-      // Set the new dimension value
-      newSolution.values[indexInSetStructure] = newDimName;
-      
-      // Add objective value if needed (for display value)
-      if (valueSetName && displayStructure.includes(valueSetName)) {
-        const valueIndex = setStructure.indexOf(valueSetName);
-        if (valueIndex !== -1) {
-          newSolution.values[valueIndex] = defaultObjectiveValue;
-        }
-      }
-      if(isDisplayBinary){
-        newSolution.objectiveValue = 1;
+      // If we're adding a column and there are existing rows
+      if (level > 0 && dimensionValues[displayStructure[0]]?.length > 0) {
+        dimensionValues[displayStructure[0]].forEach(rowValue => {
+          const baseValues = Array(setStructure.length).fill("");
+          const rowIndex = setStructure.indexOf(displayStructure[0]);
+          baseValues[rowIndex] = rowValue;
+          
+          // Fill in parent filter values
+          Object.entries(parentFilters).forEach(([key, val]) => {
+            const idx = setStructure.indexOf(key);
+            if (idx !== -1) {
+              baseValues[idx] = val;
+            }
+          });
+          
+          // Set the new dimension value
+          baseValues[indexInSetStructure] = newDimName;
+          
+          newSolutions.push({
+            values: baseValues,
+            objectiveValue: defaultObjectiveValue
+          });
+        });
+      } else {
+        // If no existing rows or adding a row
+        const baseValues = Array(setStructure.length).fill("");
+        
+        // Fill in parent filter values
+        Object.entries(parentFilters).forEach(([key, val]) => {
+          const idx = setStructure.indexOf(key);
+          if (idx !== -1) {
+            baseValues[idx] = val;
+          }
+        });
+        
+        // Set the new dimension value
+        baseValues[indexInSetStructure] = newDimName;
+        
+        newSolutions.push({
+          values: baseValues,
+          objectiveValue: defaultObjectiveValue
+        });
       }
 
       // Add to solutions
-      const updatedSolutions = [...solutions, newSolution];
+      const updatedSolutions = [...solutions, ...newSolutions];
       
       if (onSolutionUpdate) {
         onSolutionUpdate(updatedSolutions);
