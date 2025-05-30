@@ -45,7 +45,6 @@ const SolutionResultsPage = ({
 
   // Update solutions in dynamicSolutions
   const updateDynamicSolutions = useCallback((variable, newSolutions) => {
-    console.log("updateDynamicSolutions", variable, newSolutions);
     setDynamicSolutions(prev => ({
       ...prev,
       [variable]: {
@@ -117,16 +116,14 @@ const SolutionResultsPage = ({
 
   // Initialize selected variable and display structure
   useEffect(() => {
-    if (solutionResponse?.solution) {
-      const variables = Object.keys(solutionResponse.solution);
-      // console.log("variables", variables, "selectedVariable", selectedVariable, "solutionResponse", solutionResponse);
+    if (image?.variablesModule?.variablesOfInterest) {
+      const variables = image.variablesModule.variablesOfInterest.map(v => v.identifier);
       if (variables.length > 0 && !selectedVariable) {
         const firstVariable = variables[0];
         
         const initialSetStructure = getSetStructure(firstVariable);
-        console.log("initialSetStructure", initialSetStructure);
         const initialDisplayValue = !isBinary(firstVariable);
-        
+
         setSelectedVariable(firstVariable);
         setDisplayValue(initialDisplayValue);
         setDisplayStructure(initialDisplayValue 
@@ -138,21 +135,15 @@ const SolutionResultsPage = ({
 
   const getSetStructure = (variable) => {
     const varObj = image.variablesModule?.variablesOfInterest?.find((varObj) => varObj.identifier == variable);
-    
     if(varObj?.tags && varObj?.tags?.length == varObj.type.length){
       return varObj.tags;
     }
     else
-      return solutionResponse?.solution?.[variable]?.setStructure || [];
+      return varObj.type;
   };
 
   const isBinary = (variable) => {
-    if (!solutionResponse?.solution?.[variable]) return false;
-    return solutionResponse.solution[variable].solutions.every( 
-      (sol) => {
-        return image.variablesModule.variablesOfInterest.find((varObj) => varObj.identifier == variable).isBinary
-      }
-    );
+    return image.variablesModule.variablesOfInterest.find((varObj) => varObj.identifier == variable).isBinary
   };
 
   const variableData = dynamicSolutions[selectedVariable] || { solutions: [], setStructure: [] };
@@ -306,9 +297,6 @@ const SolutionResultsPage = ({
       updatedSetsToValues[boundSetName] = boundSetValues;
     });
 
-    console.log("dynamicSolutions for request:", dynamicSolutions);
-    console.log("globalSelectedTuples for request:", globalSelectedTuples);
-
     const requestBody = {
       imageId: image.imageId,
       input: {
@@ -360,12 +348,12 @@ const SolutionResultsPage = ({
       // Clear selections if the solution is unsolved or has no solution data
       if (!data.solved || !data.solution) {
         setGlobalSelectedTuples({});
-        setSelectedVariable(null);
-        setDisplayStructure([]);
+        // setSelectedVariable(null);
+        // setDisplayStructure([]);
       }
 
       updateSolutionResponse(data);
-      setSolutionStatus(data.solutionStatus);
+      setSolutionStatus("Solution Status: " + data.solutionStatus);
     } catch (error) {
       console.error("Error solving problem:", error);
       setErrorMessage(`Failed to solve. ${error.message}`);
@@ -537,16 +525,16 @@ const SolutionResultsPage = ({
       <div className="table-area">
         <div className="table-header">
           <div className="variable-selector">
-            {solutionResponse?.solution && Object.keys(solutionResponse.solution).length > 0 && (
+            {image?.variablesModule?.variablesOfInterest && image.variablesModule.variablesOfInterest.length > 0 && (
               <>
                 <label>Select Variable:</label>
                 <select 
                   onChange={handleVariableChange} 
                   value={selectedVariable || ''}
                 >
-                  {Object.keys(solutionResponse.solution).map((variable) => (
-                    <option key={variable} value={variable}>
-                      {variable}
+                  {image.variablesModule.variablesOfInterest.map((variable) => (
+                    <option key={variable.identifier} value={variable.identifier}>
+                      {variable.identifier}
                     </option>
                   ))}
                 </select>

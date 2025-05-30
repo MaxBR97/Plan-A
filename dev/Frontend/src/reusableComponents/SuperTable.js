@@ -32,8 +32,149 @@ const SuperTable = ({
     );
   }
 
+  /**
+   * Handle adding a new item
+   */
+  const handleAddItem = (level, parentFilters = {}) => {
+    const newDimName = `New_Val_${dimensionCounter}`;
+    setDimensionCounter(prev => prev + 1);
+    
+    if (level < displayStructure.length) {
+      // Adding a new value to an existing dimension
+      const dimensionKey = displayStructure[level];
+      const indexInSetStructure = setStructure.indexOf(dimensionKey);
+      
+      if (indexInSetStructure === -1) return; // Dimension not found
+
+      // Get all unique values for each dimension
+      const dimensionValues = {};
+      displayStructure.forEach((dim, idx) => {
+        // When adding a row (level === 0), collect values only up to the current nesting level
+        // When adding a column/nested value, only collect up to current level
+        if ((level === 0 && idx <= 1) || (level > 0 && idx <= level)) {
+          const values = new Set(solutions.map(sol => {
+            const dimIndex = setStructure.indexOf(dim);
+            return dimIndex !== -1 ? sol.values[dimIndex] : "";
+          }));
+          dimensionValues[dim] = Array.from(values).filter(v => v !== "");
+        }
+      });
+
+      const newSolutions = [];
+      
+      // If we're adding a column and there are existing rows
+      if (level > 0 && dimensionValues[displayStructure[0]]?.length > 0) {
+        dimensionValues[displayStructure[0]].forEach(rowValue => {
+          const baseValues = Array(setStructure.length).fill("");
+          const rowIndex = setStructure.indexOf(displayStructure[0]);
+          baseValues[rowIndex] = rowValue;
+          
+          // Fill in parent filter values
+          Object.entries(parentFilters).forEach(([key, val]) => {
+            const idx = setStructure.indexOf(key);
+            if (idx !== -1) {
+              baseValues[idx] = val;
+            }
+          });
+          
+          // Set the new dimension value
+          baseValues[indexInSetStructure] = newDimName;
+          
+          newSolutions.push({
+            values: baseValues,
+            objectiveValue: defaultObjectiveValue
+          });
+        });
+      } else {
+        // If adding a row (level === 0)
+        // Special case for 2D tables
+        if (displayStructure.length === 2) {
+          // Create a single row with empty second dimension
+          const baseValues = Array(setStructure.length).fill("");
+          baseValues[indexInSetStructure] = newDimName;
+          
+          // Fill in parent filter values
+          Object.entries(parentFilters).forEach(([key, val]) => {
+            const idx = setStructure.indexOf(key);
+            if (idx !== -1) {
+              baseValues[idx] = val;
+            }
+          });
+          
+          newSolutions.push({
+            values: baseValues,
+            objectiveValue: defaultObjectiveValue
+          });
+        } else {
+          // For higher dimension tables, get values for the immediate next level (columns)
+          const columnValues = dimensionValues[displayStructure[1]] || [];
+          
+          if (columnValues.length > 0) {
+            // Create a new solution for each column value
+            columnValues.forEach(columnValue => {
+              const baseValues = Array(setStructure.length).fill("");
+              
+              // Set the new row value
+              baseValues[indexInSetStructure] = newDimName;
+              
+              // Set the column value
+              const columnIndex = setStructure.indexOf(displayStructure[1]);
+              if (columnIndex !== -1) {
+                baseValues[columnIndex] = columnValue;
+              }
+              
+              // Fill in parent filter values
+              Object.entries(parentFilters).forEach(([key, val]) => {
+                const idx = setStructure.indexOf(key);
+                if (idx !== -1) {
+                  baseValues[idx] = val;
+                }
+              });
+              
+              // All deeper nested values remain as ""
+              newSolutions.push({
+                values: baseValues,
+                objectiveValue: defaultObjectiveValue
+              });
+            });
+          } else {
+            // If no column values exist, create a single empty entry
+            const baseValues = Array(setStructure.length).fill("");
+            baseValues[indexInSetStructure] = newDimName;
+            
+            // Fill in parent filter values
+            Object.entries(parentFilters).forEach(([key, val]) => {
+              const idx = setStructure.indexOf(key);
+              if (idx !== -1) {
+                baseValues[idx] = val;
+              }
+            });
+            
+            newSolutions.push({
+              values: baseValues,
+              objectiveValue: defaultObjectiveValue
+            });
+          }
+        }
+      }
+
+      // Add to solutions
+      const updatedSolutions = [...solutions, ...newSolutions];
+      
+      if (onSolutionUpdate) {
+        onSolutionUpdate(updatedSolutions);
+      }
+    } else {
+      // Adding a new dimension
+      if (onAddDimension) {
+        onAddDimension(newDimName);
+      }
+    }
+  };
+
   // If no solutions but we have display structure, show empty editable table
   if (solutions.length === 0) {
+    console.log("abc", displayStructure);
     return (
       <div className="super-table-container">
         <div className="table-scrollable">
@@ -403,145 +544,7 @@ const applyEdit = () => {
   }
 };
 
-  /**
-   * Handle adding a new item
-   */
-  const handleAddItem = (level, parentFilters = {}) => {
-    const newDimName = `New_Val_${dimensionCounter}`;
-    setDimensionCounter(prev => prev + 1);
-    
-    if (level < displayStructure.length) {
-      // Adding a new value to an existing dimension
-      const dimensionKey = displayStructure[level];
-      const indexInSetStructure = setStructure.indexOf(dimensionKey);
-      
-      if (indexInSetStructure === -1) return; // Dimension not found
-
-      // Get all unique values for each dimension
-      const dimensionValues = {};
-      displayStructure.forEach((dim, idx) => {
-        // When adding a row (level === 0), collect values only up to the current nesting level
-        // When adding a column/nested value, only collect up to current level
-        if ((level === 0 && idx <= 1) || (level > 0 && idx <= level)) {
-          const values = new Set(solutions.map(sol => {
-            const dimIndex = setStructure.indexOf(dim);
-            return dimIndex !== -1 ? sol.values[dimIndex] : "";
-          }));
-          dimensionValues[dim] = Array.from(values).filter(v => v !== "");
-        }
-      });
-
-      const newSolutions = [];
-      
-      // If we're adding a column and there are existing rows
-      if (level > 0 && dimensionValues[displayStructure[0]]?.length > 0) {
-        dimensionValues[displayStructure[0]].forEach(rowValue => {
-          const baseValues = Array(setStructure.length).fill("");
-          const rowIndex = setStructure.indexOf(displayStructure[0]);
-          baseValues[rowIndex] = rowValue;
-          
-          // Fill in parent filter values
-          Object.entries(parentFilters).forEach(([key, val]) => {
-            const idx = setStructure.indexOf(key);
-            if (idx !== -1) {
-              baseValues[idx] = val;
-            }
-          });
-          
-          // Set the new dimension value
-          baseValues[indexInSetStructure] = newDimName;
-          
-          newSolutions.push({
-            values: baseValues,
-            objectiveValue: defaultObjectiveValue
-          });
-        });
-      } else {
-        // If adding a row (level === 0)
-        // Special case for 2D tables
-        if (displayStructure.length === 2) {
-          // Create a single row with empty second dimension
-          const baseValues = Array(setStructure.length).fill("");
-          baseValues[indexInSetStructure] = newDimName;
-          
-          // Fill in parent filter values
-          Object.entries(parentFilters).forEach(([key, val]) => {
-            const idx = setStructure.indexOf(key);
-            if (idx !== -1) {
-              baseValues[idx] = val;
-            }
-          });
-          
-          newSolutions.push({
-            values: baseValues,
-            objectiveValue: defaultObjectiveValue
-          });
-        } else {
-          // For higher dimension tables, get values for the immediate next level (columns)
-          const columnValues = dimensionValues[displayStructure[1]] || [];
-          
-          if (columnValues.length > 0) {
-            // Create a new solution for each column value
-            columnValues.forEach(columnValue => {
-              const baseValues = Array(setStructure.length).fill("");
-              
-              // Set the new row value
-              baseValues[indexInSetStructure] = newDimName;
-              
-              // Set the column value
-              const columnIndex = setStructure.indexOf(displayStructure[1]);
-              if (columnIndex !== -1) {
-                baseValues[columnIndex] = columnValue;
-              }
-              
-              // Fill in parent filter values
-              Object.entries(parentFilters).forEach(([key, val]) => {
-                const idx = setStructure.indexOf(key);
-                if (idx !== -1) {
-                  baseValues[idx] = val;
-                }
-              });
-              
-              // All deeper nested values remain as ""
-              newSolutions.push({
-                values: baseValues,
-                objectiveValue: defaultObjectiveValue
-              });
-            });
-          } else {
-            // If no column values exist, create a single empty entry
-            const baseValues = Array(setStructure.length).fill("");
-            baseValues[indexInSetStructure] = newDimName;
-            
-            // Fill in parent filter values
-            Object.entries(parentFilters).forEach(([key, val]) => {
-              const idx = setStructure.indexOf(key);
-              if (idx !== -1) {
-                baseValues[idx] = val;
-              }
-            });
-            
-            newSolutions.push({
-              values: baseValues,
-              objectiveValue: defaultObjectiveValue
-            });
-          }
-        }
-      }
-
-      // Add to solutions
-      const updatedSolutions = [...solutions, ...newSolutions];
-      
-      if (onSolutionUpdate) {
-        onSolutionUpdate(updatedSolutions);
-      }
-    } else {
-      // Adding a new dimension
-      if (onAddDimension) {
-        onAddDimension(newDimName);
-      }
-    }
-  };
+  
 
   // Transform solutions for display
   const displayedSolutions = transformSolutionsForDisplay(solutions);
