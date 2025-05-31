@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useZPL } from "../context/ZPLContext";
 import "./SolutionResultsPage.css";
 import SuperTable from "../reusableComponents/SuperTable.js";
@@ -21,6 +21,7 @@ const SolutionResultsPage = ({
     updateSolutionResponse,
   } = useZPL();
 
+  const pollIntervalMillisec = 1000;
   const [selectedVariable, setSelectedVariable] = useState(null);
   const [displayValue, setDisplayValue] = useState(true);
   const [displayStructure, setDisplayStructure] = useState([]);
@@ -34,6 +35,12 @@ const SolutionResultsPage = ({
   const [showModal, setShowModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState(null);
   const [selectedScript, setSelectedScript] = useState(Object.keys(image.solverSettings)[0]);
+  const [isSolving, setIsSolving] = useState(false);
+  const [previousStatus, setPreviousStatus] = useState(null);
+  const [solveTimer, setSolveTimer] = useState(null);
+  const requestCancelledRef = useRef(false);
+  const currentAbortController = useRef(null);
+  const currentRequestId = useRef(null);
   
   // Deep clone function for solutions
   const deepCloneSolutions = (solutions) => {
@@ -233,9 +240,41 @@ const SolutionResultsPage = ({
     setSelectedScript(key);
   };
 
+  const cancelSolve = () => {
+    console.log("Cancelling solve", currentRequestId.current);
+    // Clear the timer
+    if (solveTimer) {
+      clearInterval(solveTimer);
+      setSolveTimer(null);
+    }
+    
+    // Abort the fetch request
+    if (currentAbortController.current) {
+      currentAbortController.current.abort();
+    }
+    
+    // Mark request as cancelled
+    requestCancelledRef.current = true;
+    
+    // Reset states
+    setIsSolving(false);
+    setSolutionStatus(previousStatus);
+    setShowModal(false);
+    setErrorMessage(null); // Clear any error messages when cancelling
+  };
+
   const handleSolve = async (isContinue = false) => {
+    console.log("handleSolve");
     setErrorMessage(null);
+    setPreviousStatus(solutionStatus);
     setSolutionStatus(null);
+    setIsSolving(true);
+    requestCancelledRef.current = false;
+
+    // Create new AbortController for this request
+    currentAbortController.current = new AbortController();
+    const requestId = new Date().getTime().toString();
+    currentRequestId.current = requestId;
     
     // Transform param values
     const transformedParamValues = Object.fromEntries(
@@ -266,7 +305,6 @@ const SolutionResultsPage = ({
         updatedSetsToValues[setName] = selectedRows;
       }
     });
-
 
     // Get all bound sets and their corresponding variables
     const boundSetToVariable = {};
@@ -313,27 +351,56 @@ const SolutionResultsPage = ({
       let startTime = Date.now();
 
       // Start a timer to update solutionStatus every second
+      let i = 0
       const timer = setInterval(async () => {
-        setSolutionStatus("Solving " + ((Date.now() - startTime) / 1000).toFixed(1)); 
-        if(isDesktop){ 
-          const poll = await fetch("/solve/poll", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(requestBody),
-          });
-          window.appendLog(await poll.text() + "\n");
-        }
-      }, 1000);
 
-      console.log("solve request:", requestBody);
+        if (!requestCancelledRef.current) {  // Only update status if not cancelled
+          setSolutionStatus("Solving " + ((Date.now() - startTime) / 1000).toFixed(1)); 
+          if(isDesktop){
+             
+            try {
+              const poll = await fetch("/solve/poll", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(requestBody),
+                signal: currentAbortController.current.signal
+              });
+              if((i*100) % pollIntervalMillisec == 0)
+                 window.appendLog(await poll.text() + "\n");
+            } catch (error) {
+              if (error.name === 'AbortError') {
+                console.log('Poll request aborted');
+              }
+            }
+            i++;
+          }
+        }
+      }, 100);
+      
+      setSolveTimer(timer);
+
       setShowModal(true);
-      const response = await fetch(isContinue ? "/solve/continue" : isDesktop ? "/solve/start" : "/solve", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(requestBody),
-      });
+      const response = await fetch(
+        isContinue ? "/solve/continue" : isDesktop ? "/solve/start" : "/solve", 
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(requestBody),
+          signal: currentAbortController.current.signal
+        }
+      );
 
       clearInterval(timer);
+      setSolveTimer(null);
+
+      // If request was cancelled or this isn't the current request, don't process the response
+      if (requestCancelledRef.current || currentRequestId.current !== requestId) {
+        // console.log("Request was cancelled or superseded, ignoring response", requestId);
+        setIsSolving(false);
+        return;
+      }
+
+      setIsSolving(false);
 
       const responseText = await response.text();
 
@@ -343,24 +410,30 @@ const SolutionResultsPage = ({
       }
 
       const data = JSON.parse(responseText);
-      console.log("Solve response: ", data);
 
-      // Clear selections if the solution is unsolved or has no solution data
-      if (!data.solved || !data.solution) {
-        setGlobalSelectedTuples({});
-        // setSelectedVariable(null);
-        // setDisplayStructure([]);
+      // Only process response if request wasn't cancelled and this is still the current request
+      if (!requestCancelledRef.current && currentRequestId.current === requestId) {
+        if (!data.solved || !data.solution) {
+          setGlobalSelectedTuples({});
+        }
+
+        updateSolutionResponse(data);
+        setSolutionStatus("Solution Status: " + data.solutionStatus);
       }
-
-      updateSolutionResponse(data);
-      setSolutionStatus("Solution Status: " + data.solutionStatus);
     } catch (error) {
-      console.error("Error solving problem:", error);
-      setErrorMessage(`Failed to solve. ${error.message}`);
-      // Also clear selections on error
-      setGlobalSelectedTuples({});
-      setSelectedVariable(null);
-      setDisplayStructure([]);
+      // Only show error if request wasn't cancelled and this is still the current request
+      if (!requestCancelledRef.current && currentRequestId.current === requestId) {
+        if (error.name !== 'AbortError') {
+          console.error("Error solving problem:", error);
+          setErrorMessage(`Failed to solve. ${error.message}`);
+          setGlobalSelectedTuples({});
+        }
+      }
+      setIsSolving(false);
+      if (solveTimer) {
+        clearInterval(solveTimer);
+        setSolveTimer(null);
+      }
     }
   };
 
@@ -368,8 +441,7 @@ const SolutionResultsPage = ({
   useEffect(() => {
     if (solutionResponse?.solved === false) {
       setGlobalSelectedTuples({});
-      setSelectedVariable(null);
-      setDisplayStructure([]);
+
     }
   }, [solutionResponse?.solved]);
 
@@ -393,7 +465,7 @@ const SolutionResultsPage = ({
             <NumberInput 
               value={timeout}   
               onChange={setTimeout}
-              placeholder="Enter amount"
+              placeholder="Seconds"
               min="0"
             />
           </div>
@@ -474,18 +546,29 @@ const SolutionResultsPage = ({
         {/* Optimize Buttons */}
         <div className="control-panel-section">
           <div className="optimize-buttons">
-            <button 
-              className="optimize-button primary"
-              onClick={() => handleSolve(false)}
-            >
-              Optimize
-            </button>
-            {isDesktop && (
+            {!isSolving ? (
+              <>
+                <button 
+                  className="optimize-button primary"
+                  onClick={() => handleSolve(false)}
+                >
+                  Optimize
+                </button>
+                {isDesktop && (
+                  <button 
+                    className="optimize-button secondary"
+                    onClick={() => handleSolve(true)}
+                  >
+                    Continue Optimization
+                  </button>
+                )}
+              </>
+            ) : (
               <button 
-                className="optimize-button secondary"
-                onClick={() => handleSolve(true)}
+                className="cancel-button"
+                onClick={cancelSolve}
               >
-                Continue Optimization
+                Cancel
               </button>
             )}
           </div>
@@ -522,7 +605,7 @@ const SolutionResultsPage = ({
       </div>
 
       {/* Table Area */}
-      <div className="table-area">
+      <div className={`table-area ${isSolving ? 'optimizing' : ''}`}>
         <div className="table-header">
           <div className="variable-selector">
             {image?.variablesModule?.variablesOfInterest && image.variablesModule.variablesOfInterest.length > 0 && (

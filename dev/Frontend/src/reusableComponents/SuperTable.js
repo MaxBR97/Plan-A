@@ -174,7 +174,6 @@ const SuperTable = ({
 
   // If no solutions but we have display structure, show empty editable table
   if (solutions.length === 0) {
-    console.log("abc", displayStructure);
     return (
       <div className="super-table-container">
         <div className="table-scrollable">

@@ -99,9 +99,9 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 15px;
   min-width: 0;
-  overflow-x: hidden;
+  min-height: 0;
+  height: 100%; /* Ensure it takes full height */
 }
 
 .table-header {
@@ -109,6 +109,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 0 10px;
+  flex-shrink: 0; /* Prevent header from shrinking */
 }
 
 .table-controls {
@@ -239,10 +240,161 @@
 
 /* Table Container Styles */
 .table-container {
-  flex-grow: 1;
-  overflow: auto;
+  flex: 1;
   border: 1px solid #ddd;
   border-radius: 4px;
+  background: #f0f0f0;
+  position: relative;
+  display: flex;
+  min-height: 0;
+  height: 100%;
+  margin-top: 8px;
+  border-color: #87b2cf;
+}
+
+/* Add background pattern for area outside table */
+.table-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    linear-gradient(45deg, 
+      #e0e0e0 25%, 
+      transparent 25%, 
+      transparent 75%, 
+      #e0e0e0 75%),
+    linear-gradient(45deg, 
+      #e0e0e0 25%, 
+      transparent 25%, 
+      transparent 75%, 
+      #e0e0e0 75%);
+  background-size: 20px 20px;
+  background-position: 0 0, 10px 10px;
+  z-index: 0;
+}
+
+/* Remove sticky positioning from headers */
+.solution-table th {
+  background-color: #f2f2f2;
+  z-index: 1;
+}
+
+.level-0 th {
+  background-color: #f2f2f2;
+}
+
+.solution-table td.row-header,
+.solution-table th.row-header {
+  background-color: #f2f2f2;
+  z-index: 1;
+}
+
+/* Overlap corner cell */
+.solution-table th.row-header {
+  z-index: 2;
+}
+
+/* Optimizing overlay */
+.table-area.optimizing .table-container::after {
+  content: 'Optimizing...';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(128, 128, 128, 0.5);
+  z-index: 2;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  color: white;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+/* Ensure table content stays above the pattern */
+.super-table-container {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.table-scrollable {
+  overflow: auto;
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+}
+
+/* Table styles */
+.solution-table {
+  border-collapse: collapse;
+  width: max-content;
+  font-size: 14px;
+  margin-bottom: 20px;
+}
+
+/* Basic header and cell styles without positioning */
+.solution-table th,
+.solution-table td {
+  border: 2px solid #ddd;
+  padding: 8px;
+  text-align: left;
+  background-color: white;
+}
+
+.solution-table th {
+  background-color: #f2f2f2;
+}
+
+.solution-table td.row-header,
+.solution-table th.row-header {
+  background-color: #f2f2f2;
+}
+
+/* Remove all sticky positioning */
+.solution-table th,
+.solution-table td.row-header,
+.solution-table th.row-header,
+.level-0 th {
+  position: static;
+}
+
+/* Remove background from nested tables */
+.solution-table td .inner-table {
+  background: none;
+}
+
+/* Greyed out state during optimization */
+.table-area.optimizing .table-controls {
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+/* Remove the optimizing effects from the control panel */
+.control-panel.optimizing {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.control-panel.optimizing::after {
+  display: none;
+}
+
+/* Ensure variable selector stays interactive */
+.variable-selector {
+  opacity: 1 !important;
+  pointer-events: auto !important;
 }
 
 /* Dimension Order List Styling */
@@ -339,4 +491,20 @@
   margin: 0;
   font-size: 1.1em;
   color: #2196F3;
+}
+
+.cancel-button {
+  padding: 10px 15px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s;
+  background-color: #dc3545;
+  color: white;
+  width: 100%;
+}
+
+.cancel-button:hover {
+  background-color: #c82333;
 }
