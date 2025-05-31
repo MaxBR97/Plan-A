@@ -416,33 +416,52 @@ const toggleSelection = (filters) => {
 
 
   /**
-   * Toggle selection for entire table
+   * Toggle selection for entire table or subtable based on level and parent filters
    */
-  const toggleEntireTable = () => {
-    // Check if all solutions are selected
-    const allSelected = solutions.every(sol => 
+  const toggleEntireTable = (level, parentFilters = {}) => {
+    // Get solutions that match the parent filters
+    const matchingSolutions = filterByParentValues(sortedSolutions, parentFilters);
+    
+    // Find corresponding original solutions
+    const matchingOriginals = findMatchingOriginalSolutions(parentFilters, matchingSolutions);
+
+    // Check if all matching solutions are selected
+    const allSelected = matchingOriginals.every(original =>
       selectedTuples.some(selected => {
-        // Compare only non-value parts
-        const solValues = sol.values.filter((_, i) => 
-          displayStructure.includes(setStructure[i]) && setStructure[i] !== valueSetName
-        );
-        
-        const selectedValues = selected.values.filter((_, i) => 
-          displayStructure.includes(setStructure[i]) && setStructure[i] !== valueSetName
-        );
-        
-        const minLength = Math.min(solValues.length, selectedValues.length);
-        return JSON.stringify(solValues.slice(0, minLength)) === 
-               JSON.stringify(selectedValues.slice(0, minLength));
+        const originalValues = extractValuesInDisplayOrder(original);
+        const selectedValues = extractValuesInDisplayOrder(selected);
+        return JSON.stringify(originalValues) === JSON.stringify(selectedValues);
       })
     );
-    
+
+    let newSelection;
     if (allSelected) {
-      // Clear selection
-      if (onSelectedTuplesChange) onSelectedTuplesChange([]);
+      // Remove all matching solutions from selection
+      newSelection = selectedTuples.filter(selected =>
+        !matchingOriginals.some(original => {
+          const originalValues = extractValuesInDisplayOrder(original);
+          const selectedValues = extractValuesInDisplayOrder(selected);
+          return JSON.stringify(originalValues) === JSON.stringify(selectedValues);
+        })
+      );
     } else {
-      // Select all
-      if (onSelectedTuplesChange) onSelectedTuplesChange([...solutions]);
+      // Add all matching solutions to selection
+      newSelection = [...selectedTuples];
+      matchingOriginals.forEach(original => {
+        const alreadySelected = newSelection.some(selected => {
+          const originalValues = extractValuesInDisplayOrder(original);
+          const selectedValues = extractValuesInDisplayOrder(selected);
+          return JSON.stringify(originalValues) === JSON.stringify(selectedValues);
+        });
+
+        if (!alreadySelected) {
+          newSelection.push(original);
+        }
+      });
+    }
+
+    if (onSelectedTuplesChange) {
+      onSelectedTuplesChange(newSelection);
     }
   };
 
@@ -582,10 +601,8 @@ const applyEdit = () => {
                     onClick={() => toggleSelection(currentFilters)}
                     onDoubleClick={(e) => {
                       e.stopPropagation();
-                      // if (editMode) {
-                        setEditingCell({ level, filters: currentFilters });
-                        setEditValue(value);
-                      // }
+                      setEditingCell({ level, filters: currentFilters });
+                      setEditValue(value);
                     }}
                     className={`row-header clickable-cell ${isSelected ? "highlighted" : ""}`}
                   >
@@ -631,8 +648,16 @@ const applyEdit = () => {
         <table className="solution-table">
           <thead>
             <tr>
-              <th>{currentDimension}</th>
-              <th>
+              <th 
+                className="table-corner clickable-cell"
+                onClick={() => toggleEntireTable(level, parentFilters)}
+              >
+                {currentDimension}
+              </th>
+              <th 
+                className="table-corner clickable-cell"
+                onClick={() => toggleEntireTable(level, parentFilters)}
+              >
                 {nextDimension}
               </th>
             </tr>
@@ -654,10 +679,8 @@ const applyEdit = () => {
                     onClick={() => toggleSelection(currentFilters)}
                     onDoubleClick={(e) => {
                       e.stopPropagation();
-                      // if (editMode) {
-                        setEditingCell({ level, filters: currentFilters });
-                        setEditValue(rowValue);
-                      // }
+                      setEditingCell({ level, filters: currentFilters });
+                      setEditValue(rowValue);
                     }}
                   >
                     {editingCell &&
@@ -771,7 +794,7 @@ const applyEdit = () => {
           <tr>
             <th 
               className="table-corner clickable-cell"
-              onClick={() => toggleEntireTable()}
+              onClick={() => toggleEntireTable(level, parentFilters)}
             >
               {currentDimension} \ {nextDimension}
             </th>
@@ -782,11 +805,8 @@ const applyEdit = () => {
                 onClick={() => toggleColumnSelection(value, level + 1)}
                 onDoubleClick={(e) => {  // FIX: Add double-click handler for column headers
                   e.stopPropagation();
-                  // if (editMode) {
-                    const columnFilters = { [nextDimension]: value };
-                    setEditingCell({ level: level + 1, filters: columnFilters });
-                    setEditValue(value);
-                  // }
+                  setEditingCell({ level: level + 1, filters: { [nextDimension]: value } });
+                  setEditValue(value);
                 }}
               >
                 {editingCell &&
@@ -875,8 +895,7 @@ const applyEdit = () => {
               >
                 <span className="add-button">+</span>
               </td>
-              {/* Add empty cells to match columns */}
-              {Array(nextUniqueValues.length + (editMode ? 1 : 0)).fill(0).map((_, i) => (
+              {Array(nextUniqueValues.length + 1).fill(0).map((_, i) => (
                 <td key={i}></td>
               ))}
             </tr>
