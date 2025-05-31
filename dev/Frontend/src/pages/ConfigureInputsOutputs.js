@@ -42,18 +42,26 @@ const ConfigureInputsOutputs = () => {
     });
 
     const [hasInitialized, setHasInitialized] = useState(false);
-
-    // Initialize variable tags from existing configuration
     const [variablesTags, setVariablesTags] = useState(() => {
-        const tags = {};
-        if (image.variablesModule?.variablesOfInterest) {
-            image.variablesModule.variablesOfInterest.forEach(v => {
-                // Use the variable's type information from model.varTypes
-                const varType = model.varTypes[v.identifier] || [];
-                tags[v.identifier] = v.tags || varType.map((_, index) => `${v.identifier}_${index + 1}`);
-            });
-        }
-        return tags;
+        const initialTags = {};
+        Array.from(model.variables || []).forEach(variable => {
+            const varIdentifier = variable.identifier;
+            const varModelTypes = model.varTypes[varIdentifier] || [];
+            const configuredVariableOfInterest = image.variablesModule?.variablesOfInterest?.find(
+                vConfig => vConfig.identifier === varIdentifier
+            );
+
+            if (configuredVariableOfInterest && configuredVariableOfInterest.tags) {
+                if (configuredVariableOfInterest.tags.length === varModelTypes.length) {
+                    initialTags[varIdentifier] = configuredVariableOfInterest.tags;
+                } else {
+                    initialTags[varIdentifier] = varModelTypes.map((_, index) => `${varIdentifier}_${index + 1}`);
+                }
+            } else {
+                initialTags[varIdentifier] = varModelTypes.map((_, index) => `${varIdentifier}_${index + 1}`);
+            }
+        });
+        return initialTags;
     });
 
     // Initialize bound sets from existing configuration
@@ -88,6 +96,7 @@ const ConfigureInputsOutputs = () => {
             }
             setHasInitialized(true);
         }
+
     }, [model.setTypes, model.paramTypes, hasInitialized, selectedSets.length, selectedParams.length]);
 
     const handleVarCheckboxChange = (variable) => {
@@ -243,9 +252,9 @@ const ConfigureInputsOutputs = () => {
                                     <div className="tag-type-label" title={type}>{type}</div>
                                     <input
                                         type="text"
-                                        value={variablesTags[variable.identifier]?.[index] || `${variable.identifier}_${index + 1}`}
+                                        value={variablesTags[variable.identifier]?.[index]}
                                         onChange={(e) => handleTagValueChange(e, variable.identifier, index)}
-                                        placeholder={`${variable.identifier}_${index + 1}`}
+                                        // placeholder={`${variable.identifier}_${index + 1}`}
                                     />
                                 </div>
                             ))}
