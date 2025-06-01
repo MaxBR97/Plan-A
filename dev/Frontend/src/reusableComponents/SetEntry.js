@@ -15,7 +15,7 @@ const SetEntry = ({
 }) => {
   
   return (
-    <div className="set-entry">
+    <div className={`set-entry ${!checked ? 'unchecked' : ''}`}>
        <Checkbox 
         onChange={onToggle}
         checked={checked}

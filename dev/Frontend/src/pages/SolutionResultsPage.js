@@ -347,6 +347,8 @@ const SolutionResultsPage = ({
       solverSettings: image.solverSettings[selectedScript]
     };
 
+    console.log("solve request:", requestBody);
+
     try {
       let startTime = Date.now();
 
@@ -410,7 +412,7 @@ const SolutionResultsPage = ({
       }
 
       const data = JSON.parse(responseText);
-
+      console.log("solution received", data);
       // Only process response if request wasn't cancelled and this is still the current request
       if (!requestCancelledRef.current && currentRequestId.current === requestId) {
         if (!data.solved || !data.solution) {

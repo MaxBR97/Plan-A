@@ -7,6 +7,18 @@
   padding: 0px;
   border-radius: 4px;
   background-color: #f9f9f9;
+  transition: opacity 0.2s ease, background-color 0.2s ease;
+}
+
+/* Style for unchecked rows */
+.set-entry.unchecked {
+  opacity: 0.5;
+  background-color: #f5f5f5;
+}
+
+.set-entry.unchecked input {
+  color: #666;
+  background-color: #f8f8f8;
 }
 
 .set-entry-atom {
