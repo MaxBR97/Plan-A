@@ -52,8 +52,6 @@ public class ImageController {
     private final ModelFactory modelFactory;
     @Autowired
     private EntityManager entityManager;
-    //should be enabled only when running in desktop app
-    private Image currentlyCached;
     @Autowired
     private Solver solverService;
     private ModelInterface currentlySolving;
@@ -99,9 +97,7 @@ public class ImageController {
 
     @Transactional
     public CompletableFuture<SolutionDTO> solveAsync(SolveCommandDTO command) throws Exception {
-        Image image = currentlyCached != null ? currentlyCached : imageRepository.findById(command.imageId()).get();
-        // currentlyCached = image;
-        // currentlySolving = image.getModel();
+        Image image = imageRepository.findById(command.imageId()).get();
         image.prepareInput(command.input());
         CompletableFuture<Solution> solution = solverService.solveAsync(image.getId(), command.timeout(), command.solverSettings());
         return solution.thenApply(sol -> {
@@ -128,8 +124,7 @@ public class ImageController {
 
     @Transactional
     public ImageDTO getImage(String id) {
-        Image image = currentlyCached != null && currentlyCached.getId().equals(id) ? currentlyCached : imageRepository.findById(id).get();
-        // currentlyCached = image;
+        Image image = imageRepository.findById(id).get();
         return RecordFactory.makeDTO(image);
     }
 
@@ -152,8 +147,6 @@ public class ImageController {
         imageRepository.deleteById(imageId);
         System.gc();
         modelFactory.deleteModel(imageId);
-        // if(currentlyCached.getId().equals(imageId))
-        //     currentlyCached = null;
     }
 
     public Solver getSolver(){
