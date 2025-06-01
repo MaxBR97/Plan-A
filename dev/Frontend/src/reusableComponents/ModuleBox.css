@@ -12,6 +12,8 @@
   border-radius: 6px;
   box-shadow: 0 2px 5px rgba(0,0,0,0.1);
   background-color: white;
+  /* Add overflow handling */
+  overflow: auto;
 }
 
 /* Header section with title and buttons */
@@ -22,6 +24,11 @@
   padding-bottom: 10px;
   border-bottom: 1px solid #eee;
   position: relative;
+  /* Keep header visible during scroll */
+  position: sticky;
+  top: 0;
+  background: white;
+  z-index: 1;
 }
 
 .module-title {
@@ -35,6 +42,7 @@
 .module-description {
   margin: 15px 0;
   line-height: 1.4;
+  text-align: left; /* Align description to the left */
 }
 
 .module-subtitle {
@@ -56,9 +64,12 @@
 }
 
 .module-content {
-  overflow: hidden;
-  max-height: 2000px; /* Arbitrary large height */
+  overflow: visible; /* Change from hidden to allow content to determine size */
+  max-height: 2000px;
   transition: max-height 0.5s ease;
+  /* Add container properties */
+  min-width: min-content;
+  width: fit-content;
 }
 
 /* Minimized state */
@@ -74,8 +85,12 @@
 
 .module-set-inputs,
 .module-parameter-inputs {
-  width: 100%;
   margin-top: 20px;
+  /* Allow content to determine size */
+  width: fit-content;
+  min-width: min-content;
+  /* Add space for scrollbar to prevent layout shift */
+  padding-right: 5px;
 }
 
 .toggle-container {
@@ -166,4 +181,31 @@
   .module-box {
     width: 100%;
   }
+}
+
+/* Add smooth scrollbar styling */
+.module-box::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.module-box::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.module-box::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+.module-box::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+.module-set-inputs h4,
+.module-parameter-inputs h4 {
+  text-align: center; /* Center the "Input Sets" and "Input Parameters" titles */
+  width: 100%;
+  margin-bottom: 15px;
 }

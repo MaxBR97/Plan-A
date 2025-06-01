@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { useZPL } from "../context/ZPLContext";
 import "./SolutionPreviewPage.css";
@@ -10,7 +10,6 @@ import SetInputBox from '../reusableComponents/SetInputBox.js';
 import ParameterInputBox from "../reusableComponents/ParameterInputBox";
 import DraggableBar from "../reusableComponents/DraggableBar.js";
 import LogBoard from "../reusableComponents/LogBoard.js"
-import { useEffect } from "react";
 import { useNavigate } from "react-router-dom"; // Import useNavigate
 
 import WebSocketTester from "./WebSocketTest.js";
@@ -43,6 +42,12 @@ const SolutionPreviewPage = ({isDesktop=false}) => {
   const [showResults, setShowResults] = useState(false);
   const [errorMessage, setErrorMessage] = useState(null);
   const navigate = useNavigate(); 
+
+  // Update the state to allow null for no selected tab
+  const [activeTab, setActiveTab] = useState(null);
+  const [isHeaderSticky, setIsHeaderSticky] = useState(true);
+  const resultsRef = useRef(null);
+  const headerRef = useRef(null);
 
   const handleAddValue = (setName) => {
     setVariableValues((prev) => ({
@@ -287,198 +292,295 @@ useEffect(() => {
   })();
 }, [image]);
 
+useEffect(() => {
+  const options = {
+    threshold: 0,
+    rootMargin: "-80px 0px 0px 0px" // Adjust this value to match your header height
+  };
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      // When results section is intersecting (visible), make header static
+      // When results section is not intersecting (not visible), make header sticky
+      setIsHeaderSticky(!entry.isIntersecting);
+    });
+  }, options);
+
+  if (resultsRef.current) {
+    observer.observe(resultsRef.current);
+  }
+
+  return () => {
+    if (resultsRef.current) {
+      observer.unobserve(resultsRef.current);
+    }
+  };
+}, []);
+
+  const renderTabContent = () => {
+    switch(activeTab) {
+      case 'variables':
+        return (
+          <>
+            {/* Variable Sets Section */}
+            <div className="module-section">
+              <h2 className="section-title">Variable Sets</h2>
+              {variablesModule.inputSets.filter(set => !variablesModule.variablesOfInterest.some(v => v.boundSet === set.name))
+                .map((setDef, index) => (
+                  <SetInputBox
+                    key={index}
+                    index={index}
+                    typeList={setDef.type}
+                    tupleTags={setDef.tags}
+                    setName={setDef.name}
+                    setAlias={setDef.alias}
+                    handleAddTuple={handleAddVariable}
+                    handleTupleChange={handleVariableChange}
+                    handleTupleToggle={handleVariableToggle}
+                    handleRemoveTuple={handleRemoveVariable}
+                    isRowSelected={isRowSelected}
+                    setValues={variableValues[setDef.name]}
+                  />
+              ))}
+            </div>
+
+            {/* Parameters Section */}
+            <div className="module-section">
+              <h2 className="section-title">Parameters</h2>
+              {variablesModule.inputParams.map((paramDef, index) => (
+                <ParameterInputBox
+                  key={index}
+                  paramName={paramDef.name}
+                  paramAlias={paramDef.alias}
+                  type={paramDef.type}
+                  tag={paramDef.tag}
+                  value={paramValues[paramDef.name]}
+                  onChange={handleParamChange}
+                />
+              ))}
+            </div>
+          </>
+        );
+      
+      case 'constraints':
+        return (
+          <div className="module-section">
+            {constraintModules.length > 0 ? (
+              constraintModules.map((module, index) => {
+                let inputSets = [];
+                let inputParams = [];
+                
+                module.inputSets.forEach((setDef) => {
+                  const inputSet = {
+                    setName: setDef.name,
+                    type: setDef.type,
+                    tags: setDef.type,
+                    alias: setDef.alias,
+                    setValues: variableValues[setDef.name] || [],
+                  };
+                  inputSets = [...inputSets, inputSet];
+                });
+                
+                module.inputParams.forEach((paramDef) => {
+                  const inputParam = {
+                    paramName: paramDef.name,
+                    value: paramValues[paramDef.name] || "",
+                    type: paramDef.type,
+                    alias: paramDef.alias,
+                  };
+                  inputParams = [...inputParams, inputParam];
+                });
+                
+                return (
+                  <ModuleBox
+                    key={index}
+                    module={module}
+                    prefcons={module.constraints}
+                    checked={!constraintsToggledOff.includes(module.moduleName)}
+                    handleToggleModule={handleToggleConstraint}
+                    handleAddTuple={handleAddVariable}
+                    handleRemoveTuple={handleRemoveVariable}
+                    handleTupleToggle={handleVariableToggle}
+                    handleTupleChange={handleVariableChange}
+                    handleParamChange={handleParamChange}
+                    isRowSelected={isRowSelected}
+                    inputSets={inputSets}
+                    inputParams={inputParams}
+                  />
+                );
+              })
+            ) : (
+              <p className="empty-message">No constraints modules available.</p>
+            )}
+          </div>
+        );
+      
+      case 'preferences':
+        return (
+          <div className="module-section">
+            {preferenceModules.length > 0 ? (
+              <>
+                {preferenceModules.map((module, index) => {
+                  let inputSets = [];
+                  let inputParams = [];
+                  
+                  module.inputSets.forEach((setDef) => {
+                    const inputSet = {
+                      setName: setDef.name,
+                      type: setDef.type,
+                      tags: setDef.type,
+                      setValues: variableValues[setDef.name] || [],
+                    };
+                    inputSets = [...inputSets, inputSet];
+                  });
+                  
+                  module.inputParams.forEach((paramDef) => {
+                    const inputParam = {
+                      paramName: paramDef.name,
+                      value: paramValues[paramDef.name] || "",
+                      type: paramDef.type,
+                    };
+                    inputParams = [...inputParams, inputParam];
+                  });
+                  
+                  return (
+                    <ModuleBox
+                      key={index}
+                      module={module}
+                      prefcons={module.preferences}
+                      checked={!preferencesToggledOff.includes(module.moduleName)}
+                      handleToggleModule={handleTogglePreference}
+                      handleAddTuple={handleAddVariable}
+                      handleRemoveTuple={handleRemoveVariable}
+                      handleTupleToggle={handleVariableToggle}
+                      handleTupleChange={handleVariableChange}
+                      handleParamChange={handleParamChange}
+                      isRowSelected={isRowSelected}
+                      inputSets={inputSets}
+                      inputParams={inputParams}
+                    />
+                  );
+                })}
+                
+                {Array.from(costParams).length > 0 && (
+                  <DraggableBar
+                    min={0}
+                    max={100}
+                    markers={Array.from(costParams.keys())
+                      .filter(param => paramValues[param])
+                      .map(param => ({ [param]: parseFloat(paramValues[param][0]) }))}
+                    costParams={costParams}
+                    onChange={(marker) => {
+                      const [paramName, paramValue] = Object.entries(marker)[0];
+                      handleParamChange(paramName, paramValue);
+                    }}
+                  />
+                )}
+              </>
+            ) : (
+              <p className="empty-message">No preference modules available.</p>
+            )}
+          </div>
+        );
+      
+      default:
+        return null;
+    }
+  };
+
+  // Add these helper functions at the top of your component
+  const hasVariablesContent = () => {
+    return (variablesModule?.inputSets?.some(set => 
+      !variablesModule.variablesOfInterest.some(v => v.boundSet === set.name)
+    ) || variablesModule?.inputParams?.length > 0);
+  };
+
+  const hasConstraintsContent = () => {
+    return constraintModules?.length > 0;
+  };
+
+  const hasPreferencesContent = () => {
+    return preferenceModules?.length > 0;
+  };
+
+  const handleTabClick = (tabName) => {
+    // If clicking the same tab that's already active, deselect it
+    if (activeTab === tabName) {
+      setActiveTab(null);
+      return;
+    }
+
+    // Otherwise, only select the tab if it has content
+    switch(tabName) {
+      case 'variables':
+        if (hasVariablesContent()) setActiveTab(tabName);
+        break;
+      case 'constraints':
+        if (hasConstraintsContent()) setActiveTab(tabName);
+        break;
+      case 'preferences':
+        if (hasPreferencesContent()) setActiveTab(tabName);
+        break;
+    }
+  };
+
   return (
     <div className="solution-preview-page">
-      <h1 className="page-title">{image.imageName}</h1>
-      <p className="image-description">{image.imageDescription}</p>
-      <div className="modules-container">
-        {/* Constraints Section */}
-        <div className="module-section">
-          <h2 className="section-title">Constraints</h2>
-          {constraintModules.length > 0 ? (
-            constraintModules.map((module, index) => {
-              let inputSets = [];
-              let inputParams = []
-
-              module.inputSets.forEach((setDef) => {
-                const inputSet = {
-                  setName: setDef.name,
-                  type: setDef.type,
-                  tags: setDef.type,
-                  alias : setDef.alias,
-                  setValues: variableValues[setDef.name] || [] ,
-                };
-
-                inputSets =  [...inputSets, inputSet];
-              });
-              
-              module.inputParams.forEach((paramDef) => {
-                
-                const inputParam = {
-                  paramName: paramDef.name,
-                  value: paramValues[paramDef.name] || "",
-                  type: paramDef.type,
-                  alias : paramDef.alias,
-                };
-                inputParams =[...inputParams, inputParam];
-              });
-              
-              return (
-              <ModuleBox
-              key={index}
-              module={module}
-              prefcons={module.constraints}
-              checked={!constraintsToggledOff.includes(module.moduleName)}
-              handleToggleModule={handleToggleConstraint}
-              handleAddTuple={handleAddVariable}
-              handleRemoveTuple={handleRemoveVariable}
-              handleTupleToggle={handleVariableToggle}
-              handleTupleChange={handleVariableChange}
-              handleParamChange={handleParamChange}
-              isRowSelected={isRowSelected}
-              inputSets={inputSets}
-              inputParams={inputParams}
-              />
-            )})
-          ) : (
-            <p className="empty-message">No constraints modules available.</p>
-          )}
+      <div className="page-header">
+        <h1 className="page-title">{image.imageName}</h1>
+        <p className="image-description">{image.imageDescription}</p>
+        <div className="tab-bar">
+          <button
+            className={`tab-button ${activeTab === 'variables' ? 'active' : ''} ${!hasVariablesContent() ? 'disabled' : ''}`}
+            onClick={() => handleTabClick('variables')}
+            disabled={!hasVariablesContent()}
+          >
+            Variables
+          </button>
+          <button
+            className={`tab-button ${activeTab === 'constraints' ? 'active' : ''} ${!hasConstraintsContent() ? 'disabled' : ''}`}
+            onClick={() => handleTabClick('constraints')}
+            disabled={!hasConstraintsContent()}
+          >
+            Constraints
+          </button>
+          <button
+            className={`tab-button ${activeTab === 'preferences' ? 'active' : ''} ${!hasPreferencesContent() ? 'disabled' : ''}`}
+            onClick={() => handleTabClick('preferences')}
+            disabled={!hasPreferencesContent()}
+          >
+            Preferences
+          </button>
         </div>
-
-        {/* Preferences Section */}
-        <div className="module-section">
-          <h2 className="section-title">Preferences</h2>
-          {preferenceModules.length > 0 ? (
-            preferenceModules.map((module, index) => {
-              let inputSets = [];
-              let inputParams = []
-              module.inputSets.forEach((setDef) => {
-                const inputSet = {
-                  setName: setDef.name,
-                  type: setDef.type,
-                  tags: setDef.type,
-                  setValues: variableValues[setDef.name] || [] ,
-                };
-
-                inputSets =  [...inputSets, inputSet];
-              });
-              
-              module.inputParams.forEach((paramDef) => {
-                
-                const inputParam = {
-                  paramName: paramDef.name,
-                  value: paramValues[paramDef.name] || "",
-                  type: paramDef.type
-                };
-                inputParams =[...inputParams, inputParam];
-              });
-              
-              return (
-              <ModuleBox
-              key={index}
-              module={module}
-              prefcons={module.preferences}
-              checked={!preferencesToggledOff.includes(module.moduleName)}
-              handleToggleModule={handleTogglePreference}
-              handleAddTuple={handleAddVariable}
-              handleRemoveTuple={handleRemoveVariable}
-              handleTupleToggle={handleVariableToggle}
-              handleTupleChange={handleVariableChange}
-              handleParamChange={handleParamChange}
-              isRowSelected={isRowSelected}
-              inputSets={inputSets}
-              inputParams={inputParams}
-              />
-            )})
-          ) : (
-            <p className="empty-message">No preference modules available.</p>
-          )}
-          
-          { preferenceModules.length > 0 && (
-            Array.from(costParams).length > 0 ? <DraggableBar 
-            min={0}
-            max={100}
-            markers={Array.from(costParams.keys())
-              .filter(param => paramValues[param])
-              .map(param => ({ [param]: parseFloat(paramValues[param][0]) }))
-            }
-            costParams={costParams} // <--- pass the costParams!
-            onChange={(marker) => {
-              const [paramName, paramValue] = Object.entries(marker)[0];
-              handleParamChange(paramName, paramValue);
-            }}
-          />          
-          
-            : null
-          )}
-        </div>
-
-        {/* Variable Sets Section */}
-        
-<div className="module-section">
-  <h2 className="section-title">Variable Sets</h2>
-  {variablesModule.inputSets.filter(set => !variablesModule.variablesOfInterest.some(v => v.boundSet === set.name))
-                            .map((setDef, index) => (
-  <SetInputBox
-    index={index}
-    typeList={setDef.type}
-    tupleTags={setDef.tags}
-    setName={setDef.name}
-    setAlias={setDef.alias}
-    handleAddTuple={handleAddVariable}
-    handleTupleChange={handleVariableChange}
-    handleTupleToggle={handleVariableToggle}
-    handleRemoveTuple={handleRemoveVariable}
-    isRowSelected={isRowSelected}
-    setValues={variableValues[setDef.name]}
-    key={index} //added key prop.
-  />
-))}
-    </div>
-
-            {/* Variable Parameters Section */}
-            {/* Parameters Section */}
-      <div className="module-section">
-      <h2 className="section-title">Parameters</h2>
-      {variablesModule.inputParams.map((paramDef, index) => (
-          <ParameterInputBox
-            key={index}
-            paramName={paramDef.name}
-            paramAlias={paramDef.alias}
-            type={paramDef.type}
-            tag={paramDef.tag}
-            value={paramValues[paramDef.name]}
-            onChange={handleParamChange}
-          />
-        ))}
-    </div>
-
-        <div className="results">
-          <SolutionResultsPage 
-            // globalSelectedTuples={globalSelectedTuples} 
-            // setGlobalSelectedTuples={setGlobalSelectedTuples}
-            image={image}
-            variableValues={variableValues}
-            selectedVariableValues={selectedVariableValues}
-            paramValues={paramValues}
-            constraintsToggledOff={constraintsToggledOff}
-            preferencesToggledOff={preferencesToggledOff}
-            isDesktop={isDesktop}
-          />
-        </div>
-
-        <button className="home-button" onClick={() => navigate("/")}>
-          ← Back to Home
-        </button>
       </div>
+
+      {/* Only render tab content if a tab is selected */}
+      {activeTab && (
+        <div className="tab-content">
+          {renderTabContent()}
+        </div>
+      )}
+
+      <div className="results">
+        <SolutionResultsPage
+          image={image}
+          variableValues={variableValues}
+          selectedVariableValues={selectedVariableValues}
+          paramValues={paramValues}
+          constraintsToggledOff={constraintsToggledOff}
+          preferencesToggledOff={preferencesToggledOff}
+          isDesktop={isDesktop}
+        />
+      </div>
+
+      <button className="home-button" onClick={() => navigate("/")}>
+        ← Back to Home
+      </button>
+      
       <Link to="/configuration-menu" className="back-button">
         Back to Configuration
       </Link>
-
-      {/* <WebSocketTester /> */}
-      
     </div>
-    
   );
 };
 

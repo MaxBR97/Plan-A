@@ -8,9 +8,9 @@ const ParameterInputBox = ({ paramName, paramAlias, type, tag, value, onChange }
   return (
     <div className="parameter-input">
       <h3 className="parameter-name">{paramAlias ? paramAlias : paramName}</h3>
-      <p className="parameter-type">
+      {/* <p className="parameter-type">
         <strong>Type:</strong> {type || "Unknown"}
-      </p>
+      </p> */}
       <input
         type="text"
         value={paramValue}

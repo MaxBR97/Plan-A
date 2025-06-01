@@ -95,11 +95,13 @@
 
 .tag-row {
   display: flex;
-  gap: 1rem;
+  gap: 0rem;
   padding: 0.25rem 0;
   font-size: 0.85rem;
   color: #555;
   font-weight: 500;
+  max-width: 94%;
+  margin-left: 10px;
 }
 
 .tag-label {

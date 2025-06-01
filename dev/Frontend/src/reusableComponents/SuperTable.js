@@ -25,11 +25,7 @@ const SuperTable = ({
 
   // Return empty state message if no display structure
   if (!displayStructure || displayStructure.length === 0) {
-    return (
-      <div className="empty-table-message">
-        No dimensions available to display
-      </div>
-    );
+    return ;
   }
 
   /**

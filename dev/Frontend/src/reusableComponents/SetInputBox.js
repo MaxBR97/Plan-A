@@ -20,9 +20,7 @@ const SetInputBox = ({
 return (
   <div key={key} className="set-input">
     <h3 className="set-name">{setAlias ? setAlias : setName}</h3>
-    <p className="set-type">
-      <strong>Type:</strong> {typeList.join(", ")}
-    </p>
+    
     <p className="total">Entries:{" "}
       {setValues?.filter((_, rowIndex) => isRowSelected(setName, rowIndex))
         .length || 0}
