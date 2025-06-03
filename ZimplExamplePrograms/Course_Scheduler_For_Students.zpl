@@ -18,7 +18,17 @@ defstrg convertNumberToString(n) :=
 
 # Sets for basic data structures
 set Weekdays := {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday"};
-set SessionTypes := {"Lecture", "Practice", "Lab"};
+param orderWeekDays[Weekdays] := <"Sunday"> 1, <"Monday"> 2, <"Tuesday"> 3, <"Wednesday"> 4, <"Thursday"> 5, <"Friday"> 6;
+
+# Define relative day numbering based on first day (Sunday)
+defnumb getDayNumber(day) := orderWeekDays[day];
+
+# Convert day to presentation format ("1 Sunday", "2 Monday", etc.)
+param convertToPresentation[<day> in Weekdays] := convertNumberToString(getDayNumber(day)) + " " + day;
+
+# Function to extract weekday from presentation format ("1 Sunday" -> "Sunday")
+defstrg getWeekdayFromPresentation(presentationStr) := 
+    substr(presentationStr, 2, length(presentationStr)-2);
 
 # Course information
 set CourseData := {
@@ -151,15 +161,29 @@ var first_activity_of_the_day[<c, g, w> in proj(CourseSchedule, <1, 2,5>)] binar
 var total_points real >= 0;
 defstrg FormatCourseSchedulePresentation(c,g,t) := c + ", " + convertNumberToString(g) + ", " + t;
 set CourseScheduleFormatted := {<c,g,t,st,wd,sh,eh> in CourseSchedule : <FormatCourseSchedulePresentation(c,g,t)>};
-set preAssign_presentation := {<8,"Monday", "Calculus 1", 1, "Dr. Smith">};
-var assignment_presentation[{8..20} * Weekdays * proj(CourseSchedule, <1,2,3>)] binary;
-var assignment_presentation_formatted[{8..20} * Weekdays * CourseScheduleFormatted] binary;
+set preAssign_presentation := {<10,"1 Sunday","Calculus 1",1,"Dr. Smith",1>};
+var assignment_presentation[{8..20} * {<d> in Weekdays: convertToPresentation[d]} * proj(CourseSchedule, <1,2,3>)] binary;
+var assignment_presentation_formatted[{8..20} * {<d> in Weekdays: convertToPresentation[d]} * CourseScheduleFormatted] binary;
 
 # Constraints
 
+subto preAssign_presentation_constraints:
+    forall <h,wd,c,g,t,v> in preAssign_presentation:
+        assignment_presentation[h,wd,c,g,t] == v;
+
+subto take_course_in_valid_times:
+    forall <hour,presentationDay,course,group,teacher> in {8..20} * {<d> in Weekdays: convertToPresentation[d]} * proj(CourseSchedule, <1,2,3>):
+        assignment_presentation[hour,presentationDay,course,group,teacher] <= 
+            (sum <c,g,t,st,wd,sh,eh> in CourseSchedule | 
+                c == course and g == group and 
+                wd == getWeekdayFromPresentation(presentationDay) and 
+                hour >= sh and hour < eh: 1);
+
 subto assignment_presentation_constraints:
     forall <c,g,t,st,wd,sh,eh, h> in CourseSchedule * {8..20} | h >= sh and h < eh:
-        assignment_presentation[h,wd,c,g,t] == assignment_presentation_formatted[h,wd,FormatCourseSchedulePresentation(c,g,t)] and assignment_presentation[h,wd,c,g,t] == choose_group[c,g];
+        assignment_presentation[h,convertToPresentation[wd],c,g,t] == 
+            assignment_presentation_formatted[h,convertToPresentation[wd],FormatCourseSchedulePresentation(c,g,t)] and 
+            assignment_presentation[h,convertToPresentation[wd],c,g,t] == choose_group[c,g];
 
 # Must take all mandatory courses
 subto mandatory_courses:
@@ -195,24 +219,13 @@ subto first_activity_of_the_day:
             first_activity_of_the_day[c,g,wd] == 1 else first_activity_of_the_day[c,g,wd] == 0 end;
 
 #<course_name, rating>
-set preffered_courses := {
-    <"Physics 1", 5>,
-    <"Digital Systems", 4>,
-    <"Introduction to Software Engineering", 2>,
-    <"Introduction to Artificial Intelligence", 1>
-};
+set preffered_courses := {<"Physics 1",5>, <"Digital Systems",4>, <"Introduction to Software Engineering",2>, <"Introduction to Artificial Intelligence",1>};
 param sumOfPrefferedCoursesRatings := sum <c, rating> in preffered_courses : abs(rating);
 
 defnumb getCourseRating(course) := ord({ <co, rating> in preffered_courses | co == course} union {<"ds",0>},1,2);
 
 #<teacher_name, rating>
-set preffered_teachers := {
-    <"Dr. Smith", 10>,
-    <"Mr. Johnson", 1>,
-    <"Prof. Brown", 1>,
-    <"Ms. Davis", 1>,
-    <"Dr. Wilson", 1>
-};
+set preffered_teachers := {<"Dr. Smith",10>, <"Mr. Johnson",1>, <"Prof. Brown",1>, <"Ms. Davis",1>, <"Dr. Wilson",1>};
 
 param sumOfPrefferedTeachersRatings := sum <t, rating> in preffered_teachers : abs(rating);
 
