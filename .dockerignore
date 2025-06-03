@@ -1,7 +1,8 @@
 dev/Frontend/node_modules/
+dev/Frontend/Distribution
+dev/Frontend/installers
 dev/Backend/target/
 .git/
 .gitignore/
 Distribution/
 .vscode/
-

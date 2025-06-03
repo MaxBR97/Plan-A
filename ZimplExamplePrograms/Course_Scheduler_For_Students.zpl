@@ -48,7 +48,6 @@ set Courses := proj(CourseData, <1>);
 # Course schedule information
 set CourseSchedule := {
     # <course_name, group_num, teacher, session_type, weekday, start_hour, end_hour>
-
     <"Calculus 1", 1, "Dr. Smith", "Lecture", "Sunday", 9, 12>,
     <"Calculus 1", 1, "Mr. Johnson", "Practice", "Tuesday", 13, 15>,
     <"Calculus 1", 2, "Dr. Smith", "Lecture", "Monday", 10, 13>,

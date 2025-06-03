@@ -15,8 +15,6 @@ import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.stereotype.Service;
 
 import Model.ModelInput.StructureBlock;
-import io.grpc.ManagedChannel;
-import io.grpc.ManagedChannelBuilder;
 import parser.*;
 import parser.FormulationLexer;
 import parser.FormulationParser;

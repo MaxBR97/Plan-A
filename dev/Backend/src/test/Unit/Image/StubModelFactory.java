@@ -13,7 +13,7 @@ public class StubModelFactory extends ModelFactory {
     private final StubModel stubModel;
 
     public StubModelFactory(ModelRepository repo) {
-        super(repo, 0, "localhost", 4000, null);
+        super(repo, 4000, null);
         this.stubModel = new StubModel();
     }
 
