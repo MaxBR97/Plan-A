@@ -117,7 +117,14 @@ public class Solution {
         return this;
     }
 
-    //Implement as lazy call or run during initialization?
+    /**
+     * Parses the solution file with context about binary variables.
+     * For binary variables, only solutions with value 1 are included.
+     * For non-binary variables, all solutions are included.
+     * @param model The model containing variable information
+     * @param varsToParse Set of variable names to parse
+     * @throws IOException if there's an error reading the solution file
+     */
     public void parseSolution(ModelInterface model, Set<String> varsToParse) throws IOException {
         if(this.solutionPath == null)
             return;
@@ -127,21 +134,8 @@ public class Solution {
                 variableSolution.put(variable.getIdentifier(), new ArrayList<>());
                 variableStructure.put(variable.getIdentifier(), new ArrayList<>());
                 variableTypes.put(variable.getIdentifier(), new ArrayList<>());
-                //below lines are not solution dependent but problem dependent, will be more efficient to maintain them inside the image
                 for (ModelSet modelSet : variable.getSetDependencies()) {
                     variableTypes.get(variable.getIdentifier()).add(modelSet.getType().toString());
-                    // for (ModelInput.StructureBlock block : modelSet.getStructure()) {
-                        
-                    //     //TODO: Bug at block.dependency.identifier!
-                    //     //When var depends on anonymous primitive set, it's structure it an array of null blocks
-                    //     //therefore block.dependency is an invalid access
-                    //     //example: var varForTest1[CxS *{"A","a"} * S * {1 .. 5}];
-                    //     if(block.dependency!=null) //fix?
-                    //         variableStructure.get(variable.getIdentifier()).add(block.dependency.getIdentifier());
-                    // }
-                    
-                    // The previous block of code is a deprecated attempt to automatically fetch the
-                    // names of the variables' dimensions for the results
                     for (String typeAsBlockName : modelSet.getType().typeList()) {
                         variableStructure.get(variable.getIdentifier()).add(typeAsBlockName);
                     }
@@ -151,40 +145,17 @@ public class Solution {
         try (BufferedReader reader = new BufferedReader(new FileReader(solutionPath))) {
             String line;
             boolean solutionSection = false;
-            boolean timeLimitReached = false;
             Pattern optimalSolutionPattern = Pattern.compile("solution status: optimal solution found");
-            Pattern interruptPattern = Pattern.compile("solution status: .*interrupt.*$");
-            Pattern infeasibleSolutionPattern = Pattern.compile("solution status: .*infeas.*$");
-            Pattern unsolvedSolutionPattern = Pattern.compile("no solution.*$");
-            
-            Pattern timeLimitReachedPattern = Pattern.compile("^.*time limit reached.*$");
-            Pattern solvingTimePattern = Pattern.compile("Solving Time \\(sec\\)\s+:\s+(\\d+\\.\\d+)");
             Pattern objectiveValuePattern = Pattern.compile("objective value:\\s+(-?\\d+(\\.\\d+)?|[+|-]infinity)");
             while ((line = reader.readLine()) != null) {
                 if (!solutionSection) {
                     // Check for the solved status
                     Matcher optimalMatcher = optimalSolutionPattern.matcher(line);
-                    Matcher infeasibleMatcher = infeasibleSolutionPattern.matcher(line);
                     if (optimalMatcher.find()) {
                         solved = SolutionStatus.OPTIMAL;
-                    } else if (infeasibleMatcher.find()){
-                        solved = SolutionStatus.UNSOLVED;
                     }
-                    // Matcher timeLimitReachedMatcher = timeLimitReachedPattern.matcher(line);
-                    
-                    // if(timeLimitReachedMatcher.find()){
-                    //     timeLimitReached = true;
-                    // }
-
-                    // Extract solving time
-
-                    // Matcher solvingTimeMatcher = solvingTimePattern.matcher(line);
-                    // if (solvingTimeMatcher.find()) {
-                    //     solvingTime = Double.parseDouble(solvingTimeMatcher.group(1));
-                    // }
 
                     // Extract objective value
-
                     Matcher objectiveMatcher = objectiveValuePattern.matcher(line);
                     if (objectiveMatcher.find()) {
                         if(this.solved == SolutionStatus.UNSOLVED)
@@ -194,34 +165,110 @@ public class Solution {
                         parseSolutionValues(reader, varsToParse);
                     }
                 }
-//              else {
-//                    parseSolutionValues(reader,varsToParse);
-//                }
             }
         }
         parsed=true;
     }
 
     private void parseSolutionValues(BufferedReader reader, Set<String> varsToParse) throws IOException {
-        Pattern variablePattern = Pattern.compile("^(.*?)[ \\t]+(\\d+\\.?\\d*)[ \\t]+\\(obj:(-?\\d+\\.?\\d*)\\)");
+        Pattern variablePattern = Pattern.compile("^(.*?)[ \\t]+(-?\\d+\\.?\\d*)[ \\t]+\\(obj:(-?\\d+\\.?\\d*)\\)");
         String line;
-        while ((line = reader.readLine()) != null){
+        while ((line = reader.readLine()) != null) {
             Matcher variableMatcher = variablePattern.matcher(line);
             if (variableMatcher.find()) {
                 String solution = variableMatcher.group(1);
-                Double objectiveValue = Double.parseDouble(variableMatcher.group(2));
+                Double value = Double.parseDouble(variableMatcher.group(2));
                 List<String> splitSolution = new LinkedList<>(Arrays.asList(solution.split("[#$]"))); //need a new array to remove dependence
                 String variableIdentifier = splitSolution.getFirst();
                 splitSolution.removeFirst();
-                if(varsToParse.contains(variableIdentifier) && objectiveValue!=0) { //A 0 objective value means the solution part has no effect on the actual max/min expression
-                    variableSolution.get(variableIdentifier).add(new Tuple<>(splitSolution,objectiveValue));
+                
+                if (varsToParse.contains(variableIdentifier)) {
+                    // Find the corresponding variable to check if it's binary
+                    ModelVariable var = null;
+                    for (ModelVariable v : variables) {
+                        if (v.getIdentifier().equals(variableIdentifier)) {
+                            var = v;
+                            break;
+                        }
+                    }
+                    
+                    // Only add the value if:
+                    // 1. It's a non-binary variable (add all values)
+                    // 2. It's a binary variable with value > 0
+                    if (var != null && (!var.isBinary() || (var.isBinary() && value > 0))) {
+                        variableSolution.get(variableIdentifier).add(new Tuple<>(splitSolution, value));
+                    }
                 }
-            }
-            else {
-                //TODO: log or throw exception?
             }
         }
     }
+
+    /**
+     * Parses the solution file without requiring Model context.
+     * This method extracts all variables and their values directly from the solution file.
+     * @return this Solution object for method chaining
+     * @throws IOException if there's an error reading the solution file
+     */
+    public Solution parseSolution() throws IOException {
+        if(this.solutionPath == null) {
+            return this;
+        }
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(solutionPath))) {
+            String line;
+            Pattern statusPattern = Pattern.compile("solution status: (.*)");
+            Pattern objectivePattern = Pattern.compile("objective value:\\s+(-?\\d+(\\.\\d+)?|[+|-]infinity)");
+            Pattern variablePattern = Pattern.compile("^(.+?)\\s+(-?\\d+(?:\\.\\d+)?|(?:-)?infinity)\\s+\\(obj:(-?\\d+(?:\\.\\d+)?)\\)");
+
+            // Clear existing data
+            variableSolution.clear();
+            
+            while ((line = reader.readLine()) != null) {
+                Matcher statusMatcher = statusPattern.matcher(line);
+                Matcher objectiveMatcher = objectivePattern.matcher(line);
+                Matcher variableMatcher = variablePattern.matcher(line);
+
+                if (statusMatcher.find()) {
+                    String status = statusMatcher.group(1);
+                    if (status.contains("optimal solution found")) {
+                        solved = SolutionStatus.OPTIMAL;
+                    } else if (status.contains("infeasible")) {
+                        solved = SolutionStatus.UNSOLVED;
+                    } else if (status.contains("time limit")) {
+                        solved = SolutionStatus.SUBOPTIMAL;
+                    }
+                } 
+                else if (objectiveMatcher.find()) {
+                    objectiveValue = Double.parseDouble(objectiveMatcher.group(1));
+                }
+                else if (variableMatcher.find()) {
+                    String varName = variableMatcher.group(1).trim();
+                    double value = Double.parseDouble(variableMatcher.group(2));
+                    double objCoeff = Double.parseDouble(variableMatcher.group(3));
+                    
+                    // Split variable name by # to separate indices
+                    String[] parts = varName.split("#");
+                    String baseVarName = parts[0];
+                    
+                    // Initialize list for this variable if not already present
+                    variableSolution.putIfAbsent(baseVarName, new ArrayList<>());
+                    
+                    // Create list of indices (everything after the base variable name)
+                    List<String> indices = new ArrayList<>();
+                    if (parts.length > 1) {
+                        String[] indexParts = parts[1].split("\\$");
+                        indices.addAll(Arrays.asList(indexParts));
+                    }
+                    
+                    // Add all values when parsing without model context
+                    variableSolution.get(baseVarName).add(new Tuple<>(indices, value));
+                }
+            }
+            parsed = true;
+        }
+        return this;
+    }
+
     public boolean parsed(){
         return parsed;
     }
@@ -256,66 +303,5 @@ public class Solution {
 
     public List<String> getVariableStructure(String variableName) {
         return variableStructure.get(variableName);
-    }
-
-    /**
-     * Parses the solution file without requiring Model context.
-     * This method extracts all variables and their values directly from the solution file.
-     * @return this Solution object for method chaining
-     * @throws IOException if there's an error reading the solution file
-     */
-    public Solution parseSolution() throws IOException {
-        if(this.solutionPath == null) {
-            return this;
-        }
-
-        try (BufferedReader reader = new BufferedReader(new FileReader(solutionPath))) {
-            String line;
-            Pattern statusPattern = Pattern.compile("solution status: (.*)");
-            Pattern objectivePattern = Pattern.compile("objective value:\\s+(-?\\d+(\\.\\d+)?|[+|-]infinity)");
-            Pattern variablePattern = Pattern.compile("^(.+?)\\s+(\\d+(?:\\.\\d+)?|(?:-)?infinity)\\s+\\(obj:(-?\\d+(?:\\.\\d+)?)\\)");
-
-            // Clear existing data
-            variableSolution.clear();
-            
-            while ((line = reader.readLine()) != null) {
-                Matcher statusMatcher = statusPattern.matcher(line);
-                Matcher objectiveMatcher = objectivePattern.matcher(line);
-                Matcher variableMatcher = variablePattern.matcher(line);
-
-                if (statusMatcher.find()) {
-                    String status = statusMatcher.group(1);
-                    if (status.contains("optimal solution found")) {
-                        solved = SolutionStatus.OPTIMAL;
-                    } else if (status.contains("infeasible")) {
-                        solved = SolutionStatus.UNSOLVED;
-                    } else if (status.contains("time limit")) {
-                        solved = SolutionStatus.SUBOPTIMAL;
-                    }
-                } 
-                else if (objectiveMatcher.find()) {
-                    objectiveValue = Double.parseDouble(objectiveMatcher.group(1));
-                }
-                else if (variableMatcher.find()) {
-                    String varName = variableMatcher.group(1).trim();
-                    double value = Double.parseDouble(variableMatcher.group(2));
-                    double objCoeff = Double.parseDouble(variableMatcher.group(3));
-                    
-                    // Split variable name by # to separate indices
-                    String[] parts = varName.split("#");
-                    String baseVarName = parts[0];
-                    List<String> indices = new ArrayList<>();
-                    if (parts.length > 1) {
-                        indices.add(parts[1]);
-                    }
-
-                    // Create or get the list for this variable
-                    variableSolution.computeIfAbsent(baseVarName, k -> new ArrayList<>())
-                                  .add(new Tuple<>(indices, value));
-                }
-            }
-            parsed = true;
-        }
-        return this;
     }
 }

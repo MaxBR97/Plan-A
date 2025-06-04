@@ -308,7 +308,10 @@ public class ServiceTest {
                 .build();
             SolutionDTO solution = expectSuccess(requestsManager.sendSolveRequest(solveRequest), SolutionDTO.class);
 
-                assertEquals(Set.of(new SolutionValueDTO(List.of("3"),5), new SolutionValueDTO(List.of("1"),5)), solution.solution().get("myVar").solutions());
+                assertEquals(Set.of(new SolutionValueDTO(List.of("3"),5),
+                                    new SolutionValueDTO(List.of("1"),5),
+                                    new SolutionValueDTO(List.of("2"),0))
+                                    , solution.solution().get("myVar").solutions());
             } catch (Exception e) {
                 fail(e.getMessage());
             }
@@ -455,7 +458,9 @@ public class ServiceTest {
                 .addToggleOffConstraintModule(testConst1)
                 .build();   
             SolutionDTO solution1 = expectSuccess(requestsManager.sendSolveRequest(solveRequest1), SolutionDTO.class);
-            assertEquals(Set.of(new SolutionValueDTO(List.of("3"),10)), solution1.solution().get("myVar").solutions());
+            assertEquals(Set.of(new SolutionValueDTO(List.of("3"),10),
+                                new SolutionValueDTO(List.of("1"),0),
+                                new SolutionValueDTO(List.of("2"),0)), solution1.solution().get("myVar").solutions());
 
             // Case 2: Toggle off pref1, coefficient=10, x=10, expect myVar[1]=10
             SolveCommandDTO solveRequest2 = new SolveCommandRequestBuilder(result)
@@ -465,7 +470,9 @@ public class ServiceTest {
                 .addToggleOffPreferenceModule(testPref1)
                 .build();   
             SolutionDTO solution2 = expectSuccess(requestsManager.sendSolveRequest(solveRequest2), SolutionDTO.class);
-            assertEquals(Set.of(new SolutionValueDTO(List.of("1"),10)), solution2.solution().get("myVar").solutions());
+            assertEquals(Set.of(new SolutionValueDTO(List.of("1"),10),
+                                new SolutionValueDTO(List.of("2"),0),
+                                new SolutionValueDTO(List.of("3"),0)), solution2.solution().get("myVar").solutions());
 
             // Case 3: Toggle off pref2, coefficient=-5, x=10, expect myVar[3]=0 (not in result)
             SolveCommandDTO solveRequest3 = new SolveCommandRequestBuilder(result)
@@ -475,9 +482,8 @@ public class ServiceTest {
                 .addToggleOffPreferenceModule(testPref2)
                 .build();   
             SolutionDTO solution3 = expectSuccess(requestsManager.sendSolveRequest(solveRequest3), SolutionDTO.class);
-            assertTrue(solution3.solution().get("myVar").solutions().stream()
-                .noneMatch(sol -> sol.values().contains("3")), 
-                "myVar[3] should not be in the solution as its value is 0");
+            assertTrue(solution3.solution().get("myVar").solutions().contains(new SolutionValueDTO(List.of("3"),0)),
+             "check that myVar[3] value is 0");
 
             // Case 4: Toggle off constraint and pref2, coefficient=10, x=10, expect myVar[3]=10
             SolveCommandDTO solveRequest4 = new SolveCommandRequestBuilder(result)
@@ -488,7 +494,9 @@ public class ServiceTest {
                 .addToggleOffPreferenceModule(testPref2)
                 .build();   
             SolutionDTO solution4 = expectSuccess(requestsManager.sendSolveRequest(solveRequest4), SolutionDTO.class);
-            assertEquals(Set.of(new SolutionValueDTO(List.of("3"),10)), solution4.solution().get("myVar").solutions());
+            assertEquals(Set.of(new SolutionValueDTO(List.of("3"),10),
+                                new SolutionValueDTO(List.of("1"),0),
+                                new SolutionValueDTO(List.of("2"),0)), solution4.solution().get("myVar").solutions());
 
             // Case 5: Toggle off all modules, coefficient=10, x=10, expect any solution
             SolveCommandDTO solveRequest5 = new SolveCommandRequestBuilder(result)

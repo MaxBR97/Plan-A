@@ -113,7 +113,7 @@ public class ScipProcess {
     }
 
     public void optimize() throws Exception {
-        pipeInput("optimize");
+        pipeInput("set write printzeros TRUE optimize");
     }
 
     public String getStatus() {

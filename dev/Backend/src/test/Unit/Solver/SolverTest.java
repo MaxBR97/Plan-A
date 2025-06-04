@@ -7,6 +7,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.List;
+import java.util.Set;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,10 +20,14 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 
+import DataAccess.ModelRepository;
 import Model.Solution;
 import Model.Solution.SolutionStatus;
 import SolverService.StreamSolver;
 import groupId.Main;
+import Model.ModelVariable;
+import Utils.Tuple;
+import Model.Model;
 
 @SpringBootTest(classes = Main.class)
 @ActiveProfiles({"H2mem","securityAndGateway","streamSolver"})
@@ -34,6 +40,8 @@ public class SolverTest {
     
     @Autowired
     private StreamSolver solverService;
+    @Autowired
+    private ModelRepository modelRepository;
 
     private static final int COMPILATION_TIMEOUT_SECONDS = 2;
     private static final int SOLVING_TIMEOUT_SECONDS = 7;
@@ -166,5 +174,99 @@ public class SolverTest {
         
         // Clean up
         futureSolution.get(SOLVING_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+    }
+
+    @Test
+    void test8_BinaryVariableFiltering() throws Exception {
+        String filePath = "EasyOptimality";
+        assertTrue(solverService.isCompiling(filePath, COMPILATION_TIMEOUT_SECONDS).equals(""));
+
+        // Create a Model object to parse the test file
+        Model model = new Model(modelRepository, filePath);
+        
+        // Get the solution and parse it with model context
+        Solution solution = solverService.solve(filePath, SOLVING_TIMEOUT_SECONDS, "");
+        Set<String> allVars = model.getVariables().stream()
+            .map(ModelVariable::getIdentifier)
+            .collect(java.util.stream.Collectors.toSet());
+        solution.parseSolution(model, allVars);
+        
+        // Verify that binary variables only contain non-zero values
+        for (ModelVariable var : solution.getVariables()) {
+            if (var.isBinary()) {
+                List<Tuple<List<String>, Double>> values = solution.getVariableSolution(var.getIdentifier());
+                
+                // For the edge variable in our TSP, we expect exactly 4 values (one for each step)
+                // and all values should be 1 (since we filter out zeros)
+                if (var.getIdentifier().equals("edge")) {
+                    assertEquals(4, values.size(), "Binary edge variable should have exactly 4 non-zero values");
+                    for (Tuple<List<String>, Double> value : values) {
+                        assertEquals(1.0, value.getSecond(), 
+                            "Binary edge variable should only have value 1 in solution");
+                        
+                        // Each value should have 3 indices: step, from_city, to_city
+                        assertEquals(3, value.getFirst().size(),
+                            "Each edge solution should have 3 indices (step, from_city, to_city)");
+                    }
+                }
+            }
+        }
+    }
+
+    @Test
+    void test9_HardOptimalityVariableParsing() throws Exception {
+        String filePath = "HardOptimality";
+        assertTrue(solverService.isCompiling(filePath, COMPILATION_TIMEOUT_SECONDS).equals(""));
+
+        // Create a Model object to parse the test file
+        Model model = new Model(modelRepository, filePath);
+        
+        // Get the solution and parse it with model context
+        Solution solution = solverService.solve(filePath, SOLVING_TIMEOUT_SECONDS, "");
+        Set<String> allVars = model.getVariables().stream()
+            .map(ModelVariable::getIdentifier)
+            .collect(java.util.stream.Collectors.toSet());
+        solution.parseSolution(model, allVars);
+        
+        // Get the variables from solution
+        List<Tuple<List<String>, Double>> edgeValues = solution.getVariableSolution("edge");
+        List<Tuple<List<String>, Double>> uValues = solution.getVariableSolution("u");
+        
+        assertNotNull(edgeValues, "Edge variable solutions should exist");
+        assertNotNull(uValues, "U variable solutions should exist");
+        
+        // Check edge variable (binary)
+        // We should have exactly n edges in a TSP solution where n is the number of cities
+        int numCities = 25; // Count from the .zpl file
+        assertEquals(numCities, edgeValues.size(), 
+            "Should have exactly " + numCities + " edges in the solution (one per city)");
+        
+        // All edge values should be 1 (no zeros since it's binary)
+        for (Tuple<List<String>, Double> edge : edgeValues) {
+            assertEquals(1.0, edge.getSecond(), 
+                "Binary edge variable should only have value 1 in solution");
+            // Each edge should have exactly 2 indices (from_city, to_city)
+            assertEquals(2, edge.getFirst().size(),
+                "Each edge solution should have 2 indices (from_city, to_city)");
+        }
+        
+        // Check u variable (integer)
+        assertEquals(numCities, uValues.size(), 
+            "Should have a u value for each city");
+        
+        // Exactly one u value should be 0 (for the first city)
+        long zeroCount = uValues.stream()
+            .filter(u -> u.getSecond() == 0.0)
+            .count();
+        assertEquals(1, zeroCount, "Exactly one u value should be 0");
+        
+        // All other u values should be between 1 and n-1
+        for (Tuple<List<String>, Double> u : uValues) {
+            double value = u.getSecond();
+            assertTrue(value >= 0 && value <= numCities - 1,
+                "U values should be between 0 and n-1");
+            assertEquals(1, u.getFirst().size(),
+                "Each u solution should have 1 index (city)");
+        }
     }
 }

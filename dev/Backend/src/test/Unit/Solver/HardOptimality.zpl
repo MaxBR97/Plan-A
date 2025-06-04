@@ -96,11 +96,18 @@ subto degree: forall <i> in Cities:
     (sum <j> in Cities | i != j: edge[j,i]) == 1;
 
 # # Subtour elimination constraints using Miller-Tucker-Zemlin formulation
-var u[Cities] integer >= 0 <= card(Cities);  # Auxiliary variables for subtour elimination
+var u[Cities] integer >= 0 <= card(Cities) - 1;  # Auxiliary variables for subtour elimination
 param n := card(Cities);
 
 subto subtour: forall <i,j> in Cities * Cities with i != j and i != ord(Cities, 1,1) and j != ord(Cities, 1,1):
     u[i] - u[j] + n * edge[i,j] <= n - 1;
+
+subto middle_u: forall <i> in Cities | i != ord(Cities, 1,1):
+    u[i] >= 1;
+
+subto start_u:
+    u[ord(Cities, 1,1)] == 0;
+
 
 # Minimize total distance traveled
 minimize cost: sum <i,j> in Cities * Cities: dist[i,j] * edge[i,j];

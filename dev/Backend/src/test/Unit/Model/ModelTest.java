@@ -288,7 +288,7 @@ public class ModelTest {
         //approximately 1-2 seconds reading time
         //approx. 1 seconds presolve time
         //aprox. 137 seconds solve for optimal
-        Solution sol = solverService.solve(sourceSolveId, 6, "");
+        Solution sol = solverService.solve(sourceSolveId, 10, "");
         
         assertNotNull(sol);
         Set<String> stringVariables = m.getVariables().stream()
