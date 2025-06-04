@@ -113,6 +113,8 @@ public class ModelSet extends ModelInput {
 
     // Check if values is empty
     public boolean isEmpty() {
+        if(values == null)
+            return true;
         return values.isEmpty();
     }
 

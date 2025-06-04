@@ -1,28 +1,17 @@
 package groupId;
 
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
 import DTO.Factories.RecordFactory;
-import DTO.Records.Image.ConstraintModuleDTO;
 import DTO.Records.Image.ImageDTO;
-import DTO.Records.Image.PreferenceModuleDTO;
 import DTO.Records.Image.SolutionDTO;
 import DTO.Records.Model.ModelData.InputDTO;
-import DTO.Records.Model.ModelData.ParameterDefinitionDTO;
-import DTO.Records.Model.ModelData.SetDefinitionDTO;
-import DTO.Records.Model.ModelDefinition.VariableDTO;
 import DTO.Records.Requests.Commands.CreateImageFromFileDTO;
 import DTO.Records.Requests.Commands.ImageConfigDTO;
 import DTO.Records.Requests.Commands.SolveCommandDTO;
@@ -30,18 +19,12 @@ import DTO.Records.Requests.Responses.CreateImageResponseDTO;
 import DataAccess.ImageRepository;
 import Exceptions.InternalErrors.BadRequestException;
 import Image.Image;
-import Model.Model;
-import Model.ModelConstraint;
 import Model.ModelFactory;
 import Model.ModelInterface;
-import Model.ModelPreference;
-import Model.ModelType;
-import Model.ModelVariable;
+import Model.Solution;
+import SolverService.Solver;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
-import SolverService.Solver;
-import SolverService.StreamSolver;
-import Model.Solution;
 
 @RestController
 public class ImageController {
@@ -71,15 +54,38 @@ public class ImageController {
             throw new BadRequestException("Code size exceeded 64KB");
         }
         String id = UUID.randomUUID().toString();
-        modelFactory.uploadNewModel(id,command.code());
-        Image image = new Image(
-        id,
-        command.imageName(),
-        command.imageDescription(),
-        command.owner(),
-        command.isPrivate() == null ? true : command.isPrivate());
-        imageRepository.save(image);
-        return RecordFactory.makeDTO(id, image.getModel());
+        modelFactory.uploadNewModel(id, command.code());
+        
+        try {
+            // First check compilation using solver
+            String compilationResult = solverService.isCompiling(id, 15); // 10 second timeout
+            if (compilationResult != null && !compilationResult.isEmpty()) {
+                throw new BadRequestException("Code compilation failed: " + compilationResult);
+            }
+            
+            // Create image and validate for empty sets
+            Image image = new Image(
+                id,
+                command.imageName(),
+                command.imageDescription(),
+                command.owner(),
+                command.isPrivate() == null ? true : command.isPrivate()
+            );
+            System.gc();
+            // Validate no empty sets
+            image.validateCode();
+            // If all validation passes, save the image
+            imageRepository.save(image);
+            return RecordFactory.makeDTO(id, image.getModel());
+        } catch (BadRequestException e) {
+            // Clean up the model if validation fails
+            modelFactory.deleteModel(id);
+            throw e;
+        } catch (Exception e) {
+            // Clean up and wrap any other exceptions
+            modelFactory.deleteModel(id);
+            throw new BadRequestException("Failed to validate image code: " + e.getMessage());
+        }
     }
     
     @Transactional

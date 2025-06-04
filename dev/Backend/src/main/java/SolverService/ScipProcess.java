@@ -127,15 +127,23 @@ public class ScipProcess {
     public void exit() throws Exception {
         isRunning = false;
         if (readerThread != null) {
-            readerThread.interrupt();
+            try {
+                pipeInput("quit");
+                processInput.close();
+                readerThread.interrupt();
+                readerThread.join(1000); // Wait up to 1 second for reader thread to finish
+            } catch (Exception e) {
+                // Ignore exceptions during cleanup
+            }
         }
-        // if (processInput != null) {
-        //     pipeInput("quit");
-        //     processInput.close();
-        // }
         if (scipProcess != null) {
-            scipProcess.destroyForcibly();
-            scipProcess.waitFor();
+            try {
+                scipProcess.destroyForcibly();
+                scipProcess.waitFor();
+                Thread.sleep(100); // Give a small delay for file handles to be released
+            } catch (Exception e) {
+                // Ignore exceptions during cleanup
+            }
         }
     }
 

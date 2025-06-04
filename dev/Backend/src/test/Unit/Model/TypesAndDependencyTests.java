@@ -328,12 +328,12 @@ public class TypesAndDependencyTests {
     public void testConstraintsDependencies(String id){
         ModelConstraint mc = model.getConstraint(id);
         assertNotNull(mc);
-        assertEquals(mc.getSetDependencies().size(), immidiateSetDependencies.get(id).length);
+        assertEquals(immidiateSetDependencies.get(id).length, mc.getSetDependencies().size());
         for(String setId : immidiateSetDependencies.get(id)){
             assertNotNull(mc.findSetDependency(setId));
         }  
 
-        assertEquals(mc.getParamDependencies().size(), immidiateParamDependencies.get(id).length);
+        assertEquals(immidiateParamDependencies.get(id).length, mc.getParamDependencies().size());
         for(String setId : immidiateParamDependencies.get(id)){
             assertNotNull(mc.findParamDependency(setId));
         }
@@ -681,6 +681,13 @@ public class TypesAndDependencyTests {
         assertEquals(ModelPrimitives.TEXT,((Tuple)var.getType()).getTypes().get(4));
         assertEquals(ModelPrimitives.INT,((Tuple)var.getType()).getTypes().get(5));
         assertEquals(ModelPrimitives.INT,((Tuple)var.getType()).getTypes().get(6));
+    }
+
+    @Test
+    public void typeCheckPrefferedCourses(){
+        ModelInput s = model.getParameter("sumOfPrefferedCoursesRatings");
+        ModelType expectedType = ModelPrimitives.INT;
+        assertTrue(s.isCompatible(expectedType), "type: "+ s.getType().toString() +" expected: " + expectedType.toString());
     }
 
     @Test

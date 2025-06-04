@@ -1,5 +1,5 @@
 
-param NumberOfSoldiers := 50;
+param NumberOfSoldiers := 30;
 param bias := 100;
 
 param planFromDay := "Sunday";
@@ -88,7 +88,7 @@ defbool isBetween(fromDay,fromHour,toDay,toHour,targetDay,targetHour) :=
 set Soldiers := {1..NumberOfSoldiers};
 # <name,shift_time,people_in_shift>
 # set Stations := {<"Siyur1",8,4>,<"FillBox",4,1>, <"Hamal",24,1>};  # Station names
-set Stations := {<"Siyur1",8,4>,<"FillBox",4,1>,<"Shin Gimel",4,1>, <"Hamal",24,1>, <"Siyur2",8,4>, <"Siyur3",8,4>};  # Station names
+set Stations := {<"Siyur1",8,4>,<"FillBox",4,1>};  # Station names
 set FormalTimes := {<day,hour> in weekDays * hours | isBetween(planFromDay,planFromHour,planUntilDay,planUntilHour,day,hour)};
 param planTimeRange := timeDifference(planFromDay,planFromHour,planUntilDay,planUntilHour);
 set Times := {0 .. planTimeRange};

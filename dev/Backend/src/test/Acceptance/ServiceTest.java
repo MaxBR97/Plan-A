@@ -121,7 +121,8 @@ public class ServiceTest {
     static String pathToComplexSoldiersExampleProgram3 =  Paths.get("src", "test", "resources","ZimplExamples" ,"ComplexSoldiersExampleProgram3.zpl").toString();
     static String pathToLearningParity2 = Paths.get("src", "test", "resources","ZimplExamples" ,"LearningParity2.zpl").toString();
     static String pathToCourseScheduling = Paths.get("src", "test", "resources","ZimplExamples" ,"Course_Scheduler_For_Students.zpl").toString();
-    
+    static String pathToEnhancedTravellingSalesmanProblem = Paths.get("src", "test", "resources","ZimplExamples" ,"EnhancedTravellingSalesmanProblem.zpl").toString();
+
     static RequestsManager requestsManager;
     static String imageName="myImage";
     static String imageDescription="desc";
@@ -281,9 +282,14 @@ public class ServiceTest {
     }
 
         @ParameterizedTest
-        @ValueSource(strings = {"..\\..\\ZimplExamplePrograms\\SoldiersExampleProgram2.zpl",
-                                "..\\..\\ZimplExamplePrograms\\LearningParity2.zpl",
-                                "..\\..\\ZimplExamplePrograms\\ComplexSoldiersExampleProgram.zpl"})
+        @ValueSource(strings = {
+                                "src\\test\\resources\\ZimplExamples\\SoldiersExampleProgram2.zpl",
+                                "src\\test\\resources\\ZimplExamples\\LearningParity2.zpl",
+                                "src\\test\\resources\\ZimplExamples\\ComplexSoldiersExampleProgram.zpl",
+                                "src\\test\\resources\\ZimplExamples\\ComplexSoldiersExampleProgram4.zpl",
+                                "src\\test\\resources\\ZimplExamples\\Course_Scheduler_For_Students.zpl",
+                                "src\\test\\resources\\ZimplExamples\\EnhancedTravellingSalesmanProblem.zpl"
+                            })
         public void testSuccessfulCreationOfDifferentImages(String pathStringToFile){
             CreateImageFromFileDTO createImage =  new CreateImageRequestBuilder(imageName,imageDescription,"Max",true,Paths.get(pathStringToFile)).build();
             CreateImageResponseDTO responseCreateImage = expectSuccess(requestsManager.sendCreateImageRequest(createImage),CreateImageResponseDTO.class);
@@ -554,7 +560,9 @@ public class ServiceTest {
         List<String> uploadAll = List.of(
             pathToSoldiersExampleProgram3,
             pathToLearningParity2,
-            pathToComplexSoldiersExampleProgram3
+            pathToComplexSoldiersExampleProgram3,
+            pathToCourseScheduling,
+            pathToEnhancedTravellingSalesmanProblem
         );
         List<String> respectiveImageIds = new LinkedList<>();
 
@@ -761,6 +769,87 @@ public class ServiceTest {
         assertEquals(Set.of("((-1 * weight_preffered_teachers) * (sum <c> in Courses: (take_course[c] * getTeacherRating(c)/sumOfPrefferedTeachersRatings)))".replaceAll("\\s+", "")), teachersModule.preferences());
         assertEquals(Set.of("preffered_teachers"), teachersModule.inputSets().stream().map(s -> s.name()).collect(Collectors.toSet()));
         assertEquals(Set.of("weight_preffered_teachers"), teachersModule.costParams().stream().map(p -> p.name()).collect(Collectors.toSet()));
+    }
+
+    @Test
+    public void testImageCreationWithCodeValidation() {
+        // Test Case 1: Invalid code with empty set
+        String codeWithEmptySet = """
+            set a := {1};
+            set x := {};
+            param y := 5;
+            var z;
+            subto c1: z >= 0;
+            minimize obj: z;
+        """;
+        CreateImageFromFileDTO invalidRequest = new CreateImageRequestBuilder(
+            "invalidImage",
+            "Image with empty set",
+            "testUser",
+            false,
+            codeWithEmptySet
+        ).build();
+        ResponseEntity<?> invalidResponse = requestsManager.sendCreateImageRequest(invalidRequest);
+        ExceptionDTO error = expectError(invalidResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+        assertTrue(error.msg().toLowerCase().contains("empty set"), "Error should mention empty set, but was : " + error.msg());
+
+        // Test Case 2: Invalid code that doesn't compile
+        String nonCompilingCode = """
+            set y := {};    
+            set x := {1,2,3;    
+            var z;
+            subto c1: z >= 0;
+            minimize obj: z;
+        """;
+        CreateImageFromFileDTO nonCompilingRequest = new CreateImageRequestBuilder(
+            "invalidImage2",
+            "Image with non-compiling code",
+            "testUser",
+            false,
+            nonCompilingCode
+        ).build();
+        ResponseEntity<?> nonCompilingResponse = requestsManager.sendCreateImageRequest(nonCompilingRequest);
+        ExceptionDTO compileError = expectError(nonCompilingResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+        assertTrue(compileError.msg().toLowerCase().contains("compilation"), "Error should mention compilation failure, but was: " + compileError.msg());
+
+        // // Test Case 3: Code with unknown type
+        // String codeWithUnknownType = """
+        //     set x := {1,2,3};
+        //     set y := {<a,b> in x * x : a*b}; 
+        //     param z := 5;
+        //     var w;
+        //     minimize obj: w;
+        // """;
+        // CreateImageFromFileDTO unknownTypeRequest = new CreateImageRequestBuilder(
+        //     "invalidImage3",
+        //     "Image with unknown type",
+        //     "testUser",
+        //     false,
+        //     codeWithUnknownType
+        // ).build();
+        // ResponseEntity<?> unknownTypeResponse = requestsManager.sendCreateImageRequest(unknownTypeRequest);
+        // ExceptionDTO unknownTypeError = expectError(unknownTypeResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+        // assertTrue(unknownTypeError.msg().toLowerCase().contains("unknown type"), 
+        //     "Error should mention unknown type, but was: " + unknownTypeError.msg());
+
+        // Test Case 4: Valid code
+        String validCode = """
+            set x := {1,2,3};
+            param y := 5;
+            var z[x] integer;
+            subto c1: z[1] >= 0;
+            minimize obj: z[1];
+        """;
+        CreateImageFromFileDTO validRequest = new CreateImageRequestBuilder(
+            "validImage",
+            "Image with valid code",
+            "testUser",
+            false,
+            validCode
+        ).build();
+        ResponseEntity<?> validResponse = requestsManager.sendCreateImageRequest(validRequest);
+        CreateImageResponseDTO validResult = expectSuccess(validResponse, CreateImageResponseDTO.class);
+        assertNotNull(validResult.imageId(), "Valid code should create an image with ID");
     }
 
     private <T> T expectSuccess(ResponseEntity<?> response, Class<T> expectedType) {

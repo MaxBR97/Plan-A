@@ -29,6 +29,7 @@ import DTO.Records.Model.ModelDefinition.VariableDTO;
 import Image.Modules.ConstraintModule;
 import Image.Modules.PreferenceModule;
 import Image.Modules.VariableModule;
+import Model.Model;
 import Model.ModelConstraint;
 import Model.ModelFactory;
 import Model.ModelInterface;
@@ -55,6 +56,10 @@ import jakarta.persistence.Transient;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
+import Exceptions.InternalErrors.BadRequestException;
+import org.springframework.beans.factory.annotation.Autowired;
+import Model.Tuple;
+import Model.ModelPrimitives;
 
 @Entity
 @Table(name = "images")
@@ -887,5 +892,75 @@ public class Image {
                 );
             }
         }
+    }
+
+    private void validateNoEmptySets() throws BadRequestException {
+        ModelInterface model = getModel();
+        Collection<ModelSet> sets = model.getSets();
+        for (ModelSet set : sets) {
+            if (set.isPrimitive() && set.isEmpty()) {
+                throw new BadRequestException("Empty set found: " + set.getIdentifier() + ". Empty sets are not allowed.");
+            }
+        }
+    }
+
+    private void validateNoUnknownTypes() throws BadRequestException {
+        ModelInterface model = getModel();
+        
+        // Check sets
+        for (ModelSet set : model.getSets()) {
+            ModelType type = set.getType();
+            if (type == ModelPrimitives.UNKNOWN) {
+                throw new BadRequestException("Unknown type found in set: " + set.getIdentifier());
+            }
+            // If it's a tuple, check each component
+            if (type instanceof Tuple) {
+                Tuple tupleType = (Tuple) type;
+                for (ModelPrimitives componentType : tupleType.getTypes()) {
+                    if (componentType == ModelPrimitives.UNKNOWN) {
+                        throw new BadRequestException("Unknown type found in tuple component of set: " + set.getIdentifier());
+                    }
+                }
+            }
+        }
+
+        // Check parameters
+        for (ModelParameter param : model.getParameters()) {
+            ModelType type = param.getType();
+            if (type == ModelPrimitives.UNKNOWN) {
+                throw new BadRequestException("Unknown type found in parameter: " + param.getIdentifier());
+            }
+            // If it's a tuple, check each component
+            if (type instanceof Tuple) {
+                Tuple tupleType = (Tuple) type;
+                for (ModelPrimitives componentType : tupleType.getTypes()) {
+                    if (componentType == ModelPrimitives.UNKNOWN) {
+                        throw new BadRequestException("Unknown type found in tuple component of parameter: " + param.getIdentifier());
+                    }
+                }
+            }
+        }
+
+        // Check variables
+        for (ModelVariable var : model.getVariables()) {
+            ModelType type = var.getType();
+            if (type == ModelPrimitives.UNKNOWN) {
+                throw new BadRequestException("Unknown type found in variable: " + var.getIdentifier());
+            }
+            // If it's a tuple, check each component
+            if (type instanceof Tuple) {
+                Tuple tupleType = (Tuple) type;
+                for (ModelPrimitives componentType : tupleType.getTypes()) {
+                    if (componentType == ModelPrimitives.UNKNOWN) {
+                        throw new BadRequestException("Unknown type found in tuple component of variable: " + var.getIdentifier());
+                    }
+                }
+            }
+        }
+    }
+
+    public void validateCode() throws Exception {
+        validateNoEmptySets();
+        // validateNoUnknownTypes();
     }
 }

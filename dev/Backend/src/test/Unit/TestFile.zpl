@@ -59,6 +59,16 @@ subto condForTest1:
             edge[i,a,b] == paramForTest1;
 
 param paramForTest2 := card(Zmanim);
+
+set preffered_courses := {
+    <"Physics 1", 5>,
+    <"Digital Systems", 4>,
+    <"Introduction to Software Engineering", 2>,
+    <"Introduction to Artificial Intelligence", 1>
+};
+
+param sumOfPrefferedCoursesRatings := sum <c, rating> in preffered_courses : abs(rating);
+
 subto condForTest2:
     edge[1,"Shin Gimel", 0] == max(1,min(paramForTest2,0,0));
 

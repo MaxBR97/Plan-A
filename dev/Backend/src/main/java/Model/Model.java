@@ -745,7 +745,7 @@ public class Model extends ModelInterface {
                 else if (ctx.setExpr() instanceof FormulationParser.SetExprStackContext) {
                     FormulationParser.SetExprStackContext stackCtx = 
                         (FormulationParser.SetExprStackContext) ctx.setExpr();
-                    if (stackCtx.setDesc() instanceof FormulationParser.SetDescContext || stackCtx.setDesc() instanceof FormulationParser.SetDescEmptyContext ) {
+                    if (stackCtx.setDesc() instanceof FormulationParser.SetDescContext ) {
                         modifySetContent(ctx);
                     }
                 }
@@ -1144,8 +1144,60 @@ public class Model extends ModelInterface {
 
         @Override
         public Void visitLongRedExpr(FormulationParser.LongRedExprContext ctx){
-            this.visit(ctx.condition());
-            this.visit(ctx.nExpr());
+            String name = ctx.getText();
+            
+            // Create temporary storage for existing parameters
+            Map<String, ModelParameter> placeHolder = new HashMap<>();
+            
+            // First visit condition to get the types
+            TypeVisitor elementVisitor = new TypeVisitor();
+            elementVisitor.visit(ctx.condition());
+            
+            // Get the tuple components from the condition
+            FormulationParser.TupleContext tup = ctx.condition().tuple();
+            if (tup != null && tup.csv() != null) {
+                FormulationParser.CsvContext csv = tup.csv();
+                int i = 0;
+                for (FormulationParser.ExprContext expr : csv.expr()) {
+                    String paramName = expr.getText();
+                    // Store existing parameter if it exists
+                    placeHolder.put(paramName, getParameter(paramName));
+                    // Add temporary parameter with inferred type
+                    ModelPrimitives exprType = ModelPrimitives.valueOf(elementVisitor.getType().typeList().get(i));
+                    params.put(paramName, new ModelParameter("no image!", paramName, exprType));
+                    i++;
+                }
+            }
+            
+            // Visit condition and nExpr with separate visitors to avoid polluting basicParams
+            TypeVisitor conditionVisitor = new TypeVisitor();
+            conditionVisitor.visit(ctx.condition());
+            
+            TypeVisitor nExprVisitor = new TypeVisitor();
+            nExprVisitor.visit(ctx.nExpr());
+            
+            // Add only the relevant dependencies
+            basicSets.addAll(conditionVisitor.getBasicSets());
+            basicSets.addAll(nExprVisitor.getBasicSets());
+            basicFuncs.addAll(conditionVisitor.getBasicFuncs());
+            basicFuncs.addAll(nExprVisitor.getBasicFuncs());
+            // Only add non-temporary parameters
+            basicParams.addAll(conditionVisitor.getBasicParams().stream()
+                .filter(p -> !placeHolder.containsKey(p.getIdentifier()))
+                .collect(Collectors.toList()));
+            basicParams.addAll(nExprVisitor.getBasicParams().stream()
+            .filter(p -> !placeHolder.containsKey(p.getIdentifier()))
+            .collect(Collectors.toList()));
+            this.type = nExprVisitor.getType();
+            // Restore original parameters
+            for (Map.Entry<String, ModelParameter> entry : placeHolder.entrySet()) {
+                if (entry.getValue() != null) {
+                    params.put(entry.getKey(), entry.getValue());
+                } else {
+                    params.remove(entry.getKey());
+                }
+            }
+            
             return null;
         }
 
@@ -1211,6 +1263,8 @@ public class Model extends ModelInterface {
 
             return null;
         }
+
+        
     
         @Override
         public Void visitSetDescStack(FormulationParser.SetDescStackContext ctx) {
@@ -1276,8 +1330,9 @@ public class Model extends ModelInterface {
                     );
 
                 // Optional: grab basicSets/Params/Funcs from first expr's visitor
-                TypeVisitor baseVisitor = new TypeVisitor();
-                baseVisitor.visit(exprs.get(0));
+                if(exprs.size() > 0){
+                    TypeVisitor baseVisitor = new TypeVisitor();
+                    baseVisitor.visit(exprs.get(0));
 
                 ModelSet s = new ModelSet(
                     id,
@@ -1288,8 +1343,14 @@ public class Model extends ModelInterface {
                     baseVisitor.basicFuncs
                 );
 
-                basicSets.add(s);
-                type = combinedType;
+                    basicSets.add(s);
+                    type = combinedType;
+                } else { // empty set of the form set x := {}
+                    ModelSet s = new ModelSet(id, "anonymous_set", ModelPrimitives.UNKNOWN,List.of(),List.of(),List.of());
+                    basicSets.add(s);
+                    type = ModelPrimitives.UNKNOWN;
+                }
+
             } else if (ctx.range() != null) {
                 ModelSet s = new ModelSet(id, "anonymous_set", ModelPrimitives.INT);
                 basicSets.add(s);
@@ -1587,7 +1648,7 @@ public class Model extends ModelInterface {
         @Override
         public Void visitTuple(FormulationParser.TupleContext ctx) {
             Tuple tupleType = new Tuple();
-            
+           
             // Visit each element in the tuple
             if (ctx.csv() != null) {
                 for (ExprContext ec : ctx.csv().expr()){

@@ -144,8 +144,8 @@ setExpr
 	|	(setDesc | fnRef | sqRef | ifExpr)	# SetExprStack
 	;
 
-setDesc:'{' '}'						# SetDescEmpty
-	|	'{' condition ':' tuple '}' # SetDescExtended
+setDesc:
+		'{' condition ':' tuple '}' # SetDescExtended
 	|	'{' condition '}' 			# SetDescStack
 	|	'{' csv '}'					# SetDescStack
 	|	'{' range '}'				# SetDescStack

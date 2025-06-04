@@ -85,6 +85,7 @@ public class SolverService implements StreamSolver {
     @Override   
     public CompletableFuture<String> isCompilingAsync(String fileId, int timeout) {
         return CompletableFuture.supplyAsync(() -> {
+            ScipProcess compilationProcess = null;
             try {
                 // Stop any existing process
                 if (scipProcess != null) {
@@ -92,7 +93,7 @@ public class SolverService implements StreamSolver {
                 }
                 
                 // Start new process for compilation check
-                ScipProcess compilationProcess = new ScipProcess();
+                compilationProcess = new ScipProcess();
                 compilationProcess.start();
                 
                 // Read the problem file
@@ -109,22 +110,30 @@ public class SolverService implements StreamSolver {
                     
                     if ("compilation error".equals(status)) {
                         String errorMsg = compilationProcess.getCompilationError();
-                        compilationProcess.exit();
                         return errorMsg != null ? errorMsg : "Compilation Error";
                     } else if (!"not started".equals(status) && !"reading".equals(status)) {
-                        compilationProcess.exit();
                         return "";
                     }
                     
                     Thread.sleep(100);
                 }
                 
-                // Cleanup if timeout reached
-                compilationProcess.exit();
                 return "Timeout while checking compilation";
                 
             } catch (Exception e) {
                 return "Error checking compilation: " + e.getMessage();
+            } finally {
+                // Ensure process is cleaned up
+                if (compilationProcess != null) {
+                    try {
+                        System.gc();
+                        compilationProcess.exit();
+                        Thread.sleep(200); // Give extra time for file handles to be released
+                        System.gc();
+                    } catch (Exception e) {
+                        // Ignore cleanup errors
+                    }
+                }
             }
         });
     }
