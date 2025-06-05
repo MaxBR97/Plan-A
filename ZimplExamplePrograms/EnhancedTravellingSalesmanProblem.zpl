@@ -32,7 +32,8 @@ set CitiesData := {
     <"Yotvata", 29, -101>
 };
 
-set preferred_cities := {"Eilat"};
+set preferred_cities := {"Eilata"};
+do forall <p> in preferred_cities do check sum <p> in proj(CitiesData,<1>)  : 1 == 1;
 
 set indexSetOfCities := {<i,p,x,y> in {1.. card(CitiesData)} * CitiesData | ord(CitiesData,i,1) == p}; # -> {<1,"Yoni">, <2,"Denis"> ...}
 

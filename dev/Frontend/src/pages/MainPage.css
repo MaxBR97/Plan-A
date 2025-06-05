@@ -53,15 +53,11 @@
     cursor: not-allowed;
 }
 
-.loading-spinner, .error-message, .no-images-message {
+.loading-spinner, .no-images-message {
     text-align: center;
     padding: 2rem;
     color: #666;
     font-style: italic;
-}
-
-.error-message {
-    color: #e74c3c;
 }
 
 .images-grid {

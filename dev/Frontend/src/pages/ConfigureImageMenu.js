@@ -1,7 +1,58 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useZPL } from '../context/ZPLContext';
+import ErrorDisplay from '../components/ErrorDisplay';
 import './ConfigureImageMenu.css';
+
+const cleanErrorMessage = (message) => {
+  
+  // If message is a stringified JSON, parse it
+  let cleanedMessage = message;
+  try {
+    if (typeof message === 'string' && (message.startsWith('{') || message.startsWith('["'))) {
+      const parsed = JSON.parse(message);
+      cleanedMessage = parsed.msg || parsed.message || message;
+    }
+  } catch (e) {
+    cleanedMessage = message;
+  }
+
+  // Remove "Error: " prefix if it exists
+  cleanedMessage = cleanedMessage.replace(/^Error:\s*/i, '');
+  
+  // Split by either \r\n or \n and filter out empty lines
+  const lines = cleanedMessage.split(/\r?\n/).filter(line => line.trim());
+  return lines;
+};
+
+const parseErrorMessage = (error) => {
+  try {
+    const messageLines = cleanErrorMessage(error);
+    
+    // Check if it's a module conflict error
+    if (messageLines.length > 0 && messageLines[0].includes('Module conflicts detected')) {
+      return {
+        title: 'Module Conflict Detected',
+        details: messageLines.slice(1),
+        type: 'conflict'
+      };
+    }
+
+    // Default error format
+    return {
+      title: 'Configuration Error',
+      details: messageLines.length > 0 ? messageLines : [error.toString()],
+      type: 'general'
+    };
+  } catch (e) {
+    // Fallback for unparseable errors
+    return {
+      title: 'Error',
+      details: [error.toString()],
+      type: 'general'
+    };
+  }
+};
 
 const ConfigureImageMenu = () => {
   const navigate = useNavigate();
@@ -47,7 +98,7 @@ const ConfigureImageMenu = () => {
     };
 
     try {
-        console.log("🔄 Patch request body:", patchRequestBody);
+      console.log("🔄 Patch request body:", patchRequestBody);
 
       const patchResponse = await fetch("/images", {
         method: "PATCH",
@@ -56,22 +107,15 @@ const ConfigureImageMenu = () => {
       });
 
       if (!patchResponse.ok) {
-        let errorMessage;
-        try {
-          const errorData = await patchResponse.json();
-          errorMessage = `Configuration failed: ${JSON.stringify(errorData)}`;
-        } catch (jsonError) {
-          const errorText = await patchResponse.text();
-          errorMessage = `Configuration failed: ${errorText}`;
-        }
-        throw new Error(errorMessage);
+        const errorData = await patchResponse.json();
+        throw new Error(errorData.msg || errorData.message || JSON.stringify(errorData));
       }
 
       console.log("✅ Configuration saved successfully!");
       navigate('/solution-preview');
     } catch (error) {
       console.error("Error saving configuration:", error);
-      setError(error.message);
+      setError(error.message || error.toString());
     } finally {
       setIsLoading(false);
     }
@@ -92,7 +136,7 @@ const ConfigureImageMenu = () => {
           Welcome to the configuration menu. Here you can customize various aspects of your optimization problem.
           Follow the steps below to set up your configuration.
         </p>
-        {error && <p className="error-message">{error}</p>}
+        <ErrorDisplay error={error} />
       </div>
 
       <div className="configure-menu-grid">

@@ -63,6 +63,7 @@ import Unit.Image.StubModelFactory;
 import org.mockito.Mockito;
 import org.mockito.Spy;
 import Image.Modules.PreferenceModule;
+import Exceptions.InternalErrors.BadRequestException;
 
 @SpringBootTest(classes = Main.class)
 @ActiveProfiles({"H2mem", "S3-test", "securityAndGateway"})
@@ -1095,6 +1096,102 @@ public class ImageTests extends TestWithPersistence {
         // Verify no changes were made to the image
         assertTrue(image.getConstraintsModules().isEmpty());
         assertTrue(image.getPreferenceModules().isEmpty());
+    }
+    
+    @Test
+    @Transactional
+    public void When_ImageDTO_Has_Variable_With_Duplicate_Tags_Then_Exception_Is_Thrown() throws Exception {
+        // Test duplicate tags
+        VariableDTO boundEdgeWithDuplicates = new VariableDTO(
+            edge.identifier(),
+            Arrays.asList("tag1", "tag2", "tag1"), 
+            edge.type(),
+            edge.dep(),
+            stations.name(),
+            edge.isBinary()
+        );
+
+        // Create a variables module with the duplicate tags variable
+        VariableModuleDTO duplicateTagsModule = new VariableModuleDTO(
+            new HashSet<>(Arrays.asList(boundEdgeWithDuplicates)),
+            new HashSet<>(),
+            new HashSet<>()
+        );
+
+        // Create an ImageDTO with duplicate tags
+        ImageDTO duplicateTagsImageDTO = new ImageDTO(
+            "testId",
+            "testName",
+            "testDescription",
+            "testOwner",
+            true,
+            null,
+            duplicateTagsModule,
+            null,
+            null
+        );
+
+        // Expect an exception when validating the DTO with duplicate tags
+        BadRequestException duplicateException = assertThrows(
+            BadRequestException.class,
+            () -> duplicateTagsImageDTO.validateNoDuplicateVariableTags()
+        );
+
+        // Verify the duplicate tag exception message
+        assertTrue(
+            duplicateException.getMessage().contains("tag"),
+            "Exception message should indicate the duplicate tag. The message is: " + duplicateException.getMessage()
+        );
+        assertTrue(
+            duplicateException.getMessage().contains(edge.identifier()),
+            "Exception message should indicate the variable identifier. The message is: " + duplicateException.getMessage()
+        );
+
+        // Test empty tags
+        VariableDTO boundEdgeWithEmptyTag = new VariableDTO(
+            edge.identifier(),
+            Arrays.asList("tag1", "", "tag2"), // Empty tag in the middle
+            edge.type(),
+            edge.dep(),
+            stations.name(),
+            edge.isBinary()
+        );
+
+        // Create a variables module with the empty tag variable
+        VariableModuleDTO emptyTagModule = new VariableModuleDTO(
+            new HashSet<>(Arrays.asList(boundEdgeWithEmptyTag)),
+            new HashSet<>(),
+            new HashSet<>()
+        );
+
+        // Create an ImageDTO with empty tag
+        ImageDTO emptyTagImageDTO = new ImageDTO(
+            "testId",
+            "testName",
+            "testDescription",
+            "testOwner",
+            true,
+            null,
+            emptyTagModule,
+            null,
+            null
+        );
+
+        // Expect an exception when validating the DTO with empty tag
+        BadRequestException emptyTagException = assertThrows(
+            BadRequestException.class,
+            () -> emptyTagImageDTO.validateNoDuplicateVariableTags()
+        );
+
+        // Verify the empty tag exception message
+        assertTrue(
+            emptyTagException.getMessage().contains("Empty tag"),
+            "Exception message should indicate empty tag. The message is: " + emptyTagException.getMessage()
+        );
+        assertTrue(
+            emptyTagException.getMessage().contains(edge.identifier()),
+            "Exception message should indicate the variable identifier. The message is: " + emptyTagException.getMessage()
+        );
     }
 
     @AfterAll

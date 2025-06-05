@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import './MainPage.css';
 import axios from 'axios';
 import { useZPL } from "../context/ZPLContext";
+import ErrorDisplay from '../components/ErrorDisplay';
 import { 
   login, 
   logout, 
@@ -171,7 +172,7 @@ const MainPage = () => {
     
                 {loading && <div className="loading-spinner">Loading images...</div>}
                 
-                {error && <div className="error-message">{error}</div>}
+                {error && <ErrorDisplay error={error} />}
                 
                 {!loading && !error && myImages.length === 0 && (
                     <div className="no-images-message">

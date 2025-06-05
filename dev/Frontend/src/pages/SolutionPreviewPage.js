@@ -11,6 +11,7 @@ import ParameterInputBox from "../reusableComponents/ParameterInputBox";
 import DraggableBar from "../reusableComponents/DraggableBar.js";
 import LogBoard from "../reusableComponents/LogBoard.js"
 import { useNavigate } from "react-router-dom"; // Import useNavigate
+import ErrorDisplay from '../components/ErrorDisplay';
 
 import WebSocketTester from "./WebSocketTest.js";
 
@@ -529,6 +530,7 @@ useEffect(() => {
       <div className="page-header">
         <h1 className="page-title">{image.imageName}</h1>
         <p className="image-description">{image.imageDescription}</p>
+        {errorMessage && <ErrorDisplay error={errorMessage} />}
         <div className="tab-bar">
           <button
             className={`tab-button ${activeTab === 'variables' ? 'active' : ''} ${!hasVariablesContent() ? 'disabled' : ''}`}

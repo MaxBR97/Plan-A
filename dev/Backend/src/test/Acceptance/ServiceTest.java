@@ -173,7 +173,7 @@ public class ServiceTest {
               Set.of(new ConstraintDTO("sampleConstraint", new DependenciesDTO(Set.of(),Set.of("x"))),
                     new ConstraintDTO("optionalConstraint", new DependenciesDTO(Set.of(),Set.of()))),
                 Set.of(new PreferenceDTO("coefficient*myVar[3]", new DependenciesDTO(Set.of(),Set.of("coefficient"))),new PreferenceDTO("myVar[1]", new DependenciesDTO(Set.of(),Set.of()))),
-                Set.of(new VariableDTO("myVar",List.of("INT"),List.of("INT"), new DependenciesDTO(Set.of("mySet"),Set.of()),null,false)),
+                Set.of(new VariableDTO("myVar",List.of("myVar_1"),List.of("INT"), new DependenciesDTO(Set.of("mySet"),Set.of()),null,false)),
                 Map.of("mySet",List.of("INT")),
                 Map.of("x","INT", "coefficient","INT"),
                 Map.of("myVar",List.of("INT"))));
@@ -262,8 +262,8 @@ public class ServiceTest {
               new ConstraintDTO("drisha3", new DependenciesDTO(Set.of("People","Emdot"),Set.of("shiftTime","restHours"))),
               new ConstraintDTO("drisha4", new DependenciesDTO(Set.of("Emdot","People"),Set.of("shiftTime")))),
                 Set.of(new PreferenceDTO("sum<person>inPeople:(TotalMishmarot[person]**2)", new DependenciesDTO(Set.of("People"),Set.of()))),
-                Set.of(new VariableDTO("Shibutsim",List.of("TEXT","TEXT","INT"),List.of("TEXT","TEXT","INT") , new DependenciesDTO(Set.of("People","Emdot"),Set.of("shiftTime")),null,true),
-                        new VariableDTO("TotalMishmarot", List.of("TEXT"),List.of("TEXT"),new DependenciesDTO(Set.of("People"),Set.of()),null,false)),
+                Set.of(new VariableDTO("Shibutsim",List.of("Shibutsim_1","Shibutsim_2","Shibutsim_3"),List.of("TEXT","TEXT","INT") , new DependenciesDTO(Set.of("People","Emdot"),Set.of("shiftTime")),null,true),
+                        new VariableDTO("TotalMishmarot", List.of("TotalMishmarot_1"),List.of("TEXT"),new DependenciesDTO(Set.of("People"),Set.of()),null,false)),
               Map.of(
                 "People",List.of("TEXT"),
                 "Emdot",List.of("TEXT")),

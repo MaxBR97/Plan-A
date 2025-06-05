@@ -6,6 +6,7 @@ import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import Checkbox from "../reusableComponents/Checkbox.js";
 import NumberInput from '../reusableComponents/NumberInput';
 import LogBoard from "../reusableComponents/LogBoard.js";
+import ErrorDisplay from '../components/ErrorDisplay';
 
 const SolutionResultsPage = ({ 
   image,
@@ -579,11 +580,7 @@ const SolutionResultsPage = ({
           {solutionStatus && (
             <div className="solution-status">
               <pre>{solutionStatus}</pre>
-              {errorMessage && (
-                <div className="error-message">
-                  {errorMessage}
-                </div>
-              )}
+              {errorMessage && <ErrorDisplay error={errorMessage} />}
             </div>
           )}
 

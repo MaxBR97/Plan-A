@@ -56,11 +56,18 @@ public abstract class ModelOutput extends ModelComponent {
 
     public String[] getTags(){
         if(tags == null){
-            tags = myType.typeList().toArray(new String[0]);
+            tags = getDefaultTags(myType.typeList().size());
         }
         return tags;
     }
 
+    public String[] getDefaultTags(int size){
+        String[] tags = new String[size];
+        for(int i = 1; i <= tags.length; i++){
+            tags[i-1] = this.getIdentifier() + "_" + i;
+        }
+        return tags;
+    }
     public void setTags(String[] tags) throws Exception{
         if(tags == null)
             throw new BadRequestException("Trying to set tags as null");

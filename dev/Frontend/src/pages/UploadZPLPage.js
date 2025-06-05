@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import axios from "axios";
 import { useZPL } from "../context/ZPLContext";
 import { Link, useNavigate } from "react-router-dom";
+import ErrorDisplay from '../components/ErrorDisplay';
 import "./UploadZPLPage.css";
 
 const UploadZPLPage = () => {
@@ -34,7 +35,7 @@ set Mishmarot := Station * Times; # -> {<North,16>, <North,20>, ....}
 set PreAssignedShibutsim := {<"Max","North",0,1>};
 
 #<person,result>
-set PreAssignedTotalMishmarot := {};
+set PreAssignedTotalMishmarot := {<"Max",1>};
 
 var Shibutsim[People * Mishmarot] binary; # -> {<Max,North,16>, <Max,North,20>, ....}
 var TotalMishmarot [People] integer >= 0;
@@ -163,7 +164,11 @@ minimize distributeShiftsEqually:
                     {loading ? "Uploading..." : "Upload"}
                 </button>
             </div>
-            {message && <p className="upload-message">{message}</p>}
+            {message && message.startsWith('Error:') ? (
+                <ErrorDisplay error={message} />
+            ) : message ? (
+                <p className="upload-message success-message">{message}</p>
+            ) : null}
             <Link to="/" className="back-button">
                 Back
             </Link>

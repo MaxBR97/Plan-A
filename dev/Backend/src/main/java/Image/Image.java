@@ -132,7 +132,6 @@ public class Image {
     public Image(String id, String name, String description, String ownerUser, Boolean isPrivate) throws Exception {
         validateName(name);
         // Description can be null or empty, no validation needed
-        
         this.id = id;
         this.name = name;
         this.description = description;
@@ -146,6 +145,7 @@ public class Image {
         savedSolutions = new LinkedList<>();
         this.owner = ownerUser;
         this.isPrivate = isPrivate == null ? true : isPrivate;
+        validateNoDuplicateVariableTags();
     }
 
     private void validateName(String name) throws BadRequestException {
@@ -193,6 +193,9 @@ public class Image {
     //TODO: make this correspond to patch semantics - fields that are null - are not updated.
     @Transactional
     public void update(ImageDTO imageDTO) throws Exception {
+        // First validate the DTO
+        imageDTO.validateNoDuplicateVariableTags();
+
         // First validate all modules together before making any changes
         validateModulesCompatibility(
             imageDTO.variablesModule(),
@@ -236,6 +239,7 @@ public class Image {
                 this.addPreferenceModule(preferenceModule);
             }
         }
+        
     }
 
     private void validateModulesCompatibility(
@@ -910,6 +914,32 @@ public class Image {
         for (ModelSet set : sets) {
             if (set.isPrimitive() && set.isEmpty()) {
                 throw new BadRequestException("Empty set found: " + set.getIdentifier() + ". Empty sets are not allowed.");
+            }
+        }
+    }
+
+    private void validateNoDuplicateVariableTags() throws BadRequestException {
+        VariableModule varModule = getVariablesModule();
+        if (varModule == null) {
+            return;
+        }
+
+        Map<String, ModelVariable> variables = varModule.getVariables();
+        for (ModelVariable variable : variables.values()) {
+            String[] tags = variable.getTags();
+            if (tags == null || tags.length == 0) {
+                continue;
+            }
+
+            Set<String> seenTags = new HashSet<>();
+            for (String tag : tags) {
+                if (!seenTags.add(tag)) {
+                    throw new BadRequestException(
+                        String.format("Duplicate tag found in variable '%s': '%s'", 
+                            variable.getIdentifier(), 
+                            tag)
+                    );
+                }
             }
         }
     }
