@@ -130,6 +130,9 @@ public class Image {
     }
     
     public Image(String id, String name, String description, String ownerUser, Boolean isPrivate) throws Exception {
+        validateName(name);
+        // Description can be null or empty, no validation needed
+        
         this.id = id;
         this.name = name;
         this.description = description;
@@ -143,6 +146,12 @@ public class Image {
         savedSolutions = new LinkedList<>();
         this.owner = ownerUser;
         this.isPrivate = isPrivate == null ? true : isPrivate;
+    }
+
+    private void validateName(String name) throws BadRequestException {
+        if (name == null || name.trim().isEmpty()) {
+            throw new BadRequestException("Image name cannot be null or empty");
+        }
     }
 
     public static void setModelFactory(ModelFactory factory){
@@ -193,6 +202,7 @@ public class Image {
 
         // If validation passed, proceed with the update
         if (imageDTO.imageName() != null) {
+            validateName(imageDTO.imageName());
             this.name = imageDTO.imageName();
         }
         if (imageDTO.imageDescription() != null) {

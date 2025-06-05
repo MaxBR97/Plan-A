@@ -53,6 +53,7 @@ public class ImageController {
         if(command.code().length() > 65536 ){ // 8 Memory Pages
             throw new BadRequestException("Code size exceeded 64KB");
         }
+        
         String id = UUID.randomUUID().toString();
         modelFactory.uploadNewModel(id, command.code());
         
@@ -120,6 +121,7 @@ public class ImageController {
     public void updateImage(ImageConfigDTO imgConfig) throws Exception {
         ImageDTO imageDTO = imgConfig.image();
         String imageId = imgConfig.imageId();
+        
         Image image = imageRepository.findById(imageId)
                 .orElseThrow(() -> new BadRequestException("Invalid imageId in image config"));
 

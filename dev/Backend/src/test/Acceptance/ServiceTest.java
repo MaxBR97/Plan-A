@@ -852,6 +852,96 @@ public class ServiceTest {
         assertNotNull(validResult.imageId(), "Valid code should create an image with ID");
     }
 
+    @Test
+    public void testImageNameAndDescriptionValidation() {
+        String validCode = """
+            set x := {1,2,3};
+            param y := 5;
+            var z[x] integer;
+            minimize obj: z[1];
+        """;
+
+        // Test Case 1: Null image name
+        CreateImageFromFileDTO nullNameRequest = new CreateImageRequestBuilder(
+            null,
+            "Valid description",
+            "testUser",
+            false,
+            validCode
+        ).build();
+        ResponseEntity<?> nullNameResponse = requestsManager.sendCreateImageRequest(nullNameRequest);
+        ExceptionDTO nullNameError = expectError(nullNameResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+        assertTrue(nullNameError.msg().toLowerCase().contains("name"), "Error should mention invalid name");
+
+        // Test Case 2: Empty image name
+        CreateImageFromFileDTO emptyNameRequest = new CreateImageRequestBuilder(
+            "",
+            "Valid description",
+            "testUser",
+            false,
+            validCode
+        ).build();
+        ResponseEntity<?> emptyNameResponse = requestsManager.sendCreateImageRequest(emptyNameRequest);
+        ExceptionDTO emptyNameError = expectError(emptyNameResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+        assertTrue(emptyNameError.msg().toLowerCase().contains("name"), "Error should mention invalid name");
+
+        // Test Case 3: Null description (should be allowed)
+        CreateImageFromFileDTO nullDescRequest = new CreateImageRequestBuilder(
+            "validName",
+            null,
+            "testUser",
+            false,
+            validCode
+        ).build();
+        ResponseEntity<?> nullDescResponse = requestsManager.sendCreateImageRequest(nullDescRequest);
+        CreateImageResponseDTO nullDescResult = expectSuccess(nullDescResponse, CreateImageResponseDTO.class);
+        assertNotNull(nullDescResult.imageId(), "Image should be created with null description");
+
+        // Test Case 4: Empty description (should be allowed)
+        CreateImageFromFileDTO emptyDescRequest = new CreateImageRequestBuilder(
+            "validName",
+            "",
+            "testUser",
+            false,
+            validCode
+        ).build();
+        ResponseEntity<?> emptyDescResponse = requestsManager.sendCreateImageRequest(emptyDescRequest);
+        CreateImageResponseDTO emptyDescResult = expectSuccess(emptyDescResponse, CreateImageResponseDTO.class);
+        assertNotNull(emptyDescResult.imageId(), "Image should be created with empty description");
+
+        // Test Case 5: Valid name and description
+        CreateImageFromFileDTO validRequest = new CreateImageRequestBuilder(
+            "validName",
+            "Valid description",
+            "testUser",
+            false,
+            validCode
+        ).build();
+        ResponseEntity<?> validResponse = requestsManager.sendCreateImageRequest(validRequest);
+        CreateImageResponseDTO validResult = expectSuccess(validResponse, CreateImageResponseDTO.class);
+        assertNotNull(validResult.imageId(), "Image should be created with valid name and description");
+
+        // Test Case 6: Update with invalid name
+        ImageDTO invalidUpdateDTO = new ImageDTO(
+            validResult.imageId(),
+            "",  // invalid empty name
+            "Valid description",
+            "testUser",
+            false,
+            Map.of(),  // empty solver settings
+            null,  // no variables module
+            Set.of(),  // empty constraint modules
+            Set.of()   // empty preference modules
+        );
+        ImageConfigDTO invalidUpdateRequest = new ImageConfigDTO(
+            validResult.imageId(),
+            invalidUpdateDTO
+        );
+        ResponseEntity<?> invalidUpdateResponse = requestsManager.sendConfigImageRequest(invalidUpdateRequest);
+        ExceptionDTO invalidUpdateError = expectError(invalidUpdateResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+        assertTrue(invalidUpdateError.msg().toLowerCase().contains("name"), "Error should mention invalid name");
+    }
+
     private <T> T expectSuccess(ResponseEntity<?> response, Class<T> expectedType) {
         if (response.getBody() instanceof ExceptionDTO) {
             ExceptionDTO error = (ExceptionDTO) response.getBody();
