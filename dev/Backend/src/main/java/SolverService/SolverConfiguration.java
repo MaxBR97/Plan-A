@@ -16,12 +16,13 @@ import DataAccess.ModelRepository;
 
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.beans.factory.ObjectProvider;
 
 
 @Configuration
 public class SolverConfiguration {
 
-    @Value("${solver.mode:NOT_SET}") 
+    @Value("${solver.mode:local}") 
     String mode;
 
     // @Bean
@@ -32,18 +33,18 @@ public class SolverConfiguration {
     // }
 
     @Bean
-    @ConditionalOnProperty(name = "solver.mode", havingValue = "remote-kafka")
-    public Solver kafkaSolver(KafkaTemplate<String, SolverRequest> kafkaTemplate, 
-                             MeterRegistry registry,
-                             @Value("${kafka.topic.solver.request}") String requestTopic) {
-        System.out.println("solver.mode: " + mode + " injecting kafkaSolver");
-        return new ImageSolverService(kafkaTemplate, registry, requestTopic);
+    @Profile("kafkaSolver")
+    @Primary
+    public Solver kafkaSolver(ModelRepository modelRepository) {
+        System.out.println("Initializing process pool solver for Kafka profile");
+        return new SolverService(modelRepository);
     }
 
     @Bean
-    @ConditionalOnProperty(name = "solver.mode", havingValue = "local", matchIfMissing = true)
-    public Solver localSolver(ModelRepository modelRepository) {
-        System.out.println("solver.mode: " + mode + " injecting localSolver");
-        return new SolverService(modelRepository);
+    @Profile("!kafkaSolver")
+    @Primary
+    public Solver defaultSolver(ModelRepository modelRepository) {
+        System.out.println("Initializing stream solver for non-Kafka profile");
+        return new StreamSolverService(modelRepository);
     }
 }

@@ -20,19 +20,19 @@ import SolverService.Solver;
 import org.springframework.context.annotation.Profile;
 
 @Service
-@Profile("kafka")
+@Profile("kafkaSolver")
 public class ImageSolverService implements Solver, HealthIndicator {
     private final KafkaTemplate<String, SolverRequest> kafkaTemplate;
     private final Map<String, CompletableFuture<Object>> pendingRequests = new ConcurrentHashMap<>();
     private final Counter requestCounter;
     private final Counter errorCounter;
-    private final String requestTopic;
+    
+    @Value("${kafka.topic.solver.request}")
+    private String requestTopic;
     
     public ImageSolverService(KafkaTemplate<String, SolverRequest> kafkaTemplate, 
-                             MeterRegistry registry,
-                             String requestTopic) {
+                             MeterRegistry registry) {
         this.kafkaTemplate = kafkaTemplate;
-        this.requestTopic = requestTopic;
         this.requestCounter = registry.counter("solver.requests");
         this.errorCounter = registry.counter("solver.errors");
     }

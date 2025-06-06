@@ -44,18 +44,19 @@ import jakarta.validation.Valid;
 import SolverService.SolverService;
 import SolverService.Solver;
 import SolverService.StreamSolver;
+import SolverService.StreamSolverService;
 
 import org.springframework.context.annotation.Profile;
 
 @RestController
 @RequestMapping("/")
-@Profile("streamSolver")
+@Profile("!kafkaSolver")
 public class StreamController {
 
     private final ImageController controller;
     private final SimpMessagingTemplate messagingTemplate;
     @Autowired
-    private StreamSolver model;
+    private StreamSolver streamSolver;
     private CompletableFuture<SolutionDTO> futureSolution;
 
     @Autowired
@@ -64,10 +65,9 @@ public class StreamController {
         this.messagingTemplate = messagingTemplate;
     }
 
-
     @PostMapping("/solve/start")
     public ResponseEntity<SolutionDTO> startSolve(@RequestBody SolveCommandDTO request) throws Exception {
-        model.setContinue(false);
+        streamSolver.setContinue(false);
         futureSolution = controller.solveAsync(request);
         return ResponseEntity.ok(futureSolution.get());
     }
@@ -77,12 +77,12 @@ public class StreamController {
      */
     @PostMapping("/solve/continue")
     public ResponseEntity<SolutionDTO> continueSolve(@RequestBody SolveCommandDTO request) throws Exception {
-        model.setContinue(true);
+        streamSolver.setContinue(true);
         if(request != null && request.timeout() > 0)
             futureSolution = controller.solveAsync(request);
         else
             futureSolution = controller.solveAsync(request);
-        model.setContinue(false);
+        streamSolver.setContinue(false);
         return ResponseEntity.ok(futureSolution.get());
     }
 
@@ -90,8 +90,8 @@ public class StreamController {
      poll solving status
      */
     @PostMapping("/solve/poll")
-    public ResponseEntity<String> pollLog() throws Exception{
-        String ans = model.pollLog();
+    public ResponseEntity<String> pollLog() throws Exception {
+        String ans = streamSolver.pollLog();
         return ResponseEntity.ok(ans);
     }
 

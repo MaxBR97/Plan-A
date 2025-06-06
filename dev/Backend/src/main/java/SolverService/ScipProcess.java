@@ -136,6 +136,14 @@ public class ScipProcess {
         pipeInput("set write printzeros TRUE optimize");
     }
 
+    public boolean isRunning() {
+        return this.scipProcess == null ? false : this.scipProcess.isAlive();
+    }
+
+    public String getPid() {
+        return this.scipProcess == null ? null : String.valueOf(this.scipProcess.pid());
+    }
+
     public String getStatus() {
         return processStatus;
     }
@@ -190,7 +198,7 @@ public class ScipProcess {
 
     private void pipeInput(String input) throws Exception {
         if(DEBUG)
-            System.out.println("Piping input to scip: " + input + " , current scip's status: " + processStatus);
+            System.out.println("Piping input to scip: " + input + " , current scip's status: " + processStatus + " | process: "+scipProcess.toString());
         processInput.write(input + "\n");
         processInput.flush();
     }
