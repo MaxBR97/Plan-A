@@ -33,6 +33,7 @@ import org.springframework.core.env.Environment;
 
 import DataAccess.ImageRepository;
 import DataAccess.ModelRepository;
+import Exceptions.BadRequestException;
 import Image.Image;
 import Model.ModelFactory;
 import Model.ModelInterface;
@@ -63,7 +64,6 @@ import Unit.Image.StubModelFactory;
 import org.mockito.Mockito;
 import org.mockito.Spy;
 import Image.Modules.PreferenceModule;
-import Exceptions.InternalErrors.BadRequestException;
 
 @SpringBootTest(classes = Main.class)
 @ActiveProfiles({"H2mem", "S3-test", "securityAndGateway"})

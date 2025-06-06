@@ -9,7 +9,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import DataAccess.ModelRepository;
 import Model.Solution;
-
+import Exceptions.ZimpleDataIntegrityException;
+import Exceptions.ZimpleCompileException;
 import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -17,11 +18,14 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.context.annotation.Profile;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutionException;
 
 @Service
 @Profile("!kafka")
 public class SolverService implements StreamSolver {
 
+    private final boolean DEBUG = true;
     private ScipProcess scipProcess;
     private final String SOLUTION_FILE_SUFFIX = "SOLUTION";
     private String fileId;
@@ -35,7 +39,14 @@ public class SolverService implements StreamSolver {
 
     @Override
     public Solution solve(String fileId, int timeout, String solverScript) throws Exception {
-        return solveAsync(fileId, timeout, solverScript).get();
+        try {
+            return solveAsync(fileId, timeout, solverScript).get();
+        } catch (ExecutionException e) {
+            Throwable cause = e.getCause();
+            if (cause instanceof Exception) throw (Exception) cause;
+                throw new RuntimeException("Unexpected error at solver", cause);
+        }
+        
     }
 
     @Override
@@ -108,7 +119,7 @@ public class SolverService implements StreamSolver {
                 while (System.currentTimeMillis() - startTime < timeoutMillis) {
                     status = compilationProcess.getStatus();
                     
-                    if ("compilation error".equals(status)) {
+                    if ("compilation error".equals(status) || "integrity error".equals(status)) {
                         String errorMsg = compilationProcess.getCompilationError();
                         return errorMsg != null ? errorMsg : "Compilation Error";
                     } else if (!"not started".equals(status) && !"reading".equals(status)) {
@@ -154,26 +165,54 @@ public class SolverService implements StreamSolver {
         return getNextSolution(fileId);
     }   
 
-    private CompletableFuture<Solution> getNextSolution(String id){
-        CompletableFuture<Solution> sol = CompletableFuture.supplyAsync(() -> {
+    private CompletableFuture<Solution> getNextSolution(String id) {
+        return CompletableFuture.supplyAsync(() -> {
             try {
-                scipProcess.solverSettings("write solution tmpSolution");
-                File tmpFile = new File(Path.of(".","tmpSolution").toString());
-                while(!tmpFile.exists()){
+                if(DEBUG)
+                    System.out.println("Waiting for solution status to be updated...");
+                int i = 0;
+                while (!scipProcess.getStatus().equals("compilation error")
+                        && !scipProcess.getStatus().equals("integrity error")
+                        && !scipProcess.getStatus().equals("solved")
+                        && !scipProcess.getStatus().equals("paused")) {
                     Thread.sleep(70);
+                    i++;
+                    if(i % 60 == 0 && DEBUG){
+                        System.out.println("Waiting for solution status to be updated...  current status: " + scipProcess.getStatus());
+                    }
+                }
+                if(DEBUG)
+                    System.out.println("Finished waiting, status updated:" + scipProcess.getStatus());
+    
+                if (scipProcess.getStatus().equals("integrity error")) {
+                    throw new ZimpleDataIntegrityException(scipProcess.getCompilationError());
+                } else if (scipProcess.getStatus().equals("compilation error")) {
+                    throw new ZimpleCompileException(scipProcess.getCompilationError(), 800);
+                }
+                if(DEBUG)
+                    System.out.println("Attempting to write solution to tmpSolution");
+                scipProcess.solverSettings("write solution tmpSolution");
+                File tmpFile = new File(Path.of(".", "tmpSolution").toString());
+                while (!tmpFile.exists()) {
+                    Thread.sleep(5);
                 }
                 Thread.sleep(100);
+                if(DEBUG)
+                    System.out.println("Solution file found, attempting to read it");
+
                 String tmp = new String(Files.readAllBytes(Path.of(".", "tmpSolution")));
                 writeSolution(id, tmp, SOLUTION_FILE_SUFFIX);
+                if(DEBUG)
+                    System.out.println("Solution uploaded to repo, deleting tmpSolution");
                 Files.delete(Path.of(".", "tmpSolution"));
                 return new Solution(getSolutionPathToFile(SOLUTION_FILE_SUFFIX));
             } catch (Exception e) {
-                return null;
+                System.err.println("Error getting solution: " + e.getMessage());
+                throw new CompletionException(e); // Let Java wrap your real exception
             }
         });
-        return sol;
     }
-
+    
     private void finish() throws Exception {
         scipProcess.exit();
     }

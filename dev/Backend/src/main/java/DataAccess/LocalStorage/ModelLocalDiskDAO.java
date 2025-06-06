@@ -16,7 +16,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.springframework.beans.factory.annotation.Value;
 
 import DataAccess.ModelRepository;
-import Exceptions.InternalErrors.BadRequestException;
+import Exceptions.BadRequestException;
 
 
 public class ModelLocalDiskDAO extends ModelRepository {

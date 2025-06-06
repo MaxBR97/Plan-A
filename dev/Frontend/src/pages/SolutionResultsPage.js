@@ -409,7 +409,16 @@ const SolutionResultsPage = ({
 
       if (!response.ok) {
         console.error("Server returned an error:", responseText);
-        throw new Error(`HTTP Error! Status: ${response.status} - ${responseText}`);
+        let errorMessage = responseText;
+        try {
+          // Try to parse the error message as JSON
+          const errorData = JSON.parse(responseText);
+          errorMessage = errorData; // Pass the complete error object
+        } catch (e) {
+          // If parsing fails, create a simple error object
+          errorMessage = { msg: responseText };
+        }
+        throw new Error(JSON.stringify(errorMessage));
       }
 
       const data = JSON.parse(responseText);
@@ -427,8 +436,15 @@ const SolutionResultsPage = ({
       // Only show error if request wasn't cancelled and this is still the current request
       if (!requestCancelledRef.current && currentRequestId.current === requestId) {
         if (error.name !== 'AbortError') {
-          console.error("Error solving problem:", error);
-          setErrorMessage(`Failed to solve. ${error.message}`);
+          console.error(error);
+          try {
+            // Try to parse the error message from the Error object
+            const errorObj = JSON.parse(error.message);
+            setErrorMessage(errorObj);
+          } catch (e) {
+            // If parsing fails, create a simple error object
+            setErrorMessage({ msg: error.message });
+          }
           setGlobalSelectedTuples({});
         }
       }
@@ -548,6 +564,20 @@ const SolutionResultsPage = ({
 
         {/* Optimize Buttons */}
         <div className="control-panel-section">
+          {/* Solution Status */}
+          {(solutionStatus || errorMessage) && (
+            <div className="solution-status">
+              {solutionStatus && <pre>{solutionStatus}</pre>}
+              {errorMessage && (
+                <ErrorDisplay 
+                  error={errorMessage} 
+                  onClose={() => setErrorMessage(null)}
+                  
+                />
+              )}
+            </div>
+          )}
+
           <div className="optimize-buttons">
             {!isSolving ? (
               <>
@@ -575,15 +605,6 @@ const SolutionResultsPage = ({
               </button>
             )}
           </div>
-
-          {/* Solution Status */}
-          {solutionStatus && (
-            <div className="solution-status">
-              <pre>{solutionStatus}</pre>
-              {errorMessage && <ErrorDisplay error={errorMessage} />}
-            </div>
-          )}
-
         </div>
 
         {/* LogBoard - Only show if isDesktop */}

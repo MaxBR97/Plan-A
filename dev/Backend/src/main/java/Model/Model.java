@@ -1,7 +1,7 @@
 package Model;
 
-import Exceptions.InternalErrors.BadRequestException;
-import Exceptions.UserErrors.ZimplCompileError;
+import Exceptions.BadRequestException;
+import Exceptions.ZimpleCompileException;
 
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.*;

@@ -5,7 +5,7 @@ import java.nio.file.Path;
 import java.util.List;
 
 import DataAccess.LocalStorage.ModelLocalDiskDAO;
-import Exceptions.InternalErrors.BadRequestException;
+import Exceptions.BadRequestException;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.regions.Region;

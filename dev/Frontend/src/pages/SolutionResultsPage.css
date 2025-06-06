@@ -21,6 +21,7 @@
   flex-direction: column;
   gap: 20px;
   overflow: visible;
+  position: relative;
 }
 
 .control-panel-section {
@@ -230,12 +231,31 @@
   background-color: white;
   border-radius: 4px;
   border: 1px solid #ddd;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .solution-status pre {
   margin: 0;
   white-space: pre-wrap;
   word-break: break-word;
+}
+
+/* Add styles for the error display within solution status */
+.solution-status .error-container {
+  margin: 0;  /* Override default margin */
+  width: 100%;
+  box-sizing: border-box;
+  font-size: 0.9em;  /* Make it slightly smaller to fit better */
+}
+
+.solution-status .error-title {
+  font-size: 1em;  /* Adjust title size */
+}
+
+.solution-status .error-details {
+  font-size: 0.9em;  /* Adjust details size */
 }
 
 /* Table Container Styles */

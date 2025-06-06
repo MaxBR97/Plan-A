@@ -1,8 +1,9 @@
 package groupId;
 import DTO.Factories.ExceptionRecordFactory;
 import DTO.Factories.RecordFactory;
-import Exceptions.InternalErrors.BadRequestException;
-import Exceptions.UserErrors.ZimplCompileError;
+import Exceptions.BadRequestException;
+import Exceptions.ZimpleCompileException;
+import Exceptions.ZimpleDataIntegrityException;
 
 import org.springframework.core.NestedRuntimeException;
 import org.springframework.http.HttpStatus;
@@ -23,6 +24,24 @@ import DTO.Records.Requests.Responses.ExceptionDTO;
  */
 @RestControllerAdvice
 public class ExceptionHandlerService {
+    
+    @ExceptionHandler(ZimpleDataIntegrityException.class)
+    public ResponseEntity<ExceptionDTO> handleZimpleDataIntegrityException(ZimpleDataIntegrityException ex) {
+        ExceptionDTO errorResponse = ExceptionRecordFactory.makeDTO(ex);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+    }
+
+    @ExceptionHandler(ZimpleCompileException.class)
+    public ResponseEntity<ExceptionDTO> handleZimpleCompileException(ZimpleCompileException ex) {
+        ExceptionDTO errorResponse = ExceptionRecordFactory.makeDTO(ex);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+    }
+
+    @ExceptionHandler(BadRequestException.class)
+    public ResponseEntity<ExceptionDTO> handleBadRequest(BadRequestException ex) {
+        ExceptionDTO errorResponse = ExceptionRecordFactory.makeDTO(ex);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+    }
     
     // Most generic catch-all handler
     @ExceptionHandler(Exception.class)

@@ -12,7 +12,7 @@ import DTO.Records.Requests.Commands.KafkaSolveRequestDTO;
 import DTO.Records.Requests.Commands.KafkaCompileResponseDTO;
 import DTO.Records.Requests.Commands.KafkaSolveResponseDTO;
 import DataAccess.ModelRepository;
-import Exceptions.InternalErrors.BadRequestException;
+import Exceptions.BadRequestException;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;

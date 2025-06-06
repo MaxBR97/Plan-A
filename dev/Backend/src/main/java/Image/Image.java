@@ -26,6 +26,7 @@ import DTO.Records.Model.ModelData.SetDefinitionDTO;
 import DTO.Records.Model.ModelDefinition.ConstraintDTO;
 import DTO.Records.Model.ModelDefinition.PreferenceDTO;
 import DTO.Records.Model.ModelDefinition.VariableDTO;
+import Exceptions.BadRequestException;
 import Image.Modules.ConstraintModule;
 import Image.Modules.PreferenceModule;
 import Image.Modules.VariableModule;
@@ -56,7 +57,7 @@ import jakarta.persistence.Transient;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
-import Exceptions.InternalErrors.BadRequestException;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import Model.Tuple;
 import Model.ModelPrimitives;

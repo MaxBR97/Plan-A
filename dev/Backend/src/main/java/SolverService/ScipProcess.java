@@ -23,7 +23,7 @@ import Utils.*;
 
 public class ScipProcess {
     private static final int BUFFER_SIZE = 10000; // Number of lines to keep
-
+    private final boolean DEBUG = true;
     private Process scipProcess;
     private ProcessBuilder processBuilder;
     private BufferedWriter processInput;
@@ -37,6 +37,7 @@ public class ScipProcess {
      * "not started" -  process not started/problem not read. starting status
      * "reading" - reading problem
      * "compilation error" - compilation error is found
+     * "integrity error" - integrity error (error 900) is found
      * "problem read" - problem read, but no started solving\presolving
      * "presolving" - in presolving process
      * "solving" - post presolving. identfied by not being in "paused" or "solved" status, and presolving already occoured.
@@ -46,7 +47,8 @@ public class ScipProcess {
     private String processStatus = "not started";
     
     private final Pattern readingPattern = Pattern.compile("^read problem <.*>$");
-    private final Pattern compilationErrorPattern = Pattern.compile("^\\*\\*\\* Error \\d+:.*$");
+    private final Pattern compilationErrorPattern = Pattern.compile("^\\*\\*\\* Error (\\d+):.*$");
+    private final Pattern fileErrorPattern = Pattern.compile("^\\*\\*\\* File.*$");
     private final Pattern problemReadPattern = Pattern.compile("^original problem has \\d+ variables \\(\\d+ bin, \\d+ int, \\d+ impl, \\d+ cont\\) and \\d+ constraints$");
     private final Pattern presolvingPattern = Pattern.compile("^presolving:$");
     private final Pattern finishedPresolvingPattern = Pattern.compile("^Presolving Time: .*$");
@@ -76,14 +78,32 @@ public class ScipProcess {
         isRunning = true;
         readerThread = new Thread(() -> {
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(scipProcess.getInputStream()))) {
-                String line;
-                while (isRunning && (line = reader.readLine()) != null) {
+                String line = "";
+                String lastLine = "";
+                while (isRunning && (lastLine = reader.readLine()) != null) {
+                    String tmp = line;
+                    line = lastLine;
+                    lastLine = tmp;
                     // If buffer is full, remove oldest line
                     if (circularBuffer.remainingCapacity() == 0) {
                         circularBuffer.poll();
                     }
                     circularBuffer.offer(line);
                     updateStatus(line);
+                    if(processStatus.equals("integrity error") && compilationErrorMessage == null){
+                        String nextLine = reader.readLine();
+                        if(fileErrorPattern.matcher(nextLine).find()){
+                            compilationErrorMessage = lastLine;
+                        } else {
+                            compilationErrorMessage = lastLine + "\n" + nextLine;
+                        }
+                        if (circularBuffer.remainingCapacity() == 0) {
+                            circularBuffer.poll();
+                        }
+                        circularBuffer.offer(nextLine);
+                        lastLine = line;
+                        line = nextLine;
+                    }
                 }
             } catch (Exception e) {
                 if (isRunning) {
@@ -125,6 +145,8 @@ public class ScipProcess {
     }
 
     public void exit() throws Exception {
+        if(DEBUG)
+            System.out.println("Attempting to exit scip process: "+ scipProcess.toString());
         isRunning = false;
         if (readerThread != null) {
             try {
@@ -133,16 +155,22 @@ public class ScipProcess {
                 readerThread.interrupt();
                 readerThread.join(1000); // Wait up to 1 second for reader thread to finish
             } catch (Exception e) {
-                // Ignore exceptions during cleanup
+                if(DEBUG)
+                    System.out.println("exception at scip process destroying1: "+ scipProcess.toString());
             }
         }
+        if(DEBUG)
+            System.out.println("piped quit and closed reader thread, attempting to destroy scip process: "+ scipProcess.toString());
         if (scipProcess != null) {
             try {
                 scipProcess.destroyForcibly();
                 scipProcess.waitFor();
+                if(DEBUG)
+                    System.out.println("scip process destroyed: "+ scipProcess.toString());
                 Thread.sleep(100); // Give a small delay for file handles to be released
             } catch (Exception e) {
-                // Ignore exceptions during cleanup
+                if(DEBUG)
+                    System.out.println("exception at scip process destroying2: "+ scipProcess.toString());
             }
         }
     }
@@ -161,11 +189,13 @@ public class ScipProcess {
     }
 
     private void pipeInput(String input) throws Exception {
+        if(DEBUG)
+            System.out.println("Piping input to scip: " + input + " , current scip's status: " + processStatus);
         processInput.write(input + "\n");
         processInput.flush();
     }
 
-    private void updateStatus(String line) {
+    private void updateStatus(String line) throws Exception {
         Matcher readingMatcher = readingPattern.matcher(line);
         Matcher problemReadMatcher = problemReadPattern.matcher(line);
         Matcher presolvingMatcher = presolvingPattern.matcher(line);
@@ -173,22 +203,37 @@ public class ScipProcess {
         Matcher pausedMatcher = pausedPattern.matcher(line);
         Matcher solvedMatcher = solvedPattern.matcher(line);
         Matcher compilationErrorMatcher = compilationErrorPattern.matcher(line);
-
+        boolean updated = false;
         if (readingMatcher.find()) {
+            updated = true;
             processStatus = "reading";
         } else if (problemReadMatcher.find()) {
+            updated = true;
             processStatus = "problem read";
         } else if (presolvingMatcher.find()) {
+            updated = true;
             processStatus = "presolving";
         } else if (finishedPresolvingMatcher.find()) {
+            updated = true;
             processStatus = "solving";
         } else if (pausedMatcher.find()) {
+            updated = true;
             processStatus = "paused";
         } else if (solvedMatcher.find()) {
+            updated = true;
             processStatus = "solved";
         } else if (compilationErrorMatcher.find()) {
-            processStatus = "compilation error";
-            compilationErrorMessage = line;
+            updated = true;
+            int errorNumber = Integer.parseInt(compilationErrorMatcher.group(1));
+            if(errorNumber == 900){
+                processStatus = "integrity error";
+            }else{
+                processStatus = "compilation error";
+                compilationErrorMessage = line;
+            }
+            
         }
+        if(DEBUG && updated)
+            System.out.println("updated status: " + processStatus + " | process: " + scipProcess.toString());
     }
 }

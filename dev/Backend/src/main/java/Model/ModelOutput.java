@@ -6,7 +6,7 @@ import java.util.List;
 import DTO.Records.Model.ModelData.SetDefinitionDTO;
 import DTO.Records.Model.ModelDefinition.VariableDTO;
 import DataAccess.StringArrayConverter;
-import Exceptions.InternalErrors.BadRequestException;
+import Exceptions.BadRequestException;
 import Model.ModelInput.StructureBlock;
 import jakarta.persistence.Column;
 import jakarta.persistence.Convert;

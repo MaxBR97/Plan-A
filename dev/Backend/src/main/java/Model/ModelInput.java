@@ -4,7 +4,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import DataAccess.StringArrayConverter;
-import Exceptions.InternalErrors.BadRequestException;
+import Exceptions.BadRequestException;
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
 import jakarta.persistence.Convert;

@@ -28,6 +28,7 @@ import groupId.Main;
 import Model.ModelVariable;
 import Utils.Tuple;
 import Model.Model;
+import Exceptions.ZimpleCompileException;
 
 @SpringBootTest(classes = Main.class)
 @ActiveProfiles({"H2mem","securityAndGateway","streamSolver"})
@@ -52,18 +53,29 @@ public class SolverTest {
     }
 
     // Tests that a non-compiling file is correctly identified
-    // Expects isCompiling to return false and solve to return an unsolved solution
+    // Expects isCompiling to return false and solve to throw ZimpleCompileException
     @Test
     void test1_NotCompiling() throws Exception {
         String filePath = "NotCompiling";
-        String compilationError = solverService.isCompiling(filePath, COMPILATION_TIMEOUT_SECONDS);
-        assertTrue(compilationError.equals("*** Error 133: Unknown symbol \"x\""));
+        String expectedError = "*** Error 133: Unknown symbol \"x\"";
         
+        // Test isCompiling
+        String compilationError = solverService.isCompiling(filePath, COMPILATION_TIMEOUT_SECONDS);
+        assertEquals(expectedError, compilationError);
+        
+        // Test async isCompiling
         CompletableFuture<String> futureResult = solverService.isCompilingAsync(filePath, COMPILATION_TIMEOUT_SECONDS);
-        assertTrue(futureResult.get(COMPILATION_TIMEOUT_SECONDS, TimeUnit.SECONDS).equals("*** Error 133: Unknown symbol \"x\""));
+        assertEquals(expectedError, futureResult.get(COMPILATION_TIMEOUT_SECONDS, TimeUnit.SECONDS));
 
-        Solution solution = solverService.solve(filePath, SOLVING_TIMEOUT_SECONDS, "").parseSolution();
-        assertEquals(SolutionStatus.UNSOLVED, solution.parseSolutionStatus().getSolutionStatus());
+        // Test solve - should throw ZimpleCompileException
+        ZimpleCompileException thrown = assertThrows(
+            ZimpleCompileException.class,
+            () -> solverService.solve(filePath, SOLVING_TIMEOUT_SECONDS, ""),
+            "Expected solve() to throw ZimpleCompileException"
+        );
+        
+        // Verify the exception has the correct error message
+        assertEquals(expectedError, thrown.getMessage());
     }
 
     // Tests that an infeasible problem is correctly identified

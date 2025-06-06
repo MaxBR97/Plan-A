@@ -1,10 +1,10 @@
-package Exceptions.UserErrors;
+package Exceptions;
 
 import DTO.Records.Requests.Responses.ExceptionDTO;
 
-public class ZimplCompileError extends Exception {
+public class ZimpleCompileException extends Exception {
     final int errorCode;
-    public ZimplCompileError(String message, int errorCode) {
+    public ZimpleCompileException(String message, int errorCode) {
         super(message);
         this.errorCode = errorCode;
     }

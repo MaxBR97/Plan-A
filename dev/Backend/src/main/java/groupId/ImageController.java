@@ -17,7 +17,7 @@ import DTO.Records.Requests.Commands.ImageConfigDTO;
 import DTO.Records.Requests.Commands.SolveCommandDTO;
 import DTO.Records.Requests.Responses.CreateImageResponseDTO;
 import DataAccess.ImageRepository;
-import Exceptions.InternalErrors.BadRequestException;
+import Exceptions.BadRequestException;
 import Image.Image;
 import Model.ModelFactory;
 import Model.ModelInterface;

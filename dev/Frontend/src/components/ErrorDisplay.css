@@ -7,6 +7,16 @@
   border: 1px solid #dc3545;
   max-width: 800px;
   text-align: left;
+  overflow: hidden; /* Contain floating elements */
+}
+
+.error-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #ffcdd2;
 }
 
 .error-title {
@@ -15,25 +25,53 @@
   color: #dc3545;
   font-size: 1.2rem;
   font-weight: 600;
-  margin-bottom: 12px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid #ffcdd2;
+  margin-right: 8px;
+  flex: 1;
+  min-width: 0; /* Allow flex item to shrink below content size */
+}
+
+.error-close-button {
+  background: none;
+  border: none;
+  color: #dc3545;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0 4px;
+  line-height: 1;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+
+.error-close-button:hover {
+  opacity: 1;
 }
 
 .error-icon {
   margin-right: 8px;
   font-style: normal;
+  flex-shrink: 0; /* Prevent icon from shrinking */
 }
 
 .error-details {
   color: #555;
   font-size: 1rem;
   line-height: 1.5;
+  overflow: hidden; /* Contain long text */
 }
 
 .error-detail-line {
   margin: 8px 0;
   padding-left: 8px;
+  overflow: hidden; /* Contain long text */
+}
+
+.error-detail-text {
+  display: block;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  word-break: break-word;
+  hyphens: auto;
+  max-width: 100%;
 }
 
 .error-detail-line strong {

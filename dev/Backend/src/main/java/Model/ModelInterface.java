@@ -12,7 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
 import DataAccess.ModelRepository;
-import Exceptions.InternalErrors.BadRequestException;
+import Exceptions.BadRequestException;
 
 /**
  * Interface defining the public API for interacting with a mathematical optimization model.

@@ -6,8 +6,8 @@ import java.util.HashSet;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
-import Exceptions.InternalErrors.BadRequestException;
 import DTO.Records.Model.ModelDefinition.VariableDTO;
+import Exceptions.BadRequestException;
 
 public record ImageDTO(
                        @NotNull @Valid String imageId,

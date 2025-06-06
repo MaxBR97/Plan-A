@@ -1,8 +1,10 @@
 package DTO.Factories;
 
 import DTO.Records.Requests.Responses.ExceptionDTO;
-import Exceptions.InternalErrors.BadRequestException;
-import Exceptions.UserErrors.ZimplCompileError;
+import Exceptions.BadRequestException;
+import Exceptions.ZimpleCompileException;
+import Exceptions.ZimpleDataIntegrityException;
+
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import org.springframework.core.NestedRuntimeException;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -23,13 +25,22 @@ public class ExceptionRecordFactory {
     public static ExceptionDTO makeDTO(Exception exception) {
         //TODO: LOG
         //return new ExceptionDTO("An unknown error occurred, see log for details, or contract the developer");
-        return new ExceptionDTO("Error: "+ exception.getMessage());
+        return new ExceptionDTO("UnexpectedError", "Unexpected error in the server: " + exception.getMessage());
     }
 
     public static ExceptionDTO makeDTO(BadRequestException exception) {
         //TODO: LOG
         //return new ExceptionDTO("An unknown error occurred, see log for details, or contract the developer");
-        return new ExceptionDTO("Request Error: "+ exception.getMessage());
+        return new ExceptionDTO("BadRequest", exception.getMessage());
     }
-    
+
+    public static ExceptionDTO makeDTO(ZimpleCompileException exception) {
+        // Handle general compilation errors
+        return new ExceptionDTO("CompilationError", exception.getMessage());
+    }
+
+    public static ExceptionDTO makeDTO(ZimpleDataIntegrityException exception) {
+        // Handle specific integrity errors (error 900)
+        return new ExceptionDTO("IntegrityError", exception.getMessage());
+    }
 }
