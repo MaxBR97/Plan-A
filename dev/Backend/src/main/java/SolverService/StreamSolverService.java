@@ -192,12 +192,12 @@ public class StreamSolverService implements StreamSolver {
                     System.out.println("Attempting to write solution to tmpSolution");
                 System.gc();
                 scipProcess.solverSettings("write solution tmpSolution");
-                System.gc();
                 File tmpFile = new File(Path.of(".", "tmpSolution").toString());
                 while (!tmpFile.exists()) {
                     Thread.sleep(5);
                 }
                 Thread.sleep(100);
+                System.gc();
                 if(DEBUG)
                     System.out.println("Solution file found, attempting to read it");
 
@@ -205,8 +205,8 @@ public class StreamSolverService implements StreamSolver {
                 writeSolution(id, tmp, SOLUTION_FILE_SUFFIX);
                 if(DEBUG)
                     System.out.println("Solution uploaded to repo, deleting tmpSolution");
-                Files.delete(Path.of(".", "tmpSolution"));
                 System.gc();
+                Files.delete(Path.of(".", "tmpSolution"));
                 return new Solution(getSolutionPathToFile(SOLUTION_FILE_SUFFIX));
             } catch (Exception e) {
                 System.err.println("Error getting solution: " + e.getMessage());

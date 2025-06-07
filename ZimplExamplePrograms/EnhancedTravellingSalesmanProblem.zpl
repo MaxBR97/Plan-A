@@ -71,7 +71,7 @@ var edge[Cities * Cities] binary;
 
 # Binary variable indicating if a city is visited
 var visit[Cities] binary;
-
+var totals[{"Total Distance","Total Cities Visited","Total Preffered Cities Visited"}] real;
 # Each visited city must have exactly one incoming and one outgoing edge
 # Non-visited cities have no edges
 subto degree: forall <i> in Cities:
@@ -97,12 +97,17 @@ subto subtour: forall <i,j> in Cities * Cities | i != j and i != ord(Cities, 1,1
 subto u_visited: forall <i> in Cities:
     u[i] <= total_cities * visit[i];
 
+subto calculate_totals:
+    totals["Total Distance"] == sum <i,j> in Cities * Cities: dist[i,j] * edge[i,j] and
+    totals["Total Cities Visited"] == sum <i> in Cities: visit[i] and
+    totals["Total Preffered Cities Visited"] == sum <i> in preferred_cities: visit[i];
+
 param cities_to_visit_coefficient := 90;
 param distance_cost_coefficient := 20;
 param preffered_cities_coefficient := 0;
 
 # Minimize total distance traveled
 minimize cost: 
-    cities_to_visit_coefficient * (sum <i> in Cities: visit[i]) +
-    distance_cost_coefficient * (sum <i,j> in Cities * Cities: dist[i,j] * edge[i,j]) +
-    preffered_cities_coefficient * (sum <i> in preferred_cities: visit[i]);
+    cities_to_visit_coefficient * totals["Total Cities Visited"] +
+    distance_cost_coefficient * totals["Total Distance"] +
+    preffered_cities_coefficient * totals["Total Preffered Cities Visited"];

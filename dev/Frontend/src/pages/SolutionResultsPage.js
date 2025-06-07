@@ -42,7 +42,8 @@ const SolutionResultsPage = ({
   const requestCancelledRef = useRef(false);
   const currentAbortController = useRef(null);
   const currentRequestId = useRef(null);
-  
+  // console.log("globalSelectedTuples", globalSelectedTuples);
+  // console.log("dynamicSolutions", dynamicSolutions);
   // Deep clone function for solutions
   const deepCloneSolutions = (solutions) => {
     return solutions.map(solution => ({
@@ -61,7 +62,7 @@ const SolutionResultsPage = ({
       }
     }));
   }, []);
-
+  
   // Handle solution updates from SuperTable
   const handleSolutionUpdate = (updatedSolutions) => {
     if (!selectedVariable) return;
@@ -463,6 +464,45 @@ const SolutionResultsPage = ({
 
     }
   }, [solutionResponse?.solved]);
+
+  // Add this new effect to clean up globalSelectedTuples
+  useEffect(() => {
+    // Skip if dynamicSolutions is empty
+    if (Object.keys(dynamicSolutions).length === 0) return;
+
+    // Create a new object to hold the cleaned up selections
+    const cleanedSelectedTuples = {};
+
+    // For each variable in globalSelectedTuples
+    Object.entries(globalSelectedTuples).forEach(([variable, selectedTuples]) => {
+      // Skip if this variable doesn't exist in dynamicSolutions
+      if (!dynamicSolutions[variable]) return;
+
+      // Filter out tuples that no longer exist in dynamicSolutions
+      const currentSolutions = dynamicSolutions[variable].solutions;
+      const validSelectedTuples = selectedTuples.filter(selectedTuple => 
+        currentSolutions.some(solution => {
+          // Compare values arrays
+          const selectedValues = selectedTuple.values;
+          const solutionValues = solution.values;
+          
+          // If lengths are different, they can't be equal
+          if (selectedValues.length !== solutionValues.length) return false;
+          
+          // Compare each value
+          return selectedValues.every((value, index) => value === solutionValues[index]);
+        })
+      );
+
+      // Only add to cleaned object if there are valid selections
+      if (validSelectedTuples.length > 0) {
+        cleanedSelectedTuples[variable] = validSelectedTuples;
+      }
+    });
+
+    // Update globalSelectedTuples with the cleaned version
+    setGlobalSelectedTuples(cleanedSelectedTuples);
+  }, [dynamicSolutions]); // Only run when dynamicSolutions changes
 
   return (
     <div className="solution-results-page">
