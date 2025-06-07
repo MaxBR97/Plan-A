@@ -190,23 +190,10 @@ public class StreamSolverService implements StreamSolver {
                 }
                 if(DEBUG)
                     System.out.println("Attempting to write solution to tmpSolution");
-                System.gc();
-                scipProcess.solverSettings("write solution tmpSolution");
-                File tmpFile = new File(Path.of(".", "tmpSolution").toString());
-                while (!tmpFile.exists()) {
-                    Thread.sleep(5);
-                }
-                Thread.sleep(100);
-                System.gc();
-                if(DEBUG)
-                    System.out.println("Solution file found, attempting to read it");
-
-                String tmp = new String(Files.readAllBytes(Path.of(".", "tmpSolution")));
-                writeSolution(id, tmp, SOLUTION_FILE_SUFFIX);
+                InputStream solutionStream = scipProcess.getSolution();
+                writeSolution(id, SOLUTION_FILE_SUFFIX, solutionStream);
                 if(DEBUG)
                     System.out.println("Solution uploaded to repo, deleting tmpSolution");
-                System.gc();
-                Files.delete(Path.of(".", "tmpSolution"));
                 return new Solution(getSolutionPathToFile(SOLUTION_FILE_SUFFIX));
             } catch (Exception e) {
                 System.err.println("Error getting solution: " + e.getMessage());
@@ -223,8 +210,7 @@ public class StreamSolverService implements StreamSolver {
         return modelRepository.getLocalStoreDir().resolve(fileId+suffix+".zpl").toString();
     }
 
-    private void writeSolution(String fileId, String content, String suffix) throws Exception {
-        InputStream inputStream = new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
+    private void writeSolution(String fileId, String suffix, InputStream inputStream) throws Exception {
         modelRepository.uploadDocument(fileId + suffix, inputStream);
         modelRepository.downloadDocument(fileId + suffix);
     }

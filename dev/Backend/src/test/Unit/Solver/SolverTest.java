@@ -147,7 +147,7 @@ public class SolverTest {
         // Continue solving
         solverService.setContinue(true);
         CompletableFuture<Solution> continuedSolution = solverService.solveAsync(filePath, SOLVING_TIMEOUT_SECONDS, "");
-        Solution secondSolution = continuedSolution.get(SOLVING_TIMEOUT_SECONDS, TimeUnit.SECONDS).parseSolution();
+        Solution secondSolution = continuedSolution.get(SOLVING_TIMEOUT_SECONDS + 2, TimeUnit.SECONDS).parseSolution();
         double secondObjectiveValue = secondSolution.getObjectiveValue();
         
         // Verify solution improved

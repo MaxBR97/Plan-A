@@ -234,7 +234,7 @@ public class Solution {
                         solved = SolutionStatus.OPTIMAL;
                     } else if (status.contains("infeasible")) {
                         solved = SolutionStatus.UNSOLVED;
-                    } else if (status.contains("time limit")) {
+                    } else if (status.contains("interrupted")) {
                         solved = SolutionStatus.SUBOPTIMAL;
                     }
                 } 

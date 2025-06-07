@@ -549,6 +549,7 @@ public class ServiceTest {
 
         SolveCommandDTO solveRequest = new SolveCommandRequestBuilder(result)
             .setInput(inputs)
+            .setTimeout(16)
             .build();
         expectSuccess(requestsManager.sendSolveRequest(solveRequest), SolutionDTO.class);
     }
@@ -583,6 +584,7 @@ public class ServiceTest {
 
             SolveCommandDTO solveRequest = new SolveCommandRequestBuilder(id)
                 .setInput(inputs)
+                .setTimeout(15)
                 .build();
             expectSuccess(requestsManager.sendSolveRequest(solveRequest), SolutionDTO.class);
         }

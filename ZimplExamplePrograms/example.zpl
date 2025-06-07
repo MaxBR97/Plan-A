@@ -9,7 +9,7 @@ set Station := {"North", "South"};
 set Times := {0.. shiftsUntil by shiftTime};
 
 set invalidShifts := {<"Yoni","North",0,20>};
-
+    
 set Mishmarot := Station * Times; # -> {<North,16>, <North,20>, ....}
 
 #<person,station,time,result>

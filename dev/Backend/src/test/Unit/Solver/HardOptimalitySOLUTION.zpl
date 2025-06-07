@@ -1,4 +1,4 @@
-solution status: time limit reached
+solution status: interrupted
 objective value:                     546.214795288562
 edge$Tel Aviv$Tel Aviv                             -0 	(obj:0)
 edge$Tel Aviv$Jerusalem                             0 	(obj:21.540659228538)

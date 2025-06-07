@@ -6,14 +6,16 @@ import java.io.File;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.RandomAccessFile;
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import Model.Solution;
 
@@ -32,6 +34,12 @@ public class ScipProcess {
     private volatile boolean isRunning;
     private int currentTimeLimit;
     private String compilationErrorMessage;
+    private String solutionStatus;
+
+    // New fields for solution capturing
+    private ByteArrayOutputStream solutionOutputStream;
+    private volatile boolean waitingForSolution;
+    private AtomicBoolean capturingSolution;
     
     /* statuses: 
      * "not started" -  process not started/problem not read. starting status
@@ -54,7 +62,7 @@ public class ScipProcess {
     private final Pattern finishedPresolvingPattern = Pattern.compile("^Presolving Time: .*$");
     private final Pattern pausedPattern = Pattern.compile("SCIP Status\\s+:\\s+solving was interrupted");
     private final Pattern solvedPattern = Pattern.compile("SCIP Status\\s+:\\s+problem is solved");
-
+    private final Pattern solutionStatusPattern = Pattern.compile("^SCIP Status\\s+:.*(optimal|infeasible|interrupt).*$");
     public ScipProcess() {
         processBuilder = new ProcessBuilder();
         processBuilder.redirectErrorStream(true);
@@ -62,6 +70,8 @@ public class ScipProcess {
         this.circularBuffer = new ArrayBlockingQueue<>(BUFFER_SIZE);
         this.currentTimeLimit = 0;
         this.compilationErrorMessage = null;
+        this.capturingSolution = new AtomicBoolean(false);
+        this.waitingForSolution = false;
     }
 
     public void start() throws Exception {
@@ -84,6 +94,31 @@ public class ScipProcess {
                     String tmp = line;
                     line = lastLine;
                     lastLine = tmp;
+                    
+                    if(DEBUG) System.out.println("line: "+line + " | wFS: "+waitingForSolution + " | line.trim: "+line.trim().contains("SCIP>"));
+                    
+                    // Handle solution capturing
+                    if (waitingForSolution && line.trim().contains("SCIP>")) {
+                        capturingSolution.set(true);
+                        if(DEBUG) System.out.println("capturing solution");
+                        continue;
+                    }
+                    
+                    if (capturingSolution.get()) {
+                        if (line.trim().equals("")) {
+                            if(DEBUG) System.out.println("captured end");
+                            waitingForSolution = false;
+                            capturingSolution.set(false);
+                            continue;
+                        }
+                        
+                        // Skip lines starting with @@
+                        if (!line.trim().startsWith("@@")) {
+                            if(DEBUG) System.out.println("captured: "+line);
+                            solutionOutputStream.write((line + "\n").getBytes());
+                        }
+                    }
+                    
                     // If buffer is full, remove oldest line
                     if (circularBuffer.remainingCapacity() == 0) {
                         circularBuffer.poll();
@@ -123,6 +158,45 @@ public class ScipProcess {
         pipeInput(settings);
     }
 
+    public InputStream getSolution() throws Exception {
+        // Create new output stream for this solution capture
+        solutionOutputStream = new ByteArrayOutputStream();
+        
+        // Write the status line first
+        if(solutionStatus.equals("optimal")){
+            solutionOutputStream.write("solution status: optimal solution found\n".getBytes());
+        } else if(solutionStatus.equals("infeasible")){
+            solutionOutputStream.write("solution status: infeasible\n".getBytes());
+        } else if(solutionStatus.equals("interrupt")){
+            solutionOutputStream.write("solution status: interrupted\n".getBytes());
+        }
+        
+        // Signal we're waiting for solution
+        waitingForSolution = true;
+        capturingSolution.set(false);
+        
+        // Send the display solution command
+        pipeInput("display solution");
+        
+        // Wait for the first SCIP> prompt
+        long startTime = System.currentTimeMillis();
+        long timeout = 15000; // 15 second timeout
+        
+       Thread.sleep(10);
+        // Then wait for capture to complete
+        while(capturingSolution.get()) {
+            if (System.currentTimeMillis() - startTime > timeout) {
+                waitingForSolution = false;
+                capturingSolution.set(false);
+                throw new Exception("Timeout waiting for solution capture to complete");
+            }
+            Thread.sleep(10);
+        }
+
+        if(DEBUG) System.out.println("returning solution stream with size: " + solutionOutputStream.size());
+        return new ByteArrayInputStream(solutionOutputStream.toByteArray());
+    }
+
     public void setTimeLimit(int seconds) throws Exception {
         this.currentTimeLimit = seconds;
         pipeInput("set limit time " + seconds);
@@ -133,7 +207,11 @@ public class ScipProcess {
     }
 
     public void optimize() throws Exception {
+        if(processStatus.equals("paused")){
+            processStatus = "solving";
+        }
         pipeInput("set write printzeros TRUE optimize");
+
     }
 
     public boolean isRunning() {
@@ -211,6 +289,9 @@ public class ScipProcess {
         Matcher pausedMatcher = pausedPattern.matcher(line);
         Matcher solvedMatcher = solvedPattern.matcher(line);
         Matcher compilationErrorMatcher = compilationErrorPattern.matcher(line);
+        Matcher solutionStatusMatcher = solutionStatusPattern.matcher(line);
+        
+        // Status update logic
         boolean updated = false;
         if (readingMatcher.find()) {
             updated = true;
@@ -239,8 +320,13 @@ public class ScipProcess {
                 processStatus = "compilation error";
                 compilationErrorMessage = line;
             }
-            
         }
+
+        if(solutionStatusMatcher.find()){
+            updated = true;
+            solutionStatus = solutionStatusMatcher.group(1);
+        }
+
         if(DEBUG && updated)
             System.out.println("updated status: " + processStatus + " | process: " + scipProcess.toString());
     }

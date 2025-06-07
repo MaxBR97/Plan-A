@@ -162,32 +162,16 @@ public class SolverService implements Solver {
         } else if (scipProcess.getStatus().equals("compilation error")) {
             throw new ZimpleCompileException(scipProcess.getCompilationError(), 800);
         }
-        String tmpSolutionFile = "tmpSolution_"+id+"_"+scipProcess.getPid();
-        if(DEBUG)
-            System.out.println("Attempting to write solution to "+tmpSolutionFile + " | process: "+scipProcess.toString());
-        scipProcess.solverSettings("write solution "+tmpSolutionFile);
-        File tmpFile = new File(Path.of(".", tmpSolutionFile).toString());
-        while (!tmpFile.exists()) {
-            Thread.sleep(5);
-        }
-        Thread.sleep(100);
-        if(DEBUG)
-            System.out.println("Solution file found, attempting to read it | process: "+scipProcess.toString());
-
-        String tmp = new String(Files.readAllBytes(Path.of(".", tmpSolutionFile)));
-        writeSolution(id, tmp, SOLUTION_FILE_SUFFIX);
-        if(DEBUG)
-            System.out.println("Solution uploaded to repo, deleting "+tmpSolutionFile + " | process: "+scipProcess.toString());
-        Files.delete(Path.of(".", tmpSolutionFile));
-        return new Solution(getSolutionPathToFile(id, SOLUTION_FILE_SUFFIX));
+        InputStream solutionStream = scipProcess.getSolution();
+        writeSolution(id, SOLUTION_FILE_SUFFIX, solutionStream);
+        return new Solution(getSolutionPathToFile(id,SOLUTION_FILE_SUFFIX));
     }
 
     private String getSolutionPathToFile(String fileId, String suffix) throws Exception {
         return modelRepository.getLocalStoreDir().resolve(fileId+suffix+".zpl").toString();
     }
 
-    private void writeSolution(String fileId, String content, String suffix) throws Exception {
-        InputStream inputStream = new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
+    private void writeSolution(String fileId, String suffix, InputStream inputStream) throws Exception {
         modelRepository.uploadDocument(fileId + suffix, inputStream);
         modelRepository.downloadDocument(fileId + suffix);
     }
