@@ -50,6 +50,7 @@ const deserializeModel = (modelData) => {
 };
 
 export const ZPLProvider = ({ children, initialState = {} }) => {
+  const [error, setError] = useState(null);
   const [user, setUser] = useState(() => initialState.user || initialUser);
 
   // State for image-related data
@@ -159,6 +160,7 @@ export const ZPLProvider = ({ children, initialState = {} }) => {
     setModel(initialModelState);
     localStorage.removeItem('zpl_model');
   };
+  
 
   // Function to reset solution response to initial values
   const resetSolutionResponse = () => {
@@ -171,12 +173,35 @@ export const ZPLProvider = ({ children, initialState = {} }) => {
     });
   };
 
+  const fetchAndSetImage = async () => {
+    try {
+      const response = await fetch(`/images/${image.imageId}`, {
+        method: "GET",
+      });
+  
+      if (!response.ok) {
+        const errorText = await response.text(); // Get error message
+        throw new Error(`Load image request failed! Status: ${response.status}, Response: ${errorText}`);
+      }
+  
+      const data = await response.json();
+      updateImage(data);
+      console.log("Fetched image: ", data);
+      setError(null); // Clear any previous errors on success
+  
+    } catch (error) {
+      console.error("Error fetching image:", error);
+      setError(`Failed to fetch image: ${error.message}`);
+    }
+  };
+
   return (
     <ZPLContext.Provider
       value={{
         user,
         image,
         model,
+        error,
         solutionResponse,
         updateUserField,
         updateImage,
@@ -186,7 +211,8 @@ export const ZPLProvider = ({ children, initialState = {} }) => {
         updateSolutionResponse,
         resetImage,
         resetModel,
-        resetSolutionResponse
+        resetSolutionResponse,
+        fetchAndSetImage
       }}
     >
       {children}

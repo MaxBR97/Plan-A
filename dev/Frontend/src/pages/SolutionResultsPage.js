@@ -43,7 +43,7 @@ const SolutionResultsPage = ({
   const currentAbortController = useRef(null);
   const currentRequestId = useRef(null);
   // console.log("globalSelectedTuples", globalSelectedTuples);
-  // console.log("dynamicSolutions", dynamicSolutions);
+  console.log("dynamicSolutions", dynamicSolutions);
   // Deep clone function for solutions
   const deepCloneSolutions = (solutions) => {
     return solutions.map(solution => ({
@@ -152,6 +152,7 @@ const SolutionResultsPage = ({
   };
 
   const isBinary = (variable) => {
+    console.log("isBinary:", variable, image.variablesModule.variablesOfInterest.find((varObj) => varObj.identifier == variable).isBinary);
     return image.variablesModule.variablesOfInterest.find((varObj) => varObj.identifier == variable).isBinary
   };
 
@@ -176,7 +177,8 @@ const SolutionResultsPage = ({
   function addObjectiveValueToSolutions(solutions) {
     return solutions.map(solution => {
       const { values, objectiveValue, ...rest } = solution;
-      const newValues = objectiveValue ? [...values, objectiveValue] : [...values];
+      // const newValues = objectiveValue ? [...values, objectiveValue] : [...values];
+      const newValues = [...values, objectiveValue];
       return {
         ...rest,
         values: newValues

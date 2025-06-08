@@ -56,7 +56,7 @@ const parseErrorMessage = (error) => {
 
 const ConfigureImageMenu = () => {
   const navigate = useNavigate();
-  const { image, updateImage, initialImageState } = useZPL();
+  const { image, updateImage, initialImageState, fetchAndSetImage } = useZPL();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -112,6 +112,7 @@ const ConfigureImageMenu = () => {
       }
 
       console.log("✅ Configuration saved successfully!");
+      await fetchAndSetImage(); // Fetch the latest image data
       navigate('/solution-preview');
     } catch (error) {
       console.error("Error saving configuration:", error);

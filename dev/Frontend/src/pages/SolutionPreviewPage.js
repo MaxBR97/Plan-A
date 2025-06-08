@@ -20,12 +20,14 @@ const SolutionPreviewPage = ({isDesktop=false}) => {
   const {
     image,
     model,
+    error,
     solutionResponse,
     updateImage,
     updateImageField,
     updateModel,
     updateSolutionResponse,
-    initialImageState
+    initialImageState,
+    fetchAndSetImage
   } = useZPL();
 
   const [variableValues, setVariableValues] = useState({});
@@ -41,14 +43,11 @@ const SolutionPreviewPage = ({isDesktop=false}) => {
   const [variablesModule, setVariablesModule] = useState(image.variablesModule);
   const [variables, setVariables] = useState([]);
   const [showResults, setShowResults] = useState(false);
-  const [errorMessage, setErrorMessage] = useState(null);
-  const navigate = useNavigate(); 
-
-  // Update the state to allow null for no selected tab
   const [activeTab, setActiveTab] = useState(null);
   const [isHeaderSticky, setIsHeaderSticky] = useState(true);
   const resultsRef = useRef(null);
   const headerRef = useRef(null);
+  const navigate = useNavigate(); 
 
   const handleAddValue = (setName) => {
     setVariableValues((prev) => ({
@@ -175,26 +174,6 @@ const SolutionPreviewPage = ({isDesktop=false}) => {
   };
 
   
-  const loadImage = async () => {
-    try {
-      const response = await fetch(`/images/${image.imageId}`, {
-        method: "GET",
-      });
-  
-      if (!response.ok) {
-        const errorText = await response.text(); // Get error message
-        throw new Error(`Load image request failed! Status: ${response.status}, Response: ${errorText}`);
-      }
-  
-    const data = await response.json();
-    updateImage(data);
-    console.log("Fetched image: ", data)
-  
-    } catch (error) {
-      console.error("Error fetching image:", error);
-      setErrorMessage(`Failed to fetch image: ${error.message}`);
-    }
-  };  
 
 const loadInputs = async () => {
   try {
@@ -239,13 +218,12 @@ const loadInputs = async () => {
       
   } catch (error) {
       console.error("Error fetching inputs:", error);
-      setErrorMessage(`Failed to fetch inputs: ${error.message}`);
   }
 };
 
 useEffect(() => {
   (async () => {
-    await loadImage();
+    await fetchAndSetImage();
 
   })();
 }, []);
@@ -530,7 +508,7 @@ useEffect(() => {
       <div className="page-header">
         <h1 className="page-title">{image.imageName}</h1>
         <p className="image-description">{image.imageDescription}</p>
-        {errorMessage && <ErrorDisplay error={errorMessage} />}
+        {error && <ErrorDisplay error={error} />}
         <div className="tab-bar">
           <button
             className={`tab-button ${activeTab === 'variables' ? 'active' : ''} ${!hasVariablesContent() ? 'disabled' : ''}`}
