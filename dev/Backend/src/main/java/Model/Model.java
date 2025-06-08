@@ -1208,7 +1208,7 @@ public class Model extends ModelInterface {
                 visitor.visit(ctx.index());
             else if(ctx.csv() != null)
                 visitor.visit(ctx.csv());
-            if(ctx.op.getText().equals("max") || ctx.op.getText().equals("min") || ctx.op.getText().equals("abs") ){
+            if(ctx.op.getText().equals("max") || ctx.op.getText().equals("min") || ctx.op.getText().equals("abs") || ctx.op.getText().equals("round")){
                 appendType(visitor.getType());
                 basicSets.addAll(visitor.getBasicSets());
                 basicParams.addAll(visitor.getBasicParams());

@@ -21,20 +21,24 @@ function App() {
         <div className="App">
             <Router>
                 <DndProvider backend={HTML5Backend}>
-                    <Routes>
-                        <Route path="/" element={<MainPage />} />
-                        <Route path="/work-assignment" element={<WorkAssignmentPage />} />
-                        <Route path="/upload-zpl" element={<UploadZPLPage />} />
-                        <Route path="/configuration-menu" element={<ConfigureImageMenu />} />
-                        <Route path="/configure-input-outputs" element={<ConfigureInputsOutputs />} />
-                        <Route path="/configure-constraints" element={<ConfigureConstraintsPage />} />
-                        <Route path="/configure-preferences" element={<ConfigurePreferencesPage />} />
-                        <Route path="/solution-preview" element={<SolutionPreviewPage isDesktop={false}/>} />
-                        <Route path="/configure-sets-params" element={<ConfigureSetsAndParamsPage />} />
-                        <Route path="/configure-solver-options" element={<ConfigureSolverOptionsPage />} />
-                        {/* <Route path="/login" element={<LoginPage/>} /> */}
-                        {/* <Route path="/solution-results" element={<SolutionResultsPage />} /> */}
-                    </Routes>
+                    <div 
+                        className="scaled-content"
+                    >
+                        <Routes >
+                            <Route path="/" element={<MainPage />} />
+                            <Route path="/work-assignment" element={<WorkAssignmentPage />} />
+                            <Route path="/upload-zpl" element={<UploadZPLPage />} />
+                            <Route path="/configuration-menu" element={<ConfigureImageMenu />} />
+                            <Route path="/configure-input-outputs" element={<ConfigureInputsOutputs />} />
+                            <Route path="/configure-constraints" element={<ConfigureConstraintsPage />} />
+                            <Route path="/configure-preferences" element={<ConfigurePreferencesPage />} />
+                            <Route path="/solution-preview" element={<SolutionPreviewPage isDesktop={false}/>} />
+                            <Route path="/configure-sets-params" element={<ConfigureSetsAndParamsPage />} />
+                            <Route path="/configure-solver-options" element={<ConfigureSolverOptionsPage />} />
+                            {/* <Route path="/login" element={<LoginPage/>} /> */}
+                            {/* <Route path="/solution-results" element={<SolutionResultsPage />} /> */}
+                        </Routes>
+                    </div>
                 </DndProvider>
             </Router>
         </div>

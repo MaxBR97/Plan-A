@@ -28,6 +28,8 @@ defnumb getHourFromStringFormat(str) :=
         if substr(str,3,1) == ":" then convertStringToNumber(substr(str,0,2)) else convertStringToNumber(substr(str,0,1)) end 
     end;
 
+defnumb validateTimeInStringFormat(str) := 1;
+
 param planFromTimeFormal := "00:00";
 param planFromDay := "Sunday";
 param planFromHour := getHourFromStringFormat(planFromTimeFormal);
@@ -44,9 +46,32 @@ param nightTimeEndHour := getHourFromStringFormat(nightTimeEnd);
 param nightTimeEndMinute := getMinuteFromStringFormat(nightTimeEnd);
 param minimumRestHours := 0;
 
+do print "Planning days range must be valid!";
+do forall <day> in {planFromDay,planUntilDay} do check
+    card({<day> in weekDays}) == 1;
+
+do print "Planning time range must be valid, format is HH:MM !";
+do forall <time> in {planFromTimeFormal,planUntilTimeFormal,nightTimeStart,nightTimeEnd} do check
+    validateTimeInStringFormat(time) == 1;
+
+
 # Define relative day numbering based on planFromDay
 defnumb getDayNumber(day) := 
     ((orderWeekDays[day] - orderWeekDays[planFromDay] + 7) mod 7) + 1;
+
+# Validate that a string matches the format "x Weekday" where x is the relative day number
+defnumb validateDayPresentation(str) :=
+    if length(str) < 3 then 0 else  # Minimum length check (e.g., "1 M")
+        if substr(str,1,1) != " " then 0 else  # Check space after number
+            if card({<substr(str,2,length(str)-2)> in weekDays}) != 1 then 0 else  # Check if weekday is valid
+                if card({<substr(str,0,1)> in {"1","2","3","4","5","6","7","8","9"}}) != 1 then 0 else  # Check if number is valid
+                    if convertStringToNumber(substr(str,0,1)) != getDayNumber(substr(str,2,length(str)-2)) then 0 else  # Check if number matches day
+                        1
+                    end
+                end
+            end
+        end
+    end;
 
 # Update convertToPresentation to use relative day numbering
 param convertToPresentation[<day> in weekDays] := 
@@ -138,6 +163,16 @@ set Descriptive_Soldiers_List := {
     # <"Melamed","none","Hapash">,<"Cohen Tov","1a","Hapash">, <"Zikri","none","Hapash">,<"Hason","none","Commander">,
     # <"Navon","none","Officer">,<"Yedidya","1a","Hapash">, <"Yuri","none","Commander">,<"Tsefler","none","Hapash">
 };
+do print "Soldiers list must not be empty!";
+do check card(Descriptive_Soldiers_List) > 0;
+
+do print "Soldier names must be unique!";
+do forall <soldier,team,role> in Descriptive_Soldiers_List do check
+    sum <soldier2,team2,role2> in Descriptive_Soldiers_List | soldier2 == soldier: 1 == 1;
+
+do print "Descriptive soldiers list must be valid - team and role must match the declared lists!";
+do forall <soldier, team , role> in Descriptive_Soldiers_List do check
+    card({<team> in Squads}) == 1 and card({<role> in AvailableRoles}) == 1;
 
 set Soldiers := proj(Descriptive_Soldiers_List,<1>);
 #<station_name, required_people,FromStringTime,UntilStringTime,StringDurationTime>
@@ -157,8 +192,18 @@ set OneTime_Missions := {
     <station_name,requiredPpl,fromDay,getHourFromStringFormat(fromTimeString),getMinuteFromStringFormat(fromTimeString),untilDay,getHourFromStringFormat(untilTimeString),getMinuteFromStringFormat(untilTimeString),getHourFromStringFormat(duration),getMinuteFromStringFormat(duration)>
     };
 
+do print "Mission times must be valid - Enter valid weekdays and times in HH:MM format!";
+do forall <station_name,requiredPpl,from_day,from_time,until_day,until_time, duration> in OneTime_Missions_Formal do check
+    validateTimeInStringFormat(from_time) == 1 and validateTimeInStringFormat(until_time) == 1 and validateTimeInStringFormat(duration) == 1 and card({<from_day> in weekDays}) == 1 and card({<until_day> in weekDays}) == 1;
+do forall <station_name,requiredPpl,from_time,until_time, duration> in Everyday_Missions_Formal do check
+    validateTimeInStringFormat(from_time) == 1 and validateTimeInStringFormat(until_time) == 1 and validateTimeInStringFormat(duration) == 1;
+
 set PeopleAllowedToBeAssignedFromFormal := {<"Empty Soldier","Sunday","00:00">};
 set PeopleAllowedToBeAssignedUntilFormal := {<"Empty Soldier","Sunday","00:00">};
+
+do print "People allowed to be assigned from/to must be valid - Enter valid names (from the declared list), weekdays and times in HH:MM format!";
+do forall <soldier,day,time> in PeopleAllowedToBeAssignedFromFormal union PeopleAllowedToBeAssignedUntilFormal do check
+    validateTimeInStringFormat(time) == 1 and card({<day> in weekDays}) == 1 and card({<soldier> in Soldiers}) == 1;
 #<Person_name,FromDay,FromHour,FromMinute>
 set PeopleAllowedToBeAssignedFrom := {<soldier,day,stringTime> in PeopleAllowedToBeAssignedFromFormal: <soldier,day,getHourFromStringFormat(stringTime),getMinuteFromStringFormat(stringTime)>};
 #<Person_name,Until,UntilHour,UntilMinute>
@@ -193,8 +238,6 @@ set Shifts := {
              (isBetweenHourMinute(fromHour, fromMinute, untilHour, untilMinute, getHour(time_quant), getMinute(time_quant)) and
              (((getHour(time_quant) - fromHour) * 60 + (getMinute(time_quant) - fromMinute) + 24*60) mod (24*60)) mod (default_shift_duration_hours * 60 + default_shift_duration_minutes) == 0))
         ) and
-        
-        # CRITICAL FIX: The shift END must be within the mission bounds (or plan bounds)
         (
             # For missions that don't cross midnight
             (fromHour < untilHour and 
@@ -225,8 +268,6 @@ set Shifts := {
             (getDay(time_quant) == fromDay and getHour(time_quant) == fromHour and getMinute(time_quant) == fromMinute) or
             (timeDifference(fromDay, fromHour, fromMinute, getDay(time_quant), getHour(time_quant), getMinute(time_quant)) mod (default_shift_duration_hours*60 + default_shift_duration_minutes) == 0)
         ) and
-        
-        # CRITICAL FIX: Ensure the shift's end time is within mission bounds
         (
             timeDifference(getDay(time_quant), getHour(time_quant), getMinute(time_quant), untilDay, untilHour, untilMinute) >= (default_shift_duration_hours*60 + default_shift_duration_minutes)
         ) and
@@ -251,10 +292,16 @@ do print Shifts;
 set SoldiersToShifts := Soldiers * proj(Shifts,<1,4>);
 #<soldier,station,day,hour_and_minute>
 set preAssign := {<"Max","Patrol","1 Sunday","6:00",1.0>};
+do print "Selected shift assignment must be valid - Enter valid names (from the declared list), weekdays (x Weekday - where 'x' is the index of the weekday compared to the first day of the planning period) and times in HH:MM format!";
+do forall <soldier,station,day,time,value> in preAssign do check
+    validateTimeInStringFormat(time) == 1 and card({<soldier> in Soldiers}) == 1 and card({<station> in proj(AllMissions,<1>)}) == 1 and
+    validateDayPresentation(day) == 1;
 #<soldier,station,time,value>
 set encodedPreAssign := {<soldier,station,day,hour_minute,value> in preAssign: <soldier,station,timeDifference(planFromDay,planFromHour, planFromMinute, substr(day,2,10), getHourFromStringFormat(hour_minute), getMinuteFromStringFormat(hour_minute)), if value > -0.5 and value < 0.5 then 0 else 1 end>};
 set zero_out := { <soldier, station, stationInterval, requiredPeople, time> in Soldiers * Shifts | (sum <soldier2,station2,time2,value2> in encodedPreAssign | station == station2 and time == time2 and value2 == 1: 1) == requiredPeople and card({<soldier3,station3,time3,value3> in encodedPreAssign | soldier3 == soldier and station3 == station and time3 == time and value3 == 1}) == 0};
-param AntiPreAssignRate := 0.0;
+param AntiPreAssignRate := 0.15;
+do print "Anti-pre-assign rate must be valid - Enter a number between 0 and 1!";
+do check AntiPreAssignRate >= 0 and AntiPreAssignRate <= 1;
 set antiPreAss := {<soldier,station,time> in SoldiersToShifts | floor(random(0+AntiPreAssignRate,0.99999999+AntiPreAssignRate)) == 1} - proj(encodedPreAssign,<1,2,3>);
 var Edge[<i,a,b> in SoldiersToShifts] binary priority 6000000; #
 set RestTimes := { <soldier,station,interval,time> in Soldiers * proj(Shifts,<1,2,4>) : <soldier,time + interval>} union {<soldier,zero_time> in Soldiers * {0}};
@@ -354,6 +401,17 @@ set labelsGeneralStatistics := {"Problem size (people * possible_shifts)", "Tota
 var ShiftStatistics[labelsGeneralStatistics] real;
 var AssignedAtleastOnce[Soldiers] binary;
 param x:=(max(Times)/60)+1; 
+do print "Pre-assigned soldier statistics must be valid - Enter valid names (from the declared list), valid labels, and reasonable values!";
+do forall <soldier,label,value> in preAssignSoldierStatistics do check
+    card({<soldier> in Soldiers}) == 1 and                          # Soldier must exist
+    card({<label> in labelsForSoldierStatistics}) == 1 and         # Label must be valid
+    (
+        (label == "Total Duty Hours" and value >= 0) or            # Total duty hours must be non-negative
+        (label == "Total Night Duty Hours" and value >= 0) or      # Night duty hours must be non-negative
+        (label == "Total Rest Time" and value >= 0) or             # Rest time must be non-negative
+        (label == "Shift Spacing Mark") or          # Spacing mark must be at least 1
+        (label == "Repetitivity Mark" )              # Repetitivity mark must be non-negative
+    );
 
 subto CalculateProblemSize:
     ShiftStatistics["Problem size (people * possible_shifts)"] == card(Soldiers) * card(Shifts);
@@ -433,7 +491,7 @@ subto PreAssignSoldierStatistics:
 
 subto PreAssign:
     forall<a,b,c,v> in encodedPreAssign :
-        Edge[a,b,c] == v;
+        Edge[a,b,c] == round(v);
 
 
 set indexSetOfPeople := {<i,p> in {1.. card(Soldiers)} * Soldiers | ord(Soldiers,i,1) == p}; # -> {<1,"Yoni">, <2,"Denis"> ...}

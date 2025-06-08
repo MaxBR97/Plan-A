@@ -43,7 +43,7 @@ const SolutionResultsPage = ({
   const currentAbortController = useRef(null);
   const currentRequestId = useRef(null);
   // console.log("globalSelectedTuples", globalSelectedTuples);
-  console.log("dynamicSolutions", dynamicSolutions);
+  // console.log("dynamicSolutions", dynamicSolutions);
   // Deep clone function for solutions
   const deepCloneSolutions = (solutions) => {
     return solutions.map(solution => ({

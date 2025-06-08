@@ -23,7 +23,7 @@ set CitiesData := {
     <"Raanana", 9, 30>,
     <"Kfar Saba", 11, 32>,
     <"Modiin", 15, 15>,
-
+    
     <"Nahariya", 2, 105>,
     <"Kiryat Shmona", 45, 120>,
     <"Safed", 35, 100>,
@@ -32,9 +32,10 @@ set CitiesData := {
     <"Yotvata", 29, -101>
 };
 
+do print "Atleast two cities must be declared!";
+do check card(CitiesData) >= 2;
+
 set preferred_cities := {"Eilat"};
-do print "Preffered cities must be in declared cities data!";
-do forall <preffered_city> in preferred_cities do check sum <preffered_city> in proj(CitiesData,<1>)  : 1 == 1;
 
 set indexSetOfCities := {<i,p,x,y> in {1.. card(CitiesData)} * CitiesData | ord(CitiesData,i,1) == p}; # -> {<1,"Yoni">, <2,"Denis"> ...}
 
@@ -55,6 +56,27 @@ param actual_cities_to_visit :=
         cities_to_visit
     end end;
 
+set preassigned_transitions := {<"Eilat","Jerusalem",1.0>};
+set preassigned_visits := {<"Eilat",1.0>};
+
+do print "Each city must be declared only once!";
+do forall <city> in proj(CitiesData,<1>) do check 
+    sum <city2,x2,y2> in CitiesData | city2 == city : 1 == 1;
+
+do print "Preffered cities must be in declared cities data!";
+do forall <preffered_city> in preferred_cities do check 
+    sum <preffered_city> in proj(CitiesData,<1>)  : 1 == 1;
+
+do print "Selected transitions must align with declared cities!";
+do forall <fromCity,toCity> in {<a,b,c> in preassigned_transitions: <a,b>} do check
+    sum <city> in proj(CitiesData,<1>) | city == fromCity : 1 == 1 and
+    sum <city> in proj(CitiesData,<1>) | city == toCity : 1 == 1;
+
+do print "Selected visits must align with declared cities!";
+do forall <city> in {<a,b> in preassigned_visits: <a>} do check
+    sum <city2> in proj(CitiesData,<1>) | city == city2 : 1 == 1;
+
+
 # Function to get x coordinate of a city
 defnumb getX(c) :=  ord({<city,x,y> in CitiesData | city == c },1,2);
 
@@ -74,6 +96,12 @@ var visit[Cities] binary;
 var totals[{"Total Distance","Total Cities Visited","Total Preffered Cities Visited"}] real;
 # Each visited city must have exactly one incoming and one outgoing edge
 # Non-visited cities have no edges
+subto enforce_preassigned_transitions: forall <fromCity,toCity,value> in preassigned_transitions:
+    edge[fromCity,toCity] == round(value);
+
+subto enforce_preassigned_visits: forall <city,value> in preassigned_visits:
+    visit[city] == round(value);
+
 subto degree: forall <i> in Cities:
     (sum <j> in Cities | i != j: edge[i,j]) == visit[i] and
     (sum <j> in Cities | i != j: edge[j,i]) == visit[i];
@@ -90,12 +118,12 @@ subto force_first:
 var u[Cities] integer >= 0 <= card(Cities);  # Auxiliary variables for subtour elimination
 
 # Modified subtour elimination to only consider visited cities
-subto subtour: forall <i,j> in Cities * Cities | i != j and i != ord(Cities, 1,1) and j != ord(Cities, 1,1):
-    u[i] - u[j] + total_cities * edge[i,j] <= total_cities - 1;
+subto subtour: forall <i,j> in Cities * Cities | i != j and i != ord(Cities, 1,1) :
+    1 + u[i] - u[j] + actual_cities_to_visit * edge[i,j] <= actual_cities_to_visit;
 
 # Additional constraint to ensure u values are 0 for non-visited cities
 subto u_visited: forall <i> in Cities:
-    u[i] <= total_cities * visit[i];
+    u[i] <= actual_cities_to_visit * visit[i] and u[i] >= visit[i];
 
 subto calculate_totals:
     totals["Total Distance"] == sum <i,j> in Cities * Cities: dist[i,j] * edge[i,j] and

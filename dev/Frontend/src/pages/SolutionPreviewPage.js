@@ -505,7 +505,7 @@ useEffect(() => {
 
   return (
     <div className="solution-preview-page">
-      <div className="page-header">
+      <div className="page-header" >
         <h1 className="page-title">{image.imageName}</h1>
         <p className="image-description">{image.imageDescription}</p>
         {error && <ErrorDisplay error={error} />}
