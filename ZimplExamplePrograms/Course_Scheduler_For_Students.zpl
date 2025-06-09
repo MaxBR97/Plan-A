@@ -52,6 +52,13 @@ set CourseData := {
     <"Computer Security", "Computer Science", 2.5, 0>
 };
 
+do print "Course data must be valid - course names must be unique, points must be in the range 0-10, and is_mandatory must be 0 or 1!";
+do check card(CourseData) > 0;  # Must have at least one course
+do forall <course,dept,points,is_mandatory> in CourseData do check
+    card({<c,d,p,m> in CourseData | c == course}) == 1 and  # Course names must be unique
+    points > 0 and points <= 10 and                          # Points must be reasonable
+    (is_mandatory == 0 or is_mandatory == 1);                           # is_mandatory must be binary
+
 # Extract course names for easier reference
 set Courses := proj(CourseData, <1>);
 
@@ -141,6 +148,15 @@ set CourseSchedule := {
     <"Computer Security", 2, "Dr. Smith", "Lecture", "Wednesday", 8, 12>
 };
 
+do print "Course schedule must be valid - courses must exist, types must be {Lecture, Lab, Practice}, weekdays must be valid, hours must be reasonable (between 8 and 20), and end time must be after start time!";
+do forall <course,group,teacher,type,day,start_time,end_time> in CourseSchedule do check
+    card({<c,d,p,m> in CourseData | c == course}) == 1 and  # Course must exist in CourseData
+    card({<type> in {"Lecture","Lab","Practice"}}) == 1 and  # Type must be valid
+    card({<day> in Weekdays}) == 1 and                      # Day must be valid
+    start_time >= 8 and start_time <= 20 and                          # Start hour must be valid
+    end_time >= 8 and end_time <= 20 and                              # End hour must be valid
+    end_time > start_time;                                            # End must be after start
+
 # Parameters from CourseData
 defnumb getPoints(course) := ord({ <co,pts> in proj(CourseData, <1,3>) | co == course} union {<"",0>},1,2);
 defnumb is_mandatory(course) := ord({ <co,is_man> in proj(CourseData, <1,4>) | co == course} union {<"",0>},1,2);
@@ -148,6 +164,9 @@ defnumb is_mandatory(course) := ord({ <co,is_man> in proj(CourseData, <1,4>) | c
 
 # Target academic points for the semester
 param target_points := 21;
+
+do print "Target points must be positive!";
+do check target_points > 0;
 
 # Decision Variables
 var take_course[Courses] binary;  # 1 if student takes the course
@@ -220,12 +239,23 @@ subto first_activity_of_the_day:
 
 #<course_name, rating>
 set preffered_courses := {<"Physics 1",5>, <"Digital Systems",4>, <"Introduction to Software Engineering",2>, <"Introduction to Artificial Intelligence",1>};
+
+do print "Preferred courses must be valid - courses must exist and ratings must be in the range -10 to 10!";
+do forall <course,rating> in preffered_courses do check
+    card({<c,d,p,m> in CourseData | c == course}) == 1 and  # Course must exist
+    rating >= -10 and rating <= 10;                                              # Rating must be positive
+
 param sumOfPrefferedCoursesRatings := sum <c, rating> in preffered_courses : abs(rating);
 
 defnumb getCourseRating(course) := ord({ <co, rating> in preffered_courses | co == course} union {<"ds",0>},1,2);
 
 #<teacher_name, rating>
 set preffered_teachers := {<"Dr. Smith",10>, <"Mr. Johnson",1>, <"Prof. Brown",1>, <"Ms. Davis",1>, <"Dr. Wilson",1>};
+
+do print "Preferred teachers must be valid - teachers must exist in course schedule and ratings must be in the range -10 to 10!";
+do forall <teacher,rating> in preffered_teachers do check
+    card({<c,g,t,st,wd,sh,eh> in CourseSchedule | t == teacher}) >= 1 and  # Teacher must exist in schedule
+    rating >= -10 and rating <= 10;                                                             # Rating must be positive
 
 param sumOfPrefferedTeachersRatings := sum <t, rating> in preffered_teachers : abs(rating);
 
