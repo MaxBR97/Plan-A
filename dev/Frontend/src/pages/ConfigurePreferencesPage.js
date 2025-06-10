@@ -4,6 +4,7 @@ import { useZPL } from '../context/ZPLContext';
 import './ConfigurePreferencesPage.css';
 import '../styles/shared/ModuleConfig.css';
 import Checkbox from '../reusableComponents/Checkbox';
+import InfoIcon from '../reusableComponents/InfoIcon';
 
 const ConfigurePreferencesPage = () => {
     const navigate = useNavigate();
@@ -336,10 +337,10 @@ const ConfigurePreferencesPage = () => {
                 {/* Left Panel - Module List */}
                 <div className="module-list-panel" onClick={handleModuleClick}>
                     <div className="panel-header">
-                        <h2>Preference Modules</h2>
-                        <div className="info-icon" title="Preference modules group related optimization objectives. Each module can contain one preference with its associated parameters.">
-                            ℹ️
-                        </div>
+                        <h2>
+                            <span>Available Modules</span>
+                            <InfoIcon tooltip="List of preference modules that can be configured for your optimization model" />
+                        </h2>
                     </div>
                     <div className="module-list" role="list" aria-label="preference modules" data-testid="module-list">
                         {allModules.map((module, index) => (
@@ -377,7 +378,9 @@ const ConfigurePreferencesPage = () => {
 
                 {/* Middle Panel - Module Configuration */}
                 <div className={`module-config-panel ${selectedModuleIndex !== null ? 'has-selection' : ''}`} onClick={handleModuleClick}>
-                    <h2>{selectedModuleIndex === null ? 'Create New Module' : 'Edit Module'}</h2>
+                    <div className="panel-header">
+                        <h2>Module Configuration</h2>
+                    </div>
                     <div className="module-form">
                         <div className="form-group">
                             <label>Module Name</label>

@@ -4,6 +4,7 @@ import { useZPL } from '../context/ZPLContext';
 import './ConfigureConstraintsPage.css';
 import '../styles/shared/ModuleConfig.css';
 import Checkbox from '../reusableComponents/Checkbox';
+import InfoIcon from '../reusableComponents/InfoIcon';
 
 const ConfigureConstraintsPage = () => {
     const navigate = useNavigate();
@@ -313,10 +314,10 @@ const ConfigureConstraintsPage = () => {
                 {/* Left Panel - Module List */}
                 <div className="module-list-panel" onClick={handleModuleClick}>
                     <div className="panel-header">
-                        <h2>Constraint Modules</h2>
-                        <div className="info-icon" title="Constraint modules group related rules together. Each module can contain multiple constraints that work together to define a specific aspect of your problem.">
-                            ℹ️
-                        </div>
+                        <h2>
+                            <span>Available Modules</span>
+                            <InfoIcon tooltip="List of constraint modules that can be configured for your optimization model" />
+                        </h2>
                     </div>
                     <div className="module-list" role="list" aria-label="constraint modules">
                         {allModules.map((module, index) => (
@@ -350,7 +351,9 @@ const ConfigureConstraintsPage = () => {
 
                 {/* Middle Panel - Module Configuration */}
                 <div className={`module-config-panel ${selectedModuleIndex !== null ? 'has-selection' : ''}`} onClick={handleModuleClick}>
-                    <h2>{selectedModuleIndex === null ? 'Create New Module' : 'Edit Module'}</h2>
+                    <div className="panel-header">
+                        <h2>Module Configuration</h2>
+                    </div>
                     <div className="module-form">
                         <div className="form-group">
                             <label>Module Name</label>

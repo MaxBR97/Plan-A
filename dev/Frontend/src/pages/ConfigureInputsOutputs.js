@@ -4,6 +4,7 @@ import { useZPL } from "../context/ZPLContext.js";
 import "./ConfigureInputsOutputs.css";
 import Checkbox from "../reusableComponents/Checkbox.js";
 import TagConfigure from "../reusableComponents/TagConfigure.js";
+import InfoIcon from '../reusableComponents/InfoIcon';
 
 const ConfigureInputsOutputs = () => {
     const {
@@ -189,13 +190,15 @@ const ConfigureInputsOutputs = () => {
         <div className="configure-variables-page">
             <h1 className="page-title">Configure Problem Domain</h1>
             <p className="page-description">
-                Define the inputs and outputs of your optimization problem. Select which variables you want to track as outputs,
-                and specify the sets and parameters that will serve as inputs. You can also customize how the output data will be displayed.
+                Define the inputs and outputs of your optimization problem, based on the parsed data from your model code. Select which variables you want to track as outputs,
+                and specify the sets and parameters that will serve as inputs. You can also name the output columns.
             </p>
             <div className="variables-layout">
-                {/* Left side - Outputs */}
                 <div className="available-variables">
-                    <h2>Outputs</h2>
+                    <h2>
+                        <span>Outputs</span>
+                        <InfoIcon tooltip="Select the variables that will be tracked and displayed in the results." />
+                    </h2>
                     {Array.from(model.variables).length > 0 ? (
                         Array.from(model.variables).map((variable, index) => (
                             <Checkbox
@@ -210,9 +213,11 @@ const ConfigureInputsOutputs = () => {
                     )}
                 </div>
 
-                {/* Right side - Inputs */}
                 <div className="involved-section">
-                    <h2>Inputs</h2>
+                    <h2>
+                        <span>Inputs</span>
+                        <InfoIcon tooltip="Select the input fields you would like to customize dynamically to manipulate the problem domain." />
+                    </h2>
                     <h3>Sets</h3>
                     {displaySets.length > 0 ? (
                         displaySets.map((set, index) => (
@@ -243,9 +248,11 @@ const ConfigureInputsOutputs = () => {
                 </div>
             </div>
 
-            {/* Bottom section - Tag Variables' Output Tuple */}
             <div className="tags-container">
-                <h2>Tag Variables' Output Tuple</h2>
+                <h2>
+                    <span>Tag Variables Output Tuple</span>
+                    <InfoIcon tooltip="Name each column header of the output variables. This will be used to label the columns in the results table. You can also choose a bound set, which will receive as input the selected values from the table of the particular variable." />
+                </h2>
                 {selectedVars.map((variable, key) => (
                     <div key={key} className="variable-config-item">
                         <div className="variable-name">{variable.identifier}</div>
@@ -253,12 +260,11 @@ const ConfigureInputsOutputs = () => {
                         <div className="tag-inputs-row">
                             {model.varTypes[variable.identifier]?.map((type, index) => (
                                 <div key={index} className="tag-input-group">
-                                    <div className="tag-type-label" title={type}>{type}</div>
+                                    <div className="tag-type-label">{type}</div>
                                     <input
                                         type="text"
                                         value={variablesTags[variable.identifier]?.[index]}
                                         onChange={(e) => handleTagValueChange(e, variable.identifier, index)}
-                                        // placeholder={`${variable.identifier}_${index + 1}`}
                                     />
                                 </div>
                             ))}

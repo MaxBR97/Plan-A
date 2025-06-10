@@ -14,28 +14,31 @@
 }
 
 .info-tooltip {
-  overflow: visible;
   position: absolute;
   top: -6px;
   left: 50%;
   transform: translate(-50%, -100%);
-  padding: 6px 9px;
+  padding: 9px 12px;
   background-color: #333;
   color: white;
   border-radius: 3px;
   font-size: 9px;
-  white-space: nowrap;
+  line-height: 1.4;
+  width: max-content;
+  max-width: 250px;
+  white-space: normal;
+  text-align: left;
   z-index: 1000;
   opacity: 0;
   visibility: hidden;
   transition: opacity 0.2s;
   pointer-events: none;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 
 .info-icon:hover .info-tooltip {
   opacity: 1;
   visibility: visible;
-  overflow: visible;
 }
 
 /* Add a small arrow to the tooltip */

@@ -63,7 +63,7 @@ const ConfigureImageMenu = () => {
   const [editingDescription, setEditingDescription] = useState(false);
   const [tempName, setTempName] = useState(image.imageName);
   const [tempDescription, setTempDescription] = useState(image.imageDescription);
-
+  console.log("image:",image);
   const menuItems = [
     {
       title: 'Configure Inputs & Outputs',
@@ -100,7 +100,7 @@ const ConfigureImageMenu = () => {
       imageId: image.imageId,
       image
     };
-
+    
     try {
       console.log("🔄 Patch request body:", patchRequestBody);
 

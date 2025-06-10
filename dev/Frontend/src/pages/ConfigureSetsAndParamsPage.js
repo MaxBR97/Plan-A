@@ -2,9 +2,10 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useZPL } from "../context/ZPLContext";
 import "./ConfigureSetsAndParamsPage.css";
+import InfoIcon from '../reusableComponents/InfoIcon';
 
 const ConfigureSetsAndParamsPage = () => {
-  const { image, updateImageField } = useZPL();
+  const { image, updateImage} = useZPL();
   
   // Initialize state for sets and params from all modules
   const [allSets, setAllSets] = useState(() => {
@@ -12,14 +13,23 @@ const ConfigureSetsAndParamsPage = () => {
     
     // Add sets from variablesModule
     if (image.variablesModule?.inputSets) {
-      image.variablesModule.inputSets.forEach(set => sets.add(set));
+      image.variablesModule.inputSets.forEach(set => {
+        // Only add if not already present (using name as unique identifier)
+        if (!Array.from(sets).some(existingSet => existingSet.name == set.name)) {
+          sets.add(set);
+        }
+      });
     }
     
     // Add sets from constraintModules
     if (image.constraintModules) {
       image.constraintModules.forEach(module => {
         if (module.inputSets) {
-          module.inputSets.forEach(set => sets.add(set));
+          module.inputSets.forEach(set => {
+            if (!Array.from(sets).some(existingSet => existingSet.name === set.name)) {
+              sets.add(set);
+            }
+          });
         }
       });
     }
@@ -28,7 +38,11 @@ const ConfigureSetsAndParamsPage = () => {
     if (image.preferenceModules) {
       image.preferenceModules.forEach(module => {
         if (module.inputSets) {
-          module.inputSets.forEach(set => sets.add(set));
+          module.inputSets.forEach(set => {
+            if (!Array.from(sets).some(existingSet => existingSet.name === set.name)) {
+              sets.add(set);
+            }
+          });
         }
       });
     }
@@ -38,17 +52,24 @@ const ConfigureSetsAndParamsPage = () => {
 
   const [allParams, setAllParams] = useState(() => {
     const params = new Set();
-    
     // Add params from variablesModule
     if (image.variablesModule?.inputParams) {
-      image.variablesModule.inputParams.forEach(param => params.add(param));
+      image.variablesModule.inputParams.forEach(param => {
+        if (!Array.from(params).some(existingParam => existingParam.name === param.name)) {
+          params.add(param);
+        }
+      });
     }
     
     // Add params from constraintModules
     if (image.constraintModules) {
       image.constraintModules.forEach(module => {
         if (module.inputParams) {
-          module.inputParams.forEach(param => params.add(param));
+          module.inputParams.forEach(param => {
+            if (!Array.from(params).some(existingParam => existingParam.name === param.name)) {
+              params.add(param);
+            }
+          });
         }
       });
     }
@@ -57,10 +78,18 @@ const ConfigureSetsAndParamsPage = () => {
     if (image.preferenceModules) {
       image.preferenceModules.forEach(module => {
         if (module.inputParams) {
-          module.inputParams.forEach(param => params.add(param));
+          module.inputParams.forEach(param => {
+            if (!Array.from(params).some(existingParam => existingParam.name === param.name)) {
+              params.add(param);
+            }
+          });
         }
         if (module.costParams) {
-          module.costParams.forEach(param => params.add(param));
+          module.costParams.forEach(param => {
+            if (!Array.from(params).some(existingParam => existingParam.name === param.name)) {
+              params.add(param);
+            }
+          });
         }
       });
     }
@@ -135,8 +164,16 @@ const ConfigureSetsAndParamsPage = () => {
       });
     }
     
-    setAllSets(sets);
-    setAllParams(params);
+    const dedupedSets = Array.from(
+      new Map(sets.map(set => [set.name, set])).values()
+    );
+  
+    const dedupedParams = Array.from(
+      new Map(params.map(param => [param.name, param])).values()
+    );
+  
+    setAllSets(dedupedSets);
+    setAllParams(dedupedParams);
     
     // Initialize edited values with current values
     const initialSets = {};
@@ -196,6 +233,7 @@ const ConfigureSetsAndParamsPage = () => {
       [paramName]: { ...prev[paramName], alias: value }
     }));
   };
+
 
   // Save changes and update the image DTO
   const handleContinue = () => {
@@ -278,8 +316,8 @@ const ConfigureSetsAndParamsPage = () => {
       });
     }
     
-    // Update the image
-    updateImageField("image", updatedImage);
+    
+    updateImage( updatedImage);
   };
 
   return (
@@ -287,91 +325,99 @@ const ConfigureSetsAndParamsPage = () => {
       <h1 className="page-title">Configure Sets and Parameters</h1>
       
       <p className="page-description">
-        Customize how your sets and parameters will be displayed in the solution. You can set aliases to make the output more readable
-        and meaningful, and add tags to better organize and identify different components of your optimization problem.
+        Customize how your original model's input data will be called to be more readable and meaningful.
       </p>
       
-      {/* Sets Section */}
-      <section className="sets-section">
-        <h2>Sets</h2>
-        {allSets.length > 0 ? (
-          <div className="items-container">
-            {allSets.map((set, index) => {
-              const typeLength = Array.isArray(set.type) ? set.type.length : 0;
-              return (
-                <div key={`set-${index}`} className="item-card">
-                  <h3>{set.name}</h3>
+      <div className="sets-params-layout">
+        <div className="sets-section">
+          <div className="panel-header">
+            <h2>
+              <div></div>
+              <span>Sets</span>
+              <InfoIcon tooltip="Define aliases for your sets. These aliases are how the sets will be called in the Image. Name each column to indicate what it represents." />
+            </h2>
+          </div>
+          {allSets.length > 0 ? (
+            <div className="items-container">
+              {allSets.map((set, index) => {
+                const typeLength = Array.isArray(set.type) ? set.type.length : 0;
+                return (
+                  <div key={`set-${index}`} className="item-card">
+                    <div className="original-name">
+                      <label>Original set:</label>
+                      <span className="name-value">{set.name}</span>
+                    </div>
+                    
+                    <div className="alias-group">
+                      <label>Alias:</label>
+                      <input
+                        type="text"
+                        value={editedSets[set.name]?.alias || set.name}
+                        onChange={(e) => handleSetAliasChange(set.name, e.target.value)}
+                      />
+                    </div>
+                    
+                    {typeLength > 0 && (
+                      <div className="tag-inputs-container">
+                        <label>Columns:</label>
+                        <div className="tag-inputs-row">
+                          {Array.from({ length: typeLength }).map((_, tagIndex) => (
+                            <div key={`set-${index}-tag-${tagIndex}`} className="tag-input-group">
+                              <div className="tag-type-label">{set.type[tagIndex]}</div>
+                              <input
+                                type="text"
+                                value={(editedSets[set.name]?.tags && editedSets[set.name]?.tags[tagIndex]) || 
+                                       (set.type && set.type[tagIndex]) || 
+                                       ""}
+                                onChange={(e) => handleSetTagChange(set.name, tagIndex, e.target.value)}
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <p className="no-data-message">No sets available.</p>
+          )}
+        </div>
+
+        <div className="params-section">
+          <div className="panel-header">
+            <h2>
+              <div></div>
+              <span>Parameters</span>
+              <InfoIcon tooltip="Name your paramters with aliases. These aliases are how the parameters will be called in the Image." />
+            </h2>
+          </div>
+          {allParams.length > 0 ? (
+            <div className="items-container">
+              {allParams.map((param, index) => (
+                <div key={`param-${index}`} className="item-card">
+                  <div className="original-name">
+                    <label>Original parameter:</label>
+                    <span className="name-value">{param.name}</span>
+                  </div>
                   
-                  <div className="field-group">
+                  <div className="alias-group">
                     <label>Alias:</label>
                     <input
                       type="text"
-                      value={editedSets[set.name]?.alias || set.name}
-                      onChange={(e) => handleSetAliasChange(set.name, e.target.value)}
+                      value={editedParams[param.name]?.alias || param.name}
+                      onChange={(e) => handleParamAliasChange(param.name, e.target.value)}
                     />
                   </div>
-                  
-                  {typeLength > 0 && (
-                    <div className="field-group">
-                      <label>Tags:</label>
-                      <div className="tag-inputs-row">
-                        {Array.from({ length: typeLength }).map((_, tagIndex) => (
-                          <div key={`set-${index}-tag-${tagIndex}`} className="tag-input">
-                            <label>Tag {tagIndex + 1}:</label>
-                            <input
-                              type="text"
-                              value={(editedSets[set.name]?.tags && editedSets[set.name]?.tags[tagIndex]) || 
-                                     (set.type && set.type[tagIndex]) || 
-                                     ""}
-                              onChange={(e) => handleSetTagChange(set.name, tagIndex, e.target.value)}
-                            />
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
                 </div>
-              );
-            })}
-          </div>
-        ) : (
-          <p className="no-data-message">No sets available.</p>
-        )}
-      </section>
-      
-      {/* Parameters Section */}
-      <section className="params-section">
-        <h2>Parameters</h2>
-        {allParams.length > 0 ? (
-          <div className="items-container">
-            {allParams.map((param, index) => (
-              <div key={`param-${index}`} className="item-card">
-                <h3>{param.name}</h3>
-                
-                <div className="field-group">
-                  <label>Alias:</label>
-                  <input
-                    type="text"
-                    value={editedParams[param.name]?.alias || param.name}
-                    onChange={(e) => handleParamAliasChange(param.name, e.target.value)}
-                  />
-                </div>
-                
-                <div className="field-group">
-                  <label>Tag:</label>
-                  <input
-                    type="text"
-                    value={editedParams[param.name]?.tag || param.type}
-                    onChange={(e) => handleParamTagChange(param.name, e.target.value)}
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <p className="no-data-message">No parameters available.</p>
-        )}
-      </section>
+              ))}
+            </div>
+          ) : (
+            <p className="no-data-message">No parameters available.</p>
+          )}
+        </div>
+      </div>
       
       <div className="navigation-buttons">
         <Link to="/configuration-menu" className="continue-button" onClick={handleContinue}>

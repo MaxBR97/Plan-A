@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import InfoIcon from './InfoIcon';
 
 const DraggableBar = ({ 
     min = 0, 
@@ -121,8 +122,12 @@ const DraggableBar = ({
             boxSizing: 'border-box',
             gap: '20px'
         }}>
-            {/* Left Side - Alias/Color Legend */}
+            {/* Left Side - Alias/Color Legend with Title */}
             <div style={{ display: 'flex', flexDirection: 'column', minWidth: '120px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                    <span style={{ fontSize: '14px', fontWeight: '500', color: '#2c3e50' }}></span>
+                    <InfoIcon tooltip="Adjust the relative importance of different cost factors in your optimization" />
+                </div>
                 {markerValues.map((marker, index) => {
                     const key = Object.keys(marker)[0];
                     const alias = costParams.get(key)?.alias || key;

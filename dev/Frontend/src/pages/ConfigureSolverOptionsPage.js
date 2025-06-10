@@ -4,7 +4,7 @@ import { useZPL } from "../context/ZPLContext";
 import "./ConfigureSolverOptionsPage.css";
 
 // Configuration flag to enable/disable custom scripts section
-const ENABLE_CUSTOM_SCRIPTS = false;
+const ENABLE_CUSTOM_SCRIPTS = true;
 
 const ConfigureSolverOptionsPage = () => {
   const { image, updateImageField } = useZPL();
@@ -138,7 +138,7 @@ console.log(image.solverSettings)
       <section className="predefined-settings-section">
         <h2>Choose Solver Emphasis Settings</h2>
         <p className="section-description">
-          Select from our predefined solver settings to optimize your solution process.
+          Select relevant solver settings for your model. Some might be relevant more than others, depending on your model.
         </p>
         <div className="predefined-options">
           {Object.entries(predefinedSettings).map(([settingName, value]) => (

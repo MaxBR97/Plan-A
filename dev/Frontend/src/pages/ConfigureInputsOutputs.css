@@ -27,6 +27,7 @@
     grid-template-columns: 1fr 1fr;
     gap: 1.5rem;
     margin-bottom: 1.5rem;
+    
 }
 
 .available-variables,
@@ -37,14 +38,33 @@
     box-shadow: 0 1.5px 4.5px rgba(0, 0, 0, 0.1);
 }
 
+/* Add consistent spacing for both panels */
+.available-variables > div:not(:first-child),
+.involved-section > div:not(:first-child) {
+    margin-top: 0.0rem;
+    padding: 0.4rem;
+}
+
 .available-variables h2,
-.involved-section h2 {
+.involved-section h2,
+.tags-container h2 {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     font-size: 1.05rem;
     color: #444;
     margin-top: 0;
     margin-bottom: 0.9rem;
-    padding-bottom: 0.6rem;
+    padding-bottom: .6rem;
     border-bottom: 1px solid #e0e0e0;
+}
+
+.available-variables h2 span,
+.involved-section h2 span,
+.tags-container h2 span {
+    flex: 1;
+    text-align: center;
+    
 }
 
 .involved-section h2:not(:first-child) {
@@ -135,8 +155,16 @@
 .checkbox-container {
     display: flex;
     align-items: center;
-    margin-bottom: 0.6rem;
+    margin-bottom: 0.9rem;
+    padding: 0.9rem;
     cursor: pointer;
+    background-color: #fff;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+
+.checkbox-container:hover {
+    background-color: #f0f0f0;
 }
 
 .checkbox-container input[type="checkbox"] {
@@ -148,6 +176,7 @@
     font-size: 0.75rem;
     color: #555;
     cursor: pointer;
+    line-height: 1.4;
 }
 
 .continue-button {
