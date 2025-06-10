@@ -303,40 +303,44 @@ useEffect(() => {
           <>
             {/* Variable Sets Section */}
             <div className="module-section">
-              <h2 className="section-title">Variable Sets</h2>
-              {variablesModule.inputSets.filter(set => !variablesModule.variablesOfInterest.some(v => v.boundSet === set.name))
-                .map((setDef, index) => (
-                  <SetInputBox
-                    key={index}
-                    index={index}
-                    typeList={setDef.type}
-                    tupleTags={setDef.tags}
-                    setName={setDef.name}
-                    setAlias={setDef.alias}
-                    handleAddTuple={handleAddVariable}
-                    handleTupleChange={handleVariableChange}
-                    handleTupleToggle={handleVariableToggle}
-                    handleRemoveTuple={handleRemoveVariable}
-                    isRowSelected={isRowSelected}
-                    setValues={variableValues[setDef.name]}
-                  />
-              ))}
+              <h2 className="section-title">Sets</h2>
+              <div>
+                {variablesModule.inputSets.filter(set => !variablesModule.variablesOfInterest.some(v => v.boundSet === set.name))
+                  .map((setDef, index) => (
+                    <SetInputBox
+                      key={index}
+                      index={index}
+                      typeList={setDef.type}
+                      tupleTags={setDef.tags}
+                      setName={setDef.name}
+                      setAlias={setDef.alias}
+                      handleAddTuple={handleAddVariable}
+                      handleTupleChange={handleVariableChange}
+                      handleTupleToggle={handleVariableToggle}
+                      handleRemoveTuple={handleRemoveVariable}
+                      isRowSelected={isRowSelected}
+                      setValues={variableValues[setDef.name]}
+                    />
+                ))}
+              </div>
             </div>
 
             {/* Parameters Section */}
             <div className="module-section">
               <h2 className="section-title">Parameters</h2>
-              {variablesModule.inputParams.map((paramDef, index) => (
-                <ParameterInputBox
-                  key={index}
-                  paramName={paramDef.name}
-                  paramAlias={paramDef.alias}
-                  type={paramDef.type}
-                  tag={paramDef.tag}
-                  value={paramValues[paramDef.name]}
-                  onChange={handleParamChange}
-                />
-              ))}
+              <div>
+                {variablesModule.inputParams.map((paramDef, index) => (
+                  <ParameterInputBox
+                    key={index}
+                    paramName={paramDef.name}
+                    paramAlias={paramDef.alias}
+                    type={paramDef.type}
+                    tag={paramDef.tag}
+                    value={paramValues[paramDef.name]}
+                    onChange={handleParamChange}
+                  />
+                ))}
+              </div>
             </div>
           </>
         );

@@ -2,7 +2,7 @@
 .log-container {
     white-space: pre-wrap;
     font-family: monospace;
-    line-height: 1.4;
+    line-height: 1.05;
     overflow-wrap: break-word;
     overflow-y: auto;
     overflow-x: hidden;
@@ -13,7 +13,7 @@
   }
   
   .log-container::-webkit-scrollbar {
-    width: 8px;
+    width: 6px;
   }
   
   .log-container::-webkit-scrollbar-track {
@@ -22,7 +22,7 @@
   
   .log-container::-webkit-scrollbar-thumb {
     background: #666;
-    border-radius: 4px;
+    border-radius: 3px;
   }
   
   .log-container::-webkit-scrollbar-thumb:hover {

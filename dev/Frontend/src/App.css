@@ -12,9 +12,9 @@
 
 /* Create a new class for scaled content */
 .scaled-content {
-  transform: scale(0.75);
+  /* transform: scale(0.75);
   transform-origin: 0 0;
-  width: 133.33%; /* Compensate for scale (1/0.75 = 1.3333...) */
+  width: 133.33%; */
 }
 
 /* Exclude drag and drop components from scaling */

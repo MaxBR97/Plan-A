@@ -56,9 +56,13 @@ const parseErrorMessage = (error) => {
 
 const ConfigureImageMenu = () => {
   const navigate = useNavigate();
-  const { image, updateImage, initialImageState, fetchAndSetImage } = useZPL();
+  const { image, updateImage, updateImageField, fetchAndSetImage, initialImageState } = useZPL();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [editingName, setEditingName] = useState(false);
+  const [editingDescription, setEditingDescription] = useState(false);
+  const [tempName, setTempName] = useState(image.imageName);
+  const [tempDescription, setTempDescription] = useState(image.imageDescription);
 
   const menuItems = [
     {
@@ -133,10 +137,78 @@ const ConfigureImageMenu = () => {
     <div className="configure-menu-container">
       <div className="configure-menu-header">
         <h1>Configure Image</h1>
-        <p className="configure-menu-description">
-          Welcome to the configuration menu. Here you can customize various aspects of your optimization problem.
-          Follow the steps below to set up your configuration.
+        <p className="configure-menu-description main-description">
+          Here you can customize various aspects of your optimization problem.
         </p>
+        
+        <div className="image-details">
+          <div className="image-details-section">
+            <label>Image Name <span className="edit-hint">(double-click to edit)</span></label>
+            <div 
+              className="image-name" 
+              onDoubleClick={() => setEditingName(true)}
+            >
+              {editingName ? (
+                <input
+                  type="text"
+                  value={tempName}
+                  onChange={(e) => setTempName(e.target.value)}
+                  onBlur={() => {
+                    updateImageField("imageName", tempName);
+                    setEditingName(false);
+                  }}
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter') {
+                      updateImageField("imageName", tempName);
+                      setEditingName(false);
+                    }
+                  }}
+                  autoFocus
+                  placeholder="Enter image name..."
+                />
+              ) : (
+                <div className="editable-field">
+                  <h2>{image.imageName}</h2>
+                  <span className="edit-icon">✎</span>
+                </div>
+              )}
+            </div>
+          </div>
+          
+          <div className="image-details-section">
+            <label>Image Description <span className="edit-hint">(double-click to edit)</span></label>
+            <div 
+              className="image-description"
+              onDoubleClick={() => setEditingDescription(true)}
+            >
+              {editingDescription ? (
+                <textarea
+                  value={tempDescription}
+                  onChange={(e) => setTempDescription(e.target.value)}
+                  onBlur={() => {
+                    updateImageField("imageDescription", tempDescription);
+                    setEditingDescription(false);
+                  }}
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      updateImageField("imageDescription", tempDescription);
+                      setEditingDescription(false);
+                    }
+                  }}
+                  autoFocus
+                  placeholder="Enter image description..."
+                />
+              ) : (
+                <div className="editable-field">
+                  <p>{image.imageDescription || "No description provided"}</p>
+                  <span className="edit-icon">✎</span>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+        
         <ErrorDisplay error={error} />
       </div>
 

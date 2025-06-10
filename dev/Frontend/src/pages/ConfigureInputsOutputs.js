@@ -187,7 +187,11 @@ const ConfigureInputsOutputs = () => {
 
     return (
         <div className="configure-variables-page">
-            <h1 className="page-title">Configure Variables</h1>
+            <h1 className="page-title">Configure Problem Domain</h1>
+            <p className="page-description">
+                Define the inputs and outputs of your optimization problem. Select which variables you want to track as outputs,
+                and specify the sets and parameters that will serve as inputs. You can also customize how the output data will be displayed.
+            </p>
             <div className="variables-layout">
                 {/* Left side - Outputs */}
                 <div className="available-variables">

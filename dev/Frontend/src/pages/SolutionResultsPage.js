@@ -7,6 +7,7 @@ import Checkbox from "../reusableComponents/Checkbox.js";
 import NumberInput from '../reusableComponents/NumberInput';
 import LogBoard from "../reusableComponents/LogBoard.js";
 import ErrorDisplay from '../components/ErrorDisplay';
+import InfoIcon from '../reusableComponents/InfoIcon';
 
 const SolutionResultsPage = ({ 
   image,
@@ -522,12 +523,7 @@ const SolutionResultsPage = ({
         <div className="control-panel-section">
           <div className="section-header">
             <h3 className="section-title">Timeout Setting</h3>
-            <div className="info-icon">
-              i
-              <div className="info-tooltip">
-                Maximum time (in seconds) allowed for the solver to find a solution
-              </div>
-            </div>
+            <InfoIcon tooltip="Maximum time (in seconds) allowed for the solver to find a solution" />
           </div>
           <div className="timeout-input">
             <label>Timeout (seconds):</label>
@@ -544,12 +540,7 @@ const SolutionResultsPage = ({
         <div className="control-panel-section">
           <div className="section-header">
             <h3 className="section-title">Solver Emphasis</h3>
-            <div className="info-icon">
-              i
-              <div className="info-tooltip">
-                Choose the solver configuration to use for optimization
-              </div>
-            </div>
+            <InfoIcon tooltip="Choose the solver configuration to use for optimization" />
           </div>
           <div className="script-options">
             {Object.keys(image.solverSettings).map((key) => (
@@ -571,12 +562,7 @@ const SolutionResultsPage = ({
         <div className="control-panel-section">
           <div className="section-header">
             <h3 className="section-title">Dimension Order</h3>
-            <div className="info-icon">
-              i
-              <div className="info-tooltip">
-                Drag and drop to reorder how dimensions are displayed in the table
-              </div>
-            </div>
+            <InfoIcon tooltip="Drag and drop to reorder how dimensions are displayed in the table" />
           </div>
           <DragDropContext onDragEnd={onDragEnd}>
             <Droppable droppableId="set-structure-list">
@@ -662,12 +648,7 @@ const SolutionResultsPage = ({
           <div className="control-panel-section">
             <div className="section-header">
               <h3 className="section-title">Solution Log</h3>
-              <div className="info-icon">
-                i
-                <div className="info-tooltip">
-                  Detailed log of the optimization process
-                </div>
-              </div>
+              <InfoIcon tooltip="Detailed log of the optimization process" />
             </div>
             <LogBoard />
           </div>

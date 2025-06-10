@@ -1,0 +1,53 @@
+.info-icon {
+  cursor: help;
+  color: #6c757d;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 13.5px;
+  height: 13.5px;
+  border-radius: 50%;
+  border: 1px solid currentColor;
+  font-size: 9px;
+  z-index: 100;
+}
+
+.info-tooltip {
+  overflow: visible;
+  position: absolute;
+  top: -6px;
+  left: 50%;
+  transform: translate(-50%, -100%);
+  padding: 6px 9px;
+  background-color: #333;
+  color: white;
+  border-radius: 3px;
+  font-size: 9px;
+  white-space: nowrap;
+  z-index: 1000;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s;
+  pointer-events: none;
+}
+
+.info-icon:hover .info-tooltip {
+  opacity: 1;
+  visibility: visible;
+  overflow: visible;
+}
+
+/* Add a small arrow to the tooltip */
+.info-tooltip:after {
+  content: '';
+  position: absolute;
+  bottom: -3.75px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 3.75px solid transparent;
+  border-right: 3.75px solid transparent;
+  border-top: 3.75px solid #333;
+} 

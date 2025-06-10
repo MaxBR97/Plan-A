@@ -1,18 +1,18 @@
 /* TagConfigure.css */
 .tag-configure-container {
   background-color: #fff;
-  border-radius: 6px;
-  padding: 1rem;
-  margin-bottom: 1.2rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border-radius: 4.5px;
+  padding: 0.75rem;
+  margin-bottom: 0.9rem;
+  box-shadow: 0 0.75px 2.25px rgba(0, 0, 0, 0.1);
 }
 
 .tag-header {
-  margin-bottom: 0.8rem;
+  margin-bottom: 0.6rem;
 }
 
 .tag-label {
-  font-size: 1rem;
+  font-size: 0.75rem;
   font-weight: 500;
   color: #444;
 }
@@ -25,7 +25,7 @@
 .tag-inputs-container {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: 0.375rem;
   align-items: center;
 }
 
@@ -35,33 +35,33 @@
 }
 
 .tag-input {
-  padding: 0.6rem;
+  padding: 0.45rem;
   border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 0.9rem;
-  width: 180px;
+  border-radius: 3px;
+  font-size: 0.675rem;
+  width: 135px;
   transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 .tag-input:focus {
   outline: none;
   border-color: #4a90e2;
-  box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+  box-shadow: 0 0 0 1.5px rgba(74, 144, 226, 0.2);
 }
 
 .tag-input-separator {
-  margin: 0 0.5rem;
+  margin: 0 0.375rem;
   color: #bbb;
-  font-size: 1.2rem;
+  font-size: 0.9rem;
 }
 
 .tag-empty-message {
-  padding: 0.8rem;
+  padding: 0.6rem;
   color: #888;
   font-style: italic;
-  font-size: 0.9rem;
+  font-size: 0.675rem;
   background-color: #f9f9f9;
-  border-radius: 4px;
+  border-radius: 3px;
   width: 100%;
 }
 
@@ -73,7 +73,7 @@
   
   .tag-input-wrapper {
     width: 100%;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.375rem;
   }
   
   .tag-input {

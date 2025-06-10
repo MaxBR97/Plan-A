@@ -286,13 +286,10 @@ const ConfigureSetsAndParamsPage = () => {
     <div className="configure-sets-params-page">
       <h1 className="page-title">Configure Sets and Parameters</h1>
       
-      <div className="info-section">
-        <h3>About this page</h3>
-        <p>
-          Here you can configure the aliases and tags for your sets and parameters. 
-          Aliases help make your data more readable in the output, while tags help organize and identify different components of your sets.
-        </p>
-      </div>
+      <p className="page-description">
+        Customize how your sets and parameters will be displayed in the solution. You can set aliases to make the output more readable
+        and meaningful, and add tags to better organize and identify different components of your optimization problem.
+      </p>
       
       {/* Sets Section */}
       <section className="sets-section">

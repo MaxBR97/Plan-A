@@ -12,7 +12,7 @@
 .solution-table {
   border-collapse: collapse;
   width: max-content; /* So horizontal scroll appears */
-  font-size: 14px;
+  font-size: 10.5px; /* 75% of 14px */
 }
 
 /* static top row */
@@ -44,8 +44,8 @@
 
 .solution-table th,
 .solution-table td {
-  border: 2px solid #ddd;
-  padding: 8px;
+  border: 1.5px solid #ddd; /* 75% of 2px */
+  padding: 6px; /* 75% of 8px */
   text-align: left;
 }
 
@@ -61,7 +61,7 @@
 
 .solution-table input {
   width: 100%;
-  padding: 4px;
+  padding: 3px; /* 75% of 4px */
   box-sizing: border-box;
 }
 
@@ -93,9 +93,9 @@
 
 .add-button {
   display: inline-block;
-  width: 20px;
-  height: 20px;
-  line-height: 18px;
+  width: 15px; /* 75% of 20px */
+  height: 15px; /* 75% of 20px */
+  line-height: 13.5px; /* 75% of 18px */
   text-align: center;
   font-weight: bold;
   color: #2196F3;
@@ -109,12 +109,20 @@
 }
 
 .empty-table-message {
-  padding: 20px;
+  padding: 15px; /* 75% of 20px */
   text-align: center;
   color: #666;
-  font-size: 16px;
+  font-size: 12px; /* 75% of 16px */
   background-color: #f9f9f9;
   border: 1px dashed #ddd;
-  border-radius: 4px;
-  margin: 20px 0;
+  border-radius: 3px; /* 75% of 4px */
+  margin: 15px 0; /* 75% of 20px */
+}
+
+.log-container::-webkit-scrollbar {
+  width: 6px; /* 75% of 8px */
+}
+
+.log-container::-webkit-scrollbar-thumb {
+  border-radius: 3px; /* 75% of 4px */
 }

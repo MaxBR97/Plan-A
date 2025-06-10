@@ -3,14 +3,14 @@
 .module-box {
   width: 45%; /* Set the width to 45% of the screen */
   border: 1px solid #ddd;
-  padding: 15px;
-  margin: 10px;
+  padding: 11.25px; /* 75% of 15px */
+  margin: 7.5px; /* 75% of 10px */
   box-sizing: border-box;
   display: inline-block;
   vertical-align: top;
   transition: all 0.3s ease;
-  border-radius: 6px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  border-radius: 4.5px; /* 75% of 6px */
+  box-shadow: 0 1.5px 3.75px rgba(0,0,0,0.1);
   background-color: white;
   /* Add overflow handling */
   overflow: auto;
@@ -21,7 +21,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-bottom: 10px;
+  padding-bottom: 7.5px; /* 75% of 10px */
   border-bottom: 1px solid #eee;
   position: relative;
   /* Keep header visible during scroll */
@@ -32,40 +32,40 @@
 }
 
 .module-title {
-  font-size: 1.5em;
+  font-size: 1.125em; /* 75% of 1.5em */
   margin: 0;
   flex-grow: 1;
   text-align: center;
-  padding: 0 60px; /* Make space for buttons on either side */
+  padding: 0 45px; /* 75% of 60px */
 }
 
 .module-description {
-  margin: 15px 0;
-  line-height: 1.4;
+  margin: 11.25px 0; /* 75% of 15px */
+  line-height: 1.05; /* 75% of 1.4 */
   text-align: left; /* Align description to the left */
 }
 
 .module-subtitle {
-  font-size: 1.2em;
-  margin-top: 20px;
-  margin-bottom: 10px;
+  font-size: 0.9em; /* 75% of 1.2em */
+  margin-top: 15px; /* 75% of 20px */
+  margin-bottom: 7.5px; /* 75% of 10px */
 }
 
 .module-item {
   border: 1px solid #eee;
-  padding: 10px;
-  margin-bottom: 5px;
+  padding: 7.5px; /* 75% of 10px */
+  margin-bottom: 3.75px; /* 75% of 5px */
 }
 
 .empty-message {
   font-style: italic;
   color: #888;
-  margin-top: 10px;
+  margin-top: 7.5px; /* 75% of 10px */
 }
 
 .module-content {
   overflow: visible; /* Change from hidden to allow content to determine size */
-  max-height: 2000px;
+  max-height: 1500px; /* 75% of 2000px */
   transition: max-height 0.5s ease;
   /* Add container properties */
   min-width: min-content;
@@ -80,17 +80,17 @@
 }
 
 .module-box.minimized {
-  padding-bottom: 15px;
+  padding-bottom: 11.25px; /* 75% of 15px */
 }
 
 .module-set-inputs,
 .module-parameter-inputs {
-  margin-top: 20px;
+  margin-top: 15px; /* 75% of 20px */
   /* Allow content to determine size */
   width: fit-content;
   min-width: min-content;
   /* Add space for scrollbar to prevent layout shift */
-  padding-right: 5px;
+  padding-right: 3.75px; /* 75% of 5px */
 }
 
 .toggle-container {
@@ -106,8 +106,8 @@
   right: 0;
   top: 50%;
   transform: translateY(-50%);
-  width: 30px;
-  height: 30px;
+  width: 22.5px; /* 75% of 30px */
+  height: 22.5px; /* 75% of 30px */
   border-radius: 50%;
   background-color: #f1f1f1;
   border: 1px solid #ddd;
@@ -115,7 +115,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 20px;
+  font-size: 15px; /* 75% of 20px */
   line-height: 1;
   padding: 0;
   outline: none;
@@ -130,8 +130,8 @@
 .toggle-container label {
   display: inline-block;
   position: relative;
-  width: 60px;
-  height: 34px;
+  width: 45px; /* 75% of 60px */
+  height: 25.5px; /* 75% of 34px */
 }
 
 .toggle-container label input {
@@ -155,10 +155,10 @@
 .toggle-container label span:before {
   position: absolute;
   content: "";
-  height: 26px;
-  width: 26px;
-  left: 4px;
-  bottom: 4px;
+  height: 19.5px; /* 75% of 26px */
+  width: 19.5px; /* 75% of 26px */
+  left: 3px; /* 75% of 4px */
+  bottom: 3px; /* 75% of 4px */
   background-color: white;
   transition: .4s;
   border-radius: 50%;
@@ -173,7 +173,7 @@
 }
 
 .toggle-container label input:checked + span:before {
-  transform: translateX(26px);
+  transform: translateX(19.5px); /* 75% of 26px */
 }
 
 /* Responsive adjustments */
@@ -185,18 +185,18 @@
 
 /* Add smooth scrollbar styling */
 .module-box::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px; /* 75% of 8px */
+  height: 6px; /* 75% of 8px */
 }
 
 .module-box::-webkit-scrollbar-track {
   background: #f1f1f1;
-  border-radius: 4px;
+  border-radius: 3px; /* 75% of 4px */
 }
 
 .module-box::-webkit-scrollbar-thumb {
   background: #888;
-  border-radius: 4px;
+  border-radius: 3px; /* 75% of 4px */
 }
 
 .module-box::-webkit-scrollbar-thumb:hover {
@@ -207,5 +207,5 @@
 .module-parameter-inputs h4 {
   text-align: center; /* Center the "Input Sets" and "Input Parameters" titles */
   width: 100%;
-  margin-bottom: 15px;
+  margin-bottom: 11.25px; /* 75% of 15px */
 }

@@ -158,6 +158,11 @@ const MainPage = () => {
 
             <h1 className="main-title">Plan A</h1>
             
+            <p className="main-description">
+                Welcome to Plan A! Here you can manage your optimization problems by creating new images or working with existing ones.
+                Each image represents a unique optimization problem with its own configuration. Choose one to get started, or create a new one.
+            </p>
+            
             <div className="my-images-container">
                 <div className="my-images-header">
                     <h2>My Images</h2>
@@ -222,6 +227,10 @@ const MainPage = () => {
                 <Link 
                     to="/upload-zpl" 
                     className="footer-button create-button"
+                    onClick={() => {
+                        resetImage();
+                        resetModel();
+                    }}
                 >
                     Create new image
                 </Link>

@@ -35,7 +35,7 @@ set Mishmarot := Station * Times; # -> {<North,16>, <North,20>, ....}
 set PreAssignedShibutsim := {<"Max","North",0,1>};
 
 #<person,result>
-set PreAssignedTotalMishmarot := {<"Max",1>};
+set PreAssignedTotalMishmarot := {<"Max",3>};
 
 var Shibutsim[People * Mishmarot] binary; # -> {<Max,North,16>, <Max,North,20>, ....}
 var TotalMishmarot [People] integer >= 0;

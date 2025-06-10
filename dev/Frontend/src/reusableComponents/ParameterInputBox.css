@@ -2,20 +2,20 @@
   display: flex;
   flex-direction: column;
   width: 100%;
-  max-width: 400px;
+  max-width: 300px;
   border: 1px solid #ddd;
-  border-radius: 8px;
-  padding: 15px;
-  margin: 10px 0;
+  border-radius: 6px;
+  padding: 11.25px;
+  margin: 7.5px 0;
   background-color: white;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  box-shadow: 0 1.5px 3.75px rgba(0,0,0,0.1);
   box-sizing: border-box;
 }
 
 .parameter-name {
-  font-size: 16px;
+  font-size: 12px;
   font-weight: 600;
-  margin: 0 0 5px 0;
+  margin: 0 0 3.75px 0;
   color: #333;
   width: 90%;
   white-space: nowrap;
@@ -24,8 +24,8 @@
 }
 
 .parameter-type {
-  font-size: 14px;
-  margin: 0 0 12px 0;
+  font-size: 10.5px;
+  margin: 0 0 9px 0;
   color: #666;
   width: 90%;
   white-space: nowrap;
@@ -35,11 +35,11 @@
 
 .parameter-entry-atom {
   width: 100%;
-  max-width:450px;
-  padding: 10px;
+  max-width: 337.5px;
+  padding: 7.5px;
   border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 14px;
+  border-radius: 3px;
+  font-size: 10.5px;
   background-color: #f9f9f9;
   transition: border-color 0.3s, box-shadow 0.3s;
 }
@@ -47,7 +47,7 @@
 .parameter-entry-atom:focus {
   border-color: #1890ff;
   outline: none;
-  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+  box-shadow: 0 0 0 1.5px rgba(24, 144, 255, 0.2);
 }
 
 .parameter-entry-atom::placeholder {
