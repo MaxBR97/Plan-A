@@ -35,7 +35,15 @@ const SolutionResultsPage = ({
   const [solutionStatus, setSolutionStatus] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState(null);
-  const [selectedScript, setSelectedScript] = useState(Object.keys(image.solverSettings)[0]);
+  
+  const [selectedScript, setSelectedScript] = useState(() => {
+    // Find the "Default" or "default" key in solverSettings
+    const defaultKey = Object.keys(image.solverSettings).find(key => 
+      key.toLowerCase() === "default"
+    );
+    // If found, use it; otherwise fallback to first key
+    return defaultKey || Object.keys(image.solverSettings)[0];
+  });
   const [isSolving, setIsSolving] = useState(false);
   const [previousStatus, setPreviousStatus] = useState(null);
   const [solveTimer, setSolveTimer] = useState(null);
@@ -535,7 +543,7 @@ const SolutionResultsPage = ({
         {/* Solver Settings */}
         <div className="control-panel-section">
           <div className="section-header">
-            <h3 className="section-title">Solver Settings</h3>
+            <h3 className="section-title">Solver Emphasis</h3>
             <div className="info-icon">
               i
               <div className="info-tooltip">

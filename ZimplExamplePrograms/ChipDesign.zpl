@@ -18,10 +18,10 @@ param stringToNumber[{"0","1","2","3","4","5","6","7","8","9"}] :=
 # <component_type, width, height, power_consumption, max_temp>
 set ComponentTypes := {
     <"CPU", 20, 20, 93.0, 95.0>,
-    <"GPU", 15.7, 11.8, 94.0, 95.0>,
-    <"Memory", 10.5, 30.0, 84.4, 85.0>,
-    <"IO", 5.2 , 1.1, 150, 160.0>,
-    <"Cache", 63.5, 8.0, 79, 90.0>
+    <"GPU", 15.7, 11.8, 83.0, 95.0>,
+    <"Memory", 10.5, 30.0, 40, 85.0>,
+    <"IO", 5.2 , 1.1, 10, 160.0>,
+    <"Cache", 63.5, 8.0, 15, 90.0>
 };
 
 do print "Component types must be valid - WIDTH, HEIGHT must be positive, POWER must be non-negative, MAX_TEMP must be non-negative and greater than POWER!";
@@ -36,9 +36,9 @@ do forall <type, width, height, power, max_temp> in ComponentTypes do check
 # <instance_id, component_type>
 set Components := {
     <1, "CPU">, <2, "GPU">, 
-    <3, "Memory">, <4, "Memory">,
-    <5, "IO">, <6, "IO">, <7, "IO">,
-    <8, "Cache">
+    <3, "Memory">, <4, "Memory">
+    # <5, "IO">, <6, "IO">, <7, "IO">,
+    # <8, "Cache">
 };
 
 do print "Components must reference valid component types!";
@@ -49,9 +49,9 @@ do forall <id, type> in Components do check
 # <from_component, to_component, signal_priority>
 set Connections := {
     <1,4,9.5>, 
-    <2,3,8>, <2,4,9>, 
-    <1,8,5>,          
-    <6,2,2>, <7,1,1>  
+    <2,3,8>, <2,4,9> 
+    # <1,8,5>,          
+    # <6,2,2>, <7,1,1>  
 };
 
 do print "Connections must reference valid components and have valid priority (0-10] !";
@@ -82,9 +82,9 @@ defnumb getCompMaxTemp(comp_id) :=
 
 # Decision 
 # Chip dimensions are now variables to minimize
-var chip_dimensions[{"Width","Height"}] real >= 0 ;   # Width of the chip in units
-var pos_x[Components] real >= 0;   # x-coordinate of component placement
-var pos_y[Components] real >= 0;   # y-coordinate of component placement
+var chip_dimensions[{"Width","Height"}] integer >= 0 ;   # Width of the chip in units
+var pos_x[Components] integer >= 0;   # x-coordinate of component placement
+var pos_y[Components] integer >= 0;   # y-coordinate of component placement
 # Temperature variables consolidated into one array
 var temp[{"max_temp_x", "max_temp_y", "max_temp"}] real;
 
@@ -198,9 +198,9 @@ subto temperature_limits:
 # 1. Total area (chip_width * chip_height)
 # 2. Weighted distances between connected components
 # 3. Maximum temperature
-param area_weight := 100;
-param connections_weight := 5;
-param max_temp_weight := 1;
+param area_weight := 1;
+param connections_weight := 1;
+param max_temp_weight := 0;
 
 
 minimize obj:

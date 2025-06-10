@@ -144,7 +144,7 @@ const MainPage = () => {
 
     return (
         <div className="main-page">
-            <div className="auth-section">
+            {/* <div className="auth-section">
                 <span>Welcome, {user.isLoggedIn ? user.username : 'Guest'}!</span>
                 {user.isLoggedIn ? (
                     <button onClick={handleLogout} className="auth-button">Logout</button>
@@ -154,7 +154,7 @@ const MainPage = () => {
                         <button onClick={handleRegister} className="auth-button">Sign Up</button>
                     </div>
                 )}
-            </div>
+            </div> */}
 
             <h1 className="main-title">Plan A</h1>
             

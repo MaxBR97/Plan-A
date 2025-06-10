@@ -13,7 +13,7 @@ const initialImageState = {
   imageId: null,
   owner: "guest",
   isPrivate: true,
-  solverSettings: {"default": ""},
+  solverSettings: {"Default": "", Optimallity: "set emphasis optimality", "Tree search": "set emphasis tree search", Feasibility: "set emphasis feasibility", "Aggressive static analysis": "set presolving emphasis aggressive"},
   constraintModules: [],
   preferenceModules: [],
   variablesModule: null,
