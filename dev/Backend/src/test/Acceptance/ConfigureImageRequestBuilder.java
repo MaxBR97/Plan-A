@@ -130,7 +130,8 @@ public class ConfigureImageRequestBuilder implements RequestBuilder<ImageConfigD
             Map.of(),
             variablesModule,
             constraintModules,
-            preferenceModules
+            preferenceModules,
+            true
         );
 
         return new ImageConfigDTO(createImageResponse.imageId(), imageDTO);

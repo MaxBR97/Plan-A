@@ -177,7 +177,7 @@ const MainPage = () => {
     
                 {loading && <div className="loading-spinner">Loading images...</div>}
                 
-                {error && <ErrorDisplay error={error} />}
+                {error && <ErrorDisplay error={error} onClose={() => setError(null)} />}
                 
                 {!loading && !error && myImages.length === 0 && (
                     <div className="no-images-message">

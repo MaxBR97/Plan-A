@@ -1,28 +1,26 @@
 .upload-zpl-page {
   width: 100%;
-  height: 100vh; /* Full viewport height */
+  min-height: 100vh;
   margin: 0;
-  padding: 1.5rem; /* 75% of 2rem */
+  padding: 1.5rem;
   font-family: Arial, sans-serif;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  gap: 1rem;
 }
 
 .upload-container {
   width: 90%;
-  max-width: 900px; /* 75% of 1200px */
-  height: 90vh; /* Fill most of the screen */
+  max-width: 900px;
+  flex: 1;
   background-color: #f8f8f8;
-  padding: 1.5rem; /* 75% of 2rem */
-  border-radius: 6px; /* 75% of 8px */
+  padding: 1.5rem;
+  border-radius: 6px;
   box-shadow: 0 1.5px 4.5px rgba(0, 0, 0, 0.1);
   display: flex;
   flex-direction: column;
-  gap: 0.75rem; /* 75% of 1rem */
-  justify-content: center;
-  align-items: stretch;
+  gap: 0.75rem;
 }
 
 .image-name-input {
@@ -47,6 +45,13 @@
   flex-grow: 1; /* Allows textarea to expand */
 }
 
+.description-textarea {
+  composes: fixed-textarea;
+  height: 100px !important; /* About 5 lines of text */
+  min-height: 100px !important;
+  flex-grow: 0;
+}
+
 .upload-button {
   width: 100%;
   background-color: #27ae60;
@@ -65,16 +70,28 @@
 }
 
 .upload-message {
-    text-align: center;
-    margin: 0.75rem 0; /* 75% of 1rem */
-    padding: 0.75rem; /* 75% of 1rem */
-    border-radius: 3px; /* 75% of 4px */
+  width: 90%;
+  max-width: 900px;
+  margin: 1rem 0;
+  padding: 1rem;
+  border-radius: 4px;
+  text-align: left;
+  word-break: break-word;
+  white-space: pre-wrap;
+  font-size: 14px;
+  line-height: 1.5;
 }
 
 .success-message {
-    background-color: #d4edda;
-    color: #155724;
-    border: 1px solid #c3e6cb;
+  background-color: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.error-message {
+  background-color: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
 }
 
 /* Responsive Design */

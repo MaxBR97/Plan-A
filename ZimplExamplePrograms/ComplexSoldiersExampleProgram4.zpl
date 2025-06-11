@@ -54,6 +54,9 @@ do print "Planning time range must be valid, format is HH:MM !";
 do forall <time> in {planFromTimeFormal,planUntilTimeFormal,nightTimeStart,nightTimeEnd} do check
     validateTimeInStringFormat(time) == 1;
 
+do print "Minimum rest hours must be greater than 0!";
+do check minimumRestHours > 0;
+
 
 # Define relative day numbering based on planFromDay
 defnumb getDayNumber(day) := 
@@ -192,11 +195,11 @@ set OneTime_Missions := {
     <station_name,requiredPpl,fromDay,getHourFromStringFormat(fromTimeString),getMinuteFromStringFormat(fromTimeString),untilDay,getHourFromStringFormat(untilTimeString),getMinuteFromStringFormat(untilTimeString),getHourFromStringFormat(duration),getMinuteFromStringFormat(duration)>
     };
 
-do print "Mission times must be valid - Enter valid weekdays and times in HH:MM format!";
+do print "Mission times must be valid - Enter valid weekdays and times in HH:MM format, required people must be greater than 0!";
 do forall <station_name,requiredPpl,from_day,from_time,until_day,until_time, duration> in OneTime_Missions_Formal do check
-    validateTimeInStringFormat(from_time) == 1 and validateTimeInStringFormat(until_time) == 1 and validateTimeInStringFormat(duration) == 1 and card({<from_day> in weekDays}) == 1 and card({<until_day> in weekDays}) == 1;
+    validateTimeInStringFormat(from_time) == 1 and validateTimeInStringFormat(until_time) == 1 and validateTimeInStringFormat(duration) == 1 and card({<from_day> in weekDays}) == 1 and card({<until_day> in weekDays}) == 1 and requiredPpl > 0;
 do forall <station_name,requiredPpl,from_time,until_time, duration> in Everyday_Missions_Formal do check
-    validateTimeInStringFormat(from_time) == 1 and validateTimeInStringFormat(until_time) == 1 and validateTimeInStringFormat(duration) == 1;
+    validateTimeInStringFormat(from_time) == 1 and validateTimeInStringFormat(until_time) == 1 and validateTimeInStringFormat(duration) == 1 and requiredPpl > 0;
 
 set PeopleAllowedToBeAssignedFromFormal := {<"Empty Soldier","Sunday","00:00">};
 set PeopleAllowedToBeAssignedUntilFormal := {<"Empty Soldier","Sunday","00:00">};

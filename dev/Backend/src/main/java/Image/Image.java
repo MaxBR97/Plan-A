@@ -111,6 +111,9 @@ public class Image {
     @Column(name = "solution_name")
     private List<String> savedSolutions;
 
+    @Column(name = "is_configured")
+    private boolean isConfigured;
+
     @Transient
     private int defaultTimeout = 60;
 
@@ -128,6 +131,7 @@ public class Image {
         savedSolutions = new LinkedList<>();
         owner = null;
         isPrivate = true;
+        isConfigured = false;
     }
     
     public Image(String id, String name, String description, String ownerUser, Boolean isPrivate) throws Exception {
@@ -147,6 +151,7 @@ public class Image {
         this.owner = ownerUser;
         this.isPrivate = isPrivate == null ? true : isPrivate;
         validateNoDuplicateVariableTags();
+        isConfigured = false;
     }
 
     private void validateName(String name) throws BadRequestException {
@@ -203,6 +208,9 @@ public class Image {
             imageDTO.constraintModules(),
             imageDTO.preferenceModules()
         );
+        if(imageDTO.isConfigured() != null){
+            this.isConfigured = imageDTO.isConfigured();
+        }
 
         // If validation passed, proceed with the update
         if (imageDTO.imageName() != null) {
@@ -241,6 +249,14 @@ public class Image {
             }
         }
         
+    }
+
+    public boolean isConfigured(){
+        return this.isConfigured;
+    }
+
+    public void setIsConfigured(boolean isConfigured){
+        this.isConfigured = isConfigured;
     }
 
     private void validateModulesCompatibility(

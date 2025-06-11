@@ -56,7 +56,7 @@ const parseErrorMessage = (error) => {
 
 const ConfigureImageMenu = () => {
   const navigate = useNavigate();
-  const { image, updateImage, updateImageField, fetchAndSetImage, initialImageState } = useZPL();
+  const { image, updateImage, updateImageField, fetchAndSetImage, initialImageState, deleteImage } = useZPL();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [editingName, setEditingName] = useState(false);
@@ -127,6 +127,7 @@ const ConfigureImageMenu = () => {
   };
 
   const handleQuit = () => {
+    deleteImage()
     // Reset image state to initial state
     updateImage(initialImageState);
     // Navigate back to home
@@ -209,7 +210,7 @@ const ConfigureImageMenu = () => {
           </div>
         </div>
         
-        <ErrorDisplay error={error} />
+        {error && <ErrorDisplay error={error} onClose={() => setError(null)} />}
       </div>
 
       <div className="configure-menu-grid">
@@ -239,7 +240,7 @@ const ConfigureImageMenu = () => {
             onClick={handleFinish}
             disabled={isLoading}
           >
-            {isLoading ? 'Saving...' : 'Finish Configuration'}
+            {isLoading ? 'Saving...' : 'Preview Image'}
           </button>
         </div>
       </div>

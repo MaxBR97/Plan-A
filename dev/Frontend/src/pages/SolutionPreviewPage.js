@@ -27,7 +27,8 @@ const SolutionPreviewPage = ({isDesktop=false}) => {
     updateModel,
     updateSolutionResponse,
     initialImageState,
-    fetchAndSetImage
+    fetchAndSetImage,
+    deleteImage
   } = useZPL();
 
   const [variableValues, setVariableValues] = useState({});
@@ -450,7 +451,14 @@ useEffect(() => {
                     min={0}
                     max={100}
                     markers={Array.from(costParams.keys())
-                      .filter(param => paramValues[param])
+                      .filter(param => {
+                        // Find which module this param belongs to
+                        const module = preferenceModules.find(m => 
+                          m.costParams && m.costParams.some(p => p.name === param)
+                        );
+                        // Only include if the param has a value and its module is not toggled off
+                        return paramValues[param] && module && !preferencesToggledOff.includes(module.moduleName);
+                      })
                       .map(param => ({ [param]: parseFloat(paramValues[param][0]) }))}
                     costParams={costParams}
                     onChange={(marker) => {
@@ -510,6 +518,9 @@ useEffect(() => {
   return (
     <div className="solution-preview-page">
       <div className="page-header" >
+        {(!image.isConfigured || image.isConfigured === undefined) && (
+          <h1 className="preview-title">Image Preview</h1>
+        )}
         <h1 className="page-title">{image.imageName}</h1>
         <p className="image-description">{image.imageDescription}</p>
         {error && <ErrorDisplay error={error} />}
@@ -557,13 +568,52 @@ useEffect(() => {
         />
       </div>
 
-      <button className="home-button" onClick={() => navigate("/")}>
+      <button className="home-button" onClick={() => {
+        if(image.isConfigured) {
+          console.log("image is configured")
+          navigate("/")
+        } else {
+          deleteImage()
+          navigate("/")
+        }
+      }}>
         ← Back to Home
       </button>
       
-      <Link to="/configuration-menu" className="back-button">
-        Back to Configuration
-      </Link>
+      {(!image.isConfigured || image.isConfigured === undefined) && (
+        <div className="configuration-buttons">
+          <Link to="/configuration-menu" className="back-button">
+            Back to Configuration
+          </Link>
+          <button 
+            className="save-image-button"
+            onClick={async () => {
+              try {
+                const response = await fetch(`/images`, {
+                  method: 'PATCH',
+                  headers: {
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify({
+                    imageId: image.imageId,
+                    image: {...image, isConfigured: true},
+                  })
+                });
+                
+                if (!response.ok) {
+                  throw new Error('Failed to configure image');
+                }
+                
+                navigate("/")
+              } catch (error) {
+                console.error('Error configuring image:', error);
+              }
+            }}
+          >
+            Finish and save image
+          </button>
+        </div>
+      )}
     </div>
   );
 };

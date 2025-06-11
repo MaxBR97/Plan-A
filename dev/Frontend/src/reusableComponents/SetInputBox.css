@@ -3,7 +3,7 @@
   flex-direction: column;
   width: auto; /* Changed from 100% to auto to allow sizing to content */
   min-width: 250px; /* Minimum width to prevent too narrow boxes */
-  max-width: 800px; /* Keep the max-width constraint */
+  max-width: 600px; /* Keep the max-width constraint */
   border: 1px solid #ddd;
   border-radius: 8px;
   padding: 15px;
@@ -11,10 +11,11 @@
   background-color: white;
   box-shadow: 0 2px 5px rgba(0,0,0,0.1);
   flex: 0 1 auto; /* Don't grow, can shrink, size to content */
+  max-height: 340px;
 }
 
 .set-name {
-  font-size: 18px;
+  font-size: 14px;
   margin: 0 0 5px 0;
   color: #333;
   width: fit-content; /* Size to content */
@@ -34,11 +35,11 @@
   border: none;
   border-radius: 4px;
   padding: 8px 16px;
-  margin-bottom: 15px;
+  margin-bottom: 10px;
   cursor: pointer;
-  min-width: 120px;
-  height: 36px;
-  font-size: 14px;
+  min-width: 20px;
+  min-height: 20px;
+  font-size: 12px;
   font-weight: 500;
   display: flex;
   align-items: center;
@@ -85,6 +86,10 @@
 .set-input .total {
   margin: 0 0 10px 0;
   width: fit-content;
+}
+
+.total {
+  font-size: 12px;
 }
 
 /* This helps when used in a flexbox layout like your module-section */

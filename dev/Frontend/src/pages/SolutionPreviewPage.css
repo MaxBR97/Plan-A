@@ -56,7 +56,9 @@
   /* Module section layout with flexbox */
   .module-section {
     display: flex;
-    flex-direction: column;
+    /* grid-template-columns: repeat(2, 1fr); */
+    flex-direction: row;
+    flex-wrap: wrap;
     margin-bottom: 22.5px;
   }
   
@@ -122,6 +124,14 @@
     margin: 0 auto;
   }
   
+  .preview-title {
+    font-size: 3em;
+    color: #5d8ec0;
+    margin-bottom: 20px;
+    text-align: center;
+    font-weight: bold;
+  }
+  
   .tab-bar {
     display: flex;
     width: 100%;
@@ -139,7 +149,7 @@
     font-weight: 500;
     color: #666;
     transition: all 0.2s ease;
-    height: 45px;
+    height: 40px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -293,4 +303,36 @@
 
   .draggable-bar-header .info-icon {
     margin-left: 5px;
+  }
+
+  .configuration-buttons {
+    position: fixed;
+    top: 70px;
+    right: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 101;
+  }
+
+  .save-image-button {
+    justify-content: center;
+    height: 40px;
+    width: 175px;
+    padding: 7.5px 11.25px;
+    background-color: #27ae60;
+    color: white;
+    text-decoration: none;
+    border-radius: 3px;
+    font-weight: 500;
+    transition: background-color 0.3s;
+    box-shadow: 0 1.5px 3px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    border: none;
+    cursor: pointer;
+  }
+
+  .save-image-button:hover {
+    background-color: #219653;
   }

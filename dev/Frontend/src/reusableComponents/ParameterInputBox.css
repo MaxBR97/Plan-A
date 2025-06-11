@@ -1,8 +1,9 @@
 .parameter-input {
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap; /* Allow wrapping */
+  align-items: center;
   width: 100%;
-  max-width: 300px;
+  max-width: 450px;
   border: 1px solid #ddd;
   border-radius: 6px;
   padding: 11.25px;
@@ -10,32 +11,24 @@
   background-color: white;
   box-shadow: 0 1.5px 3.75px rgba(0,0,0,0.1);
   box-sizing: border-box;
+  gap: 7.5px; /* Space between label and input */
 }
 
 .parameter-name {
   font-size: 12px;
   font-weight: 600;
-  margin: 0 0 3.75px 0;
   color: #333;
-  width: 90%;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.parameter-type {
-  font-size: 10.5px;
-  margin: 0 0 9px 0;
-  color: #666;
-  width: 90%;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  flex: 1 1 150px; /* flexible, min width 150px */
+  min-width: 100px;
+  white-space: normal; /* allow wrapping */
+  overflow-wrap: break-word;
+  word-break: break-word;
+  margin: 0;
 }
 
 .parameter-entry-atom {
+  flex: 2 1 200px; /* flexible, min width 200px */
   width: 100%;
-  max-width: 337.5px;
   padding: 7.5px;
   border: 1px solid #ddd;
   border-radius: 3px;
@@ -49,6 +42,18 @@
   outline: none;
   box-shadow: 0 0 0 1.5px rgba(24, 144, 255, 0.2);
 }
+
+
+.parameter-type {
+  font-size: 10.5px;
+  margin: 0 0 9px 0;
+  color: #666;
+  width: 90%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 
 .parameter-entry-atom::placeholder {
   color: #bbb;

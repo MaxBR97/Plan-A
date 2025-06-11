@@ -133,7 +133,7 @@ minimize distributeShiftsEqually:
 
     return (
         <div className="upload-zpl-page">
-            <h1 className="page-title">Upload ZPL File</h1>
+            <h1 className="page-title">Create a model</h1>
             <div className="upload-container">
                 <label>Image Name:</label>
                 <input
@@ -144,7 +144,7 @@ minimize distributeShiftsEqually:
                     placeholder="Enter image name..."
                 />
 
-                <label htmlFor="zimpl-code">ZIMPL code:</label>
+                <label htmlFor="zimpl-code">Model code:</label>
                 <textarea
                     id="zimpl-code"
                     value={fileContent}
@@ -156,7 +156,7 @@ minimize distributeShiftsEqually:
                 <textarea
                     value={image.imageDescription}
                     onChange={(e) => updateImageField("imageDescription", e.target.value)}
-                    className="fixed-textarea"
+                    className="description-textarea"
                     placeholder="Enter image description..."
                 />
 
@@ -165,7 +165,7 @@ minimize distributeShiftsEqually:
                 </button>
             </div>
             {message && message.startsWith('Error:') ? (
-                <ErrorDisplay error={message} />
+                <ErrorDisplay error={message} onClose={() => setMessage("")} />
             ) : message ? (
                 <p className="upload-message success-message">{message}</p>
             ) : null}

@@ -13,7 +13,7 @@ const initialImageState = {
   imageId: null,
   owner: "guest",
   isPrivate: true,
-  solverSettings: {"Default": "", Optimallity: "set emphasis optimality", "Tree search": "set emphasis tree search", Feasibility: "set emphasis feasibility", "Aggressive static analysis": "set presolving emphasis aggressive"},
+  solverSettings: {"Default": "", Optimallity: "set emphasis optimality", "Tree search": "set emphasis tree search", Feasibility: "set emphasis feasibility", "Aggressive static analysis": "set presolving emphasis aggressive", "Numerics": "set emphasis numerics"},
   constraintModules: [],
   preferenceModules: [],
   variablesModule: null,
@@ -195,6 +195,16 @@ export const ZPLProvider = ({ children, initialState = {} }) => {
     }
   };
 
+  const deleteImage = async () => {
+    try {
+      const response = fetch(`/images/${image.imageId}`, {
+        method: "DELETE",
+      });
+    } catch (error) {
+      console.error("Error deleting image:", error);
+    }
+  };
+
   return (
     <ZPLContext.Provider
       value={{
@@ -212,7 +222,8 @@ export const ZPLProvider = ({ children, initialState = {} }) => {
         resetImage,
         resetModel,
         resetSolutionResponse,
-        fetchAndSetImage
+        fetchAndSetImage,
+        deleteImage
       }}
     >
       {children}

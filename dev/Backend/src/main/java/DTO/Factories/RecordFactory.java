@@ -205,7 +205,7 @@ public class RecordFactory {
                     preferences.add(makeDTO(module));
                 }
                 
-                return new ImageDTO(image.getId(),image.getName(), image.getDescription(), image.getOwner(), image.isPrivate(),image.getSolverScripts(), variables, constraints, preferences);
+                return new ImageDTO(image.getId(),image.getName(), image.getDescription(), image.getOwner(), image.isPrivate(),image.getSolverScripts(), variables, constraints, preferences, image.isConfigured());
         }
         private static VariableModuleDTO makeDTO(VariableModule module) {
             Set<VariableDTO> vars = new HashSet<>();

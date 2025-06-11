@@ -141,11 +141,14 @@ public class ImageController {
         return imageRepository.findById(imageId).get().getInput();
     }
 
+    //Gets only 'ready' images - ones that are configured and ready to be used.
     @Transactional
     public List<ImageDTO> getAllImages() {
         List<ImageDTO> ans = new LinkedList<>();
         for(Image image : imageRepository.findAll()){
-            ans.add(RecordFactory.makeDTO(image));
+            if(image.isConfigured()){
+                ans.add(RecordFactory.makeDTO(image));
+            }
         }
         return ans;
     }

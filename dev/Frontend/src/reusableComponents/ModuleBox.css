@@ -1,7 +1,7 @@
 /* ModuleBox.css */
 
 .module-box {
-  width: 45%; /* Set the width to 45% of the screen */
+  width: 48%; /* Set the width to 45% of the screen */
   border: 1px solid #ddd;
   padding: 11.25px; /* 75% of 15px */
   margin: 7.5px; /* 75% of 10px */
@@ -19,6 +19,8 @@
 /* Header section with title and buttons */
 .module-header {
   display: flex;
+  max-height: 22px;
+  width:100%;
   align-items: center;
   justify-content: space-between;
   padding-bottom: 7.5px; /* 75% of 10px */
