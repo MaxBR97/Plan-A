@@ -131,13 +131,13 @@ public class ConstraintModule extends Module{
         // Update input sets
         inputSets.clear();
         for (SetDefinitionDTO setDTO : dto.inputSets()) {
-            addSet(image.getModel().getSet(setDTO.name()));
+            addSet(setDTO);
         }
 
         // Update input parameters
         inputParams.clear();
         for (ParameterDefinitionDTO paramDTO : dto.inputParams()) {
-            addParam(image.getModel().getParameter(paramDTO.name()));
+            addParam(paramDTO);
         }
     }
 }

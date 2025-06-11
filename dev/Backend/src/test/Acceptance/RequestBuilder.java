@@ -1,5 +1,5 @@
 package Acceptance;
 
-public interface RequestBuilder {
-    
+public interface RequestBuilder<T> {
+    T build();
 }

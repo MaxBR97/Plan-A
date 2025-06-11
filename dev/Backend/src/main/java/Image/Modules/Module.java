@@ -98,7 +98,7 @@ public abstract class Module {
         }
     }
 
-    public Module(Image image, String moduleName, String description, Set<SetDefinitionDTO> inputSets, Set<ParameterDefinitionDTO> inputParams) {
+    public Module(Image image, String moduleName, String description, Set<SetDefinitionDTO> inputSets, Set<ParameterDefinitionDTO> inputParams) throws Exception {
         this.id = new ModuleId(image.getId(), moduleName);
         this.description = description;
         this.image = image;
@@ -107,15 +107,12 @@ public abstract class Module {
         
         // Convert DTOs to model objects
         for (SetDefinitionDTO setDTO : inputSets) {
-            ModelSet set = image.getModel().getSet(setDTO.name());
-            this.addSet(set);
-
+            this.addSet(setDTO);
             //consider adding s.setModuleName(this.getName());
         }
         
         for (ParameterDefinitionDTO paramDTO : inputParams) {
-            ModelParameter param = image.getModel().getParameter(paramDTO.name());
-            this.addParam(param);
+            this.addParam(paramDTO);
             //consider adding p.setModuleName(this.getName());
         }
     }
@@ -158,14 +155,32 @@ public abstract class Module {
     public abstract Set<ModelParameter> getInvolvedParameters();
 
     @Transactional
-    public void addParam(ModelParameter param) {
+    public void addParam(ParameterDefinitionDTO paramDTO) throws Exception {
+        ModelParameter param = image.getModel().getParameter(paramDTO.name());
+        inputParams.add(param);
+        param.setModuleName(this.getName());
+        param.getModelComponentId().setImageId(this.getId());
+        param.update(paramDTO);
+    }
+
+    @Transactional
+    public void addSet(SetDefinitionDTO setDTO) throws Exception {
+        ModelSet set = image.getModel().getSet(setDTO.name());
+        inputSets.add(set);
+        set.setModuleName(this.getName());
+        set.getModelComponentId().setImageId(this.getId());
+        set.update(setDTO);
+    }
+
+    //TODO: get rid of the following two methods, adding sets and params should be with DTOs
+    @Transactional
+    public void addParam(ModelParameter param) throws Exception {
         inputParams.add(param);
         param.setModuleName(this.getName());
         param.getModelComponentId().setImageId(this.getId());
     }
-
     @Transactional
-    public void addSet(ModelSet set) {
+    public void addSet(ModelSet set) throws Exception {
         inputSets.add(set);
         set.setModuleName(this.getName());
         set.getModelComponentId().setImageId(this.getId());

@@ -59,7 +59,7 @@ public class ImageController {
         
         try {
             // First check compilation using solver
-            String compilationResult = solverService.isCompiling(id, 15); // 10 second timeout
+            String compilationResult = solverService.isCompiling(id, 13);
             if (compilationResult != null && !compilationResult.isEmpty()) {
                 throw new BadRequestException("Code compilation failed: " + compilationResult);
             }

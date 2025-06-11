@@ -554,7 +554,7 @@ public class Image {
     }
 
     @Transactional
-    public void setVariablesModule(Map<String, ModelVariable> variables, Collection<String> sets, Collection<String> params) {
+    public void setVariablesModule(Map<String, ModelVariable> variables, Collection<String> sets, Collection<String> params) throws Exception {
         // Create a new module with the model data
         VariableModule module = new VariableModule(
             this,

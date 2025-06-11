@@ -101,9 +101,6 @@ public class PreferenceModule extends Module{
     public PreferenceModule(Image image ,String name, String description, Collection<ModelPreference> preferences, Collection<ModelSet> inputSets, Collection<ModelParameter> inputParams, Collection<ModelParameter> coefficients) {
         super(image , name, description,inputSets,Stream.concat(inputParams.stream(), coefficients.stream()).collect(Collectors.toSet()));
 
-        for(ModelParameter costParam : coefficients){
-            this.addParam(costParam);
-        }
         this.preferences = new HashMap<>();
         for (ModelPreference constraint : preferences) {
             this.preferences.put(constraint.getIdentifier(), constraint);
@@ -184,7 +181,7 @@ public class PreferenceModule extends Module{
         // Update input sets
         inputSets.clear();
         for (SetDefinitionDTO setDTO : dto.inputSets()) {
-            addSet(image.getModel().getSet(setDTO.name()));
+            addSet(setDTO);
         }
 
         // Update input parameters and cost parameters
@@ -193,12 +190,11 @@ public class PreferenceModule extends Module{
         
         // Add all parameters (both input and cost) to inputParams
         for (ParameterDefinitionDTO paramDTO : dto.inputParams()) {
-            addParam(image.getModel().getParameter(paramDTO.name()));
+            addParam(paramDTO);
         }
         for (ParameterDefinitionDTO paramDTO : dto.costParams()) {
+            addParam(paramDTO);
             ModelParameter param = image.getModel().getParameter(paramDTO.name());
-            addParam(param);
-            param.update(paramDTO);
             param.setCostParameter(true);
             costParameter.add(param.getIdentifier());
         }

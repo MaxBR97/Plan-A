@@ -61,6 +61,7 @@ import groupId.Main;
 import groupId.Service;
 import DTO.Records.Image.PreferenceModuleDTO;
 
+
 /*TODO: Add test for creating a preference module
 * with a cost param that doesnt appear in the inputSets list.
 */
@@ -942,6 +943,127 @@ public class ServiceTest {
         ResponseEntity<?> invalidUpdateResponse = requestsManager.sendConfigImageRequest(invalidUpdateRequest);
         ExceptionDTO invalidUpdateError = expectError(invalidUpdateResponse, HttpStatus.INTERNAL_SERVER_ERROR);
         assertTrue(invalidUpdateError.msg().toLowerCase().contains("name"), "Error should mention invalid name");
+    }
+
+    @Test
+    public void testUpdateAndPersistTagsAndAliases() {
+        // Create an image with a model that has sets and parameters for different modules
+        String code = """
+            set varModuleSet := {<1,2>, <2,3>, <3,4>};
+            set constModuleSet := {4,5,6};
+            set prefModuleSet := {7,8,9};
+            param varModuleParam := 5;
+            param constModuleParam := 10;
+            param prefModuleParam := 15;
+            var myVar[{1 .. card(varModuleSet) * varModuleParam }] integer;
+            var complexVar[constModuleSet] integer;
+            subto const1: myVar[1] + card(constModuleSet) <= constModuleParam;
+            minimize obj: prefModuleParam * (myVar[1] + card(prefModuleSet)) + 1;
+        """;
+
+        // Create the image
+        CreateImageFromFileDTO createImage = new CreateImageRequestBuilder(
+            "tagsAndAliasesTest",
+            "Testing tags and aliases persistence across modules",
+            "testUser",
+            false,
+            code
+        ).build();
+        CreateImageResponseDTO result = expectSuccess(requestsManager.sendCreateImageRequest(createImage), CreateImageResponseDTO.class);
+
+        // Configure the image with modules and their respective sets/parameters
+        ImageConfigDTO configImage = new ConfigureImageRequestBuilder("tagsAndAliasesTest", result)
+            // Variables module with its exclusive set and parameter
+            .setVariablesModule(
+                Set.of("myVar"),
+                Set.of("varModuleSet"),
+                Set.of("varModuleParam")
+            )
+            // Constraint module with its exclusive set and parameter
+            .addConstraintsModule(
+                "ConstraintModule",
+                "Test constraints",
+                Set.of("const1"),
+                Set.of("constModuleSet"),
+                Set.of("constModuleParam")
+            )
+            // Preference module with its exclusive set and parameter
+            .addPreferencesModule(
+                "PreferenceModule",
+                "Test preferences",
+                Set.of("prefModuleParam*(myVar[1]+card(prefModuleSet))"),
+                Set.of("prefModuleSet"),
+                Set.of(),
+                Set.of("prefModuleParam")
+            )
+            // Update metadata for sets in different modules
+            .updateSetMetadata("varModuleSet", List.of("VarSet", "Basic"), "SimpleVarSet")
+            .updateSetMetadata("constModuleSet", List.of("ConstSet"), "ConstraintSet")
+            .updateSetMetadata("prefModuleSet", List.of("PrefSet"), "PreferenceSet")
+            // Update metadata for parameters in different modules
+            .updateParameterMetadata("varModuleParam", "VarParam", "SimpleParam")
+            .updateParameterMetadata("constModuleParam", "ConstParam", "ConstraintParam")
+            .updateParameterMetadata("prefModuleParam", "PrefParam", "PreferenceParam")
+            .build();
+
+        // Send the update request
+        expectSuccess(requestsManager.sendConfigImageRequest(configImage), Void.class);
+
+        // Fetch the image and verify persistence
+        ResponseEntity<?> getResponse = requestsManager.sendGetImageRequest(result.imageId());
+        ImageDTO fetchedImage = expectSuccess(getResponse, ImageDTO.class);
+
+        // Verify sets in variables module
+        var varModuleSet = fetchedImage.variablesModule().inputSets().stream()
+            .filter(s -> s.name().equals("varModuleSet"))
+            .findFirst()
+            .orElseThrow();
+        assertEquals(List.of("VarSet", "Basic"), varModuleSet.tags());
+        assertEquals("SimpleVarSet", varModuleSet.alias());
+
+        // Verify sets in constraint module
+        var constModuleSet = fetchedImage.constraintModules().stream()
+            .flatMap(m -> m.inputSets().stream())
+            .filter(s -> s.name().equals("constModuleSet"))
+            .findFirst()
+            .orElseThrow();
+        assertEquals(List.of("ConstSet"), constModuleSet.tags());
+        assertEquals("ConstraintSet", constModuleSet.alias());
+
+        // Verify sets in preference module
+        var prefModuleSet = fetchedImage.preferenceModules().stream()
+            .flatMap(m -> m.inputSets().stream())
+            .filter(s -> s.name().equals("prefModuleSet"))
+            .findFirst()
+            .orElseThrow();
+        assertEquals(List.of("PrefSet"), prefModuleSet.tags());
+        assertEquals("PreferenceSet", prefModuleSet.alias());
+
+        // Verify parameters in variables module
+        var varModuleParam = fetchedImage.variablesModule().inputParams().stream()
+            .filter(p -> p.name().equals("varModuleParam"))
+            .findFirst()
+            .orElseThrow();
+        assertEquals("VarParam", varModuleParam.tag());
+        assertEquals("SimpleParam", varModuleParam.alias());
+
+        // Verify parameters in constraint module
+        var constModuleParam = fetchedImage.constraintModules().stream()
+            .flatMap(m -> m.inputParams().stream())
+            .filter(p -> p.name().equals("constModuleParam"))
+            .findFirst()
+            .orElseThrow();
+        assertEquals("ConstParam", constModuleParam.tag());
+        assertEquals("ConstraintParam", constModuleParam.alias());
+
+        // Verify parameters in preference module
+        var prefModuleParam = fetchedImage.preferenceModules().stream()
+            .flatMap(m -> m.inputParams().stream())
+            .filter(p -> p.name().equals("prefModuleParam"))
+            .findFirst()
+            .orElseThrow();
+        assertEquals("PrefParam", prefModuleParam.tag());
+        assertEquals("PreferenceParam", prefModuleParam.alias());
     }
 
     private <T> T expectSuccess(ResponseEntity<?> response, Class<T> expectedType) {

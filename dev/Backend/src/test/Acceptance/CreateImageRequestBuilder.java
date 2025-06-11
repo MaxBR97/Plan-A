@@ -9,27 +9,26 @@ import java.nio.file.Paths;
 
 import DTO.Records.Requests.Commands.CreateImageFromFileDTO;
 
-public class CreateImageRequestBuilder implements RequestBuilder {
+public class CreateImageRequestBuilder implements RequestBuilder<CreateImageFromFileDTO> {
     CreateImageFromFileDTO req;
 
-    public CreateImageRequestBuilder(String imageName, String imageDescription, String owner, Boolean isPrivate, String code){    
-        req = new CreateImageFromFileDTO(imageName,imageDescription, owner, isPrivate, code);
+    public CreateImageRequestBuilder(String imageName, String imageDescription, String owner, Boolean isPrivate, String code) {    
+        req = new CreateImageFromFileDTO(imageName, imageDescription, owner, isPrivate, code);
     }
 
-    public CreateImageRequestBuilder(String imageName,String imageDescription, String owner, Boolean isPrivate, Path code){
-         String codeString = "";
-            try {
+    public CreateImageRequestBuilder(String imageName, String imageDescription, String owner, Boolean isPrivate, Path code) {
+        String codeString = "";
+        try {
             codeString = Files.readString(code);
-            
-            } catch (Exception e) {
-                e.printStackTrace();
-                assertTrue(false);
-            }
-        req = new CreateImageFromFileDTO(imageName,imageDescription, owner, isPrivate, codeString);
+        } catch (Exception e) {
+            e.printStackTrace();
+            assertTrue(false);
+        }
+        req = new CreateImageFromFileDTO(imageName, imageDescription, owner, isPrivate, codeString);
     }
     
+    @Override
     public CreateImageFromFileDTO build() {
-       return req;
+        return req;
     }
-    
 }

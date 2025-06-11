@@ -1,10 +1,12 @@
 package Acceptance;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.databind.deser.impl.CreatorCandidate.Param;
 
@@ -20,51 +22,33 @@ import DTO.Records.Requests.Commands.CreateImageFromFileDTO;
 import DTO.Records.Requests.Commands.ImageConfigDTO;
 import DTO.Records.Requests.Responses.CreateImageResponseDTO;
 
-public class ConfigureImageRequestBuilder implements RequestBuilder{
+public class ConfigureImageRequestBuilder implements RequestBuilder<ImageConfigDTO> {
 
-    CreateImageResponseDTO context;
-    ImageDTO imageDTO;
+    private String imageName;
+    private CreateImageResponseDTO createImageResponse;
+    private VariableModuleDTO variablesModule;
+    private Set<ConstraintModuleDTO> constraintModules = new HashSet<>();
+    private Set<PreferenceModuleDTO> preferenceModules = new HashSet<>();
 
-    public ConfigureImageRequestBuilder(String imageName, CreateImageResponseDTO createdImageReponse){
-        this.context = createdImageReponse;
-        imageDTO = new ImageDTO(context.imageId(),
-                              imageName,
-                              null,  // description
-                              null,  // owner
-                              null,  // isPrivate
-                              null,  // solverSettings
-                              null,  // variablesModule
-                              null,  // constraintModules
-                              null   // preferenceModules
-                              );
-        // this.context = createdImageReponse;
-        // imageDTO=new ImageDTO(context.imageId(),imageName,null, null, null, null,  new VariableModuleDTO(Set.of(),Set.of(),Set.of()),
-        //                                         Set.of(),
-        //                                         Set.of());
+    public ConfigureImageRequestBuilder(String imageName, CreateImageResponseDTO createImageResponse) {
+        this.imageName = imageName;
+        this.createImageResponse = createImageResponse;
     }
 
-    public ConfigureImageRequestBuilder setVariablesModule(Set<String> vars, Set<String> setInputs, Set<String> paramInputs){
+    public ConfigureImageRequestBuilder setVariablesModule(Set<String> vars, Set<String> setInputs, Set<String> paramInputs) {
         Set<VariableDTO> convertedVars = new HashSet<>();
         Set<SetDefinitionDTO> sets = new HashSet<>();
         Set<ParameterDefinitionDTO> params = new HashSet<>();
-        for(String s : setInputs){
+        for(String s : setInputs) {
             sets.add(getSet(s));
         }
-        for(String p : paramInputs){
+        for(String p : paramInputs) {
             params.add(getParam(p));
         }
-        for(String v : vars){
+        for(String v : vars) {
             convertedVars.add(getVar(v));
         }
-        VariableModuleDTO tmp = new VariableModuleDTO(convertedVars, sets, params);
-        imageDTO = new ImageDTO(imageDTO.imageId(), imageDTO.imageName(), imageDTO.imageDescription(),
-                                imageDTO.owner(),
-                                imageDTO.isPrivate(),
-                                null,
-                                tmp,
-                                imageDTO.constraintModules(),
-                                imageDTO.preferenceModules()
-                    );
+        variablesModule = new VariableModuleDTO(convertedVars, sets, params);
         return this;
     }
 
@@ -77,7 +61,7 @@ public class ConfigureImageRequestBuilder implements RequestBuilder{
         Set<String> setInputs = new HashSet<>();
         Set<String> paramInputs = new HashSet<>();
 
-        for(VariableDTO v : context.model().variables()){
+        for(VariableDTO v : createImageResponse.model().variables()){
             vars.add(v.identifier());
             setInputs.addAll(v.dep().setDependencies());
             paramInputs.addAll(v.dep().paramDependencies());
@@ -93,21 +77,14 @@ public class ConfigureImageRequestBuilder implements RequestBuilder{
             convertedVars.add(getVar(v));
         }
         VariableModuleDTO tmp = new VariableModuleDTO(convertedVars, sets, params);
-        imageDTO = new ImageDTO(imageDTO.imageId(), imageDTO.imageName(), imageDTO.imageDescription(),
-                                imageDTO.owner(),
-                                imageDTO.isPrivate(),
-                                null,
-                                tmp,
-                                imageDTO.constraintModules(),
-                                imageDTO.preferenceModules()
-                    );
+        variablesModule = tmp;
         return this;
     }
     
 
     public ConfigureImageRequestBuilder addConstraintsModule(String name, String desc, Set<String> constraints, Set<String> setInputs, Set<String> paramInputs){
-        Set<ConstraintModuleDTO> tmp = imageDTO.constraintModules() == null ? 
-            new HashSet<>() : new HashSet<>(imageDTO.constraintModules());
+        Set<ConstraintModuleDTO> tmp = constraintModules.isEmpty() ? 
+            new HashSet<>() : new HashSet<>(constraintModules);
         Set<SetDefinitionDTO> sets = new HashSet<>();
         Set<ParameterDefinitionDTO> params = new HashSet<>();
         for(String s : setInputs){
@@ -117,20 +94,13 @@ public class ConfigureImageRequestBuilder implements RequestBuilder{
             params.add(getParam(p));
         }
         tmp.add(new ConstraintModuleDTO(name, desc, constraints, sets, params));
-        imageDTO = new ImageDTO(imageDTO.imageId(), imageDTO.imageName(), imageDTO.imageDescription(),
-                                imageDTO.owner(),
-                                imageDTO.isPrivate(),
-                                null,
-                                imageDTO.variablesModule(),
-                                tmp,
-                                imageDTO.preferenceModules()
-                    );
+        constraintModules = tmp;
         return this;
     }
 
     public ConfigureImageRequestBuilder addPreferencesModule(String name, String desc, Set<String> prefs, Set<String> setInputs, Set<String> paramInputs, Set<String> costParams){
-        Set<PreferenceModuleDTO> tmp = imageDTO.preferenceModules() == null ? 
-            new HashSet<>() : new HashSet<>(imageDTO.preferenceModules());
+        Set<PreferenceModuleDTO> tmp = preferenceModules.isEmpty() ? 
+            new HashSet<>() : new HashSet<>(preferenceModules);
         Set<SetDefinitionDTO> sets = new HashSet<>();
         Set<ParameterDefinitionDTO> params = new HashSet<>();
         Set<ParameterDefinitionDTO> costs = new HashSet<>();
@@ -145,24 +115,30 @@ public class ConfigureImageRequestBuilder implements RequestBuilder{
         }
 
         tmp.add(new PreferenceModuleDTO(name, desc, prefs, sets, params, costs));
-        imageDTO = new ImageDTO(imageDTO.imageId(), imageDTO.imageName(), imageDTO.imageDescription(),
-                                imageDTO.owner(),
-                                imageDTO.isPrivate(),
-                                null,
-                                imageDTO.variablesModule(),
-                                imageDTO.constraintModules(),
-                                tmp
-                    );
+        preferenceModules = tmp;
         return this;
     }
     
+    @Override
     public ImageConfigDTO build() {
-        return new ImageConfigDTO(imageDTO.imageId(),imageDTO);
+        ImageDTO imageDTO = new ImageDTO(
+            createImageResponse.imageId(),
+            imageName,
+            null,  // Default description
+            null,
+            false,
+            Map.of(),
+            variablesModule,
+            constraintModules,
+            preferenceModules
+        );
+
+        return new ImageConfigDTO(createImageResponse.imageId(), imageDTO);
     }
 
     private SetDefinitionDTO getSet(String id){
         
-        for( Map.Entry<String,List<String>> entry : context.model().setTypes().entrySet()){
+        for( Map.Entry<String,List<String>> entry : createImageResponse.model().setTypes().entrySet()){
             if(entry.getKey().equals(id)){
                 return new SetDefinitionDTO(id, entry.getValue(),entry.getValue(),id);
             }
@@ -171,7 +147,7 @@ public class ConfigureImageRequestBuilder implements RequestBuilder{
     }
 
     private ParameterDefinitionDTO getParam(String id){
-        for( Map.Entry<String,String> entry : context.model().paramTypes().entrySet()){
+        for( Map.Entry<String,String> entry : createImageResponse.model().paramTypes().entrySet()){
             if(entry.getKey().equals(id)){
                 return new ParameterDefinitionDTO(id, entry.getValue(),entry.getValue(),id);
             }
@@ -180,11 +156,139 @@ public class ConfigureImageRequestBuilder implements RequestBuilder{
     }
 
     private VariableDTO getVar(String id){
-        Optional<VariableDTO> match = context.model().variables().stream()
+        Optional<VariableDTO> match = createImageResponse.model().variables().stream()
         .filter(v -> id.equals(v.identifier()))
         .findFirst();
         return match.get();
     }
     
+    public ConfigureImageRequestBuilder updateSetMetadata(String setName, List<String> tags, String alias) {
+        // Try to find and update in variables module
+        if (variablesModule != null) {
+            Set<SetDefinitionDTO> updatedSets = variablesModule.inputSets().stream()
+                .map(set -> set.name().equals(setName) ? 
+                    new SetDefinitionDTO(setName, tags, set.type(), alias) : set)
+                .collect(Collectors.toSet());
+            variablesModule = new VariableModuleDTO(
+                variablesModule.variablesOfInterest(),
+                updatedSets,
+                variablesModule.inputParams()
+            );
+        }
 
+        // Try to find and update in constraint modules
+        constraintModules = constraintModules.stream()
+            .map(module -> {
+                Set<SetDefinitionDTO> updatedSets = module.inputSets().stream()
+                    .map(set -> set.name().equals(setName) ? 
+                        new SetDefinitionDTO(setName, tags, set.type(), alias) : set)
+                    .collect(Collectors.toSet());
+                return new ConstraintModuleDTO(
+                    module.moduleName(),
+                    module.description(),
+                    module.constraints(),
+                    updatedSets,
+                    module.inputParams()
+                );
+            })
+            .collect(Collectors.toSet());
+
+        // Try to find and update in preference modules
+        preferenceModules = preferenceModules.stream()
+            .map(module -> {
+                Set<SetDefinitionDTO> updatedSets = module.inputSets().stream()
+                    .map(set -> set.name().equals(setName) ? 
+                        new SetDefinitionDTO(setName, tags, set.type(), alias) : set)
+                    .collect(Collectors.toSet());
+                return new PreferenceModuleDTO(
+                    module.moduleName(),
+                    module.description(),
+                    module.preferences(),
+                    updatedSets,
+                    module.inputParams(),
+                    module.costParams()
+                );
+            })
+            .collect(Collectors.toSet());
+
+        return this;
+    }
+
+    public ConfigureImageRequestBuilder updateParameterMetadata(String paramName, String tag, String alias) {
+        // Try to find and update in variables module
+        if (variablesModule != null) {
+            Set<ParameterDefinitionDTO> updatedParams = variablesModule.inputParams().stream()
+                .map(param -> param.name().equals(paramName) ? 
+                    new ParameterDefinitionDTO(paramName, tag, param.type(), alias) : param)
+                .collect(Collectors.toSet());
+            variablesModule = new VariableModuleDTO(
+                variablesModule.variablesOfInterest(),
+                variablesModule.inputSets(),
+                updatedParams
+            );
+        }
+
+        // Try to find and update in constraint modules
+        constraintModules = constraintModules.stream()
+            .map(module -> {
+                Set<ParameterDefinitionDTO> updatedParams = module.inputParams().stream()
+                    .map(param -> param.name().equals(paramName) ? 
+                        new ParameterDefinitionDTO(paramName, tag, param.type(), alias) : param)
+                    .collect(Collectors.toSet());
+                return new ConstraintModuleDTO(
+                    module.moduleName(),
+                    module.description(),
+                    module.constraints(),
+                    module.inputSets(),
+                    updatedParams
+                );
+            })
+            .collect(Collectors.toSet());
+
+        // Try to find and update in preference modules
+        preferenceModules = preferenceModules.stream()
+            .map(module -> {
+                Set<ParameterDefinitionDTO> updatedParams = module.inputParams().stream()
+                    .map(param -> param.name().equals(paramName) ? 
+                        new ParameterDefinitionDTO(paramName, tag, param.type(), alias) : param)
+                    .collect(Collectors.toSet());
+                Set<ParameterDefinitionDTO> updatedCostParams = module.costParams().stream()
+                    .map(param -> param.name().equals(paramName) ? 
+                        new ParameterDefinitionDTO(paramName, tag, param.type(), alias) : param)
+                    .collect(Collectors.toSet());
+                return new PreferenceModuleDTO(
+                    module.moduleName(),
+                    module.description(),
+                    module.preferences(),
+                    module.inputSets(),
+                    updatedParams,
+                    updatedCostParams
+                );
+            })
+            .collect(Collectors.toSet());
+
+        return this;
+    }
+
+    public ConfigureImageRequestBuilder updateVariableMetadata(String varIdentifier, List<String> tags) {
+        if (variablesModule != null) {
+            Set<VariableDTO> updatedVars = variablesModule.variablesOfInterest().stream()
+                .map(var -> var.identifier().equals(varIdentifier) ? 
+                    new VariableDTO(
+                        varIdentifier,
+                        tags,
+                        var.type(),
+                        var.dep(),
+                        var.boundSet(),
+                        var.isBinary()
+                    ) : var)
+                .collect(Collectors.toSet());
+            variablesModule = new VariableModuleDTO(
+                updatedVars,
+                variablesModule.inputSets(),
+                variablesModule.inputParams()
+            );
+        }
+        return this;
+    }
 }

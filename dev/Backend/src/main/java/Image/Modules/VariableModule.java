@@ -151,7 +151,8 @@ public class VariableModule extends Module {
             if (modelVar == null) {
                 throw new IllegalArgumentException("Invalid variable name: " + varDTO.identifier());
             }
-            modelVar.setTags(varDTO.tags().toArray(new String[0]));
+            modelVar.update(varDTO);
+            //TODO: refactor this line to be done in the ModelVariable class by the update method.
             modelVar.setBoundSet(image.getModel().getSet(varDTO.boundSet()));
             variables.put(varDTO.identifier(), modelVar);
         }
@@ -159,13 +160,13 @@ public class VariableModule extends Module {
         // Update input sets
         inputSets.clear();
         for (var setDTO : dto.inputSets()) {
-            addSet(image.getModel().getSet(setDTO.name()));
+            addSet(setDTO);
         }
 
         // Update input parameters
         inputParams.clear();
         for (var paramDTO : dto.inputParams()) {
-            addParam(image.getModel().getParameter(paramDTO.name()));
+            addParam(paramDTO);
         }
     }
 
