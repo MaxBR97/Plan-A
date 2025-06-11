@@ -523,7 +523,7 @@ const SolutionResultsPage = ({
         <div className="control-panel-section">
           <div className="section-header">
             <h3 className="section-title">Timeout Setting</h3>
-            <InfoIcon tooltip="Maximum time (in seconds) allowed for the solver to find a solution" />
+            <InfoIcon tooltip="Maximum time (in seconds) allowed for the solver to find a solution. The more time it is given, the better solution it can find or more likely to find a solution." />
           </div>
           <div className="timeout-input">
             <label>Timeout (seconds):</label>
@@ -540,7 +540,7 @@ const SolutionResultsPage = ({
         <div className="control-panel-section">
           <div className="section-header">
             <h3 className="section-title">Solver Emphasis</h3>
-            <InfoIcon tooltip="Choose the solver configuration to use for optimization" />
+            <InfoIcon tooltip="Choose a solver configuration to use for optimization. Different settings might be relevant for different inputs and goals." />
           </div>
           <div className="script-options">
             {Object.keys(image.solverSettings).map((key) => (
@@ -562,7 +562,7 @@ const SolutionResultsPage = ({
         <div className="control-panel-section">
           <div className="section-header">
             <h3 className="section-title">Dimension Order</h3>
-            <InfoIcon tooltip="Drag and drop to reorder how dimensions are displayed in the table" />
+            <InfoIcon tooltip="Drag and drop the headers to reorder the way they are displayed in the solution table." />
           </div>
           <DragDropContext onDragEnd={onDragEnd}>
             <Droppable droppableId="set-structure-list">

@@ -14,6 +14,13 @@ const ConfigurePreferencesPage = () => {
         updateImageField
     } = useZPL();
 
+    // Helper function to filter duplicate preferences
+    const filterDuplicatePreferences = (preferences) => {
+        return preferences.filter((pref, index, self) => 
+            index === self.findIndex(p => p.identifier === pref.identifier)
+        );
+    };
+
     // Initialize state from existing imageDTO values
     const [availablePreferences, setAvailablePreferences] = useState([]);
     const [moduleName, setModuleName] = useState('');
@@ -26,7 +33,6 @@ const ConfigurePreferencesPage = () => {
     
     // Initialize modules from image DTO
     const [allModules, setAllModules] = useState(() => {
-        console.log("Initializing allModules from image:", image.preferenceModules);
         const modules = Array.isArray(image.preferenceModules) ? image.preferenceModules : [];
         return modules.map(module => ({
             ...module,
@@ -44,14 +50,11 @@ const ConfigurePreferencesPage = () => {
     const [selectedPreference, setSelectedPreference] = useState(null);
     const [selectedCostParam, setSelectedCostParam] = useState(null);
 
-    console.log("Current abccc:", image);
-    console.log("Current image.preferenceModules:", image.preferenceModules);
-    console.log("Current allModules state:", allModules);
-    console.log("Current allModules state2:", model);
+    
 
     // Update allModules when image changes
     useEffect(() => {
-        console.log("Image changed, updating allModules:", image.preferenceModules);
+        
         const modules = Array.isArray(image.preferenceModules) ? image.preferenceModules : [];
         const updatedModules = modules.map(module => ({
             ...module,
@@ -66,14 +69,15 @@ const ConfigurePreferencesPage = () => {
     useEffect(() => {
         // Initialize available preferences based on what's not already used in modules
         const usedPreferences = new Set(allModules.flatMap(m => m.preferences));
-        const available = Array.from(model.preferences).filter(p => !usedPreferences.has(p.identifier));
-        console.log("Setting available preferences:", available);
+        const available = filterDuplicatePreferences(
+            Array.from(model.preferences).filter(p => !usedPreferences.has(p.identifier))
+        );
         setAvailablePreferences(available);
     }, [model.preferences, allModules]);
 
     useEffect(() => {
         if (selectedModuleIndex !== null && allModules.length > 0) {
-            console.log("Loading module for editing:", allModules[selectedModuleIndex]);
+
             const module = allModules[selectedModuleIndex];
             setModuleName(module.moduleName);
             setModuleDescription(module.description);
@@ -175,7 +179,7 @@ const ConfigurePreferencesPage = () => {
                 type: model.paramTypes?.[paramName]
             }))
         };
-
+        console.log("update occured")
         setAllModules(updatedModules);
         updateImageField("preferenceModules", updatedModules);
     };
@@ -186,7 +190,13 @@ const ConfigurePreferencesPage = () => {
             .find(p => p.identifier === moduleToDelete.preferences[0]);
 
         if (preferenceToRestore) {
-            setAvailablePreferences([...availablePreferences, preferenceToRestore]);
+            setAvailablePreferences(prev => {
+                const updated = [...prev];
+                if (!prev.some(p => p.identifier === preferenceToRestore.identifier)) {
+                    updated.push(preferenceToRestore);
+                }
+                return filterDuplicatePreferences(updated);
+            });
         }
 
         const updatedModules = allModules.filter((_, i) => i !== index);
@@ -251,12 +261,15 @@ const ConfigurePreferencesPage = () => {
         );
         if (usedInVariables) return false;
 
-        // Check if used in other modules
-        const usedInOtherModules = allModules.some(module => 
-            isSet 
+        // Check if used in other modules, excluding the current module being edited
+        const usedInOtherModules = allModules.some((module, index) => {
+            // Skip the current module being edited
+            if (index === selectedModuleIndex) return false;
+            
+            return isSet 
                 ? module.inputSets.some(s => s.name === inputName)
-                : module.inputParams.some(p => p.name === inputName)
-        );
+                : module.inputParams.some(p => p.name === inputName);
+        });
         if (usedInOtherModules) return false;
 
         return true;
@@ -264,6 +277,19 @@ const ConfigurePreferencesPage = () => {
 
     const handlePreferenceSelect = (preference) => {
         if (selectedPreference === preference.identifier) {
+            // Restore the unselected preference to available list in all cases
+            const preferenceObj = Array.from(model.preferences)
+                .find(p => p.identifier === preference.identifier);
+            if (preferenceObj) {
+                setAvailablePreferences(prev => {
+                    const updated = [...prev];
+                    if (!prev.some(p => p.identifier === preferenceObj.identifier)) {
+                        updated.push(preferenceObj);
+                    }
+                    return filterDuplicatePreferences(updated);
+                });
+            }
+            
             setSelectedPreference(null);
             setInvolvedSets([]);
             setInvolvedParams([]);
@@ -271,8 +297,36 @@ const ConfigurePreferencesPage = () => {
             setSelectedParams([]);
             setSelectedCostParam(null);
         } else {
+            // If there's already a selected preference, restore it to the available list first
+            if (selectedPreference) {
+                const currentPreferenceObj = Array.from(model.preferences)
+                    .find(p => p.identifier === selectedPreference);
+                if (currentPreferenceObj) {
+                    setAvailablePreferences(prev => {
+                        const updated = [...prev];
+                        if (!prev.some(p => p.identifier === currentPreferenceObj.identifier)) {
+                            updated.push(currentPreferenceObj);
+                        }
+                        return filterDuplicatePreferences(updated);
+                    });
+                }
+            }
+
             setSelectedPreference(preference.identifier);
             
+            // When selecting a preference while editing a module, restore its previous inputs if they exist
+            if (selectedModuleIndex !== null) {
+                const currentModule = allModules[selectedModuleIndex];
+                const wasPreferenceInModule = currentModule.preferences[0] === preference.identifier;
+                
+                if (wasPreferenceInModule) {
+                    // Restore the module's previous input selections
+                    setSelectedSets(currentModule.inputSets.map(s => s.name));
+                    setSelectedParams(currentModule.inputParams.map(p => p.name));
+                    setSelectedCostParam(currentModule.costParams?.[0]?.name);
+                }
+            }
+
             // Filter sets and params based on availability
             const availableSets = (preference.dep?.setDependencies || [])
                 .filter(set => isInputAvailable(set, true));
@@ -281,10 +335,28 @@ const ConfigurePreferencesPage = () => {
             
             setInvolvedSets(availableSets);
             setInvolvedParams(availableParams);
-            setSelectedSets(availableSets);
-            setSelectedParams(availableParams);
-            setSelectedCostParam(null);
+            
+            // Only set selected inputs if we're not restoring a previous state
+            if (!(selectedModuleIndex !== null && allModules[selectedModuleIndex].preferences[0] === preference.identifier)) {
+                setSelectedSets(availableSets);
+                setSelectedParams(availableParams);
+                setSelectedCostParam(null);
+            }
+            
+            // Remove the newly selected preference from available list and ensure no duplicates
+            setAvailablePreferences(prev => 
+                filterDuplicatePreferences(prev.filter(p => p.identifier !== preference.identifier))
+            );
         }
+    };
+
+    // Update the preference display in the module configuration
+    const renderPreferenceIdentifier = (identifier) => {
+        if (!identifier) return null;
+        if (identifier.length > 50) {
+            return `${identifier.slice(0, 47)}...`;
+        }
+        return identifier;
     };
 
     const handleSetToggle = (setName) => {
@@ -330,7 +402,9 @@ const ConfigurePreferencesPage = () => {
         <div className="configure-preferences-page" onClick={handlePageClick}>
             <h1 className="page-title">Configure Preference Modules</h1>
             <p className="page-description">
-                Create and manage preference modules to define optimization objectives. Each module represents a distinct optimization goal with its associated parameters and dependencies.
+                Create and manage preference modules. Preference modules provide a way to adjust the optimization objective, by balancing between trade-offs.
+                Each Preference Module ideally represents a distinct optimization goal.
+                By setting a 'cost parameter' which represents the importance of the module's optimization goal, you can easily balance between the different modules in the image.
             </p>
             
             <div className="preferences-layout">
@@ -339,7 +413,7 @@ const ConfigurePreferencesPage = () => {
                     <div className="panel-header">
                         <h2>
                             <span>Available Modules</span>
-                            <InfoIcon tooltip="List of preference modules that can be configured for your optimization model" />
+                            <InfoIcon tooltip="Here you can see all the modules you have created. You can edit or delete them as needed." />
                         </h2>
                     </div>
                     <div className="module-list" role="list" aria-label="preference modules" data-testid="module-list">
@@ -407,8 +481,9 @@ const ConfigurePreferencesPage = () => {
                                     <div 
                                         className="preference-tag"
                                         onClick={() => handlePreferenceSelect({ identifier: selectedPreference })}
+                                        title={selectedPreference}
                                     >
-                                        {selectedPreference}
+                                        {renderPreferenceIdentifier(selectedPreference)}
                                     </div>
                                 ) : (
                                     <div className="no-preference">No preference selected</div>
@@ -482,9 +557,10 @@ const ConfigurePreferencesPage = () => {
                 <div className="available-preferences-panel" onClick={handleModuleClick}>
                     <div className="panel-header">
                         <h2>Available Preferences</h2>
-                        <div className="info-icon" title="Select from these available preferences to add to your module. Each preference can only be used in one module.">
+                        <InfoIcon tooltip="List of the parsed components of your optimization function in the model you provided. Select a component which correlates to an optimization goal." />
+                        {/* <div className="info-icon" title="Select from these available preferences to add to your module. Each preference can only be used in one module.">
                             ℹ️
-                        </div>
+                        </div> */}
                     </div>
                     <div className="preferences-list">
                         {availablePreferences.map(preference => {

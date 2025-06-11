@@ -17,7 +17,7 @@
 
 .preferences-layout {
     display: grid;
-    grid-template-columns: 1fr 2fr 1fr;
+    grid-template-columns: 35% 40% 25%;
     gap: 1.5rem;
     width: 100%;
     margin-bottom: 1.5rem;
@@ -142,17 +142,23 @@
     min-height: 2.25rem;
     border: 1px solid #ced4da;
     border-radius: 30px;
-    padding: 0.5625rem;
+    padding: 0.875rem;
     background-color: white;
+    overflow: hidden;
 }
 
 .preference-tag {
     display: inline-flex;
     align-items: center;
-    background-color: #e9ecef;
+    background-color: #e7f1ff;
+    color: #007bff;
     padding: 0.375rem 0.75rem;
     border-radius: 3px;
     gap: 0.375rem;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .remove-preference {
@@ -244,11 +250,24 @@
     padding: 0.5625rem;
     cursor: pointer;
     transition: all 0.2s ease;
+    word-break: break-word;
+    overflow-wrap: break-word;
+}
+
+.preference-item.selected {
+    background: #e7f1ff;
+    border: 1.5px solid #007bff;
+    color: #007bff;
+    font-weight: 500;
 }
 
 .preference-item:hover {
     background-color: #f0f7ff;
     border-color: #4a90e2;
+}
+
+.preference-item.selected:hover {
+    background: #d0e3ff;
 }
 
 /* Navigation Buttons */

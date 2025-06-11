@@ -136,14 +136,18 @@
     box-shadow: 0 0 0 1.5px rgba(0, 123, 255, 0.25);
 }
 
+.form-group textarea {
+    resize: none;
+}
+
 .selected-constraints {
     display: flex;
     flex-wrap: wrap;
     gap: 0.375rem;
     min-height: 37.5px;
-    padding: 0.375rem;
+    padding: 0.875rem;
     background: #e9ecef;
-    border-radius: 3px;
+    border-radius: 30px;
 }
 
 .selected-constraint {
@@ -162,8 +166,14 @@
 }
 
 .constraint-item.selected {
-    background: #e9ecef;
-    border-color: #007bff;
+    background: #e7f1ff;
+    border: 1.5px solid #007bff;
+    color: #007bff;
+    font-weight: 500;
+}
+
+.constraint-item.selected:hover {
+    background: #d0e3ff;
 }
 
 .remove-constraint {

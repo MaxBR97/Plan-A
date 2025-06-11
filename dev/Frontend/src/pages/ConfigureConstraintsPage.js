@@ -49,7 +49,7 @@ const ConfigureConstraintsPage = () => {
 
     useEffect(() => {
         // Initialize available constraints based on what's not already used in modules
-        setAvailableConstraints(Array.from(model.constraints).filter((c) => 
+        const updatedAvailableConstraints = Array.from(model.constraints).filter((c) => 
             allModules.every((module) => 
                 !module.constraints.some(constraint => 
                     typeof constraint === 'string' 
@@ -57,7 +57,8 @@ const ConfigureConstraintsPage = () => {
                         : constraint.identifier === c.identifier
                 )
             )
-        ));
+        );
+        setAvailableConstraints(updatedAvailableConstraints);
     }, [model.constraints, allModules]);
 
     useEffect(() => {
@@ -80,8 +81,15 @@ const ConfigureConstraintsPage = () => {
                 (constraint.dep?.paramDependencies || []).filter(param => !bannedParams.includes(param)).forEach(param => params.add(param));
             });
 
-            setInvolvedSets(Array.from(sets));
-            setInvolvedParams(Array.from(params));
+            const involvedSetsArray = Array.from(sets);
+            const involvedParamsArray = Array.from(params);
+
+            setInvolvedSets(involvedSetsArray);
+            setInvolvedParams(involvedParamsArray);
+            
+            // Set the selected inputs based on the module's configuration
+            setSelectedSets(module.inputSets.map(s => s.name));
+            setSelectedParams(module.inputParams.map(p => p.name));
         } else {
             setModuleName('');
             setModuleDescription('');
@@ -156,7 +164,7 @@ const ConfigureConstraintsPage = () => {
             Array.from(model.constraints).find(mc => mc.identifier === c)
         ).filter(Boolean);
 
-        setAvailableConstraints([...availableConstraints, ...constraintsToRestore]);
+        // setAvailableConstraints([...availableConstraints, ...constraintsToRestore]);
         const updatedModules = allModules.filter((_, i) => i !== index);
         setAllModules(updatedModules);
         updateImageField("constraintModules", updatedModules);
@@ -213,11 +221,16 @@ const ConfigureConstraintsPage = () => {
     const handleConstraintSelect = (constraint) => {
         if (selectedConstraints.includes(constraint.identifier)) {
             // If clicking a selected constraint, remove it
-            setSelectedConstraints(selectedConstraints.filter(c => c !== constraint.identifier));
+            const updatedConstraints = selectedConstraints.filter(c => c !== constraint.identifier);
+            setSelectedConstraints(updatedConstraints);
+            
+            // If we're editing a module, update available constraints
+            if (selectedModuleIndex !== null) {
+                setAvailableConstraints(prev => [...prev, constraint]);
+            }
             
             // Recalculate involved sets and params
-            const remainingConstraints = selectedConstraints
-                .filter(c => c !== constraint.identifier)
+            const remainingConstraints = updatedConstraints
                 .map(c => Array.from(model.constraints).find(mc => mc.identifier === c))
                 .filter(Boolean);
 
@@ -226,9 +239,9 @@ const ConfigureConstraintsPage = () => {
 
             remainingConstraints.forEach(constraint => {
                 const availableSets = (constraint.dep?.setDependencies || [])
-                    .filter(set => isInputAvailable(set, true));
+                    .filter(set => isInputAvailable(set, true) || selectedSets.includes(set));
                 const availableParams = (constraint.dep?.paramDependencies || [])
-                    .filter(param => isInputAvailable(param, false));
+                    .filter(param => isInputAvailable(param, false) || selectedParams.includes(param));
                 
                 availableSets.forEach(set => sets.add(set));
                 availableParams.forEach(param => params.add(param));
@@ -236,19 +249,26 @@ const ConfigureConstraintsPage = () => {
 
             setInvolvedSets(Array.from(sets));
             setInvolvedParams(Array.from(params));
-            setSelectedSets(Array.from(sets));
-            setSelectedParams(Array.from(params));
+            
+            // Only reset selected inputs if they're no longer involved
+            setSelectedSets(prev => prev.filter(set => sets.has(set)));
+            setSelectedParams(prev => prev.filter(param => params.has(param)));
         } else {
             setSelectedConstraints([...selectedConstraints, constraint.identifier]);
+            
+            // If we're editing a module, update available constraints
+            if (selectedModuleIndex !== null) {
+                setAvailableConstraints(prev => prev.filter(c => c.identifier !== constraint.identifier));
+            }
             
             // Add new sets and params
             const newSets = new Set(involvedSets);
             const newParams = new Set(involvedParams);
 
             const availableSets = (constraint.dep?.setDependencies || [])
-                .filter(set => isInputAvailable(set, true));
+                .filter(set => isInputAvailable(set, true) || selectedSets.includes(set));
             const availableParams = (constraint.dep?.paramDependencies || [])
-                .filter(param => isInputAvailable(param, false));
+                .filter(param => isInputAvailable(param, false) || selectedParams.includes(param));
 
             availableSets.forEach(set => newSets.add(set));
             availableParams.forEach(param => newParams.add(param));
@@ -307,7 +327,9 @@ const ConfigureConstraintsPage = () => {
         <div className="configure-constraints-page" onClick={handlePageClick}>
             <h1 className="page-title">Configure Constraint Modules</h1>
             <p className="page-description">
-                Create and manage constraint modules to define the logical rules and relationships in your optimization problem. Group related constraints together for better organization and reusability.
+            Create and manage constraint modules that can dynamically adjust the problem domain.
+            Group related constraints together to form cohesive modules, each responsible for a specific aspect of the problem.
+            Since you're familiar with your model, you can determine which constraints should be dynamically adjustable or toggled, and which should remain hardcoded in the model.
             </p>
             
             <div className="constraints-layout">
@@ -316,7 +338,7 @@ const ConfigureConstraintsPage = () => {
                     <div className="panel-header">
                         <h2>
                             <span>Available Modules</span>
-                            <InfoIcon tooltip="List of constraint modules that can be configured for your optimization model" />
+                            <InfoIcon tooltip="Here you can see all the modules you have created. You can edit or delete them as needed." />
                         </h2>
                     </div>
                     <div className="module-list" role="list" aria-label="constraint modules">
@@ -437,9 +459,7 @@ const ConfigureConstraintsPage = () => {
                 <div className="available-constraints-panel" onClick={handleModuleClick}>
                     <div className="panel-header">
                         <h2>Available Constraints</h2>
-                        <div className="info-icon" title="Select from these available constraints to add to your module. Constraints can be used in multiple modules if needed.">
-                            ℹ️
-                        </div>
+                        <InfoIcon tooltip="List of the parsed constraints from your model. Select a constraint to add it to your module." />
                     </div>
                     <div className="constraints-list">
                         {availableConstraints.map(constraint => {
