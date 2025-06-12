@@ -402,9 +402,9 @@ const ConfigurePreferencesPage = () => {
         <div className="configure-preferences-page" onClick={handlePageClick}>
             <h1 className="page-title">Configure Preference Modules</h1>
             <p className="page-description">
-                Create and manage preference modules. Preference modules provide a way to adjust the optimization objective, by balancing between trade-offs.
-                Each Preference Module ideally represents a distinct optimization goal.
-                By setting a 'cost parameter' which represents the importance of the module's optimization goal, you can easily balance between the different modules in the image.
+                Create and manage optimization modules. Optimization modules provide a way to adjust the optimization objective, by balancing between trade-offs.
+                Each Preference Module ideally represents a distinct optimization goal, which translates to a mathematical expression in the model.
+                By setting a 'cost parameter' which represents the importance of the module's optimization goal, you can easily balance between the different optimization goals in the image.
             </p>
             
             <div className="preferences-layout">
@@ -475,7 +475,7 @@ const ConfigurePreferencesPage = () => {
                             />
                         </div>
                         <div className="form-group">
-                            <label>Selected Preference</label>
+                            <label>Selected Optimization Expression</label>
                             <div className="selected-preference">
                                 {selectedPreference ? (
                                     <div 
@@ -556,8 +556,8 @@ const ConfigurePreferencesPage = () => {
                 {/* Right Panel - Available Preferences */}
                 <div className="available-preferences-panel" onClick={handleModuleClick}>
                     <div className="panel-header">
-                        <h2>Available Preferences</h2>
-                        <InfoIcon tooltip="List of the parsed components of your optimization function in the model you provided. Select a component which correlates to an optimization goal." />
+                        <h2>Available Expressions</h2>
+                        <InfoIcon tooltip="List of the parsed expressions of your optimization function in the model you provided. Select a component which correlates to an optimization goal." />
                         {/* <div className="info-icon" title="Select from these available preferences to add to your module. Each preference can only be used in one module.">
                             ℹ️
                         </div> */}

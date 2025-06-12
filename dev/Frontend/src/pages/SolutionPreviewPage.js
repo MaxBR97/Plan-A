@@ -530,7 +530,7 @@ useEffect(() => {
             onClick={() => handleTabClick('variables')}
             disabled={!hasVariablesContent()}
           >
-            Variables
+            Domain
           </button>
           <button
             className={`tab-button ${activeTab === 'constraints' ? 'active' : ''} ${!hasConstraintsContent() ? 'disabled' : ''}`}
@@ -544,7 +544,7 @@ useEffect(() => {
             onClick={() => handleTabClick('preferences')}
             disabled={!hasPreferencesContent()}
           >
-            Preferences
+            Optimization Goals
           </button>
         </div>
       </div>

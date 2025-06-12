@@ -141,6 +141,16 @@
   min-width: 150px;
 }
 
+.selection-disabled-message {
+  color: #856404;
+  background-color: #fff3cd;
+  border: 1px solid #ffeeba;
+  padding: 5px 10px;
+  border-radius: 3px;
+  font-size: 0.8em;
+  margin-left: 10px;
+}
+
 .edit-table-button {
   padding: 6px 11.25px;
   border: 1px solid #2196F3;

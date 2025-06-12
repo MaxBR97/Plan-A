@@ -12,6 +12,7 @@ const SuperTable = ({
   onAddDimension,
   selectedTuples,
   onSelectedTuplesChange,
+  selectionDisabled,
   defaultObjectiveValue = 0
 }) => {
   const [editingCell, setEditingCell] = useState(null); // Track which cell is being edited
@@ -363,6 +364,7 @@ function extractValuesInDisplayOrder(tuple) {
  * Toggle selection for tuples matching the filters
  */
 const toggleSelection = (filters) => {
+  if (selectionDisabled) return;
   // Find displayed solutions matching the filters
   const matchingDisplayed = filterByParentValues(displayedSolutions, filters);
   if (matchingDisplayed.length === 0) return;
@@ -415,6 +417,7 @@ const toggleSelection = (filters) => {
    * Toggle selection for entire table or subtable based on level and parent filters
    */
   const toggleEntireTable = (level, parentFilters = {}) => {
+    if (selectionDisabled) return;
     // Get solutions that match the parent filters
     const matchingSolutions = filterByParentValues(sortedSolutions, parentFilters);
     
@@ -465,6 +468,7 @@ const toggleSelection = (filters) => {
    * Toggle selection for a column
    */
   const toggleColumnSelection = (columnValue, level) => {
+    if (selectionDisabled) return;
     const columnDimension = displayStructure[level];
     const filters = { [columnDimension]: columnValue };
     

@@ -70,7 +70,7 @@ subto EnforceInvalidShifts:
 set indexSetOfPeople := {<i,p> in {1.. card(People)} * People | ord(People,i,1) == p}; # -> {<1,"Yoni">, <2,"Denis"> ...}
 
 minimize distributeShiftsEqually:
-    sum <person> in People : ((TotalMishmarot[person]+1)**2)
+    (sum <person> in People : ((TotalMishmarot[person]+1)**2))
     + (sum <i,person,station,time> in  indexSetOfPeople*Mishmarot | time <= card(People)/card(Station)*shiftTime: (Shibutsim[person,station,time]*bias*i*time));
 
 `);

@@ -51,7 +51,7 @@ const SolutionResultsPage = ({
   const requestCancelledRef = useRef(false);
   const currentAbortController = useRef(null);
   const currentRequestId = useRef(null);
-  // console.log("globalSelectedTuples", globalSelectedTuples);
+  console.log("globalSelectedTuples", globalSelectedTuples);
   // console.log("dynamicSolutions", dynamicSolutions);
   // Deep clone function for solutions
   const deepCloneSolutions = (solutions) => {
@@ -59,6 +59,13 @@ const SolutionResultsPage = ({
       ...solution,
       values: [...solution.values],
     }));
+  };
+
+  // Function to check if variable has a bound set
+  const hasVariableBoundSet = (variable) => {
+    if (!variable || !image.variablesModule?.variablesOfInterest) return false;
+    const varObj = image.variablesModule.variablesOfInterest.find(v => v.identifier === variable);
+    return varObj && varObj.boundSet;
   };
 
   // Update solutions in dynamicSolutions
@@ -672,6 +679,11 @@ const SolutionResultsPage = ({
                     </option>
                   ))}
                 </select>
+                {selectedVariable && !hasVariableBoundSet(selectedVariable) && (
+                  <div className="selection-disabled-message">
+                    Selection for this variable is disabled, as it has no bound set
+                  </div>
+                )}
               </>
             )}
           </div>
@@ -688,7 +700,7 @@ const SolutionResultsPage = ({
               <button 
                 onClick={handleDeleteSelected}
                 className="delete-selected-button"
-                disabled={!globalSelectedTuples[selectedVariable] || globalSelectedTuples[selectedVariable].length === 0}
+                disabled={!hasVariableBoundSet(selectedVariable) || !globalSelectedTuples[selectedVariable] || globalSelectedTuples[selectedVariable].length === 0}
               >
                 Delete Selected
               </button>
@@ -709,6 +721,7 @@ const SolutionResultsPage = ({
             selectedTuples={globalSelectedTuples[selectedVariable] || []}
             onSelectedTuplesChange={updateSelectedTuples}
             defaultObjectiveValue={displayValue ? 0 : 1}
+            selectionDisabled={!hasVariableBoundSet(selectedVariable)}
           />
         </div>
       </div>

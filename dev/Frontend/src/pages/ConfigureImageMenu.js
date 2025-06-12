@@ -66,7 +66,7 @@ const ConfigureImageMenu = () => {
   console.log("image:",image);
   const menuItems = [
     {
-      title: 'Configure Inputs & Outputs',
+      title: 'Configure Domain Inputs & Outputs',
       description: 'Select variables to display and configure their input dependencies',
       path: '/configure-input-outputs'
     },
@@ -76,8 +76,8 @@ const ConfigureImageMenu = () => {
       path: '/configure-constraints'
     },
     {
-      title: 'Configure Preferences',
-      description: 'Set up preference modules to define optimization objectives',
+      title: 'Configure Optimization Goals',
+      description: 'Set up optimization modules to define optimization objectives',
       path: '/configure-preferences'
     },
     {
