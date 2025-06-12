@@ -407,6 +407,8 @@ const toggleSelection = (filters) => {
     });
   }
 
+  newSelection.forEach(obj => obj.values = obj.values.filter(v => v !== undefined));
+  
   if (onSelectedTuplesChange) {
     onSelectedTuplesChange(newSelection);
   }

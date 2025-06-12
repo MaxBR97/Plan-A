@@ -52,7 +52,7 @@ const SolutionResultsPage = ({
   const currentAbortController = useRef(null);
   const currentRequestId = useRef(null);
   console.log("globalSelectedTuples", globalSelectedTuples);
-  // console.log("dynamicSolutions", dynamicSolutions);
+  console.log("dynamicSolutions", dynamicSolutions);
   // Deep clone function for solutions
   const deepCloneSolutions = (solutions) => {
     return solutions.map(solution => ({
@@ -485,42 +485,48 @@ const SolutionResultsPage = ({
 
   // Add this new effect to clean up globalSelectedTuples
   useEffect(() => {
-    // Skip if dynamicSolutions is empty
     if (Object.keys(dynamicSolutions).length === 0) return;
-
-    // Create a new object to hold the cleaned up selections
+  
     const cleanedSelectedTuples = {};
-
-    // For each variable in globalSelectedTuples
+  
     Object.entries(globalSelectedTuples).forEach(([variable, selectedTuples]) => {
-      // Skip if this variable doesn't exist in dynamicSolutions
       if (!dynamicSolutions[variable]) return;
-
-      // Filter out tuples that no longer exist in dynamicSolutions
+  
       const currentSolutions = dynamicSolutions[variable].solutions;
-      const validSelectedTuples = selectedTuples.filter(selectedTuple => 
+  
+      const validSelectedTuples = selectedTuples.filter(selectedTuple =>
         currentSolutions.some(solution => {
-          // Compare values arrays
           const selectedValues = selectedTuple.values;
           const solutionValues = solution.values;
-          
-          // If lengths are different, they can't be equal
-          if (selectedValues.length !== solutionValues.length) return false;
-          
-          // Compare each value
-          return selectedValues.every((value, index) => value === solutionValues[index]);
+  
+          // Helper to normalize value for loose comparison
+          const normalize = (v) => (v === null || v === undefined) ? v : v.toString();
+  
+          // Case 1: Exact match
+          const exactMatch =
+            selectedValues.length === solutionValues.length &&
+            selectedValues.every((value, index) => normalize(value) === normalize(solutionValues[index]));
+  
+          // Case 2: Match with objectiveValue appended
+          const extendedMatch =
+            selectedValues.length === solutionValues.length + 1 &&
+            selectedValues.slice(0, solutionValues.length).every((value, index) =>
+              normalize(value) === normalize(solutionValues[index])
+            ) &&
+            normalize(selectedValues[selectedValues.length - 1]) === normalize(solution.objectiveValue);
+  
+          return exactMatch || extendedMatch;
         })
       );
-
-      // Only add to cleaned object if there are valid selections
+  
       if (validSelectedTuples.length > 0) {
         cleanedSelectedTuples[variable] = validSelectedTuples;
       }
     });
-
-    // Update globalSelectedTuples with the cleaned version
+  
     setGlobalSelectedTuples(cleanedSelectedTuples);
-  }, [dynamicSolutions]); // Only run when dynamicSolutions changes
+  }, [dynamicSolutions]);
+  
 
   return (
     <div className="solution-results-page">
