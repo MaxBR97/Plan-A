@@ -110,7 +110,6 @@ public class StreamSolverService implements StreamSolver {
                 String problemFile = modelRepository.getLocalStoreDir().resolve(fileId+".zpl").toString();
                 compilationProcess.read(problemFile);
                 
-                // Check status every 100ms
                 String status;
                 long startTime = System.currentTimeMillis();
                 long timeoutMillis = timeout * 1000L;
@@ -138,7 +137,7 @@ public class StreamSolverService implements StreamSolver {
                     try {
                         System.gc();
                         compilationProcess.exit();
-                        Thread.sleep(200); // Give extra time for file handles to be released
+                        Thread.sleep(10); // Give extra time for file handles to be released
                         System.gc();
                     } catch (Exception e) {
                         // Ignore cleanup errors
@@ -176,7 +175,7 @@ public class StreamSolverService implements StreamSolver {
                         && !scipProcess.getStatus().equals("paused")) {
                     Thread.sleep(70);
                     i++;
-                    if(i % 60 == 0 && DEBUG){
+                    if(DEBUG && i % 60 == 0){
                         System.out.println("Waiting for solution status to be updated...  current status: " + scipProcess.getStatus());
                     }
                 }

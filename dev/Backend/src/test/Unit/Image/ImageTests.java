@@ -499,7 +499,7 @@ public class ImageTests extends TestWithPersistence {
         String message = exception.getMessage();
         assertTrue(message.contains(preferenceModule.moduleName()));
         assertTrue(message.contains(constraintModule.moduleName()));
-        assertTrue(message.toLowerCase().contains("preference"));
+        assertTrue(message.toLowerCase().contains("optimization"));
         assertTrue(message.contains("soldiers"));
         
         // Verify persistence - the original state should remain unchanged
@@ -710,7 +710,7 @@ public class ImageTests extends TestWithPersistence {
 
         PreferenceModuleDTO pref1 = new PreferenceModuleDTO(
             "pref_module_1",
-            "First preference module",
+            "First optimization module",
             Set.of(preffered_soldiers_pref.identifier()),
             Set.of(preffered_soldiers),
             Set.of(),
@@ -744,7 +744,7 @@ public class ImageTests extends TestWithPersistence {
         // Create second preference module trying to use the same cost parameter
         PreferenceModuleDTO pref2 = new PreferenceModuleDTO(
             "pref_module_2",
-            "Second preference module",
+            "Second optimization module",
             Set.of(pref1.moduleName()),
             Set.of(),
             Set.of(),
@@ -1036,7 +1036,7 @@ public class ImageTests extends TestWithPersistence {
         // Test Case 2: Constraint module and preference module with same name
         PreferenceModuleDTO preferenceModule = new PreferenceModuleDTO(
             duplicateModuleName, // Same name as constraint module
-            "Preference module",
+            "Optimization module",
             Set.of(pref1.identifier()),
             Set.of(),
             Set.of(),
@@ -1066,7 +1066,7 @@ public class ImageTests extends TestWithPersistence {
         // Test Case 3: Two preference modules with same name
         PreferenceModuleDTO preferenceModule2 = new PreferenceModuleDTO(
             duplicateModuleName, // Same name as first preference module
-            "Second preference module",
+            "Second Optimization module",
             Set.of(pref1.identifier()),
             Set.of(),
             Set.of(),

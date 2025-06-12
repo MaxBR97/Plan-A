@@ -28,7 +28,17 @@ defnumb getHourFromStringFormat(str) :=
         if substr(str,3,1) == ":" then convertStringToNumber(substr(str,0,2)) else convertStringToNumber(substr(str,0,1)) end 
     end;
 
-defnumb validateTimeInStringFormat(str) := 1;
+
+defnumb validateTimeInStringFormat(str) := 
+    if length(str) == 5 and 
+        (sum <i> in {"0","1","2","3","4","5","6","7","8","9"} | i == substr(str,0,1) : 1) == 1 and
+        (sum <i> in {"0","1","2","3","4","5","6","7","8","9"} | i == substr(str,1,1) : 1) == 1 and
+        substr(str,2,1) == ":" and
+        (sum <i> in {"0","1","2","3","4","5","6","7","8","9"} | i == substr(str,3,1) : 1) == 1 and
+        (sum <i> in {"0","1","2","3","4","5","6","7","8","9"} | i == substr(str,4,1) : 1) == 1 and
+        convertStringToNumber(substr(str,0,2)) < 24 and
+        convertStringToNumber(substr(str,3,2)) < 60
+    then 1 else 0 end;
 
 param planFromTimeFormal := "00:00";
 param planFromDay := "Sunday";
@@ -39,7 +49,7 @@ param planUntilDay := "Monday";
 param planUntilHour := getHourFromStringFormat(planUntilTimeFormal);
 param planUntilMinute := getMinuteFromStringFormat(planUntilTimeFormal);
 param nightTimeStart := "21:00";
-param nightTimeEnd := "7:00";
+param nightTimeEnd := "07:00";
 param nightTimeStartHour := getHourFromStringFormat(nightTimeStart);
 param nightTimeStartMinute := getMinuteFromStringFormat(nightTimeStart);
 param nightTimeEndHour := getHourFromStringFormat(nightTimeEnd);
@@ -54,8 +64,8 @@ do print "Planning time range must be valid, format is HH:MM !";
 do forall <time> in {planFromTimeFormal,planUntilTimeFormal,nightTimeStart,nightTimeEnd} do check
     validateTimeInStringFormat(time) == 1;
 
-do print "Minimum rest hours must be greater than 0!";
-do check minimumRestHours > 0;
+do print "Minimum rest hours must be greater than or equal to 0!";
+do check minimumRestHours >= 0;
 
 
 # Define relative day numbering based on planFromDay
@@ -294,7 +304,7 @@ do print Shifts;
 
 set SoldiersToShifts := Soldiers * proj(Shifts,<1,4>);
 #<soldier,station,day,hour_and_minute>
-set preAssign := {<"Max","Patrol","1 Sunday","6:00",1.0>};
+set preAssign := {<"Max","Patrol","1 Sunday","06:00",1.0>};
 do print "Selected shift assignment must be valid - Enter valid names (from the declared list), weekdays (x Weekday - where 'x' is the index of the weekday compared to the first day of the planning period) and times in HH:MM format!";
 do forall <soldier,station,day,time,value> in preAssign do check
     validateTimeInStringFormat(time) == 1 and card({<soldier> in Soldiers}) == 1 and card({<station> in proj(AllMissions,<1>)}) == 1 and
@@ -310,20 +320,10 @@ var Edge[<i,a,b> in SoldiersToShifts] binary priority 6000000; #
 set RestTimes := { <soldier,station,interval,time> in Soldiers * proj(Shifts,<1,2,4>) : <soldier,time + interval>} union {<soldier,zero_time> in Soldiers * {0}};
 var NeighbouringShifts[<soldier,endTime> in RestTimes] real >= 0 <= max((max(Times)-endTime)/60,0);
 set RestTimes2 := { <soldier,station,interval,time> in Soldiers * proj(Shifts,<1,2,4>) : <soldier,time>} union {<soldier,zero_time> in Soldiers * {0}};
-var IntervalsBetweenShiftStarts[<soldier,time> in RestTimes2] real >= 0;
 #<station, interval, required, day , hour_and_minute>
 set FormalShiftsDescription := {<station, stationInterval, requiredPeople,time, day, hour, minute> in Shifts * FormalTimes | getMinute(time) == minute and getHour(time) == hour and getDay(time) == day :
  <station, stationInterval, requiredPeople, convertToPresentation[day], makeTimeInString(hour,minute)>};
-var FormalTimesEdges[Soldiers * proj(FormalShiftsDescription,<1,4,5>)] binary; #
-
-# subto CalculateIntervalsBetweenShifts1:
-#     forall <soldier,endTime> in RestTimes:
-#         forall <soldier2,station2,interval2,time2> in Soldiers * proj(Shifts,<1,2,4>) | soldier == soldier2 and time2 + interval2 == endTime:
-#             Edge[soldier2,station2,time2] * (IntervalsBetweenShiftStarts[soldier2,time2]) == Edge[soldier2,station2,time2] * (NeighbouringShifts[soldier,endTime] + (interval2/60));
-
-# subto CalculateIntervalsBetweenShifts2:
-#         forall <soldier, station, stationInterval, requiredPeople, time> in Soldiers * Shifts | time > 0: 
-#             IntervalsBetweenShiftStarts[soldier,0] * Edge[soldier,station,time] <= time/60;
+var Shift_Assignments[Soldiers * proj(FormalShiftsDescription,<1,4,5>)] binary; #
 
 subto EnforceNeighbouringShiftsTotalSum:
     forall <soldier> in Soldiers:
@@ -350,7 +350,7 @@ do print "loaded Soldier_Not_In_Two_Stations_Concurrently";
 
 subto ConvertEnumeratedTimesToFormal:
     forall <soldier,station,time> in SoldiersToShifts:
-        FormalTimesEdges[soldier,station,convertToPresentation[getDay(time)],makeTimeInString(getHour(time), getMinute(time))] == Edge[soldier,station,time];
+        Shift_Assignments[soldier,station,convertToPresentation[getDay(time)],makeTimeInString(getHour(time), getMinute(time))] == Edge[soldier,station,time];
 
 
 set already_satisfied_5 := { <soldier, station, stationInterval, requiredPeople, time> in Soldiers * Shifts | (sum <soldier2,station2,time2,value2> in encodedPreAssign | station == station2 and time == time2 and value2 == 1: 1) == requiredPeople and card({<soldier3,station3,time3,value3> in encodedPreAssign | soldier3 == soldier and station3 == station and time3 == time and value3 == 1}) == 0};
@@ -399,10 +399,10 @@ set preAssignShiftStatistics := {<"People Not Assigned Atleast Once", 1.0>};
 # set preAssignSoldierStatistics := {};
 # set preAssignShiftStatistics := {};
 set labelsForSoldierStatistics := {"Shift Spacing Mark", "Total Night Duty Hours", "Total Duty Hours", "Repetitivity Mark", "Total Rest Time"};
-var SoldierStatistics[Soldiers * labelsForSoldierStatistics] real;
+var Per_Person_Statistics[Soldiers * labelsForSoldierStatistics] real;
 set labelsGeneralStatistics := {"Problem size (people * possible_shifts)", "Total Shifts Assigned", "Average Shifts Per Person", "Average Rest Time Per Person", "People Not Assigned Atleast Once", "Average Night Hours", "Average Total Duty Hours", "Average Spacing Mark", "Average Repetitivity Mark", "Optimization Score"};
-var ShiftStatistics[labelsGeneralStatistics] real;
-var AssignedAtleastOnce[Soldiers] binary;
+var Total_Statistics[labelsGeneralStatistics] real;
+var Assigned_Atleast_Once[Soldiers] binary;
 param x:=(max(Times)/60)+1; 
 do print "Pre-assigned soldier statistics must be valid - Enter valid names (from the declared list), valid labels, and reasonable values!";
 do forall <soldier,label,value> in preAssignSoldierStatistics do check
@@ -417,80 +417,80 @@ do forall <soldier,label,value> in preAssignSoldierStatistics do check
     );
 
 subto CalculateProblemSize:
-    ShiftStatistics["Problem size (people * possible_shifts)"] == card(Soldiers) * card(Shifts);
+    Total_Statistics["Problem size (people * possible_shifts)"] == card(Soldiers) * card(Shifts);
 do print "loaded CalculateProblemSize";
 
 subto CalculateShiftsAssigned:
-    ShiftStatistics["Total Shifts Assigned"] == sum <soldier,station,time> in SoldiersToShifts : Edge[soldier,station,time];
+    Total_Statistics["Total Shifts Assigned"] == sum <soldier,station,time> in SoldiersToShifts : Edge[soldier,station,time];
 do print "loaded CalculateShiftsAssigned";
 
 subto CalculateAverageShiftsPerPerson:
-    ShiftStatistics["Average Shifts Per Person"] == (sum <soldier,station,time> in SoldiersToShifts : Edge[soldier,station,time]) / card(Soldiers);
+    Total_Statistics["Average Shifts Per Person"] == (sum <soldier,station,time> in SoldiersToShifts : Edge[soldier,station,time]) / card(Soldiers);
 do print "loaded CalculateAverageShiftsPerPerson";
 
 subto CalculateAverageRestTime:
-    ShiftStatistics[ "Average Rest Time Per Person"] == (sum <soldier,endTime> in RestTimes : NeighbouringShifts[soldier,endTime]) / card(Soldiers);
+    Total_Statistics["Average Rest Time Per Person"] == (sum <soldier,endTime> in RestTimes : NeighbouringShifts[soldier,endTime]) / card(Soldiers);
 do print "loaded CalculateAverageRestTime";
 
 subto CalculatePeopleNotAssigned:
-    ShiftStatistics["People Not Assigned Atleast Once"] == card(Soldiers) - (sum <soldier> in Soldiers : AssignedAtleastOnce[soldier]);
+    Total_Statistics["People Not Assigned Atleast Once"] == card(Soldiers) - (sum <soldier> in Soldiers : Assigned_Atleast_Once[soldier]);
 
 do print "loaded CalculatePeopleNotAssigned";
 
 subto CalculateShiftSpacingsCost:
     forall <soldier> in Soldiers: 
-        SoldierStatistics[soldier,"Shift Spacing Mark"] == (sum <soldier2, endTime2> in RestTimes | soldier2 == soldier : ((NeighbouringShifts[soldier2,endTime2]+1)**2)) / (card(RestTimes)/card(Soldiers));
+        Per_Person_Statistics[soldier,"Shift Spacing Mark"] == (sum <soldier2, endTime2> in RestTimes | soldier2 == soldier : ((NeighbouringShifts[soldier2,endTime2]+1)**2)) / (card(RestTimes)/card(Soldiers));
 do print "loaded CalculateShiftSpacingsCost";
 
 subto CalculateTotalNightDutyDuration:
     forall <soldier> in Soldiers :
-        SoldierStatistics[soldier,"Total Night Duty Hours"] == (sum <soldier2, station2, stationInterval2, requiredPeople2, time2> in Soldiers * Shifts | soldier == soldier2 and CommonTimeDuration(nightTimeStartHour,nightTimeStartMinute,nightTimeEndHour,nightTimeEndMinute,getHour(time2),getMinute(time2),getHour(time2+stationInterval2),getMinute(time2+stationInterval2)) > 0: Edge[soldier2,station2,time2] * CommonTimeDuration(nightTimeStartHour,nightTimeStartMinute,nightTimeEndHour,nightTimeEndMinute,getHour(time2),getMinute(time2),getHour(time2+stationInterval2),getMinute(time2+stationInterval2)))/60;
+        Per_Person_Statistics[soldier,"Total Night Duty Hours"] == (sum <soldier2, station2, stationInterval2, requiredPeople2, time2> in Soldiers * Shifts | soldier == soldier2 and CommonTimeDuration(nightTimeStartHour,nightTimeStartMinute,nightTimeEndHour,nightTimeEndMinute,getHour(time2),getMinute(time2),getHour(time2+stationInterval2),getMinute(time2+stationInterval2)) > 0: Edge[soldier2,station2,time2] * CommonTimeDuration(nightTimeStartHour,nightTimeStartMinute,nightTimeEndHour,nightTimeEndMinute,getHour(time2),getMinute(time2),getHour(time2+stationInterval2),getMinute(time2+stationInterval2)))/60;
 do print "loaded CalculateTotalNightDutyDuration";
 
 subto CalculateTotalMissionsTimes:
     forall <soldier> in Soldiers :
-        SoldierStatistics[soldier,"Total Duty Hours"] == (sum <soldier2, station2, stationInterval2, requiredPeople2, time2> in Soldiers * Shifts | soldier == soldier2 : Edge[soldier2,station2,time2] * stationInterval2)/60;
+        Per_Person_Statistics[soldier,"Total Duty Hours"] == (sum <soldier2, station2, stationInterval2, requiredPeople2, time2> in Soldiers * Shifts | soldier == soldier2 : Edge[soldier2,station2,time2] * stationInterval2)/60;
 
 do print "loaded CalculateTotalMissionsTimes";
 
 subto CalculateRepetitivity:
     forall <soldier> in Soldiers :                      #Multiple by TotalDutyHours instead of dividing the rhs by it.
-        SoldierStatistics[soldier,"Repetitivity Mark"] * (SoldierStatistics[soldier,"Total Duty Hours"])== (sum <soldier2, station2, stationInterval2, requiredPeople2, time2> in Soldiers * Shifts | soldier == soldier2 : Edge[soldier2,station2,time2] * (sum <soldier3,station3,time3> in SoldiersToShifts | soldier2 == soldier3 and (station3 != station2 or time3 != time2) and (station3 == station2 or time3 == time2) : 1));
+        Per_Person_Statistics[soldier,"Repetitivity Mark"] * (Per_Person_Statistics[soldier,"Total Duty Hours"])== (sum <soldier2, station2, stationInterval2, requiredPeople2, time2> in Soldiers * Shifts | soldier == soldier2 : Edge[soldier2,station2,time2] * (sum <soldier3,station3,time3> in SoldiersToShifts | soldier2 == soldier3 and (station3 != station2 or time3 != time2) and (station3 == station2 or time3 == time2) : 1));
 
 do print "loaded CalculateRepetitivity";
 
 subto CalculateTotalRest:
     forall <soldier> in Soldiers : 
-        SoldierStatistics[soldier,"Total Rest Time"] == (sum <soldier2, endTime2> in RestTimes | soldier == soldier2 : NeighbouringShifts[soldier2,endTime2]);
+        Per_Person_Statistics[soldier,"Total Rest Time"] == (sum <soldier2, endTime2> in RestTimes | soldier == soldier2 : NeighbouringShifts[soldier2,endTime2]);
 
 do print "loaded CalculateTotalRest";
 
 subto CalculateAverageTotalDutyTime:
-    ShiftStatistics["Average Total Duty Hours"] == (sum <person> in Soldiers : SoldierStatistics[person, "Total Duty Hours"])/card(Soldiers);
+    Total_Statistics["Average Total Duty Hours"] == (sum <person> in Soldiers : Per_Person_Statistics[person, "Total Duty Hours"])/card(Soldiers);
 
 subto CalculateAverageTotalNightTime:
-    ShiftStatistics["Average Night Hours"] == (sum <person> in Soldiers : SoldierStatistics[person, "Total Night Duty Hours"])/card(Soldiers);
+    Total_Statistics["Average Night Hours"] == (sum <person> in Soldiers : Per_Person_Statistics[person, "Total Night Duty Hours"])/card(Soldiers);
 
 subto CalculateAverageSpacingMark:
-    ShiftStatistics["Average Spacing Mark"] == (sum <person> in Soldiers : SoldierStatistics[person, "Shift Spacing Mark"])/card(Soldiers);
+    Total_Statistics["Average Spacing Mark"] == (sum <person> in Soldiers : Per_Person_Statistics[person, "Shift Spacing Mark"])/card(Soldiers);
 
 subto CalculateAverageRepetitionMark:
-    ShiftStatistics["Average Repetitivity Mark"] == (sum <person> in Soldiers : SoldierStatistics[person, "Repetitivity Mark"])/card(Soldiers);
+    Total_Statistics["Average Repetitivity Mark"] == (sum <person> in Soldiers : Per_Person_Statistics[person, "Repetitivity Mark"])/card(Soldiers);
 
 subto CalculateIsAssigned:
     forall <soldier> in Soldiers : 
         vif (sum <soldier2, station2, time2> in SoldiersToShifts | soldier == soldier2 : Edge[soldier2,station2,time2]) > 0
-        then AssignedAtleastOnce[soldier] == 1 else AssignedAtleastOnce[soldier] == 0 end;
+        then Assigned_Atleast_Once[soldier] == 1 else Assigned_Atleast_Once[soldier] == 0 end;
 
 do print "loaded CalculateIsAssigned";
 
 subto PreAssignShiftStatistics:
     forall <label,value> in preAssignShiftStatistics:
-        ShiftStatistics[label] == value;
+        Total_Statistics[label] == value;
 
 subto PreAssignSoldierStatistics:
     forall <soldier,label,value> in preAssignSoldierStatistics:
-        SoldierStatistics[soldier,label] == value; 
+        Per_Person_Statistics[soldier,label] == value; 
 
 subto PreAssign:
     forall<a,b,c,v> in encodedPreAssign :
@@ -513,17 +513,17 @@ param repetitiveMissionsDegree := 2;
 
 
 subto CalculateOptimizationScore:
-    ShiftStatistics["Optimization Score"] == 
-    soldierSpacingCoefficient * (sum <soldier> in Soldiers : ((SoldierStatistics[soldier,"Shift Spacing Mark"] - ShiftStatistics["Average Spacing Mark"])**soldierSpacingDegree)) +
-    soldierTotalNightDutyCoefficient * (sum <soldier> in Soldiers : ((SoldierStatistics[soldier,"Total Night Duty Hours"] - ShiftStatistics["Average Night Hours"])**soldierTotalNightDutyDegree)) +
-    soldierTotalMissionsTimesCoefficient * (sum <soldier> in Soldiers : ((SoldierStatistics[soldier,"Total Duty Hours"] - ShiftStatistics["Average Total Duty Hours"])**soldierTotalMissionsTimesDegree)) +
-    repetitiveMissionsCoefficient * (sum <soldier> in Soldiers : ((SoldierStatistics[soldier,"Repetitivity Mark"] - ShiftStatistics["Average Repetitivity Mark"])**repetitiveMissionsDegree));
+    Total_Statistics["Optimization Score"] == 
+    soldierSpacingCoefficient * (sum <soldier> in Soldiers : ((Per_Person_Statistics[soldier,"Shift Spacing Mark"] - Total_Statistics["Average Spacing Mark"])**soldierSpacingDegree)) +
+    soldierTotalNightDutyCoefficient * (sum <soldier> in Soldiers : ((Per_Person_Statistics[soldier,"Total Night Duty Hours"] - Total_Statistics["Average Night Hours"])**soldierTotalNightDutyDegree)) +
+    soldierTotalMissionsTimesCoefficient * (sum <soldier> in Soldiers : ((Per_Person_Statistics[soldier,"Total Duty Hours"] - Total_Statistics["Average Total Duty Hours"])**soldierTotalMissionsTimesDegree)) +
+    repetitiveMissionsCoefficient * (sum <soldier> in Soldiers : ((Per_Person_Statistics[soldier,"Repetitivity Mark"] - Total_Statistics["Average Repetitivity Mark"])**repetitiveMissionsDegree));
 
 do print "loaded CalculateOptimizationScroe";
 
 minimize myObjective: 
-    soldierSpacingCoefficient * (sum <soldier> in Soldiers : ((SoldierStatistics[soldier,"Shift Spacing Mark"] - ShiftStatistics["Average Spacing Mark"])**soldierSpacingDegree)) +
-    soldierTotalNightDutyCoefficient * (sum <soldier> in Soldiers : ((SoldierStatistics[soldier,"Total Night Duty Hours"] - ShiftStatistics["Average Night Hours"])**soldierTotalNightDutyDegree)) +
-    soldierTotalMissionsTimesCoefficient * (sum <soldier> in Soldiers : ((SoldierStatistics[soldier,"Total Duty Hours"] - ShiftStatistics["Average Total Duty Hours"])**soldierTotalMissionsTimesDegree)) +
-    repetitiveMissionsCoefficient * (sum <soldier> in Soldiers : ((SoldierStatistics[soldier,"Repetitivity Mark"] - ShiftStatistics["Average Repetitivity Mark"])**repetitiveMissionsDegree));
-    #1000000*ShiftStatistics["People Not Assigned Atleast Once"] ; #Heuristic
+    soldierSpacingCoefficient * (sum <soldier> in Soldiers : ((Per_Person_Statistics[soldier,"Shift Spacing Mark"] - Total_Statistics["Average Spacing Mark"])**soldierSpacingDegree)) +
+    soldierTotalNightDutyCoefficient * (sum <soldier> in Soldiers : ((Per_Person_Statistics[soldier,"Total Night Duty Hours"] - Total_Statistics["Average Night Hours"])**soldierTotalNightDutyDegree)) +
+    soldierTotalMissionsTimesCoefficient * (sum <soldier> in Soldiers : ((Per_Person_Statistics[soldier,"Total Duty Hours"] - Total_Statistics["Average Total Duty Hours"])**soldierTotalMissionsTimesDegree)) +
+    repetitiveMissionsCoefficient * (sum <soldier> in Soldiers : ((Per_Person_Statistics[soldier,"Repetitivity Mark"] - Total_Statistics["Average Repetitivity Mark"])**repetitiveMissionsDegree));
+    

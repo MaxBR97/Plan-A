@@ -89,46 +89,46 @@ defnumb getIndex(city) := ord({<index,city2,x,y> in indexSetOfCities | city2 == 
 param dist[<i, j> in Cities * Cities] := sqrt((getX(i) - getX(j))**2 + (getY(i) - getY(j))**2);
 
 # Binary variable indicating if we use the edge between cities i and j
-var edge[Cities * Cities] binary;
+var Edges[Cities * Cities] binary;
 
 # Binary variable indicating if a city is visited
-var visit[Cities] binary;
-var totals[{"Total Distance","Total Cities Visited","Total Preffered Cities Visited"}] real;
+var Visits[Cities] binary;
+var Totals[{"Total Distance","Total Cities Visited","Total Preffered Cities Visited"}] real;
 # Each visited city must have exactly one incoming and one outgoing edge
 # Non-visited cities have no edges
 subto enforce_preassigned_transitions: forall <fromCity,toCity,value> in preassigned_transitions:
-    edge[fromCity,toCity] == round(value);
+    Edges[fromCity,toCity] == round(value);
 
 subto enforce_preassigned_visits: forall <city,value> in preassigned_visits:
-    visit[city] == round(value);
+    Visits[city] == round(value);
 
 subto degree: forall <i> in Cities:
-    (sum <j> in Cities | i != j: edge[i,j]) == visit[i] and
-    (sum <j> in Cities | i != j: edge[j,i]) == visit[i];
+    (sum <j> in Cities | i != j: Edges[i,j]) == Visits[i] and
+    (sum <j> in Cities | i != j: Edges[j,i]) == Visits[i];
 
 # Ensure we visit exactly the specified number of cities
 subto visit_count:
-    sum <i> in Cities: visit[i] == actual_cities_to_visit;
+    sum <i> in Cities: Visits[i] == actual_cities_to_visit;
 
 # Force first city to be visited (to break symmetry)
 subto force_first:
-    visit[ord(Cities, 1, 1)] == 1;
+    Visits[ord(Cities, 1, 1)] == 1;
 
 # Subtour elimination constraints using Miller-Tucker-Zemlin formulation
-var u[Cities] integer >= 0 <= card(Cities);  # Auxiliary variables for subtour elimination
+var VisitOrder[Cities] integer >= 0 <= card(Cities);  # Auxiliary variables for subtour elimination
 
 # Modified subtour elimination to only consider visited cities
 subto subtour: forall <i,j> in Cities * Cities | i != j and i != ord(Cities, 1,1) :
-    1 + u[i] - u[j] + actual_cities_to_visit * edge[i,j] <= actual_cities_to_visit;
+    1 + VisitOrder[i] - VisitOrder[j] + actual_cities_to_visit * Edges[i,j] <= actual_cities_to_visit;
 
 # Additional constraint to ensure u values are 0 for non-visited cities
-subto u_visited: forall <i> in Cities:
-    u[i] <= actual_cities_to_visit * visit[i] and u[i] >= visit[i];
+subto visit_order_visited: forall <i> in Cities:
+    VisitOrder[i] <= actual_cities_to_visit * Visits[i] and VisitOrder[i] >= Visits[i];
 
 subto calculate_totals:
-    totals["Total Distance"] == sum <i,j> in Cities * Cities: dist[i,j] * edge[i,j] and
-    totals["Total Cities Visited"] == sum <i> in Cities: visit[i] and
-    totals["Total Preffered Cities Visited"] == sum <i> in preferred_cities: visit[i];
+    Totals["Total Distance"] == sum <i,j> in Cities * Cities: dist[i,j] * Edges[i,j] and
+    Totals["Total Cities Visited"] == sum <i> in Cities: Visits[i] and
+    Totals["Total Preffered Cities Visited"] == sum <i> in preferred_cities: Visits[i];
 
 param cities_to_visit_coefficient := 90;
 param distance_cost_coefficient := 20;
@@ -136,6 +136,6 @@ param preffered_cities_coefficient := 0;
 
 # Minimize total distance traveled
 minimize cost: 
-    cities_to_visit_coefficient * totals["Total Cities Visited"] +
-    distance_cost_coefficient * totals["Total Distance"] +
-    preffered_cities_coefficient * totals["Total Preffered Cities Visited"];
+    cities_to_visit_coefficient * Totals["Total Cities Visited"] +
+    distance_cost_coefficient * Totals["Total Distance"] +
+    preffered_cities_coefficient * Totals["Total Preffered Cities Visited"];

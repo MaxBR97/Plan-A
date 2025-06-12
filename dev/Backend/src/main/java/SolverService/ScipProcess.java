@@ -126,18 +126,23 @@ public class ScipProcess {
                     circularBuffer.offer(line);
                     updateStatus(line);
                     if(processStatus.equals("integrity error") && compilationErrorMessage == null){
+                        
+                        compilationErrorMessage = lastLine;
                         String nextLine = reader.readLine();
-                        if(fileErrorPattern.matcher(nextLine).find()){
-                            compilationErrorMessage = lastLine;
-                        } else {
-                            compilationErrorMessage = lastLine + "\n" + nextLine;
-                        }
-                        if (circularBuffer.remainingCapacity() == 0) {
-                            circularBuffer.poll();
-                        }
-                        circularBuffer.offer(nextLine);
                         lastLine = line;
                         line = nextLine;
+                        while(!fileErrorPattern.matcher(line).find() && !line.equals("New Frame")){
+                            compilationErrorMessage += "\n" + line;
+                            if (circularBuffer.remainingCapacity() == 0) {
+                                circularBuffer.poll();
+                            }
+                            circularBuffer.offer(nextLine);
+                            nextLine = reader.readLine();
+                            lastLine = line;
+                            line = nextLine;
+
+                        } 
+                        
                     }
                 }
             } catch (Exception e) {
@@ -182,7 +187,7 @@ public class ScipProcess {
         long startTime = System.currentTimeMillis();
         long timeout = 15000; // 15 second timeout
         
-       Thread.sleep(10);
+       Thread.sleep(20);
         // Then wait for capture to complete
         while(capturingSolution.get()) {
             if (System.currentTimeMillis() - startTime > timeout) {
@@ -239,7 +244,7 @@ public class ScipProcess {
                 pipeInput("quit");
                 processInput.close();
                 readerThread.interrupt();
-                readerThread.join(1000); // Wait up to 1 second for reader thread to finish
+                readerThread.join(20); 
             } catch (Exception e) {
                 if(DEBUG)
                     System.out.println("exception at scip process destroying1: "+ scipProcess.toString());
@@ -253,7 +258,7 @@ public class ScipProcess {
                 scipProcess.waitFor();
                 if(DEBUG)
                     System.out.println("scip process destroyed: "+ scipProcess.toString());
-                Thread.sleep(100); // Give a small delay for file handles to be released
+                Thread.sleep(10);
             } catch (Exception e) {
                 if(DEBUG)
                     System.out.println("exception at scip process destroying2: "+ scipProcess.toString());

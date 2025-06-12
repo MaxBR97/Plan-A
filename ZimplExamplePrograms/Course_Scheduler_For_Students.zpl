@@ -169,30 +169,45 @@ do print "Target points must be positive!";
 do check target_points > 0;
 
 # Decision Variables
-var take_course[Courses] binary;  # 1 if student takes the course
+var Courses_Taken[Courses] binary;  # 1 if student takes the course
 var choose_group[<c, g> in proj(CourseSchedule, <1, 2>)] binary;  # 1 if student chooses specific group
 
 # Helper variable for counting active days
-var day_has_class[Weekdays] binary;  # 1 if there are any classes on that day
+var Days_With_Classes[Weekdays] binary;  # 1 if there are any classes on that day
 
 var first_activity_of_the_day[<c, g, w> in proj(CourseSchedule, <1, 2,5>)] binary;
 
-var total_points real >= 0;
+var Total_Academic_Points real >= 0;
 defstrg FormatCourseSchedulePresentation(c,g,t) := c + ", " + convertNumberToString(g) + ", " + t;
 set CourseScheduleFormatted := {<c,g,t,st,wd,sh,eh> in CourseSchedule : <FormatCourseSchedulePresentation(c,g,t)>};
-set preAssign_presentation := {<10,"1 Sunday","Calculus 1",1,"Dr. Smith",1>};
-var assignment_presentation[{8..20} * {<d> in Weekdays: convertToPresentation[d]} * proj(CourseSchedule, <1,2,3>)] binary;
-var assignment_presentation_formatted[{8..20} * {<d> in Weekdays: convertToPresentation[d]} * CourseScheduleFormatted] binary;
+set preAssign_presentation := {<10,"1 Sunday","Calculus 1",1,"Dr. Smith",1.0>};
+set preAssign_presentation_formatted := {<10,"1 Sunday","Calculus 1, 1, Dr. Smith",1.0>};
+do print "Selected assignment must be valid - hours must be in the range 8 to 20, weekday must be valid in the form '(index) weekday', course, group and teacher must be defined and match!";
+do forall <hour,weekday,course,group,teacher,value> in preAssign_presentation do check
+    hour >= 8 and hour <= 20 and
+    card({<d> in Weekdays | convertToPresentation[d] == weekday}) == 1 and
+    card({<c,g,t> in proj(CourseSchedule,<1,2,3>) | c == course and g == group and t == teacher}) == 1;
+
+do forall <hour,weekday,CourseGroupTeacher,value> in preAssign_presentation_formatted do check
+    hour >= 8 and hour <= 20 and
+    card({<d> in Weekdays | weekday == convertToPresentation[d] }) == 1 and
+    card({<c,g,t> in proj(CourseSchedule, <1,2,3>) | FormatCourseSchedulePresentation(c,g,t) == CourseGroupTeacher}) == 1;
+
+var Assignments_In_Decomposed_Form[{8..20} * {<d> in Weekdays: convertToPresentation[d]} * proj(CourseSchedule, <1,2,3>)] binary;
+var Assignments[{8..20} * {<d> in Weekdays: convertToPresentation[d]} * CourseScheduleFormatted] binary;
 
 # Constraints
+subto preAssign_presentation_constarints_formatted:
+    forall <h,wd,cgt,v> in preAssign_presentation_formatted:
+        Assignments[h,wd,cgt] == round(v);
 
 subto preAssign_presentation_constraints:
     forall <h,wd,c,g,t,v> in preAssign_presentation:
-        assignment_presentation[h,wd,c,g,t] == v;
+        Assignments_In_Decomposed_Form[h,wd,c,g,t] == round(v);
 
 subto take_course_in_valid_times:
     forall <hour,presentationDay,course,group,teacher> in {8..20} * {<d> in Weekdays: convertToPresentation[d]} * proj(CourseSchedule, <1,2,3>):
-        assignment_presentation[hour,presentationDay,course,group,teacher] <= 
+        Assignments_In_Decomposed_Form[hour,presentationDay,course,group,teacher] <= 
             (sum <c,g,t,st,wd,sh,eh> in CourseSchedule | 
                 c == course and g == group and 
                 wd == getWeekdayFromPresentation(presentationDay) and 
@@ -200,19 +215,19 @@ subto take_course_in_valid_times:
 
 subto assignment_presentation_constraints:
     forall <c,g,t,st,wd,sh,eh, h> in CourseSchedule * {8..20} | h >= sh and h < eh:
-        assignment_presentation[h,convertToPresentation[wd],c,g,t] == 
-            assignment_presentation_formatted[h,convertToPresentation[wd],FormatCourseSchedulePresentation(c,g,t)] and 
-            assignment_presentation[h,convertToPresentation[wd],c,g,t] == choose_group[c,g];
+        Assignments_In_Decomposed_Form[h,convertToPresentation[wd],c,g,t] == 
+            Assignments[h,convertToPresentation[wd],FormatCourseSchedulePresentation(c,g,t)] and 
+            Assignments_In_Decomposed_Form[h,convertToPresentation[wd],c,g,t] == choose_group[c,g];
 
 # Must take all mandatory courses
 subto mandatory_courses:
     forall <c> in Courses | is_mandatory(c) == 1:
-        take_course[c] == 1;
+        Courses_Taken[c] == 1;
 
 # If taking a course, must choose exactly one group
 subto group_selection:
     forall <c> in Courses:
-        (sum <c2,g2> in proj(CourseSchedule, <1,2>) | c == c2 : choose_group[c2,g2]) == take_course[c];
+        (sum <c2,g2> in proj(CourseSchedule, <1,2>) | c == c2 : choose_group[c2,g2]) == Courses_Taken[c];
 
 # Time collision prevention
 # For each weekday and each hour, ensure no more than one session is scheduled
@@ -226,11 +241,11 @@ subto no_collisions:
 subto active_days:
     forall <w> in Weekdays:
         (sum <c, g, t, st, wd, sh, eh> in CourseSchedule | wd == w:
-            choose_group[c,g]) <= card(CourseSchedule) * day_has_class[w];
+            choose_group[c,g]) <= card(CourseSchedule) * Days_With_Classes[w];
 
 # # Calculate total points
 subto calculateTotalPoints:
-    total_points == (sum <c> in Courses: getPoints(c) * take_course[c]);
+    Total_Academic_Points == (sum <c> in Courses: getPoints(c) * Courses_Taken[c]);
 
 subto first_activity_of_the_day:
     forall <c,g,t,st,wd,sh,eh> in CourseSchedule:
@@ -270,8 +285,8 @@ param weight_preffered_teachers := 0; # higher means get preffered teachers more
 
 
 minimize objective:
-    weight_points * abs(total_points - target_points) + 
-    weight_days * (sum <w> in Weekdays: day_has_class[w]) +
+    weight_points * abs(Total_Academic_Points - target_points) + 
+    weight_days * (sum <w> in Weekdays: Days_With_Classes[w]) +
     weight_day_start_early * (sum <c,g,w> in proj(CourseSchedule, <1,2,5>): (first_activity_of_the_day[c,g,w] * (min <c2,g2,t2,st2,wd2,sh2,eh2> in CourseSchedule | c == c2 and g == g2 and w == wd2: sh2))) +
-    (-1 * weight_preffered_courses) * (sum <c> in Courses: (take_course[c] * getCourseRating(c)/sumOfPrefferedCoursesRatings)) +
-    (-1 * weight_preffered_teachers) * (sum <c> in Courses: (take_course[c] * getTeacherRating(c)/sumOfPrefferedTeachersRatings));
+    (-1 * weight_preffered_courses) * (sum <c> in Courses: (Courses_Taken[c] * getCourseRating(c)/sumOfPrefferedCoursesRatings)) +
+    (-1 * weight_preffered_teachers) * (sum <c> in Courses: (Courses_Taken[c] * getTeacherRating(c)/sumOfPrefferedTeachersRatings));

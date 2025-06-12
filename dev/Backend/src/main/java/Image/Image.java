@@ -286,7 +286,7 @@ public class Image {
                 if (moduleNames.containsKey(module.moduleName())) {
                     throw new RuntimeException("two modules have the same name: " + module.moduleName());
                 }
-                moduleNames.put(module.moduleName(), "preference");
+                moduleNames.put(module.moduleName(), "optimization");
             }
         }
         
@@ -295,11 +295,11 @@ public class Image {
             // Track regular inputs
             for (SetDefinitionDTO set : variablesModule.inputSets()) {
                 setOwnership.computeIfAbsent(set.name(), k -> new ArrayList<>())
-                    .add("Variables module");
+                    .add("Domain module");
             }
             for (ParameterDefinitionDTO param : variablesModule.inputParams()) {
                 paramOwnership.computeIfAbsent(param.name(), k -> new ArrayList<>())
-                    .add("Variables module");
+                    .add("Domain module");
             }
             
             // Track bound sets
@@ -333,21 +333,21 @@ public class Image {
                 
                 for (SetDefinitionDTO set : module.inputSets()) {
                     setOwnership.computeIfAbsent(set.name(), k -> new ArrayList<>())
-                        .add("Preference module '" + module.moduleName() + "'");
+                        .add("Optimization module '" + module.moduleName() + "'");
                 }
                 
                 // Track input parameters
                 for (ParameterDefinitionDTO param : module.inputParams()) {
                     moduleParams.add(param.name());
                     paramOwnership.computeIfAbsent(param.name(), k -> new ArrayList<>())
-                        .add("Preference module '" + module.moduleName() + "'");
+                        .add("Optimization module '" + module.moduleName() + "'");
                 }
                 
                 // Track cost parameters, but only add to ownership if not already an input parameter
                 for (ParameterDefinitionDTO param : module.costParams()) {
                     if (!moduleParams.contains(param.name())) {
                         paramOwnership.computeIfAbsent(param.name(), k -> new ArrayList<>())
-                            .add("Preference module '" + module.moduleName() + "' (cost parameter)");
+                            .add("Optimization module '" + module.moduleName() + "' (cost parameter)");
                     }
                 }
             }
@@ -364,7 +364,7 @@ public class Image {
                 List<String> owners = setOwnership.get(setName);
                 // Only report conflict if the set is used by modules other than the variables module
                 boolean usedByOtherModules = owners.stream()
-                    .anyMatch(owner -> !owner.equals("Variables module"));
+                    .anyMatch(owner -> !owner.equals("Domain module"));
                 
                 if (usedByOtherModules) {
                     errorMessage.append(String.format("Bound set conflict:%n"));
@@ -381,7 +381,7 @@ public class Image {
             if (owners.size() > 1) {
                 // Filter out cases where it's only used by variables module
                 List<String> nonVarModuleOwners = owners.stream()
-                    .filter(owner -> !owner.equals("Variables module"))
+                    .filter(owner -> !owner.equals("Domain module"))
                     .collect(Collectors.toList());
                 
                 if (nonVarModuleOwners.size() > 0) {
@@ -515,7 +515,7 @@ public class Image {
     @Transactional
     public void addPreference(String moduleName, PreferenceDTO preferenceDTO) {
         if(!preferenceModules.containsKey(moduleName))
-            throw new IllegalArgumentException("No preference module with name: " + moduleName);
+            throw new IllegalArgumentException("No optimization module with name: " + moduleName);
         preferenceModules.get(moduleName).addPreference(model.getPreference(preferenceDTO.identifier()));
     }
 
@@ -542,7 +542,7 @@ public class Image {
     @Transactional
     public void removePreference(String moduleName, PreferenceDTO preferenceDTO) {
         if(!preferenceModules.containsKey(moduleName))
-            throw new IllegalArgumentException("No preference module with name: " + moduleName);
+            throw new IllegalArgumentException("No optimization module with name: " + moduleName);
         preferenceModules.get(moduleName).removePreference(model.getPreference(preferenceDTO.identifier()));
     }
 
@@ -870,7 +870,7 @@ public class Image {
                 
                 if (!conflictingSets.isEmpty() || !conflictingParams.isEmpty()) {
                     String conflictType = !costParamConflicts.isEmpty() ? 
-                        String.format("Cost parameter conflict:%n- Parameters used as cost parameters in preference module: %s%n", 
+                        String.format("Cost parameter conflict:%n- Parameters used as cost parameters in optimization module: %s%n", 
                             String.join(", ", costParamConflicts)) :
                         String.format("Input conflict:%n%s%s",
                             conflictingSets.isEmpty() ? "" : String.format("- Sets: %s%n", String.join(", ", conflictingSets)),
@@ -878,7 +878,7 @@ public class Image {
                     
                     throw new IllegalArgumentException(
                         String.format("Conflict between modules:%n" +
-                            "- Preference module '%s'%n" +
+                            "- Optimization module '%s'%n" +
                             "- Attempting to use in module '%s'%n" +
                             "%s",
                             entry.getKey(),
@@ -907,7 +907,7 @@ public class Image {
             
             if (!conflictingSets.isEmpty() || !conflictingParams.isEmpty()) {
                 String conflictType = !boundSetConflicts.isEmpty() ? 
-                    String.format("Bound set conflict:%n- Sets used as bound sets in variables module: %s%n", 
+                    String.format("Bound set conflict:%n- Sets used as bound sets in Domain module: %s%n", 
                         String.join(", ", boundSetConflicts)) :
                     String.format("Input conflict:%n%s%s",
                         conflictingSets.isEmpty() ? "" : String.format("- Sets: %s%n", String.join(", ", conflictingSets)),
@@ -915,7 +915,7 @@ public class Image {
                 
                 throw new IllegalArgumentException(
                     String.format("Conflict between modules:%n" +
-                        "- Variables module%n" +
+                        "- Domain module%n" +
                         "- Attempting to use in module '%s'%n" +
                         "%s",
                         moduleId,

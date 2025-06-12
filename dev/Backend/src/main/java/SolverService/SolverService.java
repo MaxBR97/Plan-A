@@ -102,7 +102,6 @@ public class SolverService implements Solver {
                 String problemFile = modelRepository.getLocalStoreDir().resolve(fileId+".zpl").toString();
                 compilationProcess.read(problemFile);
                 
-                // Check status every 100ms
                 String status;
                 long startTime = System.currentTimeMillis();
                 long timeoutMillis = timeout * 1000L;
@@ -130,7 +129,7 @@ public class SolverService implements Solver {
                     try {
                         System.gc();
                         scipProcessPool.releaseProcess(compilationProcess);
-                        Thread.sleep(200); // Give extra time for file handles to be released
+                        Thread.sleep(10); // Give extra time for file handles to be released
                         System.gc();
                     } catch (Exception e) {
                         // Ignore cleanup errors

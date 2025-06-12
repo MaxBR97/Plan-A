@@ -1,7 +1,7 @@
 # Sudoku solver in ZIMPL
 # Sets for rows, columns and numbers
 param sudoku_size := 9;
-param box_size := 3; 
+param box_size := 3;
 
 set I := {1 .. sudoku_size};  # rows
 set J := {1 .. sudoku_size};  # columns

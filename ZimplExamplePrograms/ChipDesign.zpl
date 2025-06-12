@@ -82,7 +82,7 @@ defnumb getCompMaxTemp(comp_id) :=
 
 # Decision 
 # Chip dimensions are now variables to minimize
-var chip_dimensions[{"Width","Height"}] integer >= 0 ;   # Width of the chip in units
+var Chip_Dimensions[{"Width","Height"}] integer >= 0 ;   # Width of the chip in units
 var pos_x[Components] integer >= 0;   # x-coordinate of component placement
 var pos_y[Components] integer >= 0;   # y-coordinate of component placement
 # Temperature variables consolidated into one array
