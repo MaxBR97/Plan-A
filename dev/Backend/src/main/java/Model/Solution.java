@@ -95,7 +95,7 @@ public class Solution {
         try (BufferedReader reader = new BufferedReader(new FileReader(solutionPath))) {
             String line;
             Pattern optimalSolutionPattern = Pattern.compile("solution status: optimal solution found");
-            Pattern objectiveValuePattern = Pattern.compile("objective value:\\s+(-?\\d+(\\.\\d+)?|[+|-]infinity)");
+            Pattern objectiveValuePattern = Pattern.compile("objective value:\\s+(-?\\d+(?:\\.\\d+)?(?:[eE][-+]?\\d+)?|[+|-]infinity)");
             
             while ((line = reader.readLine()) != null) {
                 Matcher optimalMatcher = optimalSolutionPattern.matcher(line);
@@ -146,7 +146,7 @@ public class Solution {
             String line;
             boolean solutionSection = false;
             Pattern optimalSolutionPattern = Pattern.compile("solution status: optimal solution found");
-            Pattern objectiveValuePattern = Pattern.compile("objective value:\\s+(-?\\d+(\\.\\d+)?|[+|-]infinity)");
+            Pattern objectiveValuePattern = Pattern.compile("objective value:\\s+(-?\\d+(?:\\.\\d+)?(?:[eE][-+]?\\d+)?|[+|-]infinity)");
             while ((line = reader.readLine()) != null) {
                 if (!solutionSection) {
                     // Check for the solved status
@@ -171,7 +171,7 @@ public class Solution {
     }
 
     private void parseSolutionValues(BufferedReader reader, Set<String> varsToParse) throws IOException {
-        Pattern variablePattern = Pattern.compile("^(.*?)[ \\t]+(-?\\d+\\.?\\d*)[ \\t]+\\(obj:(-?\\d+\\.?\\d*)\\)");
+        Pattern variablePattern = Pattern.compile("^(.*?)[ \\t]+(-?\\d+(?:\\.\\d+)?(?:[eE][-+]?\\d+)?)[ \\t]+\\(obj:(-?\\d+(?:\\.\\d+)?(?:[eE][-+]?\\d+)?)\\)");
         String line;
         while ((line = reader.readLine()) != null) {
             Matcher variableMatcher = variablePattern.matcher(line);
@@ -217,8 +217,8 @@ public class Solution {
         try (BufferedReader reader = new BufferedReader(new FileReader(solutionPath))) {
             String line;
             Pattern statusPattern = Pattern.compile("solution status: (.*)");
-            Pattern objectivePattern = Pattern.compile("objective value:\\s+(-?\\d+(\\.\\d+)?|[+|-]infinity)");
-            Pattern variablePattern = Pattern.compile("^(.+?)\\s+(-?\\d+(?:\\.\\d+)?|(?:-)?infinity)\\s+\\(obj:(-?\\d+(?:\\.\\d+)?)\\)");
+            Pattern objectivePattern = Pattern.compile("objective value:\\s+(-?\\d+(?:\\.\\d+)?(?:[eE][-+]?\\d+)?|[+|-]infinity)");
+            Pattern variablePattern = Pattern.compile("^(.+?)\\s+(-?\\d+(?:\\.\\d+)?(?:[eE][-+]?\\d+)?|(?:-)?infinity)\\s+\\(obj:(-?\\d+(?:\\.\\d+)?(?:[eE][-+]?\\d+)?)\\)");
 
             // Clear existing data
             variableSolution.clear();

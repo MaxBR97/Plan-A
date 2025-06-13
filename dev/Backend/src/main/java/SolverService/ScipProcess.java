@@ -236,6 +236,7 @@ public class ScipProcess {
     }
 
     public void exit() throws Exception {
+        long startTime = System.currentTimeMillis();
         if(DEBUG)
             System.out.println("Attempting to exit scip process: "+ scipProcess.toString());
         isRunning = false;
@@ -251,13 +252,13 @@ public class ScipProcess {
             }
         }
         if(DEBUG)
-            System.out.println("piped quit and closed reader thread, attempting to destroy scip process: "+ scipProcess.toString());
+            System.out.println("piped quit and closed reader thread, attempting to destroy scip process: "+ scipProcess.toString() + " | time: "+ (System.currentTimeMillis() - startTime));
         if (scipProcess != null) {
             try {
                 scipProcess.destroyForcibly();
                 scipProcess.waitFor();
                 if(DEBUG)
-                    System.out.println("scip process destroyed: "+ scipProcess.toString());
+                    System.out.println("scip process destroyed: "+ scipProcess.toString() + " | time: "+ (System.currentTimeMillis() - startTime));
                 Thread.sleep(10);
             } catch (Exception e) {
                 if(DEBUG)

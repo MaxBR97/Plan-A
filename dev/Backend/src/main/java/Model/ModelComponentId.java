@@ -7,7 +7,7 @@ import jakarta.persistence.Embeddable;
 
 @Embeddable
 public class ModelComponentId implements Serializable {
-    @Column(name="name")
+    @Column(name="name",  length = 450)
     private String identifier;
     
     @Column(name="image_id", insertable=false, updatable=false)

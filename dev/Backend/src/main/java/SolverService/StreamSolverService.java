@@ -9,13 +9,13 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import DataAccess.ModelRepository;
 import Model.Solution;
-import Exceptions.ZimpleDataIntegrityException;
-import Exceptions.ZimpleCompileException;
+import Exceptions.*;
 import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+
 import java.util.stream.Collectors;
 import org.springframework.context.annotation.Profile;
 import java.util.concurrent.CompletionException;
@@ -57,11 +57,13 @@ public class StreamSolverService implements StreamSolver {
         if(scipProcess != null){
             finish();
         }
-        
+
+        long startTime = System.currentTimeMillis();
         this.fileId = fileId;
         scipProcess = new ScipProcess();
         scipProcess.start();
-        
+        if (DEBUG)
+            System.out.println("Scip process started" + " | time: "+ (System.currentTimeMillis() - startTime));
         // Configure SCIP settings
         scipProcess.solverSettings("set timing reading TRUE");
         scipProcess.setTimeLimit(timeout);
@@ -166,10 +168,13 @@ public class StreamSolverService implements StreamSolver {
     private CompletableFuture<Solution> getNextSolution(String id) {
         return CompletableFuture.supplyAsync(() -> {
             try {
+                long startTime = System.currentTimeMillis();
+                int scipProcessPid = Integer.parseInt(scipProcess.getPid());
                 if(DEBUG)
                     System.out.println("Waiting for solution status to be updated...");
                 int i = 0;
-                while (!scipProcess.getStatus().equals("compilation error")
+                while (scipProcess != null && scipProcessPid == Integer.parseInt(scipProcess.getPid()) 
+                        && !scipProcess.getStatus().equals("compilation error")
                         && !scipProcess.getStatus().equals("integrity error")
                         && !scipProcess.getStatus().equals("solved")
                         && !scipProcess.getStatus().equals("paused")) {
@@ -180,19 +185,21 @@ public class StreamSolverService implements StreamSolver {
                     }
                 }
                 if(DEBUG)
-                    System.out.println("Finished waiting, status updated:" + scipProcess.getStatus());
-    
-                if (scipProcess.getStatus().equals("integrity error")) {
+                    System.out.println("Finished waiting, status updated:" + scipProcess.getStatus() + " | time: "+ (System.currentTimeMillis() - startTime));
+                if (scipProcess == null || scipProcessPid != Integer.parseInt(scipProcess.getPid())) {
+                    throw new BadRequestException("solving process was preempted");
+                }
+                else if (scipProcess.getStatus().equals("integrity error")) {
                     throw new ZimpleDataIntegrityException(scipProcess.getCompilationError());
                 } else if (scipProcess.getStatus().equals("compilation error")) {
                     throw new ZimpleCompileException(scipProcess.getCompilationError(), 800);
-                }
+                } 
                 if(DEBUG)
-                    System.out.println("Attempting to write solution to tmpSolution");
+                    System.out.println("Attempting to write solution to tmpSolution" + " | time: "+ (System.currentTimeMillis() - startTime));
                 InputStream solutionStream = scipProcess.getSolution();
                 writeSolution(id, SOLUTION_FILE_SUFFIX, solutionStream);
                 if(DEBUG)
-                    System.out.println("Solution uploaded to repo, deleting tmpSolution");
+                    System.out.println("Solution uploaded to repo, deleting tmpSolution" + " | time: "+ (System.currentTimeMillis() - startTime));
                 return new Solution(getSolutionPathToFile(SOLUTION_FILE_SUFFIX));
             } catch (Exception e) {
                 System.err.println("Error getting solution: " + e.getMessage());

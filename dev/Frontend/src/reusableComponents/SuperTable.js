@@ -478,10 +478,6 @@ const toggleSelection = (filters) => {
     toggleSelection(filters);
   };
 
-  /**
- * Apply the edited value
- * FIX: Ensure we're editing the correct dimension and update selected tuples
- */
 const applyEdit = () => {
   if (!editingCell) return;
   const { level, filters } = editingCell;
@@ -496,7 +492,7 @@ const applyEdit = () => {
   
   // Find corresponding original solutions
   const matchingOriginals = findMatchingOriginalSolutions(filters, displayedSolutions);
-  
+  console.log("Solutions: ", solutions);
   // Update all matching solutions
   const updatedSolutions = solutions.map(sol => {
     const isMatch = matchingOriginals.some(original => {
@@ -516,7 +512,9 @@ const applyEdit = () => {
     
     if (isMatch) {
       const newValues = [...sol.values];
-      newValues[indexInSetStructure] = editValue;
+      const currentVal = sol.values[indexInSetStructure];
+      const parsedEditValue = typeof currentVal === 'number' && editValue !== '' ? Number(editValue) : editValue;
+      newValues[indexInSetStructure] = parsedEditValue;
       return { ...sol, values: newValues.slice(0,displayStructure.length) };
     }
     
@@ -543,7 +541,9 @@ const applyEdit = () => {
       
       if (isMatch) {
         const newValues = [...selectedTuple.values];
-        newValues[indexInSetStructure] = editValue;
+        const currentVal = selectedTuple.values[indexInSetStructure];
+        const parsedEditValue = typeof currentVal === 'number' && editValue !== '' ? Number(editValue) : editValue;
+        newValues[indexInSetStructure] = parsedEditValue;
         return { ...selectedTuple, values: newValues.slice(0, displayStructure.length) };
       }
       
@@ -553,7 +553,7 @@ const applyEdit = () => {
     // Update the selected tuples
     onSelectedTuplesChange(updatedSelectedTuples);
   }
-  
+  console.log("Updated Solutions: ", updatedSolutions);
   // Clear editing state
   setEditingCell(null);
   setEditValue("");

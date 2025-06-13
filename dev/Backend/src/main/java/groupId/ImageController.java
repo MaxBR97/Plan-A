@@ -91,15 +91,24 @@ public class ImageController {
     
     @Transactional
     public SolutionDTO solve(SolveCommandDTO command) throws Exception {
+        long start = System.currentTimeMillis();
         Image image = imageRepository.findById(command.imageId()).get();
+        long imageFoundTime = System.currentTimeMillis() - start;
         image.prepareInput(command.input());
+        long inputPreparedTimes = System.currentTimeMillis() - imageFoundTime;
         Solution solution = solverService.solve(image.getId(), command.timeout(), command.solverSettings());
+        long inputSolveTime = System.currentTimeMillis() - inputPreparedTimes;
+        long inputRestoredTime = 0;
         try {
             image.restoreInput();
+            inputRestoredTime = System.currentTimeMillis() - inputSolveTime;
         } catch (Exception e) {
             throw new RuntimeException("IO exception while restoring input, message: "+ e);
         }
-        return image.parseSolution(solution);
+        SolutionDTO solutionDTO = image.parseSolution(solution);
+        long solutionParsedTime = System.currentTimeMillis() - inputRestoredTime;
+        System.out.println("Image found time: " + imageFoundTime + " | Input prepared time: " + inputPreparedTimes + " | Solve time: " + inputSolveTime + " | Input restored time: " + inputRestoredTime + " | Solution parsed time: " + solutionParsedTime);
+        return solutionDTO;
     }
 
     @Transactional

@@ -8,7 +8,8 @@ const ENABLE_CUSTOM_SCRIPTS = true;
 
 const ConfigureSolverOptionsPage = () => {
   const { image, updateImageField } = useZPL();
-console.log(image.solverSettings)
+  console.log(image.solverSettings);
+
   const predefinedSettings = {
     Default: "",
     Optimallity: "set emphasis optimality",
@@ -18,7 +19,6 @@ console.log(image.solverSettings)
     Numerics: "set emphasis numerics"
   };
 
-  // Descriptions for each predefined setting
   const settingDescriptions = {
     Default: "Default solver behavior without any specific emphasis.",
     Optimallity: "Emphasizes proving optimality fast, potentially at the cost of reaching good suboptimal solutions slower.",
@@ -28,26 +28,20 @@ console.log(image.solverSettings)
     Numerics: "Emphasizes numerical stability and precision during the solution process."
   };
 
-  // Initialize states
   const [selectedPredefined, setSelectedPredefined] = useState({});
   const [customScripts, setCustomScripts] = useState({});
-  // Keep track of script order
   const [scriptOrder, setScriptOrder] = useState([]);
+  const [scriptNameEdits, setScriptNameEdits] = useState({});
 
-  // Initialize from existing solverSettings if any
   useEffect(() => {
     const existingSettings = image?.solverSettings || {};
-    
-    // Separate existing settings into predefined and custom
     const predefinedSelected = {};
     const customSelected = {};
     const newScriptOrder = [];
-    
+
     Object.entries(existingSettings).forEach(([key, value]) => {
       if (key in predefinedSettings) {
-        
-          predefinedSelected[key] = value;
-        
+        predefinedSelected[key] = value;
       } else {
         customSelected[key] = value;
         newScriptOrder.push(key);
@@ -57,79 +51,83 @@ console.log(image.solverSettings)
     setSelectedPredefined(predefinedSelected);
     setCustomScripts(customSelected);
     setScriptOrder(newScriptOrder);
+    setScriptNameEdits(customSelected);
   }, []);
 
-  // Handle checkbox changes for predefined settings
   const handlePredefinedChange = (settingName) => {
     const updatedSelection = { ...selectedPredefined };
-    
+
     if (settingName in updatedSelection) {
       delete updatedSelection[settingName];
     } else {
       updatedSelection[settingName] = predefinedSettings[settingName];
     }
-    
-    // If no settings are selected, ensure we have the default empty setting
-    const finalSettings = Object.keys(updatedSelection).length === 0 
-      ? { default: "" } 
+
+    const finalSettings = Object.keys(updatedSelection).length === 0
+      ? { default: "" }
       : updatedSelection;
-    
+
     setSelectedPredefined(updatedSelection);
     updateSolverSettings({ ...finalSettings, ...customScripts });
   };
 
-  // Handle adding a new custom script
   const handleAddCustomScript = () => {
     const newName = `custom${Object.keys(customScripts).length + 1}`;
-    setCustomScripts(prev => ({ ...prev, [newName]: "" }));
+    const updatedScripts = { ...customScripts, [newName]: "" };
+    const updatedEdits = { ...scriptNameEdits, [newName]: newName };
+
+    setCustomScripts(updatedScripts);
     setScriptOrder(prev => [...prev, newName]);
+    setScriptNameEdits(updatedEdits);
   };
 
-  // Handle removing a custom script
   const handleRemoveCustomScript = (scriptName) => {
     const updatedScripts = { ...customScripts };
     delete updatedScripts[scriptName];
+
+    const updatedEdits = { ...scriptNameEdits };
+    delete updatedEdits[scriptName];
+
     setCustomScripts(updatedScripts);
     setScriptOrder(prev => prev.filter(name => name !== scriptName));
-    
-    // If no settings are selected and no custom scripts, ensure we have the default empty setting
+    setScriptNameEdits(updatedEdits);
+
     const finalSettings = Object.keys(selectedPredefined).length === 0 && Object.keys(updatedScripts).length === 0
       ? { default: "" }
       : { ...selectedPredefined, ...updatedScripts };
-    
+
     updateSolverSettings(finalSettings);
   };
 
-  // Handle custom script name change
   const handleCustomNameChange = (oldName, newName) => {
-    if (newName.trim() === "") return;
-    if (oldName !== newName && !customScripts[newName]) {
-      const updatedScripts = { ...customScripts };
-      updatedScripts[newName] = updatedScripts[oldName];
-      delete updatedScripts[oldName];
-      setCustomScripts(updatedScripts);
-      
-      // Update the order array with the new name
-      setScriptOrder(prev => prev.map(name => name === oldName ? newName : name));
-      
-      updateSolverSettings({ ...selectedPredefined, ...updatedScripts });
-    }
+    if (!newName.trim() || customScripts[newName]) return;
+
+    const updatedScripts = { ...customScripts };
+    updatedScripts[newName] = updatedScripts[oldName];
+    delete updatedScripts[oldName];
+
+    const updatedEdits = { ...scriptNameEdits };
+    delete updatedEdits[oldName];
+    updatedEdits[newName] = newName;
+
+    setCustomScripts(updatedScripts);
+    setScriptNameEdits(updatedEdits);
+    setScriptOrder(prev => prev.map(name => name === oldName ? newName : name));
+
+    updateSolverSettings({ ...selectedPredefined, ...updatedScripts });
   };
 
-  // Handle custom script content change
   const handleCustomScriptChange = (name, value) => {
     const updatedScripts = { ...customScripts, [name]: value };
     setCustomScripts(updatedScripts);
     updateSolverSettings({ ...selectedPredefined, ...updatedScripts });
   };
 
-  // Update the image's solverSettings
   const updateSolverSettings = (newSettings) => {
-    // Ensure we always have at least the default setting if nothing else is selected
-    const finalSettings = Object.keys(newSettings).length === 0 
-      ? { default: "" } 
+    const finalSettings = Object.keys(newSettings).length === 0
+      ? { default: "" }
       : newSettings;
-    
+
     updateImageField("solverSettings", finalSettings);
   };
 
@@ -141,7 +139,7 @@ console.log(image.solverSettings)
           Select relevant solver settings for your model. Some might be relevant more than others, depending on your model.
         </p>
         <div className="predefined-options">
-          {Object.entries(predefinedSettings).map(([settingName, value]) => (
+          {Object.entries(predefinedSettings).map(([settingName]) => (
             <div key={settingName} className="setting-option">
               <div className="setting-header">
                 <label>
@@ -167,7 +165,7 @@ console.log(image.solverSettings)
           <p className="section-description">
             Create your own solver settings by defining custom name-script pairs.
           </p>
-          
+
           <div className="custom-scripts-container">
             {scriptOrder.map((scriptName) => (
               <div key={scriptName} className="custom-script-pair">
@@ -175,11 +173,22 @@ console.log(image.solverSettings)
                   <input
                     type="text"
                     className="script-name-input"
-                    value={scriptName}
-                    onChange={(e) => handleCustomNameChange(scriptName, e.target.value)}
+                    value={scriptNameEdits[scriptName] ?? scriptName}
+                    onChange={(e) =>
+                      setScriptNameEdits(prev => ({
+                        ...prev,
+                        [scriptName]: e.target.value
+                      }))
+                    }
+                    onBlur={() => {
+                      const newName = scriptNameEdits[scriptName];
+                      if (newName && newName !== scriptName) {
+                        handleCustomNameChange(scriptName, newName);
+                      }
+                    }}
                     placeholder="Script Name"
                   />
-                  <button 
+                  <button
                     className="remove-script-btn"
                     onClick={() => handleRemoveCustomScript(scriptName)}
                   >
@@ -196,7 +205,7 @@ console.log(image.solverSettings)
               </div>
             ))}
           </div>
-          
+
           <button className="add-script-btn" onClick={handleAddCustomScript}>
             + Add More Script
           </button>
