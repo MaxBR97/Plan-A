@@ -152,5 +152,5 @@ public abstract class ModelInterface {
     public abstract void restoreToggledFunctionalities() throws Exception;
 
     public abstract void setId(String id) throws Exception;
-
+    public abstract void applyChangesToParseTree(boolean reparse) throws Exception;
 }

@@ -76,7 +76,7 @@ public class ImageController {
         
         try {
             // First check compilation using solver
-            String compilationResult = solverService.isCompiling(id, 13);
+            String compilationResult = solverService.isCompiling(id, 17);
             if (compilationResult != null && !compilationResult.isEmpty()) {
                 throw new BadRequestException("Code compilation failed: " + compilationResult);
             }
@@ -125,14 +125,7 @@ public class ImageController {
         Solution solution = solverService.solve(solveRequest, command.timeout(), command.solverSettings());
         long inputSolveTime = System.currentTimeMillis() - start;
         long inputRestoredTime = 0;
-        try {
-            // image.restoreInput(solveRequest);
-            inputRestoredTime = System.currentTimeMillis() - start;
-        } catch (Exception e) {
-            throw new RuntimeException("IO exception while restoring input, message: "+ e);
-        } finally {
-            solvingRequests.put(solveRequest, true);
-        }
+        solvingRequests.put(solveRequest, true);
         SolutionDTO solutionDTO = image.parseSolution(solution);
         long solutionParsedTime = System.currentTimeMillis() - start;
         System.out.println("Image found time: " + imageFoundTime + " | Input prepared time: " + inputPreparedTimes + " | Solve time: " + inputSolveTime + " | Input restored time: " + inputRestoredTime + " | Solution parsed time: " + solutionParsedTime);
@@ -146,13 +139,7 @@ public class ImageController {
         solvingRequests.put(solveRequest, false);
         CompletableFuture<Solution> solution = solverService.solveAsync(solveRequest, command.timeout(), command.solverSettings());
         return solution.thenApply(sol -> {
-            try {
-                image.restoreInput(solveRequest);
-            } catch (Exception e) {
-                throw new RuntimeException("IO exception while restoring input, message: "+ e);
-            } finally {
-                solvingRequests.put(solveRequest, true);
-            }
+            solvingRequests.put(solveRequest, true);
             return image.parseSolution(sol);
         });
     }

@@ -224,4 +224,10 @@ public class StubModel extends ModelInterface {
         throw new UnsupportedOperationException("Unimplemented method 'setId'");
     }
 
+    @Override
+    public void applyChangesToParseTree(boolean reparse) throws Exception {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'applyChangesToParseTree'");
+    }
+
 } 

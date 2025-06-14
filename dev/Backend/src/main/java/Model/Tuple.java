@@ -47,7 +47,6 @@ public class Tuple implements ModelType {
     }
 
     public boolean isCompatible(String str) {
-        System.out.println("isCompatible: " + str + " | val: ");
 
         if (str == null || str.length() < 2 || !str.startsWith("<") || !str.endsWith(">")) {
             return false;
@@ -55,7 +54,6 @@ public class Tuple implements ModelType {
         
         
         String content = str.substring(1, str.length() - 1).trim();
-        System.out.println("@@@");
         
         if (content.isEmpty()) {
             return val.isEmpty();

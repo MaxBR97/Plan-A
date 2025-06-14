@@ -203,7 +203,7 @@ public class Image {
     //TODO: make this correspond to patch semantics - fields that are null - are not updated.
     @Transactional
     public void update(ImageDTO imageDTO) throws Exception {
-        this.model.parseSource();
+        // this.model.parseSource();
         // First validate the DTO
         imageDTO.validateNoDuplicateVariableTags();
 
@@ -689,7 +689,7 @@ public class Image {
         Set<String> relevantSets = getAllInputSets().stream().map((ModelSet s) -> s.getIdentifier()).collect(Collectors.toSet());
         Map<String, List<List<String>>> setsToValues = new HashMap<>();
         Map<String,List<String>> paramsToValues = new HashMap<>();
-        model.parseSource();
+        // model.parseSource();
         for (String param : relevantParams.toArray(new String[0])) {
             String[] atoms = model.getInput(model.getParameter(param));
             paramsToValues.put(param, List.of(atoms));
@@ -829,7 +829,7 @@ public class Image {
             }
         }
         model.commentOutToggledFunctionalities();
-        
+        model.applyChangesToParseTree(false);
         model.setId(id);
         return tmpModelId;
     }

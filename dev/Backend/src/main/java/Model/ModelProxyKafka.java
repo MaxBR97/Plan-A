@@ -301,4 +301,9 @@ public class ModelProxyKafka extends ModelInterface {
         this.id = id;
         this.localModel.setId(id);
     }
+
+    @Override
+    public void applyChangesToParseTree(boolean reparse) throws Exception {
+        localModel.applyChangesToParseTree(reparse);
+    }
 }
