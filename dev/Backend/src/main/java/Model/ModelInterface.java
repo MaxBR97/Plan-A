@@ -151,4 +151,6 @@ public abstract class ModelInterface {
     public abstract void commentOutToggledFunctionalities() throws Exception;
     public abstract void restoreToggledFunctionalities() throws Exception;
 
+    public abstract void setId(String id) throws Exception;
+
 }

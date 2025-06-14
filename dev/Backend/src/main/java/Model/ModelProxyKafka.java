@@ -295,4 +295,10 @@ public class ModelProxyKafka extends ModelInterface {
     public void restoreToggledFunctionalities() throws Exception {
         localModel.restoreToggledFunctionalities();
     }
+
+    @Override
+    public void setId(String id) throws Exception {
+        this.id = id;
+        this.localModel.setId(id);
+    }
 }

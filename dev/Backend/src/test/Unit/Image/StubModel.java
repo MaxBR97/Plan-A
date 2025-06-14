@@ -5,7 +5,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import Model.ModelComponent;
 import Model.ModelConstraint;
@@ -218,4 +217,11 @@ public class StubModel extends ModelInterface {
     public void addFunction(ModelFunction function) {
         functions.put(function.getIdentifier(), function);
     }
+
+    @Override
+    public void setId(String id) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'setId'");
+    }
+
 } 

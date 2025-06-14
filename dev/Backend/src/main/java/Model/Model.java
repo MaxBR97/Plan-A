@@ -47,7 +47,7 @@ import org.springframework.web.bind.annotation.RestController;
 import DataAccess.ModelRepository;
 
 public class Model extends ModelInterface {
-    private final String id;
+    private String id;
     ParseTree tree;
     private CommonTokenStream tokens;
     private final Map<String,ModelSet> sets = new HashMap<>();
@@ -87,9 +87,13 @@ public class Model extends ModelInterface {
         for(ModelParameter param : persistedParams){
             this.setModelComponent(param);
         }
-        parseSource();
+        prepareParse();
+        // parseSource();
     }
 
+    public void setId(String id) throws Exception {
+        this.id = id;
+    }
 
     public InputStream getSource() throws Exception{
         InputStream inputStream = modelRepository.downloadDocument(id);
@@ -115,14 +119,17 @@ public class Model extends ModelInterface {
         modelRepository.uploadDocument(id + suffix, inputStream);
         modelRepository.downloadDocument(id + suffix);
     }
-    
-    public void parseSource() throws Exception {
+
+    public void prepareParse() throws Exception {
         originalSource = new String(getSource().readAllBytes());
         CharStream charStream = CharStreams.fromString(originalSource);
         FormulationLexer lexer = new FormulationLexer(charStream);
         tokens = new CommonTokenStream(lexer);
         FormulationParser parser = new FormulationParser(tokens);
-        tree = parser.program();
+    }
+    
+    public void parseSource() throws Exception {
+        prepareParse();
         
         // Initial parse to collect all declarations
         CollectorVisitor collector = new CollectorVisitor();

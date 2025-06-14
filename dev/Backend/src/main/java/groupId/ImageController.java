@@ -4,7 +4,11 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
+import org.apache.el.util.ConcurrentCache;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -25,6 +29,8 @@ import Model.Solution;
 import SolverService.Solver;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @RestController
 public class ImageController {
@@ -37,7 +43,11 @@ public class ImageController {
     private EntityManager entityManager;
     @Autowired
     private Solver solverService;
-    private ModelInterface currentlySolving;
+    
+    private Map<String,Boolean> solvingRequests;
+
+    private final ScheduledExecutorService garbageCollector;
+    private static final int GC_INTERVAL_SECONDS = 5;
 
     @Autowired
     public ImageController(ImageRepository imageRepository, ModelFactory modelFactory, EntityManager em, Solver solverService) {
@@ -46,7 +56,14 @@ public class ImageController {
         this.entityManager = em;
         Image.setModelFactory(modelFactory);
         this.solverService = solverService;
+        this.solvingRequests = new ConcurrentHashMap<>();
+        
+        // Initialize and start the garbage collector
+        this.garbageCollector = Executors.newSingleThreadScheduledExecutor();
+        this.garbageCollector.scheduleAtFixedRate(this::collectGarbage, GC_INTERVAL_SECONDS, GC_INTERVAL_SECONDS, TimeUnit.SECONDS);
     }
+
+    
 
     @Transactional
     public CreateImageResponseDTO createImageFromFile(CreateImageFromFileDTO command) throws Exception {
@@ -80,11 +97,19 @@ public class ImageController {
             return RecordFactory.makeDTO(id, image.getModel());
         } catch (BadRequestException e) {
             // Clean up the model if validation fails
-            modelFactory.deleteModel(id);
+            try{
+                modelFactory.deleteModel(id);
+            } catch (Exception exception) {
+                System.err.println("Error in deleting model: " + e.getMessage());
+            }
             throw e;
         } catch (Exception e) {
             // Clean up and wrap any other exceptions
-            modelFactory.deleteModel(id);
+            try{
+                modelFactory.deleteModel(id);
+            } catch (Exception exception) {
+                System.err.println("Error in deleting model: " + e.getMessage());
+            }
             throw new BadRequestException("Failed to validate image code: " + e.getMessage());
         }
     }
@@ -94,19 +119,22 @@ public class ImageController {
         long start = System.currentTimeMillis();
         Image image = imageRepository.findById(command.imageId()).get();
         long imageFoundTime = System.currentTimeMillis() - start;
-        image.prepareInput(command.input());
-        long inputPreparedTimes = System.currentTimeMillis() - imageFoundTime;
-        Solution solution = solverService.solve(image.getId(), command.timeout(), command.solverSettings());
-        long inputSolveTime = System.currentTimeMillis() - inputPreparedTimes;
+        String solveRequest = image.prepareInput(command.input());
+        solvingRequests.put(solveRequest, false);
+        long inputPreparedTimes = System.currentTimeMillis() - start;
+        Solution solution = solverService.solve(solveRequest, command.timeout(), command.solverSettings());
+        long inputSolveTime = System.currentTimeMillis() - start;
         long inputRestoredTime = 0;
         try {
-            image.restoreInput();
-            inputRestoredTime = System.currentTimeMillis() - inputSolveTime;
+            // image.restoreInput(solveRequest);
+            inputRestoredTime = System.currentTimeMillis() - start;
         } catch (Exception e) {
             throw new RuntimeException("IO exception while restoring input, message: "+ e);
+        } finally {
+            solvingRequests.put(solveRequest, true);
         }
         SolutionDTO solutionDTO = image.parseSolution(solution);
-        long solutionParsedTime = System.currentTimeMillis() - inputRestoredTime;
+        long solutionParsedTime = System.currentTimeMillis() - start;
         System.out.println("Image found time: " + imageFoundTime + " | Input prepared time: " + inputPreparedTimes + " | Solve time: " + inputSolveTime + " | Input restored time: " + inputRestoredTime + " | Solution parsed time: " + solutionParsedTime);
         return solutionDTO;
     }
@@ -114,13 +142,16 @@ public class ImageController {
     @Transactional
     public CompletableFuture<SolutionDTO> solveAsync(SolveCommandDTO command) throws Exception {
         Image image = imageRepository.findById(command.imageId()).get();
-        image.prepareInput(command.input());
-        CompletableFuture<Solution> solution = solverService.solveAsync(image.getId(), command.timeout(), command.solverSettings());
+        String solveRequest = image.prepareInput(command.input());
+        solvingRequests.put(solveRequest, false);
+        CompletableFuture<Solution> solution = solverService.solveAsync(solveRequest, command.timeout(), command.solverSettings());
         return solution.thenApply(sol -> {
             try {
-                image.restoreInput();
+                image.restoreInput(solveRequest);
             } catch (Exception e) {
                 throw new RuntimeException("IO exception while restoring input, message: "+ e);
+            } finally {
+                solvingRequests.put(solveRequest, true);
             }
             return image.parseSolution(sol);
         });
@@ -171,5 +202,42 @@ public class ImageController {
 
     public Solver getSolver(){
         return solverService;
+    }
+
+    // Add a shutdown method to clean up resources
+    public void shutdown() {
+        if (garbageCollector != null) {
+            garbageCollector.shutdown();
+            try {
+                if (!garbageCollector.awaitTermination(60, TimeUnit.SECONDS)) {
+                    garbageCollector.shutdownNow();
+                }
+            } catch (InterruptedException e) {
+                garbageCollector.shutdownNow();
+                Thread.currentThread().interrupt();
+            }
+        }
+    }
+
+    private void collectGarbage() {
+        try {
+            for (Map.Entry<String, Boolean> entry : solvingRequests.entrySet()) {
+                if (Boolean.TRUE.equals(entry.getValue())) {
+                    String solveRequest = entry.getKey();
+                    try {
+                        // Image image = imageRepository.findById(solveRequest.split("\\.")[0]).get();
+                        // image.restoreInput(solveRequest);
+                        modelFactory.getRepository().deleteDocument(solveRequest);
+                        modelFactory.getRepository().deleteDocument(solveRequest+"SOLUTION");
+                        solvingRequests.remove(solveRequest);
+                    } catch (Exception e) {
+                        // Log the error but continue with other requests
+                        // System.err.println("Failed to delete temporary file " + solveRequest + ": " + e.getMessage());
+                    }
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Error in garbage collector: " + e.getMessage());
+        }
     }
 }
