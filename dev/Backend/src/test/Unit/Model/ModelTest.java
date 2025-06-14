@@ -146,6 +146,7 @@ public class ModelTest {
 
         // Test append
         model.appendToSet(testSet, addValue);
+        model.applyChangesToParseTree(true);
         testSet = getSet(model, setName);
         assertTrue(testSet.getElements().contains(addValue));
 
@@ -154,6 +155,7 @@ public class ModelTest {
 
         // Test remove
         model.removeFromSet(testSet, addValue);
+        model.applyChangesToParseTree(true);
         testSet = getSet(model, setName);
         assertFalse(testSet.getElements().contains(addValue));
 
@@ -171,6 +173,7 @@ public class ModelTest {
         assertNotNull(param);
         Assertions.assertEquals(param.getType(), ModelPrimitives.INT);
         model.setInput(param, valueToSet);
+        model.applyChangesToParseTree(true);
         param = getParameter(model, parameter);
         Assertions.assertEquals( param.getValue(), valueToSet);
 
@@ -187,6 +190,7 @@ public class ModelTest {
         assertNotNull(mySet);
         Assertions.assertTrue(mySet.getType().isCompatible(new Tuple(new ModelPrimitives[]{ModelPrimitives.INT,ModelPrimitives.TEXT,ModelPrimitives.INT})));
         model.setInput(mySet, valueToSet);
+        model.applyChangesToParseTree(true);
         mySet = getSet(model, set);
         Assertions.assertArrayEquals( mySet.getElements().toArray(), valueToSet);
 
@@ -283,7 +287,7 @@ public class ModelTest {
         m.setInput(m.getParameter("degreeOne"),"7");
         m.setInput(m.getParameter("degreeTwo"),"4");
         m.setInput(m.getParameter("absoluteMinimalSpacing"),"0");
-
+        m.applyChangesToParseTree(true);
         //21k vars~
         //approximately 1-2 seconds reading time
         //approx. 1 seconds presolve time
@@ -310,7 +314,7 @@ public class ModelTest {
         m.setInput(m.getParameter("degreeOne"),"7");
         m.setInput(m.getParameter("degreeTwo"),"4");
         m.setInput(m.getParameter("absoluteMinimalSpacing"),"0");
-
+        m.applyChangesToParseTree(true);
         //reading takes approx 8 sec
         Solution sol = solverService.solve(sourceSolveId, 1,"");
         

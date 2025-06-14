@@ -8,11 +8,11 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import org.springframework.beans.factory.annotation.Autowired;
 
 import DTO.Factories.RecordFactory;
 import DTO.Records.Image.ConstraintModuleDTO;
@@ -26,20 +26,22 @@ import DTO.Records.Model.ModelData.SetDefinitionDTO;
 import DTO.Records.Model.ModelDefinition.ConstraintDTO;
 import DTO.Records.Model.ModelDefinition.PreferenceDTO;
 import DTO.Records.Model.ModelDefinition.VariableDTO;
+import DataAccess.ModelRepository;
 import Exceptions.BadRequestException;
 import Image.Modules.ConstraintModule;
 import Image.Modules.PreferenceModule;
 import Image.Modules.VariableModule;
-import Model.Model;
 import Model.ModelConstraint;
 import Model.ModelFactory;
 import Model.ModelInterface;
 import Model.ModelParameter;
 import Model.ModelPreference;
+import Model.ModelPrimitives;
 import Model.ModelSet;
 import Model.ModelType;
 import Model.ModelVariable;
 import Model.Solution;
+import Model.Tuple;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
@@ -55,12 +57,6 @@ import jakarta.persistence.PostLoad;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
 import jakarta.transaction.Transactional;
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import Model.Tuple;
-import Model.ModelPrimitives;
 
 @Entity
 @Table(name = "images")
@@ -123,6 +119,11 @@ public class Image {
     @Transient
     private static ModelFactory modelFactory;
 
+    @Autowired(required = false)
+    @Transient
+    private ModelRepository modelRepository;
+
+
     protected Image () throws Exception {
         constraintsModules = new HashMap<>();
         preferenceModules = new HashMap<>();
@@ -132,6 +133,7 @@ public class Image {
         owner = null;
         isPrivate = true;
         isConfigured = false;
+        this.modelRepository = modelFactory.getRepository();
     }
     
     public Image(String id, String name, String description, String ownerUser, Boolean isPrivate) throws Exception {
@@ -152,6 +154,7 @@ public class Image {
         this.isPrivate = isPrivate == null ? true : isPrivate;
         validateNoDuplicateVariableTags();
         isConfigured = false;
+        this.modelRepository = modelFactory.getRepository();
     }
 
     private void validateName(String name) throws BadRequestException {
@@ -172,6 +175,7 @@ public class Image {
             variables.put(VariableModule.getVariableModuleName(), module);
         }
         this.model = modelFactory.getModel(id, getAllInputSets(), getAllInputParameters());
+        this.modelRepository = modelFactory.getRepository();
     }
 
     private void setModelWithPersistedData() throws Exception {
@@ -199,6 +203,7 @@ public class Image {
     //TODO: make this correspond to patch semantics - fields that are null - are not updated.
     @Transactional
     public void update(ImageDTO imageDTO) throws Exception {
+        // this.model.parseSource();
         // First validate the DTO
         imageDTO.validateNoDuplicateVariableTags();
 
@@ -684,7 +689,7 @@ public class Image {
         Set<String> relevantSets = getAllInputSets().stream().map((ModelSet s) -> s.getIdentifier()).collect(Collectors.toSet());
         Map<String, List<List<String>>> setsToValues = new HashMap<>();
         Map<String,List<String>> paramsToValues = new HashMap<>();
-
+        // model.parseSource();
         for (String param : relevantParams.toArray(new String[0])) {
             String[] atoms = model.getInput(model.getParameter(param));
             paramsToValues.put(param, List.of(atoms));
@@ -772,14 +777,20 @@ public class Image {
     }
 
     @Transactional
-    public void prepareInput(InputDTO input) throws Exception {
+    public String prepareInput(InputDTO input) throws Exception {
+        // Create a temporary copy of the model file
+        String tmpFileSuffix = Double.toString(Math.random()).substring(6);
+        String tmpModelId = id + tmpFileSuffix;
+        modelRepository.uploadDocument(tmpModelId, modelRepository.downloadDocument(id));
+
+        model.setId(tmpModelId);
+
         // Set input for sets
         for (Map.Entry<String,List<List<String>>> set : input.setsToValues().entrySet()) {
             List<String> setElements = new LinkedList<>();
             for(List<String> element : set.getValue()) {
                 String tuple = ModelType.convertArrayOfAtoms(
                     element.toArray(new String[0]),
-                    //TODO: fix a bug by fetching an input set from the modules instead from the parsed file. fix a bug by fetching an input set from the modules instead from the parsed file.
                     model.getSet(set.getKey()).getType()
                 );
                 setElements.add(tuple);
@@ -818,10 +829,13 @@ public class Image {
             }
         }
         model.commentOutToggledFunctionalities();
+        model.applyChangesToParseTree(false);
+        model.setId(id);
+        return tmpModelId;
     }
 
-    public void restoreInput() throws Exception {
-        model.restoreToggledFunctionalities();
+    public void restoreInput(String tmpModelId) throws Exception {
+        modelRepository.deleteDocument(tmpModelId);
     }
     
     private void validateInputExclusivity(Set<String> newSetIds, Set<String> newParamIds, String moduleId) throws IllegalArgumentException {

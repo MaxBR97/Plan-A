@@ -55,7 +55,6 @@ public class Tuple implements ModelType {
         
         String content = str.substring(1, str.length() - 1).trim();
         
-        
         if (content.isEmpty()) {
             return val.isEmpty();
         }

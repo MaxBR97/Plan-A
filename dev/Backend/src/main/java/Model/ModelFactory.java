@@ -43,7 +43,11 @@ public class ModelFactory {
     }
 
     public ModelInterface getModel(String id) throws Exception {
-        return getModel(id, modelInstance, Set.of(), Set.of());
+        if(modelInstance.equals("local"))
+            return new Model(modelRepository, id);
+        else if(modelInstance.equals("kafkaSolver"))
+            return new ModelProxyKafka(modelRepository, id, compileTemplate, solveTemplate);
+        throw new BadRequestException("Invalid configuration of model");
     }
 
     public ModelInterface getModel(String id, Set<ModelSet> sets, Set<ModelParameter> params) throws Exception {

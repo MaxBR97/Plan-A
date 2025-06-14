@@ -47,7 +47,7 @@ import org.springframework.web.bind.annotation.RestController;
 import DataAccess.ModelRepository;
 
 public class Model extends ModelInterface {
-    private final String id;
+    private String id;
     ParseTree tree;
     private CommonTokenStream tokens;
     private final Map<String,ModelSet> sets = new HashMap<>();
@@ -72,14 +72,18 @@ public class Model extends ModelInterface {
     private ModelRepository modelRepository;
     private String solutionFileSuffix;
 
+    private ModifierVisitor modifier;
+
     public Model(ModelRepository repo, String id) throws Exception {
-        modelRepository = repo;
         this.id = id;
+        this.modelRepository = repo;
+        this.modifier = new ModifierVisitor();
         parseSource();
     }
 
     public Model(ModelRepository repo, String id, Set<ModelSet> persistedSets, Set<ModelParameter> persistedParams ) throws Exception {
         modelRepository = repo;
+        this.modifier = new ModifierVisitor();
         this.id = id;
         for(ModelSet set : persistedSets){
             this.setModelComponent(set);
@@ -87,9 +91,13 @@ public class Model extends ModelInterface {
         for(ModelParameter param : persistedParams){
             this.setModelComponent(param);
         }
+        // prepareParse();
         parseSource();
     }
 
+    public void setId(String id) throws Exception {
+        this.id = id;
+    }
 
     public InputStream getSource() throws Exception{
         InputStream inputStream = modelRepository.downloadDocument(id);
@@ -115,89 +123,88 @@ public class Model extends ModelInterface {
         modelRepository.uploadDocument(id + suffix, inputStream);
         modelRepository.downloadDocument(id + suffix);
     }
-    
-    public void parseSource() throws Exception {
+
+    public void prepareParse() throws Exception {
+        long startTime = System.currentTimeMillis();
         originalSource = new String(getSource().readAllBytes());
+        long endReadTime = System.currentTimeMillis();
         CharStream charStream = CharStreams.fromString(originalSource);
         FormulationLexer lexer = new FormulationLexer(charStream);
         tokens = new CommonTokenStream(lexer);
+        long endTokenTime = System.currentTimeMillis();
         FormulationParser parser = new FormulationParser(tokens);
         tree = parser.program();
+        long endParseTime = System.currentTimeMillis();
+        System.out.println("Time taken to read source: " + (endReadTime - startTime) + " milliseconds" + (endTokenTime - endReadTime) + " " + (endParseTime - endTokenTime) + " milliseconds");
+    }
+    
+    public void parseSource() throws Exception {
+        long startTime = System.currentTimeMillis();
+        prepareParse();
+        long endPrepareTime = System.currentTimeMillis();
         
         // Initial parse to collect all declarations
         CollectorVisitor collector = new CollectorVisitor();
         collector.visit(tree);
+        long endParseTime = System.currentTimeMillis();
+        System.out.println("Time taken to parse source: " + (endParseTime - endPrepareTime) + " milliseconds" + " and to prepare parse: " + (endPrepareTime - startTime) + " milliseconds");
     }
     
+    
     public void appendToSet(ModelSet set, String value) throws Exception {
-        // if (!sets.containsKey(setName)) {
-        //     throw new IllegalArgumentException("Set " + setName + " not found");
-        // }
         if(!set.isCompatible(value))
             throw new BadRequestException("set "+set.getIdentifier()+" is incompatible with given input: "+value+" , expected type: "+set.getType());
         
-        ModifierVisitor modifier = new ModifierVisitor(tokens, set.getIdentifier(), value, ModifierVisitor.Action.APPEND, originalSource);
-        modifier.visit(tree);
-        
-        if (modifier.isModified()) {
-            // Write modified source back to file, preserving original formatting
-            String modifiedSource = modifier.getModifiedSource();
-            writeToSource(modifiedSource);
-            parseSource();
-        }
+        modifier.configureForAppend(set.getIdentifier(), value);
+     
     }
     
     public void removeFromSet(ModelSet set, String value) throws Exception {
-        // if (!sets.containsKey(setName)) {
-        //     throw new IllegalArgumentException("Set " + setName + " not found");
-        // }
         if(!set.isCompatible(value))
             throw new BadRequestException("set "+set.getIdentifier()+" is incompatible with given input: "+value+" , expected type: "+set.getType());
 
-        ModifierVisitor modifier = new ModifierVisitor(tokens, set.getIdentifier(), value,  ModifierVisitor.Action.DELETE, originalSource);
-        modifier.visit(tree);
-        
-        if (modifier.isModified()) {
-            // Write modified source back to file, preserving original formatting
-            String modifiedSource = modifier.getModifiedSource();
-            writeToSource(modifiedSource);
+        modifier.configureForDelete(set.getIdentifier(), value);
+    }
+
+    public void applyChangesToParseTree(boolean reparse) throws Exception {
+        String modifiedSource = modifier.getModifiedSource();
+        writeToSource(modifiedSource);
+        if(reparse)
             parseSource();
-        }
+        modifier = new ModifierVisitor();
     }
 
     public void setInput(ModelParameter identifier, String value) throws Exception {
-
         if(!identifier.isCompatible(value))
             throw new BadRequestException("parameter "+identifier.getIdentifier()+" is incompatible with given input: "+value +" expected type: "+identifier.getType());
         
-        ModifierVisitor modifier = new ModifierVisitor(tokens, identifier.getIdentifier(), value,  ModifierVisitor.Action.SET, originalSource);
-        modifier.visit(tree);
+        modifier.configureForSetInput(identifier.getIdentifier(), value);
+        // modifier.visit(tree);
         
-        if (modifier.isModified()) {
-            // Write modified source back to file, preserving original formatting
-            String modifiedSource = modifier.getModifiedSource();
-            writeToSource(modifiedSource);
-            parseSource();
-        }
+        // if (modifier.isModified()) {
+        //     // Write modified source back to file, preserving original formatting
+        //     String modifiedSource = modifier.getModifiedSource();
+        //     writeToSource(modifiedSource);
+        //     parseSource();
+        // }
     }
 
     public void setInput(ModelSet identifier, String[] values) throws Exception {
-
         for(String str : values){
             if(!identifier.isCompatible(str))
                 throw new BadRequestException("set "+identifier.getIdentifier()+" is incompatible with given input: "+str+" , expected type: "+identifier.getType());
-
         }
         
-        ModifierVisitor modifier = new ModifierVisitor(tokens, identifier.getIdentifier(), values,  ModifierVisitor.Action.SET, originalSource);
-        modifier.visit(tree);
+        modifier.configureForSetInput(identifier.getIdentifier(), values);
+        // modifier.visit(tree);
         
-        if (modifier.isModified()) {
-            // Write modified source back to file, preserving original formatting
-            String modifiedSource = modifier.getModifiedSource();
-            writeToSource(modifiedSource);
-            parseSource();
-        }
+        // if (modifier.isModified()) {
+        //     // Write modified source back to file, preserving original formatting
+        //     String modifiedSource = modifier.getModifiedSource();
+        //     writeToSource(modifiedSource);
+        //     prepareParse();
+        //     // parseSource();
+        // }
     }
     
     //TODO: the design is fucked up, and it's apparent in getInput methods. I need to make a better design of things.
@@ -246,16 +253,13 @@ public class Model extends ModelInterface {
             return;
         }
 
-        ModifierVisitor modifier = new ModifierVisitor(tokens, null, "", ModifierVisitor.Action.COMMENT_OUT, originalSource);
-        modifier.setTargetFunctionalities(toggledOffFunctionalities); // Set functionalities to be commented out
-        modifier.visit(tree);
-        modifier.commentOutFunctionalities();
+        modifier.configureForCommentOut(toggledOffFunctionalities);
         
-        if (modifier.isModified()) {
-            String modifiedSource = modifier.getModifiedSource();
-            writeToSource(modifiedSource);
-        //    parseSource();
-        }
+        // if (modifier.isModified()) {
+        //     String modifiedSource = modifier.getModifiedSource();
+        //     writeToSource(modifiedSource);
+        // //    parseSource();
+        // }
     }
 
     public void restoreToggledFunctionalities() throws Exception {
@@ -264,8 +268,8 @@ public class Model extends ModelInterface {
         }
 
         // Read the original file content and restore it
-        writeToSource(originalSource);
-        parseSource();
+        // writeToSource(originalSource);
+        // parseSource();
     }
     
 
@@ -583,23 +587,20 @@ public class Model extends ModelInterface {
                     }
                 }
             }
-        
             return elements;
-        }
-        
-        
+        }  
     }
     
     private class ModifierVisitor extends FormulationBaseVisitor<Void> {
-        private final CommonTokenStream tokens;
         private String targetIdentifier; // For single-target operations
         private String[] targetValues; // For single-target operations
         private Set<String> targetFunctionalities; // For multi-target operations
-        private final Action act;
-        private final String originalSource;
+        private Action act;
         private boolean modified = false;
-        private StringBuilder modifiedSource;
         private List<FormulationParser.ConstraintContext> toCommentOut;
+        
+        // Data structure to store pending modifications
+        private List<PendingModification> pendingModifications;
 
         enum Action {
             APPEND,
@@ -608,34 +609,81 @@ public class Model extends ModelInterface {
             COMMENT_OUT,
             UNCOMMENT
         }
+        
+        // Inner class to represent a pending modification
+        private static class PendingModification {
+            final int startIndex;
+            final int stopIndex;
+            final String replacementText;
+            final ModificationType type;
+            
+            enum ModificationType {
+                REPLACE,
+                COMMENT_OUT_CONSTRAINTS,
+                ZERO_OUT_PREFERENCE
+            }
+            
+            public PendingModification(int startIndex, int stopIndex, String replacementText, ModificationType type) {
+                this.startIndex = startIndex;
+                this.stopIndex = stopIndex;
+                this.replacementText = replacementText;
+                this.type = type;
+            }
+        }
 
-        // Original constructor for backward compatibility
-        public ModifierVisitor(CommonTokenStream tokens, String targetIdentifier, String value, Action act, String originalSource) {
-            this.tokens = tokens;
-            this.targetIdentifier = targetIdentifier;
+        public ModifierVisitor() {
+            this.toCommentOut = new LinkedList<>();
+            this.pendingModifications = new ArrayList<>();
+        }
+
+        public void configureForSetInput(String identifier, String value) {
+            this.targetIdentifier = identifier;
             this.targetValues = new String[]{value};
-            this.act = act;
-            this.originalSource = originalSource;
-            this.modifiedSource = new StringBuilder(originalSource);
-            toCommentOut = new LinkedList<>();
+            this.act = Action.SET;
+            this.targetFunctionalities = new HashSet<>();
+            this.visit(tree);
         }
 
-        public ModifierVisitor(CommonTokenStream tokens, String targetIdentifier, String[] values, Action act, String originalSource) {
-            this.tokens = tokens;
-            this.targetIdentifier = targetIdentifier;
+        public void configureForSetInput(String identifier, String[] values) {
+            this.targetIdentifier = identifier;
             this.targetValues = values;
-            this.act = act;
-            this.originalSource = originalSource;
-            this.modifiedSource = new StringBuilder(originalSource);
-            toCommentOut = new LinkedList<>();
+            this.act = Action.SET;
+            this.targetFunctionalities = new HashSet<>();
+            this.visit(tree);
         }
 
-        // Method to set target functionalities for commenting out
-        public void setTargetFunctionalities(Set<String> functionalities) {
+        public void configureForAppend(String identifier, String value) {
+            this.targetIdentifier = identifier;
+            this.targetValues = new String[]{value};
+            this.act = Action.APPEND;
+            this.targetFunctionalities = new HashSet<>();
+            this.visit(tree);
+        }
+
+        public void configureForDelete(String identifier, String value) {
+            this.targetIdentifier = identifier;
+            this.targetValues = new String[]{value};
+            this.act = Action.DELETE;
+            this.targetFunctionalities = new HashSet<>();
+            this.visit(tree);
+        }
+
+        public void configureForCommentOut(Set<String> functionalities) {
+            this.targetIdentifier = "";
             this.targetFunctionalities = functionalities;
+            this.act = Action.COMMENT_OUT;
+            this.visit(tree);
         }
 
-        private void modifyParamContent(FormulationParser.ExprContext ctx) {
+        // public void setTokens(CommonTokenStream tokens) {
+        //     this.tokens = tokens;
+        // }
+
+        // public void setOriginalSource(String source) {
+        //     this.originalSource = source;
+        // }
+
+        private void scheduleParamContentModification(FormulationParser.ExprContext ctx) {
             // Get the original text with its formatting
             int startIndex = ctx.start.getStartIndex();
             int stopIndex = ctx.stop.getStopIndex();
@@ -647,17 +695,18 @@ public class Model extends ModelInterface {
             if (lineStart != -1) {
                 indentation = originalSource.substring(lineStart + 1, startIndex);
             }
-
+    
             // Modify the set content while preserving formatting
             String modifiedLine = originalLine.replaceFirst(ctx.getText(), targetValues[0]);
             
             if (!originalLine.equals(modifiedLine)) {
-                modifiedSource.replace(startIndex, stopIndex + 1, modifiedLine);
+                pendingModifications.add(new PendingModification(
+                    startIndex, stopIndex, modifiedLine, PendingModification.ModificationType.REPLACE));
                 modified = true;
             }
         }
-
-        private void modifySetContent(FormulationParser.SetDefExprContext ctx) {
+    
+        private void scheduleSetContentModification(FormulationParser.SetDefExprContext ctx) {
             // Get the original text with its formatting
             int startIndex = ctx.start.getStartIndex();
             int stopIndex = ctx.stop.getStopIndex();
@@ -678,15 +727,16 @@ public class Model extends ModelInterface {
             else if (act == Action.SET)
                 modifiedLine = modifySetLine(originalLine, targetValues, true);
             else
-                System.out.println("ERROR - shouldnt reach this line (Model.java - modifySetContent(...))");
-
+                System.out.println("ERROR - shouldnt reach this line (Model.java - scheduleSetContentModification(...))");
+    
             if (!originalLine.equals(modifiedLine)) {
-                modifiedSource.replace(startIndex, stopIndex + 1, indentation + modifiedLine);
+                pendingModifications.add(new PendingModification(
+                    startIndex, stopIndex, indentation + modifiedLine, PendingModification.ModificationType.REPLACE));
                 modified = true;
             }
         }
         
-        private void commentOutParameter(FormulationParser.ParamDeclContext ctx) {
+        private void scheduleParameterCommentOut(FormulationParser.ParamDeclContext ctx) {
             // Get the original text with its formatting
             int startIndex = ctx.start.getStartIndex();
             int stopIndex = ctx.stop.getStopIndex();
@@ -700,12 +750,13 @@ public class Model extends ModelInterface {
             }
             
             // Add comment marker while preserving indentation
-            modifiedSource.replace(startIndex, stopIndex + 1, 
-                indentation + "# " + originalLine.substring(indentation.length()));
+            String commentedLine = indentation + "# " + originalLine.substring(indentation.length());
+            pendingModifications.add(new PendingModification(
+                startIndex, stopIndex, commentedLine, PendingModification.ModificationType.REPLACE));
             modified = true;
         }
         
-        private void commentOutSet(FormulationParser.SetDefExprContext ctx) {
+        private void scheduleSetCommentOut(FormulationParser.SetDefExprContext ctx) {
             // Get the original text with its formatting
             int startIndex = ctx.start.getStartIndex();
             int stopIndex = ctx.stop.getStopIndex();
@@ -719,69 +770,66 @@ public class Model extends ModelInterface {
             }
             
             // Add comment marker while preserving indentation
-            modifiedSource.replace(startIndex, stopIndex + 1, 
-                indentation + "# " + originalLine.substring(indentation.length()));
+            String commentedLine = indentation + "# " + originalLine.substring(indentation.length());
+            pendingModifications.add(new PendingModification(
+                startIndex, stopIndex, commentedLine, PendingModification.ModificationType.REPLACE));
             modified = true;
         }
-
+    
         @Override
         public Void visitParamDecl(FormulationParser.ParamDeclContext ctx) {
             String paramName = extractName(ctx.sqRef().getText());
             if (paramName.equals(targetIdentifier)) {
                 if(act == Action.SET)
-                    modifyParamContent(ctx.expr());
+                    scheduleParamContentModification(ctx.expr());
                 else if (act == Action.COMMENT_OUT)
-                    commentOutParameter(ctx);
+                    scheduleParameterCommentOut(ctx);
             }
             return super.visitParamDecl(ctx);
         }
-
+    
         @Override
         public Void visitSetDefExpr(FormulationParser.SetDefExprContext ctx) {
             String setName = extractName(ctx.sqRef().getText());
             if (setName.equals(targetIdentifier)) {
                 if (act == Action.COMMENT_OUT)
-                    commentOutSet(ctx);
+                    scheduleSetCommentOut(ctx);
                 else if (ctx.setExpr() instanceof FormulationParser.SetExprStackContext) {
                     FormulationParser.SetExprStackContext stackCtx = 
                         (FormulationParser.SetExprStackContext) ctx.setExpr();
                     if (stackCtx.setDesc() instanceof FormulationParser.SetDescContext ) {
-                        modifySetContent(ctx);
+                        scheduleSetContentModification(ctx);
                     }
                 }
             }
             return super.visitSetDefExpr(ctx);
         }
-
+    
         @Override
         public Void visitConstraint(FormulationParser.ConstraintContext ctx) {
             String constraintName = extractName(ctx.name.getText());
             if ((targetFunctionalities != null && targetFunctionalities.contains(constraintName)) ||
                 (targetIdentifier != null && constraintName.equals(targetIdentifier))) {
                 if (act == Action.COMMENT_OUT)
-                    toCommentOut.add(ctx);
+                    scheduleConstraintCommentOut(List.of(ctx));
             }
             return super.visitConstraint(ctx);
         }
-
+    
         @Override
         public Void visitObjective(FormulationParser.ObjectiveContext ctx) {
             List<UExprContext> components = findComponentContexts(ctx.nExpr());
             for( UExprContext subCtx : components){
-                
-                    String objectiveName = subCtx.getText();
-                    if ((targetFunctionalities != null && targetFunctionalities.contains(objectiveName)) ||
-                        (targetIdentifier != null && objectiveName.equals(targetIdentifier))) {
-                        if (act == Action.COMMENT_OUT)
-                            zeroOutPreference(subCtx);
-                    }
-                
+                String objectiveName = subCtx.getText();
+                if ((targetFunctionalities != null && targetFunctionalities.contains(objectiveName)) ||
+                    (targetIdentifier != null && objectiveName.equals(targetIdentifier))) {
+                    if (act == Action.COMMENT_OUT)
+                        scheduleZeroOutPreference(subCtx);
+                }
             }
             return super.visitObjective(ctx);
         }
-
-        // ... keep all existing helper methods (modifyParamContent, commentOutParameter, etc.) ...
-
+    
         private String modifySetLine(String line, String[] values, boolean isAppend) {
             // Find the set content between braces
             int openBrace = line.indexOf('{');
@@ -809,11 +857,8 @@ public class Model extends ModelInterface {
             }
             return line;
         }
-
-        private void commentOutConstraints(List<FormulationParser.ConstraintContext> constraints) {
-            List<int[]> ranges = new ArrayList<>();
-            
-            // Collect and compute correct ranges for replacement
+    
+        private void scheduleConstraintCommentOut(List<FormulationParser.ConstraintContext> constraints) {
             for (FormulationParser.ConstraintContext ctx : constraints) {
                 int startIndex = ctx.start.getStartIndex();
                 int stopIndex = ctx.stop.getStopIndex();
@@ -830,17 +875,6 @@ public class Model extends ModelInterface {
                     stopIndex++;
                 }
         
-                ranges.add(new int[]{startIndex, stopIndex});
-            }
-        
-            // Sort ranges in **reverse order** (highest index first)
-            ranges.sort((a, b) -> Integer.compare(b[0], a[0]));
-        
-            // Apply replacements in reverse order
-            for (int[] range : ranges) {
-                int startIndex = range[0];
-                int stopIndex = range[1];
-        
                 // Extract full constraint text
                 String fullStatement = originalSource.substring(startIndex, stopIndex + 1);
         
@@ -853,16 +887,17 @@ public class Model extends ModelInterface {
                     commentedOut.append("# ").append(line);
                 }
         
-                // Replace in modifiedSource
-                modifiedSource.replace(startIndex, stopIndex + 1, commentedOut.toString());
+                pendingModifications.add(new PendingModification(
+                    startIndex, stopIndex, commentedOut.toString(), 
+                    PendingModification.ModificationType.COMMENT_OUT_CONSTRAINTS));
             }
         
-            modified = true;
+            if (!constraints.isEmpty()) {
+                modified = true;
+            }
         }
-        
-
-
-        private void commentOutPreference(FormulationParser.UExprContext ctx) {
+    
+        private void schedulePreferenceCommentOut(FormulationParser.UExprContext ctx) {
             int startIndex = ctx.start.getStartIndex();
             int stopIndex = ctx.stop.getStopIndex();
             String originalLine = originalSource.substring(startIndex, stopIndex + 1);
@@ -873,41 +908,53 @@ public class Model extends ModelInterface {
                 indentation = originalSource.substring(lineStart + 1, startIndex);
             }
             
-            modifiedSource.replace(startIndex, stopIndex + 1, 
-                indentation + "# " + originalLine.substring(indentation.length()));
+            String commentedLine = indentation + "# " + originalLine.substring(indentation.length());
+            pendingModifications.add(new PendingModification(
+                startIndex, stopIndex, commentedLine, PendingModification.ModificationType.REPLACE));
             modified = true;
         }
-
-        private void zeroOutPreference(FormulationParser.UExprContext ctx) {
+    
+        private void scheduleZeroOutPreference(FormulationParser.UExprContext ctx) {
             int startIndex = ctx.start.getStartIndex();
             int stopIndex = ctx.stop.getStopIndex();
             String originalLine = originalSource.substring(startIndex, stopIndex + 1);
             
-            String indentation = "";
-            int lineStart = originalSource.lastIndexOf('\n', startIndex);
-            if (lineStart != -1) {
-                indentation = originalSource.substring(lineStart + 1, startIndex);
-            }
-            
-            modifiedSource.replace(startIndex, stopIndex + 1, 
-                  "((" + originalLine + ")*0)");
+            String modifiedLine = "((" + originalLine + ")*0)";
+            pendingModifications.add(new PendingModification(
+                startIndex, stopIndex, modifiedLine, PendingModification.ModificationType.ZERO_OUT_PREFERENCE));
             modified = true;
         }
-
+    
         public void commentOutFunctionalities(){
-            commentOutConstraints(toCommentOut);
+            scheduleConstraintCommentOut(toCommentOut);
         }
-
+    
         private String extractName(String sqRef) {
             int bracketIndex = sqRef.indexOf('[');
             return bracketIndex == -1 ? sqRef : sqRef.substring(0, bracketIndex);
         }
-
+    
         public boolean isModified() {
             return modified;
         }
-
+    
         public String getModifiedSource() {
+            if (!modified || pendingModifications.isEmpty()) {
+                return originalSource;
+            }
+            
+            // Sort modifications by startIndex in descending order (highest index first)
+            // This ensures we modify from the end of the file backwards to avoid index shifting
+            pendingModifications.sort((a, b) -> Integer.compare(b.startIndex, a.startIndex));
+            
+            StringBuilder modifiedSource = new StringBuilder(originalSource);
+            
+            // Apply all modifications in reverse order
+            for (PendingModification modification : pendingModifications) {
+                modifiedSource.replace(modification.startIndex, modification.stopIndex + 1, 
+                                     modification.replacementText);
+            }
+            
             return modifiedSource.toString();
         }
     }
