@@ -50,6 +50,7 @@ public class SolverService implements Solver {
     public CompletableFuture<Solution> solveAsync(String fileId, int timeout, String solverScript) throws Exception {
         return CompletableFuture.<Solution>supplyAsync(() -> {
             ScipProcess process = null;
+            long startTime = System.currentTimeMillis();
             try {
                 System.out.println("Acquiring process | fileId: "+fileId);
                 process = scipProcessPool.acquireProcess();
@@ -67,10 +68,19 @@ public class SolverService implements Solver {
                 // Start optimization
                 process.optimize();
 
+                // Check if we've already exceeded the timeout
+                if (System.currentTimeMillis() - startTime > timeout * 1000L) {
+                    return new Solution();
+                }
+
                 return getNextSolution(fileId, process);
             } catch (Exception e) {
+                // Check if the exception is due to timeout
+                if (System.currentTimeMillis() - startTime > timeout * 1000L) {
+                    return new Solution();
+                }
                 throw new CompletionException(e);
-            } finally{
+            } finally {
                 if(process != null){
                     try {
                         scipProcessPool.releaseProcess(process);
@@ -143,10 +153,17 @@ public class SolverService implements Solver {
         if(DEBUG)
             System.out.println("Waiting for solution status to be updated... | process: "+scipProcess.toString());
         int i = 0;
+        long startTime = System.currentTimeMillis();
         while (!scipProcess.getStatus().equals("compilation error")
                 && !scipProcess.getStatus().equals("integrity error")
                 && !scipProcess.getStatus().equals("solved")
                 && !scipProcess.getStatus().equals("paused")) {
+            
+            // Check for timeout
+            if (System.currentTimeMillis() - startTime > scipProcess.getCurrentTimeLimit() * 1000L) {
+                return new Solution();
+            }
+
             Thread.sleep(70);
             i++;
             if(i % 60 == 0 && DEBUG){

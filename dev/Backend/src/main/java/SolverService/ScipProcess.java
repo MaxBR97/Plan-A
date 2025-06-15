@@ -16,6 +16,7 @@ import java.util.regex.Pattern;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 import Model.Solution;
 
@@ -25,7 +26,7 @@ import Utils.*;
 
 public class ScipProcess {
     private static final int BUFFER_SIZE = 10000; // Number of lines to keep
-    private final boolean DEBUG = false;
+    private final boolean DEBUG = true;
     private Process scipProcess;
     private ProcessBuilder processBuilder;
     private BufferedWriter processInput;
@@ -35,6 +36,7 @@ public class ScipProcess {
     private int currentTimeLimit;
     private String compilationErrorMessage;
     private String solutionStatus;
+    private AtomicReference<String> progressQuote;
 
     // New fields for solution capturing
     private ByteArrayOutputStream solutionOutputStream;
@@ -63,6 +65,14 @@ public class ScipProcess {
     private final Pattern pausedPattern = Pattern.compile("SCIP Status\\s+:\\s+solving was interrupted");
     private final Pattern solvedPattern = Pattern.compile("SCIP Status\\s+:\\s+problem is solved");
     private final Pattern solutionStatusPattern = Pattern.compile("^SCIP Status\\s+:.*(optimal|infeasible|interrupt).*$");
+    private final Pattern progressQuotePattern = Pattern.compile(
+        "^.*?\\s*(\\d+\\.\\d+)s\\|" +             // Group 1: Time (e.g., "12.0")
+        ".*?\\|" +                                // Skip columns until last three
+        "\\s*([-\\d.e+]+|--|Inf)\\s*\\|" +       // Group 2: Primal Bound
+        "\\s*([-\\d.e+]+|--|Inf)\\s*\\|" +       // Group 3: Dual Bound
+        "\\s*([-\\d.e+]+)%\\s*\\|.*$"            // Group 4: Gap
+    );
+
     public ScipProcess() {
         processBuilder = new ProcessBuilder();
         processBuilder.redirectErrorStream(true);
@@ -72,6 +82,7 @@ public class ScipProcess {
         this.compilationErrorMessage = null;
         this.capturingSolution = new AtomicBoolean(false);
         this.waitingForSolution = false;
+        this.progressQuote = new AtomicReference<>("");
     }
 
     public void start() throws Exception {
@@ -280,6 +291,16 @@ public class ScipProcess {
         return logs;
     }
 
+    public String getProgressQuote() {
+        if(DEBUG) System.out.println("Reeturning: "+progressQuote.get());
+        String currentQuote = progressQuote.get();
+        if (!currentQuote.isEmpty()) {
+            progressQuote.set("");
+            return currentQuote;
+        }
+        return "";
+    }
+
     private void pipeInput(String input) throws Exception {
         if(DEBUG)
             System.out.println("Piping input to scip: " + input + " , current scip's status: " + processStatus + " | process: "+scipProcess.toString());
@@ -296,6 +317,7 @@ public class ScipProcess {
         Matcher solvedMatcher = solvedPattern.matcher(line);
         Matcher compilationErrorMatcher = compilationErrorPattern.matcher(line);
         Matcher solutionStatusMatcher = solutionStatusPattern.matcher(line);
+        Matcher progressQuoteMatcher = progressQuotePattern.matcher(line);
         
         // Status update logic
         boolean updated = false;
@@ -331,6 +353,15 @@ public class ScipProcess {
         if(solutionStatusMatcher.find()){
             updated = true;
             solutionStatus = solutionStatusMatcher.group(1);
+        }
+
+        // Update progress quote if line matches the pattern
+        if(progressQuoteMatcher.find()) {
+            String time = progressQuoteMatcher.group(1);
+            String primalBound = progressQuoteMatcher.group(2);
+            String dualBound = progressQuoteMatcher.group(3);
+            String gap = progressQuoteMatcher.group(4);
+            progressQuote.set(String.format("Time: %ss \nBest Primal: %s \nDual Bound: %s \nGap: %s%%", time, primalBound, dualBound, gap));
         }
 
         if(DEBUG && updated)

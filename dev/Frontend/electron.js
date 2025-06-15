@@ -42,12 +42,14 @@ const createWindow = async () => {
     width: 800,
     height: 600,
     webPreferences: {
-      //preload: path.join(__dirname, 'preload.js'), // Optional
       nodeIntegration: true,     
       contextIsolation: false,   
       enableRemoteModule: true  
     },
   });
+
+  // Open DevTools automatically
+  mainWindow.webContents.openDevTools();
 
   const startPath = app.isPackaged 
     ? path.join(app.getAppPath(), 'build', 'index.html')
@@ -68,6 +70,19 @@ const createWindow = async () => {
 
   // Optional: Remove default Electron menu
   mainWindow.removeMenu();
+
+  // Handle window close
+  mainWindow.on('closed', () => {
+    mainWindow = null;
+    if (jarProcess) {
+      if (process.platform === 'win32') {
+        spawn('taskkill', ['/pid', jarProcess.pid, '/f', '/t']);
+      } else {
+        jarProcess.kill('SIGTERM');
+      }
+      jarProcess = null;
+    }
+  });
 };
 
 const startJarProcess = () => {
@@ -79,8 +94,29 @@ const startJarProcess = () => {
     return;
   }
 
-  // Spawn the JAR process
-  jarProcess = spawn('java', ['-jar', jarPath,`--server.port=${port}`, `app.file.storage-dir=./Models` /*,arg1,arg2*/ ]);
+  // Get the paths for storage and database
+  console.log('process.resourcesPath:', process.resourcesPath);
+  const basePath = path.join(process.resourcesPath, 'resources');
+  const storagePath = path.join(basePath, 'data');
+  const dbPath = path.join(basePath);
+  
+  console.log('storagePath:', storagePath);
+  console.log('dbPath:', dbPath);
+
+  // Ensure directories exist
+  if (!fs.existsSync(storagePath)) {
+    fs.mkdirSync(storagePath, { recursive: true });
+  }
+
+  // Spawn the JAR process with correct paths
+  jarProcess = spawn('java', [
+    '-jar', 
+    jarPath,
+    `--server.port=${port}`,
+    `app.file.storage-dir=${storagePath}`,
+    `spring.datasource.url=jdbc:h2:file:${dbPath};MODE=MySQL`,
+    `spring.profiles.active=H2,securityAndGateway,streamSolver`
+  ]);
 
   // Optional: Log output from the JAR process
   jarProcess.stdout.on('data', (data) => {
@@ -93,6 +129,7 @@ const startJarProcess = () => {
 
   jarProcess.on('close', (code) => {
     console.log(`JAR process exited with code ${code}`);
+    jarProcess = null;
   });
 };
 
@@ -109,6 +146,14 @@ app.whenReady().then(async () => {
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
+    if (jarProcess) {
+      if (process.platform === 'win32') {
+        spawn('taskkill', ['/pid', jarProcess.pid, '/f', '/t']);
+      } else {
+        jarProcess.kill('SIGTERM');
+      }
+      jarProcess = null;
+    }
     app.quit();
   }
 });
@@ -116,11 +161,11 @@ app.on('window-all-closed', () => {
 // Ensure the JAR process is killed when the Electron app quits
 app.on('will-quit', () => {
   if (jarProcess) {
-    // Force kill on Windows - win32 will match both windows 32 bit and 64 bit
     if (process.platform === 'win32') {
       spawn('taskkill', ['/pid', jarProcess.pid, '/f', '/t']);
     } else {
-      jarProcess.kill('SIGTERM'); // More explicit signal
+      jarProcess.kill('SIGTERM');
     }
+    jarProcess = null;
   }
 });

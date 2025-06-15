@@ -77,6 +77,11 @@ public class StreamSolverService implements StreamSolver {
         // Start optimization
         scipProcess.optimize();
 
+        // Check if we've already exceeded the timeout
+        if (System.currentTimeMillis() - startTime > timeout * 1000L) {
+            return CompletableFuture.completedFuture(new Solution());
+        }
+
         return getNextSolution(fileId);
     }
 
@@ -151,12 +156,12 @@ public class StreamSolverService implements StreamSolver {
 
     @Override
     public String pollLog() {
-        List<String> logs = scipProcess.pollLogAll();
-        if (logs.isEmpty()) {
-            return " \nCurrent Status: " + scipProcess.getStatus();
+        if(scipProcess != null){
+            return scipProcess.getProgressQuote();
         }
-        return String.join("\n", logs) + " \nCurrent Status: " + scipProcess.getStatus();
+        return "";
     }
+
 
     private CompletableFuture<Solution> continueSolve(int extraTime) throws Exception {
         int newTimeLimit = scipProcess.getCurrentTimeLimit() + extraTime;
@@ -167,8 +172,8 @@ public class StreamSolverService implements StreamSolver {
 
     private CompletableFuture<Solution> getNextSolution(String id) {
         return CompletableFuture.supplyAsync(() -> {
+            long startTime = System.currentTimeMillis();
             try {
-                long startTime = System.currentTimeMillis();
                 int scipProcessPid = Integer.parseInt(scipProcess.getPid());
                 if(DEBUG)
                     System.out.println("Waiting for solution status to be updated...");
@@ -178,6 +183,12 @@ public class StreamSolverService implements StreamSolver {
                         && !scipProcess.getStatus().equals("integrity error")
                         && !scipProcess.getStatus().equals("solved")
                         && !scipProcess.getStatus().equals("paused")) {
+                    
+                    // Check for timeout
+                    if (System.currentTimeMillis() - startTime > scipProcess.getCurrentTimeLimit() * 1000L) {
+                        return new Solution();
+                    }
+
                     Thread.sleep(70);
                     i++;
                     if(DEBUG && i % 60 == 0){
@@ -202,8 +213,12 @@ public class StreamSolverService implements StreamSolver {
                     System.out.println("Solution uploaded to repo, deleting tmpSolution" + " | time: "+ (System.currentTimeMillis() - startTime));
                 return new Solution(getSolutionPathToFile(SOLUTION_FILE_SUFFIX));
             } catch (Exception e) {
+                // Check if the exception is due to timeout
+                if (System.currentTimeMillis() - startTime > scipProcess.getCurrentTimeLimit() * 1000L) {
+                    return new Solution();
+                }
                 System.err.println("Error getting solution: " + e.getMessage());
-                throw new CompletionException(e); // Let Java wrap your real exception
+                throw new CompletionException(e);
             }
         });
     }

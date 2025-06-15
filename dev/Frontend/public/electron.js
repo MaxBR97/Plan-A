@@ -1,37 +1,171 @@
 const { app, BrowserWindow } = require('electron');
 const path = require('path');
+const fs = require('fs');
+const { spawn } = require('child_process'); // Import spawn from child_process
+const http = require('http');
 
 let mainWindow;
+let jarProcess; // Variable to hold the reference to the JAR process
+let port = 4000;
+const checkServer = (retries = 30) => {
+  return new Promise((resolve, reject) => {
+    let attempts = 0;
+    
+    const checkConnection = () => {
+      http.get(`http://localhost:${port}`, (res) => {
+        if (res.statusCode === 200) {
+          resolve();
+        } else {
+          tryAgain();
+        }
+      }).on('error', (err) => {
+        tryAgain();
+      });
+    };
 
-const createWindow = () => {
+    const tryAgain = () => {
+      attempts++;
+      if (attempts >= retries) {
+        reject(new Error('Server failed to start'));
+        return;
+      }
+      // Wait 1 second before next attempt
+      setTimeout(checkConnection, 1000);
+    };
+
+    checkConnection();
+  });
+};
+
+const createWindow = async () => {
   mainWindow = new BrowserWindow({
     width: 800,
     height: 600,
     webPreferences: {
-      preload: path.join(__dirname, 'preload.js'), // Optional
-      nodeIntegration: true, // Allow using Node.js APIs in your React app
-      contextIsolation: false, // Disable for simpler integration
+      nodeIntegration: true,     
+      contextIsolation: false,   
+      enableRemoteModule: true  
     },
   });
 
-  mainWindow.loadFile(path.join(__dirname, 'build/index.html'));
+  // Open DevTools automatically
+  mainWindow.webContents.openDevTools();
+
+  const startPath = app.isPackaged 
+    ? path.join(app.getAppPath(), 'build', 'index.html')
+    : path.join(__dirname, 'index.html');
+
+  // mainWindow.webContents.openDevTools();
+
+  try {
+    // Wait for server to be ready
+    await checkServer();
+    // Now load the URL
+    mainWindow.loadURL(`http://localhost:${port}`);
+  } catch (err) {
+    console.error('Failed to connect to server:', err);
+    // Handle the error - maybe show an error page
+    mainWindow.loadFile(path.join(__dirname, 'error.html'));
+  }
 
   // Optional: Remove default Electron menu
   mainWindow.removeMenu();
+
+  // Handle window close
+  mainWindow.on('closed', () => {
+    mainWindow = null;
+    if (jarProcess) {
+      if (process.platform === 'win32') {
+        spawn('taskkill', ['/pid', jarProcess.pid, '/f', '/t']);
+      } else {
+        jarProcess.kill('SIGTERM');
+      }
+      jarProcess = null;
+    }
+  });
 };
 
-app.whenReady().then(() => {
-  createWindow();
+const startJarProcess = () => {
+  // Path to your JAR file
+  const jarPath = path.join(process.resourcesPath, 'resources', 'artifactid-0.0.1-SNAPSHOT.jar');
+  //console.log("look for jar at: ", path.join(process.resourcesPath, 'resources', 'artifactid-0.0.1-SNAPSHOT.jar'))
+  if (!fs.existsSync(jarPath)) {
+    console.error('JAR file not found!');
+    return;
+  }
 
-  app.on('activate', () => {
+  // Get the paths for storage and database
+  console.log('process.resourcesPath:', process.resourcesPath);
+  const basePath = path.join(process.resourcesPath, 'resources');
+  const storagePath = path.join(basePath, 'data');
+  const dbPath = path.join(basePath);
+  
+  console.log('storagePath:', storagePath);
+  console.log('dbPath:', dbPath);
+
+  // Ensure directories exist
+  if (!fs.existsSync(storagePath)) {
+    fs.mkdirSync(storagePath, { recursive: true });
+  }
+
+  // Spawn the JAR process with correct paths
+  jarProcess = spawn('java', [
+    '-jar', 
+    jarPath,
+    `--server.port=${port}`,
+    `app.file.storage-dir=${storagePath}`,
+    `spring.datasource.url=jdbc:h2:file:${dbPath};MODE=MySQL`,
+    `spring.profiles.active=H2,securityAndGateway,streamSolver`
+  ]);
+
+  // Optional: Log output from the JAR process
+  jarProcess.stdout.on('data', (data) => {
+    console.log(`JAR stdout: ${data}`);
+  });
+
+  jarProcess.stderr.on('data', (data) => {
+    console.error(`JAR stderr: ${data}`);
+  });
+
+  jarProcess.on('close', (code) => {
+    console.log(`JAR process exited with code ${code}`);
+    jarProcess = null;
+  });
+};
+
+app.whenReady().then(async () => {
+  startJarProcess();
+  await createWindow();
+
+  app.on('activate', async () => {
     if (BrowserWindow.getAllWindows().length === 0) {
-      createWindow();
+      await createWindow();
     }
   });
 });
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
+    if (jarProcess) {
+      if (process.platform === 'win32') {
+        spawn('taskkill', ['/pid', jarProcess.pid, '/f', '/t']);
+      } else {
+        jarProcess.kill('SIGTERM');
+      }
+      jarProcess = null;
+    }
     app.quit();
+  }
+});
+
+// Ensure the JAR process is killed when the Electron app quits
+app.on('will-quit', () => {
+  if (jarProcess) {
+    if (process.platform === 'win32') {
+      spawn('taskkill', ['/pid', jarProcess.pid, '/f', '/t']);
+    } else {
+      jarProcess.kill('SIGTERM');
+    }
+    jarProcess = null;
   }
 });

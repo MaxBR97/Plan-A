@@ -34,6 +34,11 @@ export default function LogBoard({ bufferSize = 1000, className = '', height = '
     });
   }, [bufferSize]);
 
+  // Clear logs function
+  const clearLogs = useCallback(() => {
+    setLogs('');
+  }, []);
+
   // Auto-scroll to bottom when logs update
   useEffect(() => {
     if (autoScroll && logAreaRef.current) {
@@ -45,14 +50,16 @@ export default function LogBoard({ bufferSize = 1000, className = '', height = '
   useEffect(() => {
     if (window) {
       window.appendLog = appendLog;
+      window.clearLogs = clearLogs;
     }
     
     return () => {
       if (window) {
         delete window.appendLog;
+        delete window.clearLogs;
       }
     };
-  }, [appendLog]);
+  }, [appendLog, clearLogs]);
 
   // Handle manual scroll to determine if auto-scroll should be enabled
   const handleScroll = () => {
@@ -63,11 +70,6 @@ export default function LogBoard({ bufferSize = 1000, className = '', height = '
     setAutoScroll(isScrolledToBottom);
   };
 
-  // Clear logs function
-  const clearLogs = () => {
-    setLogs('');
-  };
-
   // Test function to add sample logs
   const addSampleLogs = () => {
     const timestamp = new Date().toISOString();
@@ -76,11 +78,6 @@ export default function LogBoard({ bufferSize = 1000, className = '', height = '
 
   return (
     <div className="flex flex-col w-full h-full">
-      <div className="flex justify-between items-center mb-2">
-        <div className="text-sm text-gray-500">
-          Buffer: {logs.length}/{bufferSize} chars
-        </div>
-      </div>
       
       <div 
         ref={logAreaRef}
@@ -88,12 +85,9 @@ export default function LogBoard({ bufferSize = 1000, className = '', height = '
         style={{ height }}
         onScroll={handleScroll}
       >
-        {logs || 'No logs yet. Use window.appendLog("Your log message") to add logs.'}
+        {logs || 'No logs yet.'}
       </div>
       
-      <div className="mt-2 text-xs text-gray-500">
-        {autoScroll ? '✓ Auto-scroll enabled' : '◯ Auto-scroll disabled (manual scroll detected)'}
-      </div>
     </div>
   );
 }
