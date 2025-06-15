@@ -202,7 +202,7 @@ public class Image {
     
     //TODO: make this correspond to patch semantics - fields that are null - are not updated.
     @Transactional
-    public void update(ImageDTO imageDTO) throws Exception {
+    public void update(ImageDTO imageDTO) throws Exception {    
         // this.model.parseSource();
         // First validate the DTO
         imageDTO.validateNoDuplicateVariableTags();
@@ -1030,8 +1030,44 @@ public class Image {
         }
     }
 
+    private void validateDoPrintAboveDoCheck() throws BadRequestException {
+        String sourceCode;
+        try {
+            sourceCode = new String(model.getSource().readAllBytes());
+        } catch (Exception e) {
+            throw new BadRequestException("Failed to read source code: " + e.getMessage());
+        }
+        
+        String[] lines = sourceCode.split("\n");
+        boolean foundPrint = false;
+        
+        for (int i = 0; i < lines.length; i++) {
+            String line = lines[i].trim();
+            
+            // Skip empty lines and comments
+            if (line.isEmpty() || line.startsWith("#")) {
+                continue;
+            }
+            
+            // Check for do print statement
+            if (line.startsWith("do print")) {
+                foundPrint = true;
+                continue;
+            }
+            
+            // Check for do check statement
+            if (line.startsWith("do check") || line.startsWith("do forall") && line.contains("do check")) {
+                if (!foundPrint) {
+                    throw new BadRequestException("Found 'do check' statement without a preceding 'do print' statement at line " + (i + 1));
+                }
+                foundPrint = false; // Reset for next check
+            }
+        }
+    }
+
     public void validateCode() throws Exception {
         validateNoEmptySets();
         // validateNoUnknownTypes();
+        validateDoPrintAboveDoCheck();
     }
 }

@@ -3,6 +3,7 @@ import axios from "axios";
 import { useZPL } from "../context/ZPLContext";
 import { Link, useNavigate } from "react-router-dom";
 import ErrorDisplay from '../components/ErrorDisplay';
+import InfoIcon from '../reusableComponents/InfoIcon';
 import "./UploadZPLPage.css";
 
 const UploadZPLPage = () => {
@@ -28,7 +29,7 @@ set Station := {"North", "South"};
 set Times := {0.. shiftsUntil by shiftTime};
 
 set invalidShifts := {<"Yoni","North",0,20>};
-
+    
 set Mishmarot := Station * Times; # -> {<North,16>, <North,20>, ....}
 
 #<person,station,time,result>
@@ -36,6 +37,28 @@ set PreAssignedShibutsim := {<"Max","North",0,1>};
 
 #<person,result>
 set PreAssignedTotalMishmarot := {<"Max",3>};
+
+do print "Person and Station must be defined, times must be in the range, beggining time must be before end time.";
+do forall <person,station,from,until> in invalidShifts do check
+    from >= 0 and until <= shiftsUntil and
+    from < until and
+    from mod shiftTime == 0 and until mod shiftTime == 0 and
+    card({<person> in People}) == 1 and
+    card({<station> in Station}) == 1;
+
+do print "Selected Shifts must have a defined person, station and time!";
+do forall <person,station,time,value> in PreAssignedShibutsim do check
+    card({<person> in People}) == 1 and
+    card({<station> in Station}) == 1 and
+    time >= 0 and time <= shiftsUntil and
+    time mod shiftTime == 0;
+
+
+do print "Selected Total Shifts must have a defined person and non-negative number of shifts.";
+do forall <person,result> in PreAssignedTotalMishmarot do check
+    card({<person> in People}) == 1 and
+    result >= 0 ;
+
 
 var Shibutsim[People * Mishmarot] binary; # -> {<Max,North,16>, <Max,North,20>, ....}
 var TotalMishmarot [People] integer >= 0;
@@ -134,6 +157,9 @@ minimize distributeShiftsEqually:
     return (
         <div className="upload-zpl-page">
             <h1 className="page-title">Create a model</h1>
+            <p className="page-description">
+                Create a new model. Write your model's core logic in ZIMPL language: <a href="https://zimpl.zib.de/download/zimpl.pdf" target="_blank" rel="noopener noreferrer">https://zimpl.zib.de/download/zimpl.pdf</a>
+            </p>
             <div className="upload-container">
                 <label>Image Name:</label>
                 <input
@@ -144,13 +170,30 @@ minimize distributeShiftsEqually:
                     placeholder="Enter image name..."
                 />
 
-                <label htmlFor="zimpl-code">Model code:</label>
-                <textarea
-                    id="zimpl-code"
-                    value={fileContent}
-                    onChange={(e) => setFileContent(e.target.value)}
-                    className="fixed-textarea code"
-                />
+                <div className="code-section">
+                    <div className="label-with-info">
+                        <label htmlFor="zimpl-code">Model code:</label>
+                        <InfoIcon tooltip={
+                            <div>
+                                <p>Write your Zimpl code here. In addition to the Zimpl language syntax, there are additional rules:</p>
+                                <ul>
+                                    <li>Do not leave parameters and sets empty. Don't worry, you will be able to edit them in the image.</li>
+                                    <li>Each do-check statement must be preceded by a do-print statement.</li>
+                                    <li>Use clear and descriptive variable names</li>
+                                    <li>Do not use the syntax: param paramName[setName] := ... ; , we don't support it yet.</li>
+                                    <li>Do not SOS (Special Ordered Sets) variables. We don't support it yet.</li>
+                                    <li>All variables must depend on a set. meanning: var myVar[mySet] ...</li>
+                                </ul>
+                            </div>
+                        } />
+                    </div>
+                    <textarea
+                        id="zimpl-code"
+                        value={fileContent}
+                        onChange={(e) => setFileContent(e.target.value)}
+                        className="fixed-textarea code"
+                    />
+                </div>
 
                 <label>Image Description:</label>
                 <textarea

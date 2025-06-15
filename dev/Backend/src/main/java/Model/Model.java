@@ -1039,7 +1039,7 @@ public class Model extends ModelInterface {
                 } else {
                     ((Tuple) type).append(rightVisitor.getType());
                 }
-            } else if (ctx.op.getText().equals("union")) {
+            } else if (ctx.op.getText().equals("union") || ctx.op.getText().equals("without") || ctx.op.getText().equals("-") || ctx.op.getText().equals("+")) {
                 type = ModelPrimitives.UNKNOWN;
                 if(leftSet != null)
                     this.appendType(leftSet.getType());

@@ -138,8 +138,8 @@ basicExpr
 
 // TODO: add tests for ifExpr
 setExpr
-	:	setExpr op='*' setExpr				# SetExprBin
-	|	setExpr op=('+'|'\\'|'-'|'union') setExpr	# SetExprBin
+	:	setExpr op=('*'|'cross') setExpr				# SetExprBin
+	|	setExpr op=('+'|'\\'|'-'|'union'|'without') setExpr	# SetExprBin
 	|	'(' setExpr ')'						# SetExprParen
 	|	(setDesc | fnRef | sqRef | ifExpr)	# SetExprStack
 	;
@@ -151,7 +151,7 @@ setDesc:
 	|	'{' range '}'				# SetDescStack
 	;
 
-range	:	lhs=nExpr '..' rhs=nExpr ('by' step=nExpr)?;
+range	:	lhs=nExpr ('..'|'to') rhs=nExpr ('by' step=nExpr)?;
 
 tuple	:	'<' csv '>' ;
 

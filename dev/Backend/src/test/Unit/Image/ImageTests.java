@@ -1194,6 +1194,129 @@ public class ImageTests extends TestWithPersistence {
         );
     }
 
+    @Test
+    @Transactional
+    public void When_DoCheck_Has_No_DoPrint_Above_Then_Exception_Is_Thrown() throws Exception {
+        // Create a model with a do check without a do print
+        String invalidCode = "do check card(Descriptive_Soldiers_List) > 0;";
+        InputStream inputStream = new ByteArrayInputStream(invalidCode.getBytes());
+        modelRepository.uploadDocument(sourceId, inputStream);
+        inputStream.close();
+        
+        // Create a new image with the invalid code
+        Image invalidImage = new Image(sourceId, "Test Image", "Test Description", "testUser", false);
+        
+        // Verify that validateCode throws BadRequestException
+        BadRequestException exception = assertThrows(
+            BadRequestException.class,
+            () -> invalidImage.validateCode()
+        );
+        
+        // Verify the exception message
+        assertTrue(exception.getMessage().contains("Found 'do check' statement without a preceding 'do print' statement"));
+    }
+
+    @Test
+    @Transactional
+    public void When_DoCheck_Has_DoPrint_Above_Then_Success() throws Exception {
+        // Create a model with a valid do print and do check
+        String validCode = "do print \"Soldiers list must not be empty!\";\ndo check card(Descriptive_Soldiers_List) > 0;";
+        InputStream inputStream = new ByteArrayInputStream(validCode.getBytes());
+        modelRepository.uploadDocument(sourceId, inputStream);
+        inputStream.close();
+        
+        // Create a new image with the valid code
+        Image validImage = new Image(sourceId, "Test Image", "Test Description", "testUser", false);
+        
+        // Verify that validateCode doesn't throw an exception
+        validImage.validateCode();
+    }
+
+    @Test
+    @Transactional
+    public void When_DoForall_With_DoCheck_Has_No_DoPrint_Above_Then_Exception_Is_Thrown() throws Exception {
+        // Create a model with a do forall containing do check without a do print
+        String invalidCode = "do forall <soldier,team,role> in Descriptive_Soldiers_List do check\n" +
+                           "    sum <soldier2,team2,role2> in Descriptive_Soldiers_List | soldier2 == soldier: 1 == 1;";
+        InputStream inputStream = new ByteArrayInputStream(invalidCode.getBytes());
+        modelRepository.uploadDocument(sourceId, inputStream);
+        inputStream.close();
+        
+        // Create a new image with the invalid code
+        Image invalidImage = new Image(sourceId, "Test Image", "Test Description", "testUser", false);
+        
+        // Verify that validateCode throws BadRequestException
+        BadRequestException exception = assertThrows(
+            BadRequestException.class,
+            () -> invalidImage.validateCode()
+        );
+        
+        // Verify the exception message
+        assertTrue(exception.getMessage().contains("Found 'do check' statement without a preceding 'do print' statement"));
+    }
+
+    @Test
+    @Transactional
+    public void When_Multiple_DoChecks_With_DoPrints_Then_Success() throws Exception {
+        // Create a model with multiple valid do print and do check pairs
+        String validCode = "do print \"First check\";\n" +
+                          "do check card(Descriptive_Soldiers_List) > 0;\n" +
+                          "do print \"Second check\";\n" +
+                          "do forall <soldier,team,role> in Descriptive_Soldiers_List do check\n" +
+                          "    sum <soldier2,team2,role2> in Descriptive_Soldiers_List | soldier2 == soldier: 1 == 1;";
+        InputStream inputStream = new ByteArrayInputStream(validCode.getBytes());
+        modelRepository.uploadDocument(sourceId, inputStream);
+        inputStream.close();
+        
+        // Create a new image with the valid code
+        Image validImage = new Image(sourceId, "Test Image", "Test Description", "testUser", false);
+        
+        // Verify that validateCode doesn't throw an exception
+        validImage.validateCode();
+    }
+
+    @Test
+    @Transactional
+    public void When_DoCheck_After_Comments_And_Empty_Lines_Then_Success() throws Exception {
+        // Create a model with comments and empty lines between do print and do check
+        String validCode = "do print \n" + "\"Check with comments\";\n" +
+                          "# This is a comment\n" +
+                          "\n" + // Empty line
+                          "do \n  check card(Descriptive_Soldiers_List) > 0;";
+        InputStream inputStream = new ByteArrayInputStream(validCode.getBytes());
+        modelRepository.uploadDocument(sourceId, inputStream);
+        inputStream.close();
+        
+        // Create a new image with the valid code
+        Image validImage = new Image(sourceId, "Test Image", "Test Description", "testUser", false);
+        
+        // Verify that validateCode doesn't throw an exception
+        validImage.validateCode();
+    }
+
+    @Test
+    @Transactional
+    public void When_DoPrint_Is_Commented_Out_Then_Exception_Is_Thrown() throws Exception {
+        // Create a model with a commented out do print followed by do check
+        String invalidCode = "# do print \"This print is commented out\";\n" +
+                           "do check card(Descriptive_Soldiers_List) > 0;";
+        InputStream inputStream = new ByteArrayInputStream(invalidCode.getBytes());
+        modelRepository.uploadDocument(sourceId, inputStream);
+        inputStream.close();
+        
+        // Create a new image with the invalid code
+        Image invalidImage = new Image(sourceId, "Test Image", "Test Description", "testUser", false);
+        
+        // Verify that validateCode throws BadRequestException
+        BadRequestException exception = assertThrows(
+            BadRequestException.class,
+            () -> invalidImage.validateCode()
+        );
+        
+        // Verify the exception message
+        assertTrue(exception.getMessage().contains("Found 'do check' statement without a preceding 'do print' statement"));
+    }
+
     @AfterAll
     public static void cleanUp() throws Exception {
        Path targetPath = Path.of(TEST_FILE_PATH);
