@@ -197,9 +197,11 @@ export const ZPLProvider = ({ children, initialState = {} }) => {
 
   const deleteImage = async () => {
     try {
-      const response = fetch(`/images/${image.imageId}`, {
+      console.log("Send delete")
+      const response = await fetch(`/images/${image.imageId}`, {
         method: "DELETE",
       });
+      console.log("Deleted image: ", response);
     } catch (error) {
       console.error("Error deleting image:", error);
     }

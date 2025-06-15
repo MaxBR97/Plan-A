@@ -1039,7 +1039,7 @@ public class Image {
         }
         
         String[] lines = sourceCode.split("\n");
-        boolean foundPrint = false;
+        boolean hasValidPrecedingStatement = false;
         
         for (int i = 0; i < lines.length; i++) {
             String line = lines[i].trim();
@@ -1049,18 +1049,19 @@ public class Image {
                 continue;
             }
             
-            // Check for do print statement
+            // Check for do print or do check statement
             if (line.startsWith("do print")) {
-                foundPrint = true;
+                hasValidPrecedingStatement = true;
                 continue;
             }
             
             // Check for do check statement
-            if (line.startsWith("do check") || line.startsWith("do forall") && line.contains("do check")) {
-                if (!foundPrint) {
-                    throw new BadRequestException("Found 'do check' statement without a preceding 'do print' statement at line " + (i + 1));
+            if (line.startsWith("do check") || (line.startsWith("do forall") && line.contains("do check"))) {
+                if (!hasValidPrecedingStatement) {
+                    throw new BadRequestException("Found 'do check' statement without a preceding 'do print' or 'do check' statement at line " + (i + 1));
                 }
-                foundPrint = false; // Reset for next check
+                // A do check statement is valid for the next do check
+                hasValidPrecedingStatement = true;
             }
         }
     }

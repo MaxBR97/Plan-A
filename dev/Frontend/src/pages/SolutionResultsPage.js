@@ -638,6 +638,7 @@ const SolutionResultsPage = ({
             <div className="section-header">
               <h3 className="section-title">Solution Log</h3>
               <InfoIcon tooltip="Detailed log of the optimization process" />
+              
             </div>
             <LogBoard />
           </div>

@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 import java.util.Collection;
 import java.util.List;
@@ -1197,124 +1198,91 @@ public class ImageTests extends TestWithPersistence {
     @Test
     @Transactional
     public void When_DoCheck_Has_No_DoPrint_Above_Then_Exception_Is_Thrown() throws Exception {
-        // Create a model with a do check without a do print
-        String invalidCode = "do check card(Descriptive_Soldiers_List) > 0;";
-        InputStream inputStream = new ByteArrayInputStream(invalidCode.getBytes());
-        modelRepository.uploadDocument(sourceId, inputStream);
-        inputStream.close();
-        
-        // Create a new image with the invalid code
-        Image invalidImage = new Image(sourceId, "Test Image", "Test Description", "testUser", false);
-        
-        // Verify that validateCode throws BadRequestException
-        BadRequestException exception = assertThrows(
-            BadRequestException.class,
-            () -> invalidImage.validateCode()
-        );
-        
-        // Verify the exception message
-        assertTrue(exception.getMessage().contains("Found 'do check' statement without a preceding 'do print' statement"));
+        String invalidCode = "do check x == 1;";
+        modelFactory.uploadNewModel(sourceId, invalidCode);
+        Image image = new Image(sourceId, "Test Image", "Test Description", "testUser", true);
+        assertThrows(BadRequestException.class, () -> image.validateCode());
     }
 
     @Test
     @Transactional
     public void When_DoCheck_Has_DoPrint_Above_Then_Success() throws Exception {
-        // Create a model with a valid do print and do check
-        String validCode = "do print \"Soldiers list must not be empty!\";\ndo check card(Descriptive_Soldiers_List) > 0;";
-        InputStream inputStream = new ByteArrayInputStream(validCode.getBytes());
-        modelRepository.uploadDocument(sourceId, inputStream);
-        inputStream.close();
-        
-        // Create a new image with the valid code
-        Image validImage = new Image(sourceId, "Test Image", "Test Description", "testUser", false);
-        
-        // Verify that validateCode doesn't throw an exception
-        validImage.validateCode();
+        String validCode = "do print \"Checking x\";\ndo check x == 1;";
+        modelFactory.uploadNewModel(sourceId, validCode);
+        Image image = new Image(sourceId, "Test Image", "Test Description", "testUser", true);
+        assertDoesNotThrow(() -> image.validateCode());
+    }
+
+    @Test
+    @Transactional
+    public void When_DoCheck_Has_DoCheck_Above_Then_Success() throws Exception {
+        String validCode = "do print \"First check\";\ndo check x == 1;\ndo check y == 2;";
+        modelFactory.uploadNewModel(sourceId, validCode);
+        Image image = new Image(sourceId, "Test Image", "Test Description", "testUser", true);
+        assertDoesNotThrow(() -> image.validateCode());
+    }
+
+    @Test
+    @Transactional
+    public void When_DoCheck_Has_DoCheck_Above_Without_Initial_DoPrint_Then_Exception_Is_Thrown() throws Exception {
+        String invalidCode = "do check x == 1;\ndo check y == 2;";
+        modelFactory.uploadNewModel(sourceId, invalidCode);
+        Image image = new Image(sourceId, "Test Image", "Test Description", "testUser", true);
+        assertThrows(BadRequestException.class, () -> image.validateCode());
     }
 
     @Test
     @Transactional
     public void When_DoForall_With_DoCheck_Has_No_DoPrint_Above_Then_Exception_Is_Thrown() throws Exception {
-        // Create a model with a do forall containing do check without a do print
-        String invalidCode = "do forall <soldier,team,role> in Descriptive_Soldiers_List do check\n" +
-                           "    sum <soldier2,team2,role2> in Descriptive_Soldiers_List | soldier2 == soldier: 1 == 1;";
-        InputStream inputStream = new ByteArrayInputStream(invalidCode.getBytes());
-        modelRepository.uploadDocument(sourceId, inputStream);
-        inputStream.close();
-        
-        // Create a new image with the invalid code
-        Image invalidImage = new Image(sourceId, "Test Image", "Test Description", "testUser", false);
-        
-        // Verify that validateCode throws BadRequestException
-        BadRequestException exception = assertThrows(
-            BadRequestException.class,
-            () -> invalidImage.validateCode()
-        );
-        
-        // Verify the exception message
-        assertTrue(exception.getMessage().contains("Found 'do check' statement without a preceding 'do print' statement"));
+        String invalidCode = "do forall <i> in {1..5} do check i > 0;";
+        modelFactory.uploadNewModel(sourceId, invalidCode);
+        Image image = new Image(sourceId, "Test Image", "Test Description", "testUser", true);
+        assertThrows(BadRequestException.class, () -> image.validateCode());
+    }
+
+    @Test
+    @Transactional
+    public void When_DoForall_With_DoCheck_Has_DoCheck_Above_Then_Success() throws Exception {
+        String validCode = "do print \"First check\";\ndo check x == 1;\ndo forall <i> in {1..5} do check i > 0;";
+        modelFactory.uploadNewModel(sourceId, validCode);
+        Image image = new Image(sourceId, "Test Image", "Test Description", "testUser", true);
+        assertDoesNotThrow(() -> image.validateCode());
     }
 
     @Test
     @Transactional
     public void When_Multiple_DoChecks_With_DoPrints_Then_Success() throws Exception {
-        // Create a model with multiple valid do print and do check pairs
-        String validCode = "do print \"First check\";\n" +
-                          "do check card(Descriptive_Soldiers_List) > 0;\n" +
-                          "do print \"Second check\";\n" +
-                          "do forall <soldier,team,role> in Descriptive_Soldiers_List do check\n" +
-                          "    sum <soldier2,team2,role2> in Descriptive_Soldiers_List | soldier2 == soldier: 1 == 1;";
-        InputStream inputStream = new ByteArrayInputStream(validCode.getBytes());
-        modelRepository.uploadDocument(sourceId, inputStream);
-        inputStream.close();
-        
-        // Create a new image with the valid code
-        Image validImage = new Image(sourceId, "Test Image", "Test Description", "testUser", false);
-        
-        // Verify that validateCode doesn't throw an exception
-        validImage.validateCode();
+        String validCode = "do print \"First check\";\ndo check x == 1;\ndo print \"Second check\";\ndo check y == 2;";
+        modelFactory.uploadNewModel(sourceId, validCode);
+        Image image = new Image(sourceId, "Test Image", "Test Description", "testUser", true);
+        assertDoesNotThrow(() -> image.validateCode());
     }
 
     @Test
     @Transactional
     public void When_DoCheck_After_Comments_And_Empty_Lines_Then_Success() throws Exception {
-        // Create a model with comments and empty lines between do print and do check
-        String validCode = "do print \n" + "\"Check with comments\";\n" +
-                          "# This is a comment\n" +
-                          "\n" + // Empty line
-                          "do \n  check card(Descriptive_Soldiers_List) > 0;";
-        InputStream inputStream = new ByteArrayInputStream(validCode.getBytes());
-        modelRepository.uploadDocument(sourceId, inputStream);
-        inputStream.close();
-        
-        // Create a new image with the valid code
-        Image validImage = new Image(sourceId, "Test Image", "Test Description", "testUser", false);
-        
-        // Verify that validateCode doesn't throw an exception
-        validImage.validateCode();
+        String validCode = "do print \"First check\";\n# This is a comment\n\n  \ndo check x == 1;";
+        modelFactory.uploadNewModel(sourceId, validCode);
+        Image image = new Image(sourceId, "Test Image", "Test Description", "testUser", true);
+        assertDoesNotThrow(() -> image.validateCode());
     }
 
     @Test
     @Transactional
     public void When_DoPrint_Is_Commented_Out_Then_Exception_Is_Thrown() throws Exception {
-        // Create a model with a commented out do print followed by do check
-        String invalidCode = "# do print \"This print is commented out\";\n" +
-                           "do check card(Descriptive_Soldiers_List) > 0;";
-        InputStream inputStream = new ByteArrayInputStream(invalidCode.getBytes());
-        modelRepository.uploadDocument(sourceId, inputStream);
-        inputStream.close();
-        
-        // Create a new image with the invalid code
-        Image invalidImage = new Image(sourceId, "Test Image", "Test Description", "testUser", false);
-        
-        // Verify that validateCode throws BadRequestException
-        BadRequestException exception = assertThrows(
-            BadRequestException.class,
-            () -> invalidImage.validateCode()
-        );
-        
-        // Verify the exception message
-        assertTrue(exception.getMessage().contains("Found 'do check' statement without a preceding 'do print' statement"));
+        String invalidCode = "# do print \"This is commented out\";\ndo check x == 1;";
+        modelFactory.uploadNewModel(sourceId, invalidCode);
+        Image image = new Image(sourceId, "Test Image", "Test Description", "testUser", true);
+        assertThrows(BadRequestException.class, () -> image.validateCode());
+    }
+
+    @Test
+    @Transactional
+    public void When_DoCheck_Is_Commented_Out_Then_Success() throws Exception {
+        String validCode = "do print \"First check\";\n# do check x == 1;\ndo check y == 2;";
+        modelFactory.uploadNewModel(sourceId, validCode);
+        Image image = new Image(sourceId, "Test Image", "Test Description", "testUser", true);
+        assertDoesNotThrow(() -> image.validateCode());
     }
 
     @AfterAll

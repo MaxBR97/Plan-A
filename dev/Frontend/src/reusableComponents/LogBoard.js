@@ -75,24 +75,13 @@ export default function LogBoard({ bufferSize = 1000, className = '', height = '
   };
 
   return (
-    <div className="flex flex-col w-full h-full">
-      <div className="flex justify-between items-center mb-2">
-        <div className="text-sm text-gray-500">
-          Buffer: {logs.length}/{bufferSize} chars
-        </div>
-      </div>
-      
+    <div className="log-board-container">
       <div 
         ref={logAreaRef}
-        className={`log-container text-sm bg-gray-900 text-green-400 p-4 rounded ${className}`}
-        style={{ height }}
+        className={`log-container ${className}`}
         onScroll={handleScroll}
       >
         {logs || 'No logs yet. Use window.appendLog("Your log message") to add logs.'}
-      </div>
-      
-      <div className="mt-2 text-xs text-gray-500">
-        {autoScroll ? '✓ Auto-scroll enabled' : '◯ Auto-scroll disabled (manual scroll detected)'}
       </div>
     </div>
   );

@@ -54,7 +54,7 @@ const MainPage = () => {
                 })
                 .finally(() => {
                     // Fetch images regardless of auth status
-                    fetchImages();
+                    // fetchImages();
                 });
         } 
             // Fetch images even if not doing auth init
@@ -68,20 +68,31 @@ const MainPage = () => {
     }, []); // Empty dependency array so it only runs once on mount
 
     const fetchImages = async () => {
-        try {
-            setLoading(true);
-            console.log("getting images")
-            const response = await axios.get('/images');
-            console.log("GET /images response: ", response);
-            setMyImages(response.data);
-            setError(null);
-        } catch (err) {
-            console.error('Error fetching images:', err);
-            const errorMessage = err.response?.data?.msg || err.message || 'An unknown error occurred';
-            setError(errorMessage);
-        } finally {
-            setLoading(false);
-        }
+        const fetchWithRetry = async (retryCount = 0) => {
+            try {
+                setLoading(true);
+                console.log("getting images")
+                const response = await axios.get('/images');
+                console.log("GET /images response: ", response);
+                setMyImages(response.data);
+                setError(null);
+            } catch (err) {
+                console.error('Error fetching images:', err);
+                if (retryCount === 0) {
+                    // First attempt failed, wait 500ms and retry
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    return fetchWithRetry(1);
+                } else {
+                    // Second attempt failed, show error
+                    const errorMessage = err.response?.data?.msg || err.message || 'An unknown error occurred';
+                    setError(errorMessage);
+                }
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        await fetchWithRetry();
     };
 
     const navigateToImageDetails = (imageId) => {

@@ -7,10 +7,13 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.apache.el.util.ConcurrentCache;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
 
 import DTO.Factories.RecordFactory;
 import DTO.Records.Image.ImageDTO;
@@ -28,7 +31,6 @@ import Model.ModelInterface;
 import Model.Solution;
 import SolverService.Solver;
 import jakarta.persistence.EntityManager;
-import jakarta.transaction.Transactional;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -45,7 +47,7 @@ public class ImageController {
     private Solver solverService;
     
     private Map<String,Boolean> solvingRequests;
-
+    private final ReentrantReadWriteLock imageLock;
     private final ScheduledExecutorService garbageCollector;
     private static final int GC_INTERVAL_SECONDS = 5;
 
@@ -57,6 +59,7 @@ public class ImageController {
         Image.setModelFactory(modelFactory);
         this.solverService = solverService;
         this.solvingRequests = new ConcurrentHashMap<>();
+        this.imageLock = new ReentrantReadWriteLock();
         
         // Initialize and start the garbage collector
         this.garbageCollector = Executors.newSingleThreadScheduledExecutor();
@@ -157,10 +160,16 @@ public class ImageController {
         imageRepository.save(image);
     }
 
-    @Transactional
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public ImageDTO getImage(String id) {
-        Image image = imageRepository.findById(id).get();
-        return RecordFactory.makeDTO(image);
+        imageLock.readLock().lock();
+        try {
+            Image image = imageRepository.findById(id)
+                .orElseThrow(() -> new BadRequestException("Image not found"));
+            return RecordFactory.makeDTO(image);
+        } finally {
+            imageLock.readLock().unlock();
+        }
     }
 
     @Transactional
@@ -169,22 +178,32 @@ public class ImageController {
     }
 
     //Gets only 'ready' images - ones that are configured and ready to be used.
-    @Transactional
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public List<ImageDTO> getAllImages() {
-        List<ImageDTO> ans = new LinkedList<>();
-        for(Image image : imageRepository.findAll()){
-            if(image.isConfigured()){
-                ans.add(RecordFactory.makeDTO(image));
+        imageLock.readLock().lock();
+        try {
+            List<ImageDTO> ans = new LinkedList<>();
+            for(Image image : imageRepository.findAll()){
+                if(image.isConfigured()){
+                    ans.add(RecordFactory.makeDTO(image));
+                }
             }
+            return ans;
+        } finally {
+            imageLock.readLock().unlock();
         }
-        return ans;
     }
 
-    @Transactional
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     void deleteImage(String imageId) throws Exception {
-        imageRepository.deleteById(imageId);
-        System.gc();
-        modelFactory.deleteModel(imageId);
+        imageLock.writeLock().lock();
+        try {
+            imageRepository.deleteById(imageId);
+            System.gc();
+            modelFactory.deleteModel(imageId);
+        } finally {
+            imageLock.writeLock().unlock();
+        }
     }
 
     public Solver getSolver(){

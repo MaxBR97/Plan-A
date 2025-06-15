@@ -202,16 +202,16 @@ minimize distributeShiftsEqually:
                     className="description-textarea"
                     placeholder="Enter image description..."
                 />
-
-                <button className="upload-button" onClick={handleUpload} disabled={loading}>
-                    {loading ? "Uploading..." : "Upload"}
-                </button>
-            </div>
-            {message && message.startsWith('Error:') ? (
+                {message && message.startsWith('Error:') ? (
                 <ErrorDisplay error={message} onClose={() => setMessage("")} />
             ) : message ? (
                 <p className="upload-message success-message">{message}</p>
             ) : null}
+                <button className="upload-button" onClick={handleUpload} disabled={loading}>
+                    {loading ? "Uploading..." : "Upload"}
+                </button>
+            </div>
+               
             <Link to="/" className="back-button">
                 Back
             </Link>
