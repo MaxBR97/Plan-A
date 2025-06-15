@@ -166,23 +166,21 @@ public class SolverTest {
         
         CompletableFuture<Solution> futureSolution = solverService.solveAsync(filePath, SOLVING_TIMEOUT_SECONDS, "");
         
-        boolean foundReadingLog = false;
-        boolean foundSolvingLog = false;
+        boolean foundQuote = false;
         
         // Poll logs for 5 seconds or until we find what we're looking for
         long endTime = System.currentTimeMillis() + 5000;
         while (System.currentTimeMillis() < endTime) {
             String log = solverService.pollLog();
             if (log != null) {
-                if (log.contains("reading")) foundReadingLog = true;
-                if (log.contains("solving")) foundSolvingLog = true;
+                if (log.contains("Gap")) foundQuote = true;
+                
             }
-            if (foundReadingLog && foundSolvingLog) break;
+            if (foundQuote) break;
             Thread.sleep(100);
         }
         
-        assertTrue(foundReadingLog, "Should find reading-related log output");
-        assertTrue(foundSolvingLog, "Should find solving-related log output");
+        assertTrue(foundQuote, "Should find gap-related log output");
         
         // Clean up
         futureSolution.get(SOLVING_TIMEOUT_SECONDS, TimeUnit.SECONDS);

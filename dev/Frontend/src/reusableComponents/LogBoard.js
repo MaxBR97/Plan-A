@@ -34,6 +34,11 @@ export default function LogBoard({ bufferSize = 1000, className = '', height = '
     });
   }, [bufferSize]);
 
+  // Clear logs function
+  const clearLogs = useCallback(() => {
+    setLogs('');
+  }, []);
+
   // Auto-scroll to bottom when logs update
   useEffect(() => {
     if (autoScroll && logAreaRef.current) {
@@ -45,14 +50,16 @@ export default function LogBoard({ bufferSize = 1000, className = '', height = '
   useEffect(() => {
     if (window) {
       window.appendLog = appendLog;
+      window.clearLogs = clearLogs;
     }
     
     return () => {
       if (window) {
         delete window.appendLog;
+        delete window.clearLogs;
       }
     };
-  }, [appendLog]);
+  }, [appendLog, clearLogs]);
 
   // Handle manual scroll to determine if auto-scroll should be enabled
   const handleScroll = () => {
@@ -63,11 +70,6 @@ export default function LogBoard({ bufferSize = 1000, className = '', height = '
     setAutoScroll(isScrolledToBottom);
   };
 
-  // Clear logs function
-  const clearLogs = () => {
-    setLogs('');
-  };
-
   // Test function to add sample logs
   const addSampleLogs = () => {
     const timestamp = new Date().toISOString();
@@ -75,14 +77,17 @@ export default function LogBoard({ bufferSize = 1000, className = '', height = '
   };
 
   return (
-    <div className="log-board-container">
+    <div className="flex flex-col w-full h-full">
+      
       <div 
         ref={logAreaRef}
-        className={`log-container ${className}`}
+        className={`log-container text-sm bg-gray-900 text-green-400 p-4 rounded ${className}`}
+        style={{ height }}
         onScroll={handleScroll}
       >
-        {logs || 'No logs yet. Use window.appendLog("Your log message") to add logs.'}
+        {logs || 'No logs yet.'}
       </div>
+      
     </div>
   );
 }

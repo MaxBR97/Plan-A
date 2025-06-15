@@ -23,7 +23,7 @@ const SolutionResultsPage = ({
     updateSolutionResponse,
   } = useZPL();
 
-  const pollIntervalMillisec = 1000;
+  const pollIntervalMillisec = 3000;
   const [selectedVariable, setSelectedVariable] = useState(null);
   const [displayValue, setDisplayValue] = useState(true);
   const [displayStructure, setDisplayStructure] = useState([]);
@@ -51,8 +51,8 @@ const SolutionResultsPage = ({
   const requestCancelledRef = useRef(false);
   const currentAbortController = useRef(null);
   const currentRequestId = useRef(null);
-  console.log("globalSelectedTuples", globalSelectedTuples);
-  console.log("dynamicSolutions", dynamicSolutions);
+  // console.log("globalSelectedTuples", globalSelectedTuples);
+  // console.log("dynamicSolutions", dynamicSolutions);
   // Deep clone function for solutions
   const deepCloneSolutions = (solutions) => {
     return solutions.map(solution => ({
@@ -266,6 +266,9 @@ const SolutionResultsPage = ({
     setSolutionStatus(null);
     setIsSolving(true);
     requestCancelledRef.current = false;
+    if(!isContinue){
+      window.clearLogs();
+    }
 
     // Create new AbortController for this request
     currentAbortController.current = new AbortController();
@@ -347,30 +350,35 @@ const SolutionResultsPage = ({
 
     try {
       let startTime = Date.now();
+      let lastPollTime = startTime;
+      let isPolling = false;
 
       // Start a timer to update solutionStatus every second
-      let i = 0
       const timer = setInterval(async () => {
-
         if (!requestCancelledRef.current) {  // Only update status if not cancelled
           setSolutionStatus("Solving " + ((Date.now() - startTime) / 1000).toFixed(1)); 
           if(isDesktop){
-             
-            try {
-              const poll = await fetch("/solve/poll", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(requestBody),
-                signal: currentAbortController.current.signal
-              });
-              if((i*100) % pollIntervalMillisec == 0)
-                 window.appendLog(await poll.text() + "\n");
-            } catch (error) {
-              if (error.name === 'AbortError') {
-                console.log('Poll request aborted');
+            const currentTime = Date.now();
+            if(currentTime - lastPollTime >= pollIntervalMillisec && !isPolling){
+              try {
+                isPolling = true;
+                console.log("Polling");
+                const poll = await fetch("/solve/poll", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify(requestBody),
+                  signal: currentAbortController.current.signal
+                });
+                window.appendLog(await poll.text() + "\n");
+                lastPollTime = currentTime;
+              } catch (error) {
+                if (error.name === 'AbortError') {
+                  console.log('Poll request aborted');
+                }
+              } finally {
+                isPolling = false;
               }
             }
-            i++;
           }
         }
       }, 100);
