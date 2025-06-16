@@ -7,12 +7,7 @@ class KeycloakService {
       return KeycloakService.instance;
     }
 
-    this.keycloak = new Keycloak({
-      url: 'http://localhost:8080/', // your Keycloak server
-      realm: 'Plan-A-dev',
-      clientId: 'dev-client',
-    });
-    
+    this.keycloak = null;
     this.initialized = false;
     this.initPromise = null;
     
@@ -20,39 +15,60 @@ class KeycloakService {
   }
 
   init() {
-    // If already initialized, return authentication state
-    if (this.initialized) {
+    console.log('Initializing Keycloak...');
+    
+    if (this.initialized && this.keycloak) {
+      console.log('Keycloak already initialized');
       return Promise.resolve(this.keycloak.authenticated);
     }
 
-    // If initialization is in progress, return that promise
     if (this.initPromise) {
+      console.log('Keycloak initialization already in progress');
       return this.initPromise;
     }
 
-    // Store the current location to redirect back after login/logout
+    // Initialize Keycloak instance
+    console.log('Creating new Keycloak instance...');
+    this.keycloak = new Keycloak({
+      url: 'http://localhost:8080',
+      realm: 'plan-a',
+      clientId: 'spring-gateway'
+    });
+
     const currentPath = window.location.pathname;
     localStorage.setItem('auth_redirect_uri', currentPath);
 
-    // Start a new initialization
     this.initPromise = new Promise((resolve) => {
+      console.log('Starting Keycloak initialization...');
       this.keycloak.init({ 
-        onLoad: 'check-sso', 
+        onLoad: 'check-sso',
         silentCheckSsoRedirectUri: window.location.origin + '/silent-check-sso.html',
-        checkLoginIframe: false // Disable login iframe checking
+        checkLoginIframe: false,
+        pkceMethod: 'S256',
+        enableLogging: true
       })
         .then(authenticated => {
-          console.log("Keycloak initialized, authenticated:", authenticated);
+          console.log("Keycloak initialization successful, authenticated:", authenticated);
           this.initialized = true;
-          
-          // Setup token refresh
-          this.setupTokenRefresh();
+          this.setupAxiosInterceptor();
+          if (authenticated) {
+            console.log('Setting up token refresh and axios interceptor...');
+            this.setupTokenRefresh();
+            // this.setupAxiosInterceptor();
+          }
           
           resolve(authenticated);
         })
         .catch(error => {
-          console.log("Keycloak initialization error:", error);
-          this.initPromise = null; // Reset promise so we can try again
+          console.error("Keycloak initialization error:", error);
+          console.error("Error details:", {
+            message: error.message,
+            stack: error.stack,
+            keycloak: this.keycloak
+          });
+          this.initPromise = null;
+          this.keycloak = null;
+          this.initialized = false;
           resolve(false);
         });
     });
@@ -61,58 +77,149 @@ class KeycloakService {
   }
 
   setupTokenRefresh() {
-    // Setup token refresh
-    if (this.keycloak.authenticated) {
-      // Refresh token 30 seconds before it expires
+    if (this.keycloak && this.keycloak.authenticated) {
+      console.log('Setting up token refresh...');
       this.keycloak.onTokenExpired = () => {
         console.log('Token expired, refreshing...');
-        this.keycloak.updateToken(30).catch(() => {
-          console.log('Failed to refresh token, logging out');
+        this.keycloak.updateToken(30).catch((error) => {
+          console.error('Failed to refresh token:', error);
           this.logout();
         });
       };
     }
   }
 
+  setupAxiosInterceptor() {
+    console.log('Setting up axios interceptors...');
+    const axios = require('axios');
+
+    axios.interceptors.request.use(
+      (config) => {
+        console.log("CONFIG: ", config);
+        // Only add Authorization header if logged in and token is valid
+        if (this.keycloak && this.keycloak.authenticated && this.keycloak.token && typeof this.keycloak.token === 'string' && this.keycloak.token.trim() !== '') {
+          config.headers.Authorization = `Bearer ${this.keycloak.token}`;
+        }
+        // If not logged in, do not set Authorization header
+        return config;
+      },
+      (error) => {
+        console.error('Axios request interceptor error:', error);
+        return Promise.reject(error);
+      }
+    );
+
+    axios.interceptors.response.use(
+      (response) => response,
+      (error) => {
+        console.error('Axios response interceptor error:', error);
+        if (error.response?.status === 401) {
+          console.log('Received 401, attempting login...');
+          this.login();
+        }
+        return Promise.reject(error);
+      }
+    );
+  }
+
   login() {
-    // Store the current URL to redirect back after login
+    console.log('Attempting login...');
+    if (!this.keycloak) {
+      console.error('Keycloak not initialized, attempting to initialize...');
+      return this.init().then(() => {
+        if (!this.keycloak) {
+          throw new Error('Failed to initialize Keycloak');
+        }
+        return this.performLogin();
+      });
+    }
+    return this.performLogin();
+  }
+
+  performLogin() {
+    console.log('Performing login...');
     const redirectUri = window.location.origin + (localStorage.getItem('auth_redirect_uri') || '/');
+    console.log('Redirect URI:', redirectUri);
+    
+    // Add error handler for login
+    this.keycloak.onAuthError = (error) => {
+      console.error('Keycloak auth error:', error);
+    };
+
+    this.keycloak.onAuthSuccess = () => {
+      console.log('Keycloak auth success');
+    };
+
     return this.keycloak.login({
-      redirectUri: redirectUri
+      redirectUri: redirectUri,
+      prompt: 'login'
+    }).catch(error => {
+      console.error('Login error:', error);
+      throw error;
     });
   }
 
   logout() {
-    // Clear the instance state
+    console.log('Attempting logout...');
+    if (!this.keycloak) {
+      console.error('Keycloak not initialized');
+      return Promise.reject('Keycloak not initialized');
+    }
+
     this.initialized = false;
     this.initPromise = null;
     
-    // Store the current URL to redirect back after logout
     const redirectUri = window.location.origin + (localStorage.getItem('auth_redirect_uri') || '/');
+    console.log('Logout redirect URI:', redirectUri);
     
-    // Perform logout
     return this.keycloak.logout({
       redirectUri: redirectUri
+    }).catch(error => {
+      console.error('Logout error:', error);
+      throw error;
     });
   }
 
   register() {
+    console.log('Attempting registration...');
+    if (!this.keycloak) {
+      console.error('Keycloak not initialized, attempting to initialize...');
+      return this.init().then(() => {
+        if (!this.keycloak) {
+          throw new Error('Failed to initialize Keycloak');
+        }
+        return this.performRegister();
+      });
+    }
+    return this.performRegister();
+  }
+
+  performRegister() {
+    console.log('Performing registration...');
     const redirectUri = window.location.origin + (localStorage.getItem('auth_redirect_uri') || '/');
+    console.log('Register redirect URI:', redirectUri);
     return this.keycloak.register({
       redirectUri: redirectUri
+    }).catch(error => {
+      console.error('Registration error:', error);
+      throw error;
     });
   }
 
   getToken() {
-    return this.keycloak.token;
+    return this.keycloak?.token;
   }
 
   getUsername() {
-    return this.keycloak.tokenParsed?.preferred_username || 'Guest';
+    return this.keycloak?.tokenParsed?.preferred_username || 'Guest';
   }
 
   isAuthenticated() {
-    return !!this.keycloak.authenticated;
+    return !!this.keycloak?.authenticated;
+  }
+
+  hasRole(role) {
+    return this.keycloak?.hasRealmRole(role) || false;
   }
 }
 
@@ -127,6 +234,7 @@ const register = () => keycloakService.register();
 const getToken = () => keycloakService.getToken();
 const getUsername = () => keycloakService.getUsername();
 const isAuthenticated = () => keycloakService.isAuthenticated();
+const hasRole = (role) => keycloakService.hasRole(role);
 
 export { 
   keycloakService, 
@@ -136,5 +244,6 @@ export {
   register,
   getToken, 
   getUsername,
-  isAuthenticated
+  isAuthenticated,
+  hasRole
 };

@@ -11,7 +11,7 @@ import java.util.Objects;
 import java.util.Set;
 
 import Utils.Tuple;
-
+import DTO.Records.Image.ShallowImageProjection;
 import DTO.Records.Image.ConstraintModuleDTO;
 import DTO.Records.Image.ImageDTO;
 import DTO.Records.Image.PreferenceModuleDTO;
@@ -207,6 +207,11 @@ public class RecordFactory {
                 
                 return new ImageDTO(image.getId(),image.getName(), image.getDescription(), image.getOwner(), image.isPrivate(),image.getSolverScripts(), variables, constraints, preferences, image.isConfigured());
         }
+
+        public static ImageDTO makeDTO(ShallowImageProjection projection){        
+            return new ImageDTO(projection.getId(), projection.getName(), projection.getDescription(), projection.getOwner(), projection.getIsPrivate(),null,null,null, null, projection.getIsConfigured());
+        }
+
         private static VariableModuleDTO makeDTO(VariableModule module) {
             Set<VariableDTO> vars = new HashSet<>();
             Set<SetDefinitionDTO> sets = new HashSet<>();

@@ -52,6 +52,7 @@ public class SolverService implements Solver {
             ScipProcess process = null;
             long startTime = System.currentTimeMillis();
             try {
+                modelRepository.downloadDocument(fileId);
                 System.out.println("Acquiring process | fileId: "+fileId);
                 process = scipProcessPool.acquireProcess();
                 System.out.println("Process acquired | process: "+process.toString());
@@ -106,6 +107,7 @@ public class SolverService implements Solver {
         return CompletableFuture.supplyAsync(() -> {
             ScipProcess compilationProcess = null;
             try {
+                modelRepository.downloadDocument(fileId);
                 compilationProcess = scipProcessPool.acquireProcess();
                 
                 // Read the problem file

@@ -8,6 +8,7 @@ import NumberInput from '../reusableComponents/NumberInput';
 import LogBoard from "../reusableComponents/LogBoard.js";
 import ErrorDisplay from '../components/ErrorDisplay';
 import InfoIcon from '../reusableComponents/InfoIcon';
+import axios from 'axios';
 
 const SolutionResultsPage = ({ 
   image,
@@ -267,7 +268,7 @@ const SolutionResultsPage = ({
     setIsSolving(true);
     requestCancelledRef.current = false;
     if(!isContinue){
-      window.clearLogs();
+      // window.clearLogs();
     }
 
     // Create new AbortController for this request
@@ -363,13 +364,10 @@ const SolutionResultsPage = ({
               try {
                 isPolling = true;
                 console.log("Polling");
-                const poll = await fetch("/solve/poll", {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify(requestBody),
+                const poll = await axios.post("/api/solve/poll", requestBody, {
                   signal: currentAbortController.current.signal
                 });
-                window.appendLog(await poll.text() + "\n");
+                window.appendLog(JSON.stringify(poll.data) + "\n");
                 lastPollTime = currentTime;
               } catch (error) {
                 if (error.name === 'AbortError') {
@@ -386,45 +384,26 @@ const SolutionResultsPage = ({
       setSolveTimer(timer);
 
       setShowModal(true);
-      const response = await fetch(
-        isContinue ? "/solve/continue" : isDesktop ? "/solve/start" : "/solve", 
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(requestBody),
-          signal: currentAbortController.current.signal
-        }
-      );
+      let solveUrl = "/api/solve";
+      // If you have /api/solve/continue or /api/solve/start, adjust here
+      if (isContinue) solveUrl = "/api/solve/continue";
+      else if (isDesktop) solveUrl = "/api/solve/start";
+      const response = await axios.post(solveUrl, requestBody, {
+        signal: currentAbortController.current.signal
+      });
 
       clearInterval(timer);
       setSolveTimer(null);
 
       // If request was cancelled or this isn't the current request, don't process the response
       if (requestCancelledRef.current || currentRequestId.current !== requestId) {
-        // console.log("Request was cancelled or superseded, ignoring response", requestId);
         setIsSolving(false);
         return;
       }
 
       setIsSolving(false);
 
-      const responseText = await response.text();
-
-      if (!response.ok) {
-        console.error("Server returned an error:", responseText);
-        let errorMessage = responseText;
-        try {
-          // Try to parse the error message as JSON
-          const errorData = JSON.parse(responseText);
-          errorMessage = errorData; // Pass the complete error object
-        } catch (e) {
-          // If parsing fails, create a simple error object
-          errorMessage = { msg: responseText };
-        }
-        throw new Error(JSON.stringify(errorMessage));
-      }
-
-      const data = JSON.parse(responseText);
+      const data = response.data;
       console.log("solution received", data);
       // Only process response if request wasn't cancelled and this is still the current request
       if (!requestCancelledRef.current && currentRequestId.current === requestId) {
@@ -442,7 +421,14 @@ const SolutionResultsPage = ({
           console.error(error);
           try {
             // Try to parse the error message from the Error object
-            const errorObj = JSON.parse(error.message);
+            let errorObj = error.response?.data;
+            if (!errorObj && error.message) {
+              try {
+                errorObj = JSON.parse(error.message);
+              } catch (e) {
+                errorObj = { msg: error.message };
+              }
+            }
             setErrorMessage(errorObj);
           } catch (e) {
             // If parsing fails, create a simple error object

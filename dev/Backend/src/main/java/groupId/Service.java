@@ -9,14 +9,12 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.ReactiveSecurityContextHolder;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Mono;
 
 import DTO.Records.Image.ImageDTO;
 import DTO.Records.Image.SolutionDTO;
@@ -29,67 +27,176 @@ import jakarta.validation.Valid;
 
 //TODO: make all returned status codes to comply with best practices/REST conventions including /api routes
 @RestController
-@RequestMapping("/")
-public class Service implements ServiceInterface {
+@RequestMapping("/api")
+public class Service {
     private final ImageController controller;
-
     @Autowired 
     public Service(ImageController controller) {
         this.controller = controller;
     }
 
-    @GetMapping(value = {"/"/*, "/{path:^(?!api|static).*$}/**"*/})
-    public ResponseEntity<Resource> serveHomePage() throws IOException {
-        Resource resource = new ClassPathResource("static/index.html");
-        return ResponseEntity.ok()
-            .contentType(MediaType.TEXT_HTML)
-            .body(resource);
+    // Helper method to get current user's username if authenticated
+    private Mono<String> getCurrentUsername() {
+        return ReactiveSecurityContextHolder.getContext()
+            .map(ctx -> ctx.getAuthentication())
+            .map(auth -> {
+                if (auth != null && auth.getPrincipal() instanceof Jwt) {
+                    Jwt jwt = (Jwt) auth.getPrincipal();
+                    return jwt.getClaimAsString("preferred_username");
+                }
+                return null;
+            })
+            .defaultIfEmpty("Guest");
     }
-    
+
+    // Helper method to get current user's ID if authenticated
+    private Mono<String> getCurrentUserId() {
+        return ReactiveSecurityContextHolder.getContext()
+            .map(ctx -> ctx.getAuthentication())
+            .map(auth -> {
+                if (auth != null && auth.getPrincipal() instanceof Jwt) {
+                    Jwt jwt = (Jwt) auth.getPrincipal();
+                    return jwt.getSubject();
+                }
+                return null;
+            });
+    }
+
+    // Public routes - no authentication required
+    @GetMapping("/public/health")
+    public ResponseEntity<String> healthCheck() {
+        return ResponseEntity.ok("Service is healthy");
+    }
+
+    @GetMapping("/images/search")
+    public Mono<ResponseEntity<List<ImageDTO>>> searchPublicImages(String searchPhrase) throws Exception {
+        return getCurrentUsername()
+            .map(username -> {
+                try {
+                    List<ImageDTO> res = controller.searchImages(username, searchPhrase);
+                    return ResponseEntity.ok(res);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            });
+    }
+
+    // Protected routes - require authentication
     @PostMapping("/images")
-    public ResponseEntity<CreateImageResponseDTO> createImage(@Valid @RequestBody CreateImageFromFileDTO data) throws Exception {
-        CreateImageResponseDTO response = controller.createImageFromFile(data);
-        return ResponseEntity.ok(response);
+    @PreAuthorize("isAuthenticated()")
+    public Mono<ResponseEntity<CreateImageResponseDTO>> createImage(@Valid @RequestBody CreateImageFromFileDTO data) throws Exception {
+        return Mono.zip(getCurrentUsername(), getCurrentUserId())
+            .map(tuple -> {
+                String username = tuple.getT1();
+                String userId = tuple.getT2();
+                System.out.println("Creating image for user: " + username + " (ID: " + userId + ")");
+                try {
+                    CreateImageResponseDTO response = controller.createImageFromFile(username, data);
+                    return ResponseEntity.ok(response);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            });
     }
 
     @PatchMapping("/images")
-    public ResponseEntity<Void> updateImage(@Valid @RequestBody ImageConfigDTO imgConfig) throws Exception{
-        controller.updateImage(imgConfig);
-        return ResponseEntity.ok().build();
+    @PreAuthorize("isAuthenticated()")
+    public Mono<ResponseEntity<Void>> updateImage(@Valid @RequestBody ImageConfigDTO imgConfig) throws Exception {
+        return getCurrentUsername()
+            .map(username -> {
+                System.out.println("Updating image for user: " + username);
+                try {
+                    controller.updateImage(username, imgConfig);
+                    return ResponseEntity.ok().<Void>build();
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            });
     }
     
     @PostMapping("/solve")
-    public ResponseEntity<SolutionDTO> solve(@Valid @RequestBody SolveCommandDTO input) throws Exception {
-        SolutionDTO res = controller.solve(input);
-        return ResponseEntity.ok(res);
+    public Mono<ResponseEntity<SolutionDTO>> solve(@Valid @RequestBody SolveCommandDTO input) throws Exception {
+        return getCurrentUsername()
+            .map(username -> {
+                if (username != null) {
+                    System.out.println("Solving for authenticated user: " + username);
+                } else {
+                    System.out.println("Solving for anonymous user");
+                }
+                try {
+                    SolutionDTO res = controller.solve(input);
+                    return ResponseEntity.ok(res);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            });
     }
 
     @GetMapping("/images/{id}/inputs")
-    public ResponseEntity<InputDTO> loadImageInput(@PathVariable("id") String imageId) throws Exception {
-        InputDTO res = controller.loadLastInput(imageId);
-        return ResponseEntity.ok(res);
+    public Mono<ResponseEntity<InputDTO>> loadImageInput(@PathVariable("id") String imageId) throws Exception {
+        return getCurrentUsername()
+            .map(username -> {
+                if (username != null) {
+                    System.out.println("Loading inputs for authenticated user: " + username);
+                }
+                try {
+                    InputDTO res = controller.loadLastInput(imageId);
+                    return ResponseEntity.ok(res);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            });
     }
 
     @GetMapping("/images/{id}")
-    public ResponseEntity<ImageDTO> getImage(@PathVariable("id") String imageId) throws Exception {
-        ImageDTO res = controller.getImage(imageId);
-        if (res == null) {
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.ok(res);
+    public Mono<ResponseEntity<ImageDTO>> getImage(@PathVariable("id") String imageId) throws Exception {
+        return getCurrentUsername()
+            .map(username -> {
+                if (username != null) {
+                    System.out.println("Getting image for authenticated user: " + username);
+                }
+                try {
+                    ImageDTO res = controller.getImage(username, imageId);
+                    if (res == null) {
+                        return ResponseEntity.notFound().<ImageDTO>build();
+                    }
+                    return ResponseEntity.ok(res);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            });
     }
 
-    //in the future will become get all current user's owned images.
     @GetMapping("/images")
-    public ResponseEntity<List<ImageDTO>> getAllImages() throws Exception {
-        List<ImageDTO> res = controller.getAllImages();
-        return ResponseEntity.ok(res);
+    @PreAuthorize("isAuthenticated()")
+    public Mono<ResponseEntity<List<ImageDTO>>> getAllUserImages() throws Exception {
+        return Mono.zip(getCurrentUsername(), getCurrentUserId())
+            .map(tuple -> {
+                String username = tuple.getT1();
+                String userId = tuple.getT2();
+                System.out.println("Getting all images for user: " + username + " (ID: " + userId + ")");
+                try {
+                    List<ImageDTO> res = controller.getAllUserImages(username);
+                    return ResponseEntity.ok(res);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            });
     }
 
     @DeleteMapping("/images/{id}")
-    public ResponseEntity<Void> deleteImage(@PathVariable("id") String imageId) throws Exception {
-        controller.deleteImage(imageId);
-        return ResponseEntity.ok().build();
+    @PreAuthorize("isAuthenticated()")
+    public Mono<ResponseEntity<Void>> deleteImage(@PathVariable("id") String imageId) throws Exception {
+        return getCurrentUsername()
+            .map(username -> {
+                System.out.println("Deleting image for user: " + username);
+                try {
+                    controller.deleteImage(username, imageId);
+                    return ResponseEntity.ok().<Void>build();
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            });
     }
 
     // @PostMapping("/images/{id}/solutions")

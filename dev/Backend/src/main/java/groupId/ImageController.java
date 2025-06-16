@@ -7,11 +7,12 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import org.apache.el.util.ConcurrentCache;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
-
+import org.springframework.data.domain.PageRequest;
 import DTO.Factories.RecordFactory;
 import DTO.Records.Image.ImageDTO;
 import DTO.Records.Image.SolutionDTO;
@@ -31,6 +32,10 @@ import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import DTO.Records.Image.ShallowImageProjection;
 
 @RestController
 public class ImageController {
@@ -66,7 +71,7 @@ public class ImageController {
     
 
     @Transactional
-    public CreateImageResponseDTO createImageFromFile(CreateImageFromFileDTO command) throws Exception {
+    public CreateImageResponseDTO createImageFromFile(String user, CreateImageFromFileDTO command) throws Exception {
         if(command.code().length() > 65536 ){ // 8 Memory Pages
             throw new BadRequestException("Code size exceeded 64KB");
         }
@@ -86,7 +91,7 @@ public class ImageController {
                 id,
                 command.imageName(),
                 command.imageDescription(),
-                command.owner(),
+                user,
                 command.isPrivate() == null ? true : command.isPrivate()
             );
             System.gc();
@@ -145,22 +150,40 @@ public class ImageController {
     }
 
     @Transactional
-    public void updateImage(ImageConfigDTO imgConfig) throws Exception {
+    public void updateImage(String user, ImageConfigDTO imgConfig) throws Exception {
         ImageDTO imageDTO = imgConfig.image();
         String imageId = imgConfig.imageId();
         
-        Image image = imageRepository.findById(imageId)
-                .orElseThrow(() -> new BadRequestException("Invalid imageId in image config"));
+        Image image = imageRepository.findByIdAndAccessible(imageId, user);
+        if (image == null) {
+            throw new BadRequestException("Image not found or you don't have permission to update it");
+        }
 
         image.update(imageDTO);
-
         imageRepository.save(image);
     }
 
     @Transactional
-    public ImageDTO getImage(String id) {
-        Image image = imageRepository.findById(id).get();
+    public ImageDTO getImage(String user, String id) {
+        Image image = imageRepository.findByIdAndAccessible(id, user);
+        if (image == null) {
+            throw new BadRequestException("Image not found or you don't have permission to access it");
+        }
         return RecordFactory.makeDTO(image);
+    }
+
+    @Transactional
+    public List<ImageDTO> searchImages(String callingUser, String searchPhrase) {
+        System.out.println("Searching for images with phrase: " + searchPhrase + " | Calling user: " + callingUser);
+        List<ShallowImageProjection> images;
+        if(callingUser.equals("Guest")){
+            images = imageRepository.searchShallowImages(searchPhrase, PageRequest.of(0, 20));
+        } else {
+            images = imageRepository.searchShallowImages(searchPhrase, callingUser, PageRequest.of(0, 20));
+        }
+        return images.stream()
+            .map(RecordFactory::makeDTO)
+            .collect(Collectors.toList());
     }
 
     @Transactional
@@ -170,21 +193,30 @@ public class ImageController {
 
     //Gets only 'ready' images - ones that are configured and ready to be used.
     @Transactional
-    public List<ImageDTO> getAllImages() {
-        List<ImageDTO> ans = new LinkedList<>();
-        for(Image image : imageRepository.findAll()){
-            if(image.isConfigured()){
-                ans.add(RecordFactory.makeDTO(image));
-            }
-        }
-        return ans;
+    public List<ImageDTO> getAllUserImages(String user) {
+        List<ShallowImageProjection> images = imageRepository.findByOwner(user);
+        return images.stream()
+            .map(RecordFactory::makeDTO)
+            .collect(Collectors.toList());
     }
 
+    //TODO: Refactor this method to use one DB call for checking owner and deleting image.
     @Transactional
-    void deleteImage(String imageId) throws Exception {
-        imageRepository.deleteById(imageId);
-        System.gc();
-        modelFactory.deleteModel(imageId);
+    void deleteImage(String user, String imageId) throws Exception {
+        // First check if the image exists and belongs to the user
+        try {
+            String owner = imageRepository.findOwner(imageId);
+            if(!owner.equals(user)){
+                throw new BadRequestException("Image not found or you don't have permission to delete it");
+            }
+            // Delete image and all related data in a single transaction
+            imageRepository.deleteById(imageId);
+            // Only delete the model if the image was successfully deleted
+            System.gc();
+            modelFactory.deleteModel(imageId);
+        } catch (Exception e) {
+            throw new BadRequestException("Failed to delete image: " + e.getMessage());
+        }
     }
 
     public Solver getSolver(){
