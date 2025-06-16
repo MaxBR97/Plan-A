@@ -41,6 +41,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.test.context.TestPropertySource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import DTO.Records.Image.ImageDTO;
 import DTO.Records.Image.SolutionDTO;
@@ -110,11 +112,18 @@ import DTO.Records.Image.PreferenceModuleDTO;
   */
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,classes = Main.class)
-@ActiveProfiles({"H2mem", "securityAndGateway", "streamSolver"})
+@ActiveProfiles({"H2mem", "securityAndGateway", "test","streamSolver"})
 @TestPropertySource(properties = {
-    "app.file.storage-dir=../Test/Models"
+    "app.file.storage-dir=../Test/Models",
+    "logging.level.org.springframework.security=DEBUG",
+    "logging.level.Acceptance=DEBUG",
+    "spring.security.oauth2.resourceserver.jwt.issuer-uri=http://localhost:8080/realms/test",
+    "spring.security.oauth2.resourceserver.jwt.jwk-set-uri=http://localhost:8080/realms/test/protocol/openid-connect/certs",
+    "spring.security.oauth2.resourceserver.jwt.audiences=test-client"
 })
 public class ServiceTest {
+    private static final Logger logger = LoggerFactory.getLogger(ServiceTest.class);
+    
     @LocalServerPort
     private int port;
     static String pathToSimpleExample = Paths.get("src", "test", "resources", "ZimplExamples", "SimpleExample.zpl").toString();
@@ -142,9 +151,9 @@ public class ServiceTest {
     @BeforeEach
     public void initilize() throws IOException {
         WebClient webClient = webClientBuilder
-        .baseUrl("http://localhost:" + port)
-        .build();
-        requestsManager = new RequestsManager(port, webClient);
+            .baseUrl("http://localhost:" + port)
+            .build();
+        requestsManager = new RequestsManager(port, webClient, "testUser");
         
         // Ensure test directories exist
         Path modelsDir = Paths.get("..","Test", "Models").toAbsolutePath();

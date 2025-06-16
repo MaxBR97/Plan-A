@@ -1,10 +1,14 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useRef, useEffect, useImperativeHandle, forwardRef } from 'react';
 import './LogBoard.css';
 
-export default function LogBoard({ bufferSize = 1000, className = '', height = '400px' }) {
+const LogBoard = forwardRef((props, ref) => {
   const [logs, setLogs] = useState('');
   const logAreaRef = useRef(null);
   const [autoScroll, setAutoScroll] = useState(true);
+
+  useImperativeHandle(ref, () => ({
+    clearLogs: () => setLogs(''),
+  }));
 
   // Function to append text to the log
   const appendLog = useCallback((text) => {
@@ -16,9 +20,9 @@ export default function LogBoard({ bufferSize = 1000, className = '', height = '
           text;
         
         // If the new text exceeds the buffer size, trim from the beginning
-        if (newText.length > bufferSize) {
+        if (newText.length > props.bufferSize) {
           // Find the first newline after the trimming point to keep log entries intact
-          const startIndex = newText.length - bufferSize;
+          const startIndex = newText.length - props.bufferSize;
           const firstNewLineAfterTrim = newText.indexOf('\n', startIndex);
           
           if (firstNewLineAfterTrim !== -1) {
@@ -32,12 +36,7 @@ export default function LogBoard({ bufferSize = 1000, className = '', height = '
         return prevLogs + "\nError logging message";
       }
     });
-  }, [bufferSize]);
-
-  // Clear logs function
-  const clearLogs = useCallback(() => {
-    setLogs('');
-  }, []);
+  }, [props.bufferSize]);
 
   // Auto-scroll to bottom when logs update
   useEffect(() => {
@@ -45,21 +44,6 @@ export default function LogBoard({ bufferSize = 1000, className = '', height = '
       logAreaRef.current.scrollTop = logAreaRef.current.scrollHeight;
     }
   }, [logs, autoScroll]);
-
-  // Expose the appendLog function to parent components
-  useEffect(() => {
-    if (window) {
-      window.appendLog = appendLog;
-      window.clearLogs = clearLogs;
-    }
-    
-    return () => {
-      if (window) {
-        delete window.appendLog;
-        delete window.clearLogs;
-      }
-    };
-  }, [appendLog, clearLogs]);
 
   // Handle manual scroll to determine if auto-scroll should be enabled
   const handleScroll = () => {
@@ -81,8 +65,8 @@ export default function LogBoard({ bufferSize = 1000, className = '', height = '
       
       <div 
         ref={logAreaRef}
-        className={`log-container text-sm bg-gray-900 text-green-400 p-4 rounded ${className}`}
-        style={{ height }}
+        className={`log-container text-sm bg-gray-900 text-green-400 p-4 rounded ${props.className}`}
+        style={{ height: props.height }}
         onScroll={handleScroll}
       >
         {logs || 'No logs yet.'}
@@ -90,4 +74,6 @@ export default function LogBoard({ bufferSize = 1000, className = '', height = '
       
     </div>
   );
-}
+});
+
+export default LogBoard;

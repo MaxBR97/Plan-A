@@ -1,9 +1,10 @@
 import { createContext, useContext, useState, useEffect } from "react";
+import axios from 'axios';
 
 const ZPLContext = createContext(null);
 
 const initialUser = {
-  username: "guest",
+  username: "Guest",
   isLoggedIn: false
 }
 
@@ -11,12 +12,13 @@ const initialImageState = {
   imageName: "My Image",
   imageDescription: "",
   imageId: null,
-  owner: "guest",
+  owner: initialUser.username,
   isPrivate: true,
   solverSettings: {"Default": "", Optimallity: "set emphasis optimality", "Tree search": "set emphasis tree search", Feasibility: "set emphasis feasibility", "Aggressive static analysis": "set presolving emphasis aggressive", "Numerics": "set emphasis numerics"},
   constraintModules: [],
   preferenceModules: [],
   variablesModule: null,
+  isConfigured: false,
 };
 
 const initialModelState = {
@@ -173,22 +175,12 @@ export const ZPLProvider = ({ children, initialState = {} }) => {
     });
   };
 
-  const fetchAndSetImage = async () => {
+  const fetchAndSetImage = async (imageId) => {
     try {
-      const response = await fetch(`/images/${image.imageId}`, {
-        method: "GET",
-      });
-  
-      if (!response.ok) {
-        const errorText = await response.text(); // Get error message
-        throw new Error(`Load image request failed! Status: ${response.status}, Response: ${errorText}`);
-      }
-  
-      const data = await response.json();
-      updateImage(data);
-      console.log("Fetched image: ", data);
+      const response = await axios.get(`/api/images/${imageId ? imageId : image.imageId}`);
+      updateImage(response.data);
+      console.log("Fetched image: ", response.data);
       setError(null); // Clear any previous errors on success
-  
     } catch (error) {
       console.error("Error fetching image:", error);
       setError(`Failed to fetch image: ${error.message}`);
@@ -197,10 +189,7 @@ export const ZPLProvider = ({ children, initialState = {} }) => {
 
   const deleteImage = async () => {
     try {
-      console.log("Send delete")
-      const response = await fetch(`/images/${image.imageId}`, {
-        method: "DELETE",
-      });
+      const response = await axios.delete(`/api/images/${image.imageId}`);
       console.log("Deleted image: ", response);
     } catch (error) {
       console.error("Error deleting image:", error);

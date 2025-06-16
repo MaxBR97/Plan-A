@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useZPL } from '../context/ZPLContext';
 import ErrorDisplay from '../components/ErrorDisplay';
 import './ConfigureImageMenu.css';
+import axios from 'axios';
 
 const cleanErrorMessage = (message) => {
   
@@ -56,13 +57,14 @@ const parseErrorMessage = (error) => {
 
 const ConfigureImageMenu = () => {
   const navigate = useNavigate();
-  const { image, updateImage, updateImageField, fetchAndSetImage, initialImageState, deleteImage } = useZPL();
+  const { image, updateImage, updateImageField, fetchAndSetImage, initialImageState, deleteImage , user } = useZPL();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [editingName, setEditingName] = useState(false);
   const [editingDescription, setEditingDescription] = useState(false);
   const [tempName, setTempName] = useState(image.imageName);
   const [tempDescription, setTempDescription] = useState(image.imageDescription);
+  const [isPrivate, setIsPrivate] = useState(image.isPrivate);
   console.log("image:",image);
   const menuItems = [
     {
@@ -92,35 +94,31 @@ const ConfigureImageMenu = () => {
     }
   ];
 
+  useEffect(() => {
+    setIsPrivate(image.isPrivate);
+  }, [image.isPrivate]);
+
   const handleFinish = async () => {
     setIsLoading(true);
     setError(null);
-
+    console.log("user:", user);
     const patchRequestBody = {
       imageId: image.imageId,
-      image
+      image : {...image, owner: user.username}
     };
     
     try {
       console.log("🔄 Patch request body:", patchRequestBody);
 
-      const patchResponse = await fetch("/images", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(patchRequestBody)
-      });
-
-      if (!patchResponse.ok) {
-        const errorData = await patchResponse.json();
-        throw new Error(errorData.msg || errorData.message || JSON.stringify(errorData));
-      }
+      // PATCH /api/images
+      const patchResponse = await axios.patch("/api/images", patchRequestBody);
 
       console.log("✅ Configuration saved successfully!");
       await fetchAndSetImage(); // Fetch the latest image data
       navigate('/solution-preview');
     } catch (error) {
       console.error("Error saving configuration:", error);
-      setError(error.message || error.toString());
+      setError(error.response?.data?.msg || error.response?.data?.message || error.message || error.toString());
     } finally {
       setIsLoading(false);
     }
@@ -207,6 +205,21 @@ const ConfigureImageMenu = () => {
                 </div>
               )}
             </div>
+          </div>
+
+          <div className="image-details-section">
+            <label className="toggle-label">
+              <input
+                type="checkbox"
+                checked={!isPrivate}
+                onChange={e => {
+                  setIsPrivate(!e.target.checked ? true : false);
+                  updateImageField('isPrivate', !e.target.checked ? true : false);
+                }}
+                className="toggle-checkbox"
+              />
+              Make the image public?
+            </label>
           </div>
         </div>
         

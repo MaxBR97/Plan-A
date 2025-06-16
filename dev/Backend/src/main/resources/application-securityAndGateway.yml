@@ -3,7 +3,8 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: https://<your-keycloak-domain>/realms/<realm-name>
+          issuer-uri: http://localhost:8080/realms/plan-a
+          jwk-set-uri: http://localhost:8080/realms/plan-a/protocol/openid-connect/certs
 
   cloud:
     gateway:

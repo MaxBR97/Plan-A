@@ -13,6 +13,8 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.messaging.simp.stomp.StompFrameHandler;
 import org.springframework.messaging.simp.stomp.StompHeaders;
 import org.springframework.messaging.simp.stomp.StompSession;
@@ -29,40 +31,86 @@ import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
 
 public class RequestsManager {
-    int port;
-    WebClient webClient;
+    private static final Logger logger = LoggerFactory.getLogger(RequestsManager.class);
+    private final int port;
+    private final WebClient webClient;
+    private String currentUser;
     private StompSession stompSession;
     private WebSocketStompClient stompClient;
 
     CreateImageRequestBuilder createImageReq;
     ConfigureImageRequestBuilder configImageReq;
 
-    public RequestsManager(int port, WebClient webClient) {
+    public RequestsManager(int port, WebClient webClient, String initialUser) {
         this.port = port;
         this.webClient = webClient;
+        this.currentUser = initialUser;
+        logger.info("Initialized RequestsManager with port: {}, user: {}", port, initialUser);
+    }
+
+    public void setUser(String user) {
+        this.currentUser = user;
+    }
+
+    private WebClient.RequestBodySpec addUserHeader(WebClient.RequestBodySpec request) {
+        if (currentUser != null) {
+            logger.debug("Adding headers for user: {}", currentUser);
+            request.header("X-User-Name", currentUser);
+            // Create a test JWT token with the current user's information
+            String token = String.format("eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IlRlc3QgVXNlciIsInByZWZlcnJlZF91c2VybmFtZSI6IiVzIiwicm9sZXMiOlsiVVNFUiJdfQ.test-signature", currentUser);
+            request.header("Authorization", "Bearer " + token);
+        }
+        return request;
+    }
+
+    private WebClient.RequestHeadersSpec<?> addUserHeader(WebClient.RequestHeadersSpec<?> request) {
+        if (currentUser != null) {
+            logger.debug("Adding headers for user: {}", currentUser);
+            request.header("X-User-Name", currentUser);
+            // Create a test JWT token with the current user's information
+            String token = String.format("eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IlRlc3QgVXNlciIsInByZWZlcnJlZF91c2VybmFtZSI6IiVzIiwicm9sZXMiOlsiVVNFUiJdfQ.test-signature", currentUser);
+            request.header("Authorization", "Bearer " + token);
+        }
+        return request;
     }
 
     public ResponseEntity<?> sendCreateImageRequest(CreateImageFromFileDTO body) {
         try {
-            CreateImageResponseDTO result = webClient.post()
-                    .uri("/images")
-                    .contentType(MediaType.APPLICATION_JSON)
+            logger.info("Sending create image request to /api/images");
+            CreateImageResponseDTO result = addUserHeader(webClient.post()
+                    .uri("/api/images")
+                    .contentType(MediaType.APPLICATION_JSON))
                     .bodyValue(body)
                     .retrieve()
                     .bodyToMono(CreateImageResponseDTO.class)
                     .block();
+            logger.info("Create image request successful");
             return ResponseEntity.ok(result);
         } catch (WebClientResponseException ex) {
-            ExceptionDTO errorResponse = ex.getResponseBodyAs(ExceptionDTO.class);
+            logger.error("Create image request failed with status: {}, body: {}", ex.getStatusCode(), ex.getResponseBodyAsString());
+            String responseBody = ex.getResponseBodyAsString();
+            ExceptionDTO errorResponse;
+            try {
+                errorResponse = ex.getResponseBodyAs(ExceptionDTO.class);
+            } catch (Exception decodeEx) {
+                logger.error("Failed to decode error response, creating generic error", decodeEx);
+                errorResponse = new ExceptionDTO(
+                    ex.getStatusCode().toString(),
+                    responseBody != null ? responseBody : "Unknown error"
+                );
+            }
             return ResponseEntity.status(ex.getStatusCode()).body(errorResponse);
+        } catch (Exception ex) {
+            logger.error("Unexpected error in create image request", ex);
+            throw ex;
         }
     }
 
     public ResponseEntity<?> sendConfigImageRequest(ImageConfigDTO body) {
         try {
-            webClient.patch()
-                    .uri("/images")
-                    .contentType(MediaType.APPLICATION_JSON)
+            addUserHeader(webClient.patch()
+                    .uri("/api/images")
+                    .contentType(MediaType.APPLICATION_JSON))
                     .bodyValue(body)
                     .retrieve()
                     .toBodilessEntity()
@@ -76,9 +124,9 @@ public class RequestsManager {
 
     public ResponseEntity<?> sendSolveRequest(SolveCommandDTO body) {
         try {
-            SolutionDTO result = webClient.post()
-                    .uri("/solve")
-                    .contentType(MediaType.APPLICATION_JSON)
+            SolutionDTO result = addUserHeader(webClient.post()
+                    .uri("/api/solve")
+                    .contentType(MediaType.APPLICATION_JSON))
                     .bodyValue(body)
                     .retrieve()
                     .bodyToMono(SolutionDTO.class)
@@ -92,9 +140,9 @@ public class RequestsManager {
 
     public ResponseEntity<?> sendPersistentSolve(SolveCommandDTO body) {
         try {
-            return webClient.post()
+            return addUserHeader(webClient.post()
                     .uri("/solve/start")
-                    .contentType(MediaType.APPLICATION_JSON)
+                    .contentType(MediaType.APPLICATION_JSON))
                     .bodyValue(body)
                     .retrieve()
                     .toBodilessEntity()
@@ -108,9 +156,9 @@ public class RequestsManager {
 
     public ResponseEntity<?> sendPollPersistentSolve() {
         try {
-            String result = webClient.post()
+            String result = addUserHeader(webClient.post()
                     .uri("/solve/poll")
-                    .contentType(MediaType.APPLICATION_JSON)
+                    .contentType(MediaType.APPLICATION_JSON))
                     .retrieve()
                     .bodyToMono(String.class)
                     .block();
@@ -123,9 +171,9 @@ public class RequestsManager {
 
     public ResponseEntity<?> sendContinuePersistentSolve(SolveCommandDTO body) {
         try {
-            return webClient.post()
+            return addUserHeader(webClient.post()
                     .uri("/solve/continue")
-                    .contentType(MediaType.APPLICATION_JSON)
+                    .contentType(MediaType.APPLICATION_JSON))
                     .bodyValue(body)
                     .retrieve()
                     .toBodilessEntity()
@@ -139,9 +187,9 @@ public class RequestsManager {
 
     public ResponseEntity<?> sendGetImageRequest(String imageId) {
         try {
-            ImageDTO result = webClient.get()
-                    .uri("/images/{id}", imageId)
-                    .accept(MediaType.APPLICATION_JSON)
+            ImageDTO result = addUserHeader(webClient.get()
+                    .uri("/api/images/{id}", imageId)
+                    .accept(MediaType.APPLICATION_JSON))
                     .retrieve()
                     .bodyToMono(ImageDTO.class)
                     .block();
@@ -154,8 +202,8 @@ public class RequestsManager {
 
     public ResponseEntity<?> sendDeleteImageRequest(String imageId) {
         try {
-            webClient.delete()
-                    .uri("/images/{id}", imageId)
+            addUserHeader(webClient.delete()
+                    .uri("/api/images/{id}", imageId))
                     .retrieve()
                     .toBodilessEntity()
                     .block();
@@ -168,9 +216,9 @@ public class RequestsManager {
 
     public ResponseEntity<?> sendGetAllImagesRequest() {
         try {
-            List<ImageDTO> result = webClient.get()
-                    .uri("/images")
-                    .accept(MediaType.APPLICATION_JSON)
+            List<ImageDTO> result = addUserHeader(webClient.get()
+                    .uri("/api/images")
+                    .accept(MediaType.APPLICATION_JSON))
                     .retrieve()
                     .bodyToMono(new ParameterizedTypeReference<List<ImageDTO>>() {})
                     .block();
@@ -183,9 +231,9 @@ public class RequestsManager {
 
     public ResponseEntity<?> sendGetInputsRequest(String imageId) {
         try {
-            InputDTO result = webClient.get()
-                    .uri("/images/{id}/inputs", imageId)
-                    .accept(MediaType.APPLICATION_JSON)
+            InputDTO result = addUserHeader(webClient.get()
+                    .uri("/api/images/{id}/inputs", imageId)
+                    .accept(MediaType.APPLICATION_JSON))
                     .retrieve()
                     .bodyToMono(InputDTO.class)
                     .block();

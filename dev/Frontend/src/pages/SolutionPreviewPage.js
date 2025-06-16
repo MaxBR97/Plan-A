@@ -12,6 +12,7 @@ import DraggableBar from "../reusableComponents/DraggableBar.js";
 import LogBoard from "../reusableComponents/LogBoard.js"
 import { useNavigate } from "react-router-dom"; // Import useNavigate
 import ErrorDisplay from '../components/ErrorDisplay';
+import axios from 'axios';
 
 import WebSocketTester from "./WebSocketTest.js";
 
@@ -179,17 +180,9 @@ const SolutionPreviewPage = ({isDesktop=false}) => {
 const loadInputs = async () => {
   try {
       console.log("fetching inputs from: ", image.imageId)
-      const response = await fetch(`/images/${image.imageId}/inputs`, {
-          method: "GET",
-          headers: { "Content-Type": "application/json" },
-      });
-
-      const responseText = await response.text(); // Wait for response body
-      const data = JSON.parse(responseText);
-
-      if (!response.ok) {
-        throw new Error(`load inputs request failed! Status: ${responseText}`);
-    }
+      // GET /api/images/{id}/inputs
+      const response = await axios.get(`/api/images/${image.imageId}/inputs`);
+      const data = response.data;
       
       console.log("load input response: ", data)
       const filteredParamsToValues = Object.keys(data.paramsToValues)
@@ -589,21 +582,10 @@ useEffect(() => {
             className="save-image-button"
             onClick={async () => {
               try {
-                const response = await fetch(`/images`, {
-                  method: 'PATCH',
-                  headers: {
-                    'Content-Type': 'application/json',
-                  },
-                  body: JSON.stringify({
-                    imageId: image.imageId,
-                    image: {...image, isConfigured: true},
-                  })
+                await axios.patch(`/api/images`, {
+                  imageId: image.imageId,
+                  image: {...image, isConfigured: true},
                 });
-                
-                if (!response.ok) {
-                  throw new Error('Failed to configure image');
-                }
-                
                 navigate("/")
               } catch (error) {
                 console.error('Error configuring image:', error);

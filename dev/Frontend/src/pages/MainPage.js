@@ -10,7 +10,8 @@ import {
   register,
   getUsername, 
   initKeycloak, 
-  isAuthenticated 
+  isAuthenticated,
+  hasRole
 } from './KeycloakService';
 
 const MainPage = () => {
@@ -19,88 +20,85 @@ const MainPage = () => {
         updateUserField,
         updateImage,
         resetImage,
-        resetModel
+        resetModel,
+        fetchAndSetImage,
+        updateImageField
     } = useZPL();
     const navigate = useNavigate();
     const [myImages, setMyImages] = useState([]);
+    const [searchResults, setSearchResults] = useState([]);
+    const [searchQuery, setSearchQuery] = useState('');
     const [loading, setLoading] = useState(true);
+    const [searchLoading, setSearchLoading] = useState(false);
     const [error, setError] = useState(null);
     const [expandedDescriptions, setExpandedDescriptions] = useState({});
     
-    // Use a ref to track whether we've initialized authentication on mount
     const authInitialized = useRef(false);
+    console.log("user:", user);
     useEffect(() => {
-        // Only initialize Keycloak once on mount
-        if (!authInitialized.current) {
-            authInitialized.current = true;
-            
-            initKeycloak()
-                .then(authenticated => {
+        const initializeAuth = async () => {
+            if (!authInitialized.current) {
+                authInitialized.current = true;
+                
+                try {
+                    console.log('Starting auth initialization...');
+                    const authenticated = await initKeycloak();
                     console.log("Keycloak auth status:", authenticated);
+                    
                     if (authenticated) {
                         updateUserField('isLoggedIn', true);
                         updateUserField('username', getUsername());
+                        await fetchImages();
                     } else {
-                        // If not authenticated, still show "Guest"
                         updateUserField('isLoggedIn', false);
                         updateUserField('username', 'Guest');
+                        setLoading(false);
                     }
-                })
-                .catch(error => {
+                    await handleSearch();
+                } catch (error) {
                     console.error("Auth initialization error:", error);
-                    // On error, default to "Guest"
+                    setError('Failed to initialize authentication. Please refresh the page.');
                     updateUserField('isLoggedIn', false);
                     updateUserField('username', 'Guest');
-                })
-                .finally(() => {
-                    // Fetch images regardless of auth status
-                    // fetchImages();
-                });
-        } 
-            // Fetch images even if not doing auth init
-            fetchImages();
-        
-        
-        // Cleanup function to run on unmount
-        return () => {
-            // Any cleanup needed when component unmounts
-        };
-    }, []); // Empty dependency array so it only runs once on mount
-
-    const fetchImages = async () => {
-        const fetchWithRetry = async (retryCount = 0) => {
-            try {
-                setLoading(true);
-                console.log("getting images")
-                const response = await axios.get('/images');
-                console.log("GET /images response: ", response);
-                setMyImages(response.data);
-                setError(null);
-            } catch (err) {
-                console.error('Error fetching images:', err);
-                if (retryCount === 0) {
-                    // First attempt failed, wait 500ms and retry
-                    await new Promise(resolve => setTimeout(resolve, 500));
-                    return fetchWithRetry(1);
-                } else {
-                    // Second attempt failed, show error
-                    const errorMessage = err.response?.data?.msg || err.message || 'An unknown error occurred';
-                    setError(errorMessage);
+                    await handleSearch();
                 }
-            } finally {
-                setLoading(false);
             }
         };
 
-        await fetchWithRetry();
+        initializeAuth();
+
+    }, []);
+
+    const fetchImages = async () => {
+        try {
+            setLoading(true);
+            const response = await axios.get('/api/images');
+            setMyImages(response.data);
+            setError(null);
+        } catch (err) {
+            console.error('Error fetching images:', err);
+            setError(err.response?.data?.message || 'Failed to fetch images');
+        } finally {
+            setLoading(false);
+        }
     };
 
     const navigateToImageDetails = (imageId) => {
-        const selectedImage = myImages.find(image => image.imageId == imageId);
-        console.log("selected: ", selectedImage);
-        updateImage(selectedImage);
-        navigate(`/solution-preview`);
+        const allImages = [...myImages, ...searchResults];
+        const selectedImage = allImages.find(image => image.imageId === imageId);
+        
+        console.log("allImages: ", allImages);
+        console.log("searchResults: ", searchResults);
+        console.log("selectedImage: ", selectedImage);
+        updateImageField('isConfigured', true);
+        if (selectedImage) {
+            fetchAndSetImage(selectedImage.imageId);
+            navigate(`/solution-preview`);
+        } else {
+            console.warn(`Image with ID ${imageId} not found in myImages or searchResults.`);
+        }
     };
+    
 
     const toggleDescription = (imageId, event) => {
         if (event) {
@@ -114,48 +112,92 @@ const MainPage = () => {
 
     const handleDeleteImage = async (imageId, event) => {
         if (event) {
-            event.stopPropagation(); 
+            event.stopPropagation();
         }
         
+        if (!isAuthenticated()) {
+            setError('You must be logged in to delete images');
+            return;
+        }
+
         if (window.confirm('Are you sure you want to delete this image?')) {
             try {
-                await axios.delete(`/images/${imageId}`);
-                // Remove the deleted image from state
+                await axios.delete(`/api/images/${imageId}`);
                 setMyImages(myImages.filter(image => image.imageId !== imageId));
+                setSearchResults(searchResults.filter(image => image.imageId !== imageId));
             } catch (err) {
                 console.error('Error deleting image:', err);
-                alert('Failed to delete the image. Please try again.');
+                setError(err.response?.data?.message || 'Failed to delete image');
             }
         }
     };
 
-    const handleLogin = () => {
-        // Save current path for redirect after login
-        localStorage.setItem('auth_redirect_uri', window.location.pathname);
-        login();
+    const handleLogin = async () => {
+        try {
+            console.log('Starting login process...');
+            localStorage.setItem('auth_redirect_uri', window.location.pathname);
+            await login();
+        } catch (error) {
+            console.error('Login error:', error);
+            setError('Failed to initialize login. Please try again or refresh the page.');
+        }
     };
 
-    const handleRegister = () => {
-        // Save current path for redirect after registration
-        localStorage.setItem('auth_redirect_uri', window.location.pathname);
-        register();
+    const handleRegister = async () => {
+        try {
+            console.log('Starting registration process...');
+            localStorage.setItem('auth_redirect_uri', window.location.pathname);
+            await register();
+        } catch (error) {
+            console.error('Registration error:', error);
+            setError('Failed to initialize registration. Please try again or refresh the page.');
+        }
     };
 
-    const handleLogout = () => {
-        // Save current path for redirect after logout
-        localStorage.setItem('auth_redirect_uri', window.location.pathname);
-        logout();
-        updateUserField('isLoggedIn', false);
-        updateUserField('username', 'Guest');
+    const handleLogout = async () => {
+        try {
+            console.log('Starting logout process...');
+            localStorage.setItem('auth_redirect_uri', window.location.pathname);
+            await logout();
+            updateUserField('isLoggedIn', false);
+            updateUserField('username', 'Guest');
+            await handleSearch();
+        } catch (error) {
+            console.error('Logout error:', error);
+            setError('Failed to logout. Please try again or refresh the page.');
+        }
     };
 
-    const handleRefresh = () => {
-        fetchImages();
+    const handleSearch = async () => {
+        // if (!searchQuery.trim()) {
+        //     setSearchResults([]);
+        //     return;
+        // }
+
+        try {
+            setSearchLoading(true);
+            const response = await axios.get(`/api/images/search?searchPhrase=${encodeURIComponent(searchQuery)}`);
+            console.log("response: ", response.data);
+            setSearchResults(response.data);
+            setError(null);
+        } catch (err) {
+            console.error('Error searching images:', err);
+            setError(err.response?.data?.message || 'Failed to search images');
+            setSearchResults([]);
+        } finally {
+            setSearchLoading(false);
+        }
+    };
+
+    const handleSearchKeyPress = (e) => {
+        if (e.key === 'Enter') {
+            handleSearch();
+        }
     };
 
     return (
         <div className="main-page">
-            {/* <div className="auth-section">
+            <div className="auth-section">
                 <span>Welcome, {user.isLoggedIn ? user.username : 'Guest'}!</span>
                 {user.isLoggedIn ? (
                     <button onClick={handleLogout} className="auth-button">Logout</button>
@@ -165,7 +207,7 @@ const MainPage = () => {
                         <button onClick={handleRegister} className="auth-button">Sign Up</button>
                     </div>
                 )}
-            </div> */}
+            </div>
 
             <h1 className="main-title">Plan A</h1>
             
@@ -173,13 +215,75 @@ const MainPage = () => {
                 Welcome to Plan A! Here you can manage your optimization problems by creating new images or working with existing ones.
                 Each image represents a unique optimization problem with its own configuration. Choose one to get started, or create a new one.
             </p>
-            
+
+            <div className="my-images-container">
+                <div className="my-images-header">
+                    <label htmlFor="search-input" className="search-label">Public Images</label>
+                </div>
+                <div className="search-container">
+                    <div className="search-input-group">
+                        <input
+                            type="text"
+                            id="search-input"
+                            className="search-input"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            onKeyPress={handleSearchKeyPress}
+                            placeholder="Enter image name..."
+                        />
+                        <button 
+                            className="search-button"
+                            onClick={handleSearch}
+                            disabled={searchLoading}
+                        >
+                            {searchLoading ? 'Searching...' : 'Search'}
+                        </button>
+                    </div>
+                </div>
+                {searchResults.length == 20 && (
+                    <div className="no-images-message">
+                        Showing top 20 results.
+                    </div>
+                )}
+                {searchResults.length > 0 && (
+                    <div className="images-grid">
+                        {searchResults.map((image, index) => (
+                            <div 
+                                className="image-card" 
+                                key={image.imageId || index}
+                                onClick={() => navigateToImageDetails(image.imageId)}
+                                style={{ cursor: 'pointer' }}
+                            >
+                                <div className="image-card-header">
+                                    <h3>{image.imageName}</h3>
+                                </div>
+                                <div className="image-card-content">
+                                    <div className="image-info">
+                                        <div className={`description-container ${expandedDescriptions[image.imageId] ? 'expanded' : ''}`}> 
+                                            <p>{image.imageDescription}</p>
+                                        </div>
+                                        {image.imageDescription && image.imageDescription.length > 150 && (
+                                            <button 
+                                                className="read-more-button"
+                                                onClick={(e) => toggleDescription(image.imageId, e)}
+                                            >
+                                                {expandedDescriptions[image.imageId] ? 'Show less' : 'Read more'}
+                                            </button>
+                                        )}
+                                        <div className="image-owner">Owner: {image.owner || 'Unknown'}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </div>
             <div className="my-images-container">
                 <div className="my-images-header">
                     <h2>My Images</h2>
                     <button 
                         className="refresh-button"
-                        onClick={handleRefresh}
+                        onClick={() => user.isLoggedIn ? fetchImages() : null}
                         disabled={loading}
                     >
                         Refresh
@@ -192,7 +296,7 @@ const MainPage = () => {
                 
                 {!loading && !error && myImages.length === 0 && (
                     <div className="no-images-message">
-                        No images found. Create your first image by clicking the button below.
+                        No images found. {user.isLoggedIn ? 'Create your first image by clicking the button below.' : 'Please log in to create images.'}
                     </div>
                 )}
     
@@ -206,17 +310,19 @@ const MainPage = () => {
                         >
                             <div className="image-card-header">
                                 <h3>{image.imageName}</h3>
-                                <button 
-                                    className="delete-button"
-                                    onClick={(e) => handleDeleteImage(image.imageId, e)}
-                                    aria-label="Delete image"
-                                >
-                                    ×
-                                </button>
+                                {user.isLoggedIn && (
+                                    <button 
+                                        className="delete-button"
+                                        onClick={(e) => handleDeleteImage(image.imageId, e)}
+                                        aria-label="Delete image"
+                                    >
+                                        ×
+                                    </button>
+                                )}
                             </div>
                             <div className="image-card-content">
                                 <div className="image-info">
-                                    <div className={`description-container ${expandedDescriptions[image.imageId] ? 'expanded' : ''}`}>
+                                    <div className={`description-container ${expandedDescriptions[image.imageId] ? 'expanded' : ''}`}> 
                                         <p>{image.imageDescription}</p>
                                     </div>
                                     {image.imageDescription && image.imageDescription.length > 150 && (
@@ -227,6 +333,7 @@ const MainPage = () => {
                                             {expandedDescriptions[image.imageId] ? 'Show less' : 'Read more'}
                                         </button>
                                     )}
+                                    <div className="image-owner">Owner: {image.owner || 'Unknown'}</div>
                                 </div>
                             </div>
                         </div>
@@ -235,16 +342,25 @@ const MainPage = () => {
             </div>
             
             <div className="footer-button-container">
-                <Link 
-                    to="/upload-zpl" 
-                    className="footer-button create-button"
-                    onClick={() => {
-                        resetImage();
-                        resetModel();
-                    }}
-                >
-                    Create new image
-                </Link>
+                {user.isLoggedIn ? (
+                    <Link 
+                        to="/upload-zpl" 
+                        className="footer-button create-button"
+                        onClick={() => {
+                            resetImage();
+                            resetModel();
+                        }}
+                    >
+                        Create new image
+                    </Link>
+                ) : (
+                    <button 
+                        className="footer-button create-button"
+                        onClick={handleLogin}
+                    >
+                        Login to create images
+                    </button>
+                )}
             </div>
         </div>
     );

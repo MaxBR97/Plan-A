@@ -63,16 +63,16 @@ import jakarta.transaction.Transactional;
 public class Image {
 
     @Id
-    @Column(name = "image_id") 
+    @Column(name = "image_id", nullable = false) 
     private String id;
 
-    @Column(name = "owner")
+    @Column(name = "owner", nullable = false)
     private String owner;
 
     @Column(name = "image_name") 
     private String name;
 
-    @Column(name = "is_public")
+    @Column(name = "is_private")
     private boolean isPrivate;
 
     @Column(name = "image_description") 
@@ -110,6 +110,9 @@ public class Image {
     @Column(name = "is_configured")
     private boolean isConfigured;
 
+    @Column(name = "is_popular")
+    private boolean isPopular;
+
     @Transient
     private int defaultTimeout = 60;
 
@@ -134,6 +137,7 @@ public class Image {
         isPrivate = true;
         isConfigured = false;
         this.modelRepository = modelFactory.getRepository();
+        isPopular = false;
     }
     
     public Image(String id, String name, String description, String ownerUser, Boolean isPrivate) throws Exception {
@@ -155,6 +159,7 @@ public class Image {
         validateNoDuplicateVariableTags();
         isConfigured = false;
         this.modelRepository = modelFactory.getRepository();
+        isPopular = false;
     }
 
     private void validateName(String name) throws BadRequestException {

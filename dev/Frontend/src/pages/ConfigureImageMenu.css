@@ -291,4 +291,43 @@
 
 .image-description:hover {
   background-color: #f8f9fa;
+}
+
+.toggle-container {
+  margin-top: 1.25rem;
+  text-align: left;
+  padding-left: 2px;
+}
+
+.toggle-container label {
+  font-weight: 500;
+  color: #2c3e50;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.toggle-container input[type="checkbox"] {
+  accent-color: #3498db;
+  width: 1.1em;
+  height: 1.1em;
+  margin-right: 0.5em;
+}
+
+.toggle-label {
+  font-weight: 500;
+  color: #2c3e50;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.toggle-checkbox {
+  accent-color: #3498db;
+  width: 1.1em;
+  height: 1.1em;
+  margin-right: 0.5em;
 } 

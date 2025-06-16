@@ -122,7 +122,7 @@ minimize distributeShiftsEqually:
         console.log("Sending POST request:", requestData);
 
         try {
-            const response = await axios.post("/images", requestData, {
+            const response = await axios.post("/api/images", requestData, {
                 headers: { "Content-Type": "application/json" },
             });
 
