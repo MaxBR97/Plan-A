@@ -56,7 +56,7 @@
 
     RUN dpkg -i SCIPOptSuite-9.2.0-Linux-ubuntu24.deb
     RUN cd /Plan-A/dev/Frontend && npm install
-    RUN cd /Plan-A/dev/Frontend && npm run cross-platform-build
+    RUN cd /Plan-A/dev/Frontend && npm run build
     RUN cd /Plan-A/dev/Backend && mvn clean install -DskipTests
     RUN cd /Plan-A/dev/Backend && mvn clean compile -DskipTests
 

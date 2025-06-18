@@ -39,6 +39,50 @@ Instead, it will copy all the configuration files and the transitive dependencie
 
 You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
 
+## End-to-End (E2E) Testing with Docker Compose & Playwright
+
+This project uses Playwright for E2E testing and Docker Compose to orchestrate the full microservices stack for realistic integration tests.
+
+### How to Run E2E Tests Locally
+
+1. **Start the stack:**
+   ```sh
+   docker-compose -f docker-compose.e2e.yml up --build
+   ```
+   This will launch all required services. The frontend will be available at http://localhost:4000.
+
+2. **Run Playwright tests:**
+   ```sh
+   npx playwright test
+   ```
+   This will run all E2E tests in the `e2e/` directory against the running stack.
+
+3. **View the test report:**
+   ```sh
+   npx playwright show-report
+   ```
+
+### How to Automate in CI
+
+- In your CI pipeline, add steps to:
+  1. Start the stack in the background:
+     ```sh
+     docker-compose -f docker-compose.e2e.yml up -d --build
+     ```
+  2. Wait for the frontend to be ready (e.g., poll http://localhost:4000 or use a wait script).
+  3. Run Playwright tests:
+     ```sh
+     npx playwright test
+     ```
+  4. Tear down the stack:
+     ```sh
+     docker-compose -f docker-compose.e2e.yml down
+     ```
+
+- Make sure your Playwright config uses `http://localhost:4000` as the base URL.
+
+- You can further automate readiness checks using tools like [`wait-on`](https://www.npmjs.com/package/wait-on) or custom scripts.
+
 ## Learn More
 
 You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).

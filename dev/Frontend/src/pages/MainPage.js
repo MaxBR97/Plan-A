@@ -218,7 +218,7 @@ const MainPage = () => {
             
             <p className="main-description">
                 Welcome to Plan A! Here you can manage your optimization problems by creating new images or working with existing ones.
-                Each image represents a unique optimization problem with its own configuration. Choose one to get started, or create a new one.
+                Each image represents a unique optimization problem with its own configuration. Choose one to get started, or   a new one.
             </p>
 
             <div className="my-images-container">
