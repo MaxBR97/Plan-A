@@ -31,7 +31,7 @@ public class SolverService implements Solver {
 
     public SolverService(ModelRepository modelRepository) {
         this.modelRepository = modelRepository;
-        this.scipProcessPool = new ScipProcessPool(3);
+        this.scipProcessPool = new ScipProcessPool(100);
     }
 
     @Override
@@ -41,6 +41,7 @@ public class SolverService implements Solver {
         } catch (ExecutionException e) {
             Throwable cause = e.getCause();
             if (cause instanceof Exception) throw (Exception) cause;
+
                 throw new RuntimeException("Unexpected error at solver", cause);
         }
         
@@ -192,5 +193,9 @@ public class SolverService implements Solver {
     private void writeSolution(String fileId, String suffix, InputStream inputStream) throws Exception {
         modelRepository.uploadDocument(fileId + suffix, inputStream);
         modelRepository.downloadDocument(fileId + suffix);
+    }
+
+    public void shutdown() throws Exception{
+        scipProcessPool.shutdownAll();
     }
 }

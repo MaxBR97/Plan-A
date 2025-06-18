@@ -98,7 +98,7 @@ const startJarProcess = () => {
   console.log('process.resourcesPath:', process.resourcesPath);
   const basePath = path.join(process.resourcesPath, 'resources');
   const storagePath = path.join(basePath, 'data');
-  const dbPath = path.join(basePath, 'data', 'testdb');
+  const dbPath = path.join(basePath);
   
   console.log('storagePath:', storagePath);
   console.log('dbPath:', dbPath);

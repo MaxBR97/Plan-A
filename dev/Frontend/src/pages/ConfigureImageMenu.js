@@ -114,7 +114,7 @@ const ConfigureImageMenu = () => {
       const patchResponse = await axios.patch("/api/images", patchRequestBody);
 
       console.log("✅ Configuration saved successfully!");
-      await fetchAndSetImage(); // Fetch the latest image data
+      // await fetchAndSetImage(); // Fetch the latest image data
       navigate('/solution-preview');
     } catch (error) {
       console.error("Error saving configuration:", error);

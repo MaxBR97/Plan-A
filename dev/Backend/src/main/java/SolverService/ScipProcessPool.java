@@ -10,7 +10,7 @@ public class ScipProcessPool {
     private final BlockingQueue<ScipProcess> availableProcesses;
     private final List<ScipProcess> allProcesses;
     private final int poolSize;
-    private static final long PROCESS_WAIT_TIMEOUT = 30; // seconds
+    private static final long PROCESS_WAIT_TIMEOUT = 5; // seconds
 
     public ScipProcessPool(int poolSize) {
         this.poolSize = poolSize;

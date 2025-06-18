@@ -1,5 +1,9 @@
 {
-    "API_HOST": "http://localhost",
-    "API_PORT": "3000"
+  "API_HOST": "http://localhost",
+  "API_PORT": "4000",
+  "keycloak": {
+    "url": "http://localhost:8080",
+    "realm": "plan-a",
+    "clientId": "spring-gateway"
+  }
 }
-  

@@ -164,4 +164,10 @@ public class ImageSolverService implements Solver, HealthIndicator {
             return Health.down().withException(e).build();
         }
     }
+
+    @Override
+    public void shutdown() throws Exception {
+        // TODO Auto-generated method stub
+        throw new Exception("Unimplemented method 'shutdown'");
+    }
 }

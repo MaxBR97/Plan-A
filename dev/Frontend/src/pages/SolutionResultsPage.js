@@ -25,7 +25,7 @@ const SolutionResultsPage = ({
   } = useZPL();
 
   const pollIntervalMillisec = 3000;
-  const [selectedVariable, setSelectedVariable] = useState(null);
+  const [selectedVariable, setSelectedVariable] = useState(undefined);
   const [displayValue, setDisplayValue] = useState(true);
   const [displayStructure, setDisplayStructure] = useState([]);
   const [dynamicSolutions, setDynamicSolutions] = useState({});
@@ -46,6 +46,7 @@ const SolutionResultsPage = ({
     // If found, use it; otherwise fallback to first key
     return defaultKey || Object.keys(image.solverSettings)[0];
   });
+
   const [isSolving, setIsSolving] = useState(false);
   const [previousStatus, setPreviousStatus] = useState(null);
   const [solveTimer, setSolveTimer] = useState(null);
@@ -164,8 +165,9 @@ const SolutionResultsPage = ({
     if(varObj?.tags && varObj?.tags?.length == varObj.type.length){
       return varObj.tags;
     }
-    else
+    else{
       return varObj.type;
+    }
   };
 
   const isBinary = (variable) => {
@@ -349,13 +351,14 @@ const SolutionResultsPage = ({
 
     console.log("solve request:", requestBody);
 
+    let timer = null;
     try {
       let startTime = Date.now();
       let lastPollTime = startTime;
       let isPolling = false;
 
       // Start a timer to update solutionStatus every second
-      const timer = setInterval(async () => {
+      timer = setInterval(async () => {
         if (!requestCancelledRef.current) {  // Only update status if not cancelled
           setSolutionStatus("Solving " + ((Date.now() - startTime) / 1000).toFixed(1)); 
           if(isDesktop){
@@ -380,7 +383,6 @@ const SolutionResultsPage = ({
           }
         }
       }, 100);
-      
       setSolveTimer(timer);
 
       setShowModal(true);
@@ -392,8 +394,11 @@ const SolutionResultsPage = ({
         signal: currentAbortController.current.signal
       });
 
-      clearInterval(timer);
-      setSolveTimer(null);
+      // Always clear the timer after solve completes
+      if (timer) {
+        clearInterval(timer);
+        setSolveTimer(null);
+      }
 
       // If request was cancelled or this isn't the current request, don't process the response
       if (requestCancelledRef.current || currentRequestId.current !== requestId) {
@@ -415,6 +420,11 @@ const SolutionResultsPage = ({
         setSolutionStatus("Solution Status: " + data.solutionStatus);
       }
     } catch (error) {
+      // Always clear the timer on error
+      if (timer) {
+        clearInterval(timer);
+        setSolveTimer(null);
+      }
       // Only show error if request wasn't cancelled and this is still the current request
       if (!requestCancelledRef.current && currentRequestId.current === requestId) {
         if (error.name !== 'AbortError') {
@@ -436,10 +446,12 @@ const SolutionResultsPage = ({
           }
           setGlobalSelectedTuples({});
         }
+        setIsSolving(false);
       }
-      setIsSolving(false);
-      if (solveTimer) {
-        clearInterval(solveTimer);
+    } finally {
+      // Defensive: always clear the timer in finally
+      if (timer) {
+        clearInterval(timer);
         setSolveTimer(null);
       }
     }
@@ -496,7 +508,6 @@ const SolutionResultsPage = ({
 
   setGlobalSelectedTuples(cleanedSelectedTuples);
 }, [dynamicSolutions]);
-
 
   return (
     <div className="solution-results-page">

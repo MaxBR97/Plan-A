@@ -1,5 +1,6 @@
 import Keycloak from 'keycloak-js';
 
+
 // Create a singleton KeycloakService class
 class KeycloakService {
   constructor() {
@@ -47,6 +48,11 @@ class KeycloakService {
         pkceMethod: 'S256',
         enableLogging: true
       })
+      // this.keycloak.init({ 
+      //   onLoad: 'login-required',
+      //   pkceMethod: 'S256',
+      //   checkLoginIframe: false,
+      // })
         .then(authenticated => {
           console.log("Keycloak initialization successful, authenticated:", authenticated);
           this.initialized = true;
@@ -95,7 +101,6 @@ class KeycloakService {
 
     axios.interceptors.request.use(
       (config) => {
-        console.log("CONFIG: ", config);
         // Only add Authorization header if logged in and token is valid
         if (this.keycloak && this.keycloak.authenticated && this.keycloak.token && typeof this.keycloak.token === 'string' && this.keycloak.token.trim() !== '') {
           config.headers.Authorization = `Bearer ${this.keycloak.token}`;

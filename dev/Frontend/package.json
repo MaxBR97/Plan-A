@@ -29,12 +29,17 @@
     "start": "react-scripts start",
     "electron-start": "electron --no-sandbox .",
     "build": "react-scripts build && cp electron.js ./build/ && rm -rf ../Backend/src/main/resources/static/* && cp -r ./build/* ../Backend/src/main/resources/static && ( cd ../Backend/src/main/resources && port=$( grep -ioP \"(?<=server\\.port\\s=\\s)\\d+\" application.properties ) && sed -i \"s/\\(\\\"API_PORT\\\"[[:space:]]*:[[:space:]]*\\)\\\"[0-9]\\+\\\"/\\1\\\"$port\\\"/g\" ./static/config.json )",
+    "cross-platform-build": "react-scripts build && node scripts/postBuild.js",
     "electron-build": "npm run build && electron-builder",
     "build-win": "react-scripts build && copy electron.js .\\build\\ && if exist ..\\Backend\\src\\main\\resources\\static\\* del /s /q ..\\Backend\\src\\main\\resources\\static\\* && xcopy .\\build\\* ..\\Backend\\src\\main\\resources\\static\\ /s /e /y",
     "electron-build-win": "npm run build-win && electron-builder",
     "electron-build-win2": "electron-builder",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:debug": "playwright test --debug",
+    "test:e2e:report": "playwright show-report"
   },
   "eslintConfig": {
     "extends": [
@@ -143,6 +148,7 @@
     "@babel/core": "^7.27.3",
     "@babel/preset-env": "^7.27.2",
     "@babel/preset-react": "^7.27.1",
+    "@playwright/test": "^1.53.0",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.3.0",
     "axios": "^0.27.2",

@@ -259,4 +259,24 @@ public class ImageController {
             System.err.println("Error in garbage collector: " + e.getMessage());
         }
     }
+
+    @Transactional
+    public void resetDatabase() {
+        try {
+            solverService.shutdown();
+            // Delete all images from the database
+            imageRepository.deleteAll();
+            
+            // Clean up any remaining model files
+            modelFactory.getRepository().deleteAll();
+            
+            // Clear any in-memory caches
+            solvingRequests.clear();
+            
+            // Force garbage collection to clean up any remaining resources
+            System.gc();
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to reset database: " + e.getMessage(), e);
+        }
+    }
 }

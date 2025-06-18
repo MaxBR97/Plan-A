@@ -40,8 +40,8 @@ const SolutionPreviewPage = ({isDesktop=false}) => {
   const [sets, setSets] = useState(new Map());
   const [params, setParams] = useState(new Map());
   const [costParams, setCostParams] = useState(new Map());
-  const [constraintModules, setConstraintModules] = useState(Array.from(image.constraintModules));
-  const [preferenceModules, setPreferenceModules] = useState(Array.from(image.preferenceModules));
+  const [constraintModules, setConstraintModules] = useState(image.constraintModules);
+  const [preferenceModules, setPreferenceModules] = useState(image.preferenceModules);
   const [variablesModule, setVariablesModule] = useState(image.variablesModule);
   const [variables, setVariables] = useState([]);
   const [showResults, setShowResults] = useState(false);
@@ -50,6 +50,9 @@ const SolutionPreviewPage = ({isDesktop=false}) => {
   const resultsRef = useRef(null);
   const headerRef = useRef(null);
   const navigate = useNavigate(); 
+  const isImageFetched = useRef(false);
+  const isImageSet = useRef(false);
+  const debounceTimeout = useRef();
 
   const handleAddValue = (setName) => {
     setVariableValues((prev) => ({
@@ -175,7 +178,44 @@ const SolutionPreviewPage = ({isDesktop=false}) => {
     );
   };
 
-  
+  // Helper to aggregate all sets from image
+  function getAllSets(image) {
+    const setsArr = [];
+    if (image.variablesModule && image.variablesModule.inputSets) {
+      setsArr.push(...image.variablesModule.inputSets);
+    }
+    if (Array.isArray(image.constraintModules)) {
+      image.constraintModules.forEach(module => {
+        if (module.inputSets) setsArr.push(...module.inputSets);
+      });
+    }
+    if (Array.isArray(image.preferenceModules)) {
+      image.preferenceModules.forEach(module => {
+        if (module.inputSets) setsArr.push(...module.inputSets);
+      });
+    }
+    return new Map(setsArr.map(set => [set.name, set]));
+  }
+
+  // Helper to aggregate all params from image (including costParams from preferences)
+  function getAllParams(image) {
+    const paramsArr = [];
+    if (image.variablesModule && image.variablesModule.inputParams) {
+      paramsArr.push(...image.variablesModule.inputParams);
+    }
+    if (Array.isArray(image.constraintModules)) {
+      image.constraintModules.forEach(module => {
+        if (module.inputParams) paramsArr.push(...module.inputParams);
+      });
+    }
+    if (Array.isArray(image.preferenceModules)) {
+      image.preferenceModules.forEach(module => {
+        if (module.inputParams) paramsArr.push(...module.inputParams);
+        if (module.costParams) paramsArr.push(...module.costParams);
+      });
+    }
+    return new Map(paramsArr.map(param => [param.name, param]));
+  }
 
 const loadInputs = async () => {
   try {
@@ -185,22 +225,23 @@ const loadInputs = async () => {
       const data = response.data;
       
       console.log("load input response: ", data)
+      const allParamsMap = getAllParams(image);
+      const allSetsMap = getAllSets(image);
+      console.log("allParamsMap: ", allParamsMap)
       const filteredParamsToValues = Object.keys(data.paramsToValues)
-          .filter((paramKey) => params.has(paramKey))
+          .filter((paramKey) => allParamsMap.has(paramKey))
           .reduce((filteredObject, paramKey) => {
             filteredObject[paramKey] = data.paramsToValues[paramKey];
             return filteredObject;
           }, {});
       const filteredSetsToValues = Object.keys(data.setsToValues)
-          .filter((setKey) => sets.has(setKey))
+          .filter((setKey) => allSetsMap.has(setKey))
           .reduce((filteredObject, setKey) => {
             filteredObject[setKey] = data.setsToValues[setKey];
             return filteredObject;
           }, {});
-
       setVariableValues(filteredSetsToValues);
       setParamValues(filteredParamsToValues);
-      
 
         
       const preSelectedVariables = {};
@@ -216,41 +257,50 @@ const loadInputs = async () => {
 };
 
 useEffect(() => {
-  (async () => {
-    await fetchAndSetImage();
-
-  })();
+    fetchAndSetImage();
+    isImageFetched.current = true;
 }, []);
+
+useEffect(() => {
+  // Clear any previous debounce
+  if (debounceTimeout.current) {
+    clearTimeout(debounceTimeout.current);
+  }
+
+  // Only run if image is truthy and "ready" (add any other checks you want)
+  if (image) {
+    debounceTimeout.current = setTimeout(() => {
+      loadInputs();
+    }, 300); // 300ms debounce, adjust as needed
+  }
+
+  // Cleanup on unmount or before next effect
+  return () => {
+    if (debounceTimeout.current) {
+      clearTimeout(debounceTimeout.current);
+    }
+  };
+}, [image]);
 
 useEffect(() => {
   // Check if image data is available
   if (image) {
-    const newSets = new Map();
-    const newParams = new Map();
-    const newCostParams = new Map();
+    const newSets = getAllSets(image);
+    const newParams = getAllParams(image);
+    // Aggregate costParams from preferenceModules only
+    const costParamsArr = [];
+    if (Array.isArray(image.preferenceModules)) {
+      image.preferenceModules.forEach(module => {
+        if (module.costParams) costParamsArr.push(...module.costParams);
+      });
+    }
+    const newCostParams = new Map(costParamsArr.map(param => [param.name, param]));
+
     const newConstraintModules = Array.from(image.constraintModules);
     const newPreferenceModules = Array.from(image.preferenceModules);
     const newVariablesModule = image.variablesModule;
     const newVariables = image.variablesModule?.variablesOfInterest ? Array.from(image.variablesModule.variablesOfInterest) : [];
 
-    const processModuleSetsAndParams = (module) => {
-      if (module && module.inputSets) {
-        module.inputSets.forEach(set => newSets.set(set.name, set));
-      }
-      if (module && module.inputParams) {
-        module.inputParams.forEach(param => newParams.set(param.name, param));
-      }
-      if (module && module.costParams) {
-        module.costParams.forEach(param => newCostParams.set(param.name, param));
-      }
-    };
-
-    newConstraintModules.forEach(processModuleSetsAndParams);
-    newPreferenceModules.forEach(processModuleSetsAndParams);
-    if(newVariablesModule){
-        processModuleSetsAndParams(newVariablesModule);
-    }
- 
     setSets(newSets);
     setParams(newParams);
     setCostParams(newCostParams);
@@ -258,11 +308,9 @@ useEffect(() => {
     setPreferenceModules(newPreferenceModules);
     setVariablesModule(newVariablesModule);
     setVariables(newVariables);
+    isImageSet.current = true;
   } 
 
-  (async () => {
-    await loadInputs();
-  })();
 }, [image]);
 
 useEffect(() => {

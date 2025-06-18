@@ -22,19 +22,20 @@ const MainPage = () => {
         resetImage,
         resetModel,
         fetchAndSetImage,
-        updateImageField
+        updateImageField,
+        patchImage
     } = useZPL();
     const navigate = useNavigate();
     const [myImages, setMyImages] = useState([]);
     const [searchResults, setSearchResults] = useState([]);
     const [searchQuery, setSearchQuery] = useState('');
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [searchLoading, setSearchLoading] = useState(false);
     const [error, setError] = useState(null);
     const [expandedDescriptions, setExpandedDescriptions] = useState({});
     
     const authInitialized = useRef(false);
-    console.log("user:", user);
+    
     useEffect(() => {
         const initializeAuth = async () => {
             if (!authInitialized.current) {
@@ -69,6 +70,10 @@ const MainPage = () => {
 
     }, []);
 
+    useEffect(() => {
+        console.log("user:", user);
+    }, [user]);
+
     const fetchImages = async () => {
         try {
             setLoading(true);
@@ -83,16 +88,16 @@ const MainPage = () => {
         }
     };
 
-    const navigateToImageDetails = (imageId) => {
+    const navigateToImageDetails = async (imageId) => {
         const allImages = [...myImages, ...searchResults];
         const selectedImage = allImages.find(image => image.imageId === imageId);
         
         console.log("allImages: ", allImages);
         console.log("searchResults: ", searchResults);
         console.log("selectedImage: ", selectedImage);
-        updateImageField('isConfigured', true);
+        await patchImage(selectedImage);
         if (selectedImage) {
-            fetchAndSetImage(selectedImage.imageId);
+            // await fetchAndSetImage(selectedImage.imageId);
             navigate(`/solution-preview`);
         } else {
             console.warn(`Image with ID ${imageId} not found in myImages or searchResults.`);

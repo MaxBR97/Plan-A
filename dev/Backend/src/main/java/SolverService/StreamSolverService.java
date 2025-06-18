@@ -235,4 +235,8 @@ public class StreamSolverService implements StreamSolver {
         modelRepository.uploadDocument(fileId + suffix, inputStream);
         modelRepository.downloadDocument(fileId + suffix);
     }
+
+    public void shutdown() throws Exception{
+        finish();
+    }
 }

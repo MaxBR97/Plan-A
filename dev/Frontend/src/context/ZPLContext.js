@@ -17,7 +17,7 @@ const initialImageState = {
   solverSettings: {"Default": "", Optimallity: "set emphasis optimality", "Tree search": "set emphasis tree search", Feasibility: "set emphasis feasibility", "Aggressive static analysis": "set presolving emphasis aggressive", "Numerics": "set emphasis numerics"},
   constraintModules: [],
   preferenceModules: [],
-  variablesModule: null,
+  variablesModule: {"variablesOfInterest": [], "inputSets": [], "inputParams": []},
   isConfigured: false,
 };
 
@@ -196,6 +196,20 @@ export const ZPLProvider = ({ children, initialState = {} }) => {
     }
   };
 
+  // Patch image: set given image, but fill undefined/null fields with initialImageState values
+  const patchImage = (partialImage) => {
+    setImage(prev => {
+      const patched = { ...initialImageState, ...prev, ...partialImage };
+      // For each key in initialImageState, if patched[key] is null or undefined, use initialImageState[key]
+      Object.keys(initialImageState).forEach(key => {
+        if (patched[key] === undefined || patched[key] === null) {
+          patched[key] = initialImageState[key];
+        }
+      });
+      return patched;
+    });
+  };
+
   return (
     <ZPLContext.Provider
       value={{
@@ -214,7 +228,8 @@ export const ZPLProvider = ({ children, initialState = {} }) => {
         resetModel,
         resetSolutionResponse,
         fetchAndSetImage,
-        deleteImage
+        deleteImage,
+        patchImage
       }}
     >
       {children}

@@ -31,6 +31,9 @@ services:
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
       - AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION:-us-east-1}
       - AWS_PROFILE=${AWS_PROFILE:-default}
+    ports:
+      
+      - "4000:4000"
     working_dir: /Plan-A
     stdin_open: true
     tty: true
@@ -43,12 +46,8 @@ services:
       KEYCLOAK_ADMIN_PASSWORD: admin
       KC_HOSTNAME_URL: http://localhost:8080
       KC_HOSTNAME_ADMIN_URL: http://localhost:8080
-      KEYCLOAK_IMPORT: /opt/keycloak/data/import/realm-export.json
+      KEYCLOAK_IMPORT: /opt/keycloak/data/import/plan-a-dev-realm.json
     ports:
       - "8080:8080"
-    # volumes:
-      # - keycloak_data:/opt/keycloak/data
-      - ./realm-config:/opt/keycloak/data/import
-
-volumes:
-  keycloak_data:
+    volumes:
+      - ./realm-config/dev:/opt/keycloak/data/import
