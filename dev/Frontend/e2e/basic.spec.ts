@@ -281,6 +281,53 @@ test.describe('Image creation and configuration', () => {
     // const myImagesSection2 = page.locator('.my-images-container:has(h2:text("My Images"))');
     // await expect(myImagesSection2.getByText(imageName)).toBeVisible({ timeout: 10000 });
   });
+
+  test('user tries to create an image the same parameter configured for a constraint module and domain, leads to an error', async ({ page }) => {
+    const imageName = `E2E Constraint Image ${Date.now()}`;
+    const imageDescription = 'E2E constraint test image';
+    await CreateNewImageAndGoToConfigureImage(page, imageName, imageDescription);
+    await assertNoErrorMessage(page);
+    // Configure domain: Shibutsim, PreAssignedShibutsim, People, shiftTime; untick restHours
+    await configureDomain(page, {
+      variables: ['Shibutsim'],
+      sets: ['People'],
+      params: ['shiftTime', 'restHours'],
+      boundSets: { Shibutsim: 'PreAssignedShibutsim' },
+    });
+    await assertNoErrorMessage(page);
+    // Configure constraint module
+    const moduleName = `E2E Constraint Module ${Date.now()}`;
+    await configureConstraints(page, [{
+      moduleName,
+      description: 'Test constraint module',
+      constraints: ['EnforceRestTimes'],
+      inputSets: [],
+      inputParams: ['restHours']
+    }]);
+    await assertNoErrorMessage(page);
+    
+    // Click "Preview Image" button to finish configuration
+    const previewButton = page.locator('button.finish-button', { hasText: 'Preview Image' });
+    await expect(previewButton).toBeVisible({ timeout: 10000 });
+    await previewButton.click();
+    
+    // Wait for potential error to appear instead of navigation
+    await page.waitForTimeout(2000);
+    
+    // Assert that an error message appears
+    const errorContainer = page.locator('.error-container');
+    await expect(errorContainer).toBeVisible({ timeout: 10000 });
+    
+    // Verify we're still on the configuration page (not navigated to preview)
+    await expect(page.getByText('Configure Image')).toBeVisible();
+    
+    // Optional: Check that the error message contains relevant content about the conflict
+    const errorText = await errorContainer.innerText();
+    expect(errorText.toLowerCase()).toContain('conflict');
+    
+    console.log('Error message appeared as expected when trying to configure conflicting parameters');
+  });
+
 });
 
 test.describe('Public and Private Image Functionality', () => {
@@ -550,6 +597,48 @@ test.describe('Public and Private Image Functionality', () => {
     // Validate no error messages are given throughout the entire process
     await assertNoErrorMessage(page);
     await page.waitForTimeout(DEBUG_DELAY);
+    
+    // THIRD OPTIMIZATION ITERATION - WITH INVALID PARAMETER
+    // Click on the "Domain" tab to access parameter inputs
+    const domainTab = page.getByRole('button', { name: /domain/i });
+    await expect(domainTab).toBeVisible({ timeout: 10000 });
+    await domainTab.click();
+    await page.waitForTimeout(DEBUG_DELAY);
+    
+    // Wait for the Domain tab content to be visible
+    await page.waitForSelector('.tab-content', { timeout: 10000 });
+    await page.waitForTimeout(DEBUG_DELAY);
+    
+    // Look for the 'shiftTime' parameter input box
+    // First, find the parameter section
+    const parameterSection = page.locator('.module-section', { hasText: 'Parameters' });
+    await expect(parameterSection).toBeVisible({ timeout: 10000 });
+    
+    // Find the shiftTime parameter input within the parameter section
+    const shiftTimeInput = parameterSection.locator('input[type="text"], input[type="number"]', { hasText: '' }).first();
+    await expect(shiftTimeInput).toBeVisible({ timeout: 10000 });
+    
+    // Clear the input and set it to '-1'
+    await shiftTimeInput.clear();
+    await shiftTimeInput.fill('-1');
+    await page.waitForTimeout(DEBUG_DELAY);
+    
+    // Click "Optimize" button
+    const optimizeButtonThird = page.getByRole('button', { name: /optimize/i });
+    await expect(optimizeButtonThird).toBeVisible({ timeout: 10000 });
+    await optimizeButtonThird.click();
+    await page.waitForTimeout(DEBUG_DELAY);
+    
+    // Expect an error message to appear
+    const errorContainer = page.locator('.error-container');
+    await expect(errorContainer).toBeVisible({ timeout: 10000 });
+    
+    // Verify we're still on the solution results page (not navigated away)
+    await expect(page.getByText('Timeout Setting')).toBeVisible();
+    
+    // Optional: Check that the error message contains relevant content
+    const errorText = await errorContainer.innerText();
+    console.log('Error message content:', errorText);
     
     console.log('All optimization interactions completed successfully');
   });
