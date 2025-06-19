@@ -75,7 +75,7 @@ public class Image {
     @Column(name = "is_private")
     private boolean isPrivate;
 
-    @Column(name = "image_description") 
+    @Column(name = "image_description", length = 500) 
     private String description;
 
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)

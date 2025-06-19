@@ -399,6 +399,30 @@
     "realmRoles" : [ "default-roles-plan-a" ],
     "notBefore" : 0,
     "groups" : [ ]
+  },
+  {
+    "id" : "3a886f53-6611-4fc3-a555-a53912c6f50",
+    "username" : "alice",
+    "firstName" : "alice",
+    "lastName" : "johnson",
+    "email" : "fe@gmail.com",
+    "emailVerified" : false,
+    "createdTimestamp" : 1749999353039,
+    "enabled" : true,
+    "totp" : false,
+    "credentials" : [ {
+      "id" : "55d4bfd5-8a20-4ee2-b1f6-9d80a4ee004d",
+      "type" : "password",
+      "userLabel" : "My password",
+      "createdDate" : 1749999416516,
+      "secretData" : "{\"value\":\"K7FAy1jksxCMhaug7GC5NmlhVQ9dluVypLwffsOvhuFMILRMG/kOKIL1Q+VIk8yST/T9V8V3Np22y46an29Q7w==\",\"salt\":\"GzIs3aoc8Kzvxt3xcozgIg==\",\"additionalParameters\":{}}",
+      "credentialData" : "{\"hashIterations\":210000,\"algorithm\":\"pbkdf2-sha512\",\"additionalParameters\":{}}"
+    } ],
+    "disableableCredentialTypes" : [ ],
+    "requiredActions" : [ ],
+    "realmRoles" : [ "default-roles-plan-a" ],
+    "notBefore" : 0,
+    "groups" : [ ]
   } ],
   "scopeMappings" : [ {
     "clientScope" : "offline_access",
