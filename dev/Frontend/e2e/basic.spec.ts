@@ -278,8 +278,8 @@ test.describe('Image creation and configuration', () => {
     await page.waitForTimeout(DEBUG_DELAY);
     
     // Final verification that image is still in My Images (scoped)
-    // const myImagesSection2 = page.locator('.my-images-container:has(h2:text("My Images"))');
-    // await expect(myImagesSection2.getByText(imageName)).toBeVisible({ timeout: 10000 });
+    const myImagesSection2 = page.locator('.my-images-container:has(h2:text("My Images"))');
+    await expect(myImagesSection2.getByText(imageName)).toBeVisible({ timeout: 10000 });
   });
 
   test('user tries to create an image the same parameter configured for a constraint module and domain, leads to an error', async ({ page }) => {

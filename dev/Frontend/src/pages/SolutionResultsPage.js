@@ -22,22 +22,22 @@ const SolutionResultsPage = ({
   const {
     solutionResponse,
     updateSolutionResponse,
+    resetSolutionResponse,
   } = useZPL();
 
   const pollIntervalMillisec = 3000;
-  const [selectedVariable, setSelectedVariable] = useState(undefined);
+  const [selectedVariable, setSelectedVariable] = useState(image?.variablesModule?.variablesOfInterest[0]?.identifier || undefined);
   const [displayValue, setDisplayValue] = useState(true);
   const [displayStructure, setDisplayStructure] = useState([]);
   const [dynamicSolutions, setDynamicSolutions] = useState({});
   const [tableEditMode, setTableEditMode] = useState(false);
   const [globalSelectedTuples, setGlobalSelectedTuples] = useState({});
-  
   // New state variables for solve-related functionality
   const [timeout, setTimeout] = useState(10);
   const [solutionStatus, setSolutionStatus] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState(null);
-  
+  console.log("image?.variablesModule?.variablesOfInterest[0]?.identifier", image?.variablesModule?.variablesOfInterest[0]?.identifier)
   const [selectedScript, setSelectedScript] = useState(() => {
     // Find the "Default" or "default" key in solverSettings
     const defaultKey = Object.keys(image.solverSettings).find(key => 
@@ -145,20 +145,29 @@ const SolutionResultsPage = ({
   useEffect(() => {
     if (image?.variablesModule?.variablesOfInterest) {
       const variables = image.variablesModule.variablesOfInterest.map(v => v.identifier);
-      if (variables.length > 0 && !selectedVariable) {
+      if (variables.length > 0) {
+        // Always set the first variable if none is selected or if the current selection is not valid
         const firstVariable = variables[0];
+        const shouldSetVariable = !selectedVariable || !variables.includes(selectedVariable);
         
-        const initialSetStructure = getSetStructure(firstVariable);
-        const initialDisplayValue = !isBinary(firstVariable);
+        if (shouldSetVariable) {
+          const initialSetStructure = getSetStructure(firstVariable);
+          const initialDisplayValue = !isBinary(firstVariable);
 
-        setSelectedVariable(firstVariable);
-        setDisplayValue(initialDisplayValue);
-        setDisplayStructure(initialDisplayValue 
-          ? [...initialSetStructure, "value"] 
-          : [...initialSetStructure]);
+          setSelectedVariable(firstVariable);
+          setDisplayValue(initialDisplayValue);
+          setDisplayStructure(initialDisplayValue 
+            ? [...initialSetStructure, "value"] 
+            : [...initialSetStructure]);
+        }
       }
     }
-  }, [solutionResponse, selectedVariable]);
+  }, [image, solutionResponse]);
+
+  // Reset solutionResponse to default state on component load
+  useEffect(() => {
+    resetSolutionResponse();
+  }, []); // Empty dependency array means this runs only once on mount
 
   const getSetStructure = (variable) => {
     const varObj = image.variablesModule?.variablesOfInterest?.find((varObj) => varObj.identifier == variable);
@@ -178,7 +187,10 @@ const SolutionResultsPage = ({
   const variableData = dynamicSolutions[selectedVariable] || { solutions: [], setStructure: [] };
   const setStructure = selectedVariable ? getSetStructure(selectedVariable) : [];
   const solutions = variableData.solutions || [];
-
+  console.log("solutions", solutions);
+  console.log("selectedVariable", selectedVariable);
+  console.log("setStructure", setStructure);
+  console.log("displayStructure", displayStructure);
   const handleVariableChange = (event) => {
     const newVariable = event.target.value;
     if (!newVariable) return;
@@ -263,7 +275,6 @@ const SolutionResultsPage = ({
   };
 
   const handleSolve = async (isContinue = false) => {
-    console.log("handleSolve");
     setErrorMessage(null);
     setPreviousStatus(solutionStatus);
     setSolutionStatus(null);

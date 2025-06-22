@@ -25,9 +25,9 @@ const SuperTable = ({
   }, [solutions]);
 
   // Return empty state message if no display structure
-  if (!displayStructure || displayStructure.length === 0) {
-    return ;
-  }
+  // if (!displayStructure || displayStructure.length === 0) {
+  //   return ;
+  // }
 
   /**
    * Handle adding a new item
