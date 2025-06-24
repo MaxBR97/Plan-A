@@ -43,7 +43,10 @@ set indexSetOfCities := {<i,p,x,y> in {1.. card(CitiesData)} * CitiesData | ord(
 set Cities := proj(CitiesData, <1>);
 
 # Parameter for number of cities to visit (default is all cities if commented out)
-param cities_to_visit := 26;  # Change this value or comment out for full tour
+param cities_to_visit := 30;  # Change this value or comment out for full tour
+
+do print "Number of cities to visit must be between 2 and the maximum number of cities!";
+do check cities_to_visit <= card(Cities) and cities_to_visit >= 2;
 
 # Calculate actual number of cities to visit based on the parameter value
 param total_cities := card(Cities);
@@ -115,15 +118,15 @@ subto force_first:
     Visits[ord(Cities, 1, 1)] == 1;
 
 # Subtour elimination constraints using Miller-Tucker-Zemlin formulation
-var VisitOrder[Cities] integer >= 0 <= card(Cities);  # Auxiliary variables for subtour elimination
+var Visit_Order[Cities] integer >= 0 <= card(Cities);  # Auxiliary variables for subtour elimination
 
 # Modified subtour elimination to only consider visited cities
 subto subtour: forall <i,j> in Cities * Cities | i != j and i != ord(Cities, 1,1) :
-    1 + VisitOrder[i] - VisitOrder[j] + actual_cities_to_visit * Edges[i,j] <= actual_cities_to_visit;
+    1 + Visit_Order[i] - Visit_Order[j] + actual_cities_to_visit * Edges[i,j] <= actual_cities_to_visit;
 
 # Additional constraint to ensure u values are 0 for non-visited cities
 subto visit_order_visited: forall <i> in Cities:
-    VisitOrder[i] <= actual_cities_to_visit * Visits[i] and VisitOrder[i] >= Visits[i];
+    Visit_Order[i] <= actual_cities_to_visit * Visits[i] and Visit_Order[i] >= Visits[i];
 
 subto calculate_totals:
     Totals["Total Distance"] == sum <i,j> in Cities * Cities: dist[i,j] * Edges[i,j] and

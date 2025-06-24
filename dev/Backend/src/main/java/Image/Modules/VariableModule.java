@@ -146,7 +146,7 @@ public class VariableModule extends Module {
     @Transactional
     public void update(VariableModuleDTO dto) throws Exception {
         // Update variables of interest
-        var.clear();
+        variables.clear();
         for (VariableDTO varDTO : dto.variablesOfInterest()) {
             ModelVariable modelVar = image.getModel().getVariable(varDTO.identifier());
             if (modelVar == null) {

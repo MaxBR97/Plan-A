@@ -68,7 +68,7 @@ public class StreamController {
     @PostMapping("/solve/start")
     public ResponseEntity<SolutionDTO> startSolve(@RequestBody SolveCommandDTO request) throws Exception {
         streamSolver.setContinue(false);
-        futureSolution = controller.solveAsync(request);
+        futureSolution = controller.aync(request);
         return ResponseEntity.ok(futureSolution.get());
     }
 

@@ -6,12 +6,18 @@
 # 4. Power distribution
 # 5. Signal timing requirements
 
-# Basic parameters for integer to string conversion (for validation and output)
+# Basic parameters for single digit conversion
 param toString[{0..9}] := <0> "0", <1> "1", <2> "2", <3> "3", <4> "4", 
                          <5> "5", <6> "6", <7> "7", <8> "8", <9> "9";
-param stringToNumber[{"0","1","2","3","4","5","6","7","8","9"}] := 
-    <"0"> 0, <"1"> 1, <"2"> 2, <"3"> 3, <"4"> 4, 
-    <"5"> 5, <"6"> 6, <"7"> 7, <"8"> 8, <"9"> 9;
+
+# Generic string conversion functions for any number of components
+defstrg numberToString(n) := 
+    if n < 10 then toString[n] else
+    if n < 100 then toString[floor(n/10)] + toString[n mod 10] else
+    if n < 1000 then toString[floor(n/100)] + toString[floor((n mod 100)/10)] + toString[n mod 10] else
+    "999"  # Fallback for very large numbers
+    end end end;
+
 
 
 # Component types and their properties
@@ -19,7 +25,9 @@ param stringToNumber[{"0","1","2","3","4","5","6","7","8","9"}] :=
 set ComponentTypes := {
     <"CPU", 20, 20, 82.2, 95.0>,
     <"Memory", 10.5, 22.3, 75, 85.0>,
-    <"IO", 5.2 , 17.1, 35, 60.0>
+    <"IO", 5.2 , 17.1, 35, 60.0>,
+    <"Cache", 3.8 , 6.45, 12, 60.0>,
+    <"Clock", 2.0, 1.0, 9, 40.0>
 };
 
 do print "Component types must be valid - WIDTH, HEIGHT must be positive, POWER must be non-negative, MAX_TEMP must be non-negative and greater than POWER!";
@@ -36,25 +44,34 @@ set Components := {
     <1, "CPU">,
     <2, "Memory">,
     <3, "IO">,
-    <4,"IO">
+    <4, "IO">,
+    <5, "Clock">
 };
 
-do print "Components must reference valid component types!";
+do print "Components must reference valid component types, and have an id between 1 and 999";
 do forall <id, type> in Components do check
-    card({<t,w,h,p,m> in ComponentTypes | t == type}) == 1;
+    card({<t,w,h,p,m> in ComponentTypes | t == type}) == 1
+    and id >= 1 and id <= 999;
 
 # Connections between components (representing wires)
 # <from_component, to_component, signal_priority>
 set Connections := {
     <1,2,5>,
     <2,3,3>,
-     <1,3,9.5>   
+    <1,3,9.5>,
+    <1,4,7>,
+    <1,5,10>,
+    <2,5,10>,
+    <3,5,10>,
+    <4,5,2>   
 };
 
-do print "Connections must reference valid components and have valid priority (0-10] !";
+do print "Connections must reference valid components, no duplicate connections, and have valid priority (0-10] !";
 do forall <from_id, to_id, signal_priority> in Connections do check
     card({<id,type> in Components | id == from_id}) == 1 and
     card({<id,type> in Components | id == to_id}) == 1 and
+    from_id != to_id and
+    card({<from_id,to_id,signal_priority2> in Connections}) == 1 and
     signal_priority > 0 and signal_priority <= 10;
 
 
@@ -77,7 +94,7 @@ defnumb getCompPower(comp_id) :=
 defnumb getCompMaxTemp(comp_id) := 
     ord({<t_1,temp,c_id,t_2> in proj(ComponentTypes * Components, <1,5,6,7>) | t_1 == t_2 and c_id == comp_id},1,2);
 
-defnumb getPresentationFormat(comp_id,t) := toString[comp_id] + "_" + t;
+defstrg getPresentationFormat(comp_id,t) := numberToString(comp_id) + "_" + t;
 
 
 set preassign_components := {<"X","1_CPU",0.0>};
@@ -102,6 +119,10 @@ var heat_at_min_point[Components] real >= 0;  # Heat contribution of each compon
 var is_left_of[Components * Components] binary;    # 1 if component i is to the left of component j
 var is_under[Components * Components] binary;      # 1 if component i is under component j
 var dummy_variables[ComponentTypes] binary;
+
+# Wire length variables for connected components
+var Wire_Lengths[{<from_id,to_id,connection_priority> in Connections : <from_id,to_id>}] real >= 0;  # Distance between closest points of connected components
+
 # Constraints
 
 subto preassign_components:
@@ -155,13 +176,13 @@ subto consistent_positioning:
 # Calculate individual heat contributions at maximum temperature point
 subto heat_contribution_at_max_point:
     forall <id,t> in Components:
-        heat_at_max_point[id,t] * (1 + sqrt((Chip_Temperature["X","max_temp"] - Component_Placement["X",getPresentationFormat(id,t)])**2 + 
-                                           (Chip_Temperature["Y","max_temp"] - Component_Placement["Y",getPresentationFormat(id,t)])**2)) == getCompPower(id);
+        heat_at_max_point[id,t] * (1 + sqrt((Chip_Temperature["X","max_temp"] - (Component_Placement["X",getPresentationFormat(id,t)] + getCompWidth(id)/2))**2 + 
+                                           (Chip_Temperature["Y","max_temp"] - (Component_Placement["Y",getPresentationFormat(id,t)] + getCompHeight(id)/2))**2)) == getCompPower(id);
 
 subto heat_contribution_at_min_point:
     forall <id,t> in Components:
-        heat_at_min_point[id,t] * (1 + sqrt((Chip_Temperature["X","min_temp"] - Component_Placement["X",getPresentationFormat(id,t)])**2 + 
-                                            (Chip_Temperature["Y","min_temp"] - Component_Placement["Y",getPresentationFormat(id,t)])**2)) == getCompPower(id);
+        heat_at_min_point[id,t] * (1 + sqrt((Chip_Temperature["X","min_temp"] - (Component_Placement["X",getPresentationFormat(id,t)] + getCompWidth(id)/2))**2 + 
+                                            (Chip_Temperature["Y","min_temp"] - (Component_Placement["Y",getPresentationFormat(id,t)] + getCompHeight(id)/2))**2)) == getCompPower(id);
 
 # Maximum temperature point aggregates all heat
 subto temperature_calculation:
@@ -180,8 +201,8 @@ subto max_temp_higher_than_each_component:
 subto heat_contribution_at_components:
     forall <id1,t1> in Components:
         forall <id2,t2> in Components:
-            heat_at_component[id1,t1,id2,t2] * (1 + sqrt((Component_Placement["X",getPresentationFormat(id1,t1)] - Component_Placement["X",getPresentationFormat(id2,t2)])**2 + 
-                                                        (Component_Placement["Y",getPresentationFormat(id1,t1)] - Component_Placement["Y",getPresentationFormat(id2,t2)])**2)) == getCompPower(id2);
+            heat_at_component[id1,t1,id2,t2] * (1 + sqrt(((Component_Placement["X",getPresentationFormat(id1,t1)] + getCompWidth(id1)/2) - (Component_Placement["X",getPresentationFormat(id2,t2)] + getCompWidth(id2)/2))**2 + 
+                                                        ((Component_Placement["Y",getPresentationFormat(id1,t1)] + getCompHeight(id1)/2) - (Component_Placement["Y",getPresentationFormat(id2,t2)] + getCompHeight(id2)/2))**2)) == getCompPower(id2);
 
 # Calculate total heat at each component
 subto total_heat_calculation:
@@ -193,6 +214,26 @@ subto temperature_limits:
     forall <id,t> in Components:
         Total_Heat_At_Each_Component[getPresentationFormat(id,t)] <= getCompMaxTemp(id);
 
+# Calculate wire length between connected components based on relative positioning
+subto calculate_Wire_Lengths:
+    forall <from_id,to_id,connection_priority> in Connections:
+        # Case 1: from_id is left of to_id
+        Wire_Lengths[from_id,to_id] ** 2 >= 
+            (((Component_Placement["X",getPresentationFormat(to_id,getCompType(to_id))] - 
+             (Component_Placement["X",getPresentationFormat(from_id,getCompType(from_id))] + getCompWidth(from_id))) * 
+            is_left_of[from_id,getCompType(from_id),to_id,getCompType(to_id)])
+        +
+            ((Component_Placement["X",getPresentationFormat(from_id,getCompType(from_id))] - 
+             (Component_Placement["X",getPresentationFormat(to_id,getCompType(to_id))] + getCompWidth(to_id))) * 
+            is_left_of[to_id,getCompType(to_id),from_id,getCompType(from_id)]))**2
+    +
+            (((Component_Placement["Y",getPresentationFormat(to_id,getCompType(to_id))] - 
+             (Component_Placement["Y",getPresentationFormat(from_id,getCompType(from_id))] + getCompHeight(from_id))) * 
+            is_under[from_id,getCompType(from_id),to_id,getCompType(to_id)])
+        +
+            ((Component_Placement["Y",getPresentationFormat(from_id,getCompType(from_id))] - 
+             (Component_Placement["Y",getPresentationFormat(to_id,getCompType(to_id))] + getCompHeight(to_id))) * 
+            is_under[to_id,getCompType(to_id),from_id,getCompType(from_id)]))**2;
 
 # Minimize:
 # 1. Total area (chip_width * chip_height)
@@ -206,10 +247,7 @@ param temp_weight := 1;
 minimize obj:
     area_weight * (Chip_Dimensions["Width"] * Chip_Dimensions["Height"]) +
     connections_weight * (sum <from_id,to_id,connection_priority> in Connections:
-                                (connection_priority * (
-                                    abs(Component_Placement["X",getPresentationFormat(from_id,getCompType(from_id))] - Component_Placement["X",getPresentationFormat(to_id,getCompType(to_id))])  +
-                                    abs(Component_Placement["Y",getPresentationFormat(from_id,getCompType(from_id))] - Component_Placement["Y",getPresentationFormat(to_id,getCompType(to_id))])
-                            ))) +
+                                connection_priority * (Wire_Lengths[from_id,to_id])**2) +
     (temp_weight) * ((300 - Chip_Temperature["temp","max_temp"]) + Chip_Temperature["temp","min_temp"]) +
     (300 - Chip_Temperature["temp","max_temp"]);
 

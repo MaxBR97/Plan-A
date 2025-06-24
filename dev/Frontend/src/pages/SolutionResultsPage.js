@@ -63,6 +63,43 @@ const SolutionResultsPage = ({
     }));
   };
 
+  // Function to process binary variables in solution response
+  const processBinaryVariables = (solutionData) => {
+    if (!solutionData || !solutionData.solution) return solutionData;
+
+    const processedSolution = { ...solutionData };
+    
+    Object.keys(processedSolution.solution).forEach(varName => {
+      const varData = processedSolution.solution[varName];
+      
+      // Check if this is a binary variable by looking at the variable definition
+      const isBinaryVar = image?.variablesModule?.variablesOfInterest?.find(
+        v => v.identifier === varName
+      )?.isBinary;
+      
+      if (isBinaryVar && varData.solutions) {
+        // Filter and process binary variable solutions
+        const processedSolutions = varData.solutions
+          .filter(solution => {
+            // Keep solutions with objective value >= 0.5
+            return solution.objectiveValue >= 0.5;
+          })
+          .map(solution => ({
+            ...solution,
+            // Round objective values >= 0.5 to 1
+            objectiveValue: solution.objectiveValue >= 0.5 ? 1 : 0
+          }));
+        
+        processedSolution.solution[varName] = {
+          ...varData,
+          solutions: processedSolutions
+        };
+      }
+    });
+    
+    return processedSolution;
+  };
+
   // Function to check if variable has a bound set
   const hasVariableBoundSet = (variable) => {
     if (!variable || !image.variablesModule?.variablesOfInterest) return false;
@@ -154,10 +191,10 @@ const SolutionResultsPage = ({
         const shouldSetVariable = !selectedVariable || !variables.includes(selectedVariable);
         const initialDisplayValue = !isBinary(firstVariable);
         setDisplayValue(initialDisplayValue);
-        // if (shouldSetVariable) {
+        if (shouldSetVariable) {
           setSelectedVariable(firstVariable);
           setCustomDisplayStructure(null);
-        // }
+        }
       }
     }
   }, [image, solutionResponse]);
@@ -450,8 +487,10 @@ const SolutionResultsPage = ({
           setGlobalSelectedTuples({});
         }
 
-        updateSolutionResponse(data);
-        setSolutionStatus("Solution Status: " + data.solutionStatus);
+        // Process binary variables before updating the solution response
+        const processedData = processBinaryVariables(data);
+        updateSolutionResponse(processedData);
+        setSolutionStatus("Solution Status: " + processedData.solutionStatus);
       }
     } catch (error) {
       // Always clear the timer on error
