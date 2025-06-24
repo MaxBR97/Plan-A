@@ -69,55 +69,54 @@ public class Service {
     }
 
     @GetMapping("/images/search")
-    public Mono<ResponseEntity<List<ImageDTO>>> searchPublicImages(String searchPhrase) throws Exception {
+    public Mono<ResponseEntity<List<ImageDTO>>> searchPublicImages(String searchPhrase) {
         return getCurrentUsername()
-            .map(username -> {
+            .flatMap(username -> {
                 try {
                     List<ImageDTO> res = controller.searchImages(username, searchPhrase);
-                    return ResponseEntity.ok(res);
+                    return Mono.just(ResponseEntity.ok(res));
                 } catch (Exception e) {
-                    throw new RuntimeException(e);
+                    return Mono.error(e);
                 }
             });
     }
 
-    // Protected routes - require authentication
     @PostMapping("/images")
     @PreAuthorize("isAuthenticated()")
-    public Mono<ResponseEntity<CreateImageResponseDTO>> createImage(@Valid @RequestBody CreateImageFromFileDTO data) throws Exception {
+    public Mono<ResponseEntity<CreateImageResponseDTO>> createImage(@Valid @RequestBody CreateImageFromFileDTO data) {
         return Mono.zip(getCurrentUsername(), getCurrentUserId())
-            .map(tuple -> {
+            .flatMap(tuple -> {
                 String username = tuple.getT1();
                 String userId = tuple.getT2();
                 System.out.println("Creating image for user: " + username + " (ID: " + userId + ")");
                 try {
                     CreateImageResponseDTO response = controller.createImageFromFile(username, data);
-                    return ResponseEntity.ok(response);
+                    return Mono.just(ResponseEntity.ok(response));
                 } catch (Exception e) {
-                    throw new RuntimeException(e);
+                    return Mono.error(e);
                 }
             });
     }
 
     @PatchMapping("/images")
     @PreAuthorize("isAuthenticated()")
-    public Mono<ResponseEntity<Void>> updateImage(@Valid @RequestBody ImageConfigDTO imgConfig) throws Exception {
+    public Mono<ResponseEntity<Void>> updateImage(@Valid @RequestBody ImageConfigDTO imgConfig) {
         return getCurrentUsername()
-            .map(username -> {
+            .flatMap(username -> {
                 System.out.println("Updating image for user: " + username);
                 try {
                     controller.updateImage(username, imgConfig);
-                    return ResponseEntity.ok().<Void>build();
+                    return Mono.just(ResponseEntity.ok().<Void>build());
                 } catch (Exception e) {
-                    throw new RuntimeException(e);
+                    return Mono.error(e);
                 }
             });
     }
-    
+
     @PostMapping("/solve")
-    public Mono<ResponseEntity<SolutionDTO>> solve(@Valid @RequestBody SolveCommandDTO input) throws Exception {
+    public Mono<ResponseEntity<SolutionDTO>> solve(@Valid @RequestBody SolveCommandDTO input) {
         return getCurrentUsername()
-            .map(username -> {
+            .flatMap(username -> {
                 if (username != null) {
                     System.out.println("Solving for authenticated user: " + username);
                 } else {
@@ -125,76 +124,76 @@ public class Service {
                 }
                 try {
                     SolutionDTO res = controller.solve(input);
-                    return ResponseEntity.ok(res);
+                    return Mono.just(ResponseEntity.ok(res));
                 } catch (Exception e) {
-                    throw new RuntimeException(e);
+                    return Mono.error(e); // ✅ preserve original exception
                 }
             });
     }
 
     @GetMapping("/images/{id}/inputs")
-    public Mono<ResponseEntity<InputDTO>> loadImageInput(@PathVariable("id") String imageId) throws Exception {
+    public Mono<ResponseEntity<InputDTO>> loadImageInput(@PathVariable("id") String imageId) {
         return getCurrentUsername()
-            .map(username -> {
+            .flatMap(username -> {
                 if (username != null) {
                     System.out.println("Loading inputs for authenticated user: " + username);
                 }
                 try {
                     InputDTO res = controller.loadLastInput(imageId);
-                    return ResponseEntity.ok(res);
+                    return Mono.just(ResponseEntity.ok(res));
                 } catch (Exception e) {
-                    throw new RuntimeException(e);
+                    return Mono.error(e);
                 }
             });
     }
 
     @GetMapping("/images/{id}")
-    public Mono<ResponseEntity<ImageDTO>> getImage(@PathVariable("id") String imageId) throws Exception {
+    public Mono<ResponseEntity<ImageDTO>> getImage(@PathVariable("id") String imageId) {
         return getCurrentUsername()
-            .map(username -> {
+            .flatMap(username -> {
                 if (username != null) {
                     System.out.println("Getting image for authenticated user: " + username);
                 }
                 try {
                     ImageDTO res = controller.getImage(username, imageId);
                     if (res == null) {
-                        return ResponseEntity.notFound().<ImageDTO>build();
+                        return Mono.just(ResponseEntity.notFound().<ImageDTO>build());
                     }
-                    return ResponseEntity.ok(res);
+                    return Mono.just(ResponseEntity.ok(res));
                 } catch (Exception e) {
-                    throw new RuntimeException(e);
+                    return Mono.error(e);
                 }
             });
     }
 
     @GetMapping("/images")
     @PreAuthorize("isAuthenticated()")
-    public Mono<ResponseEntity<List<ImageDTO>>> getAllUserImages() throws Exception {
+    public Mono<ResponseEntity<List<ImageDTO>>> getAllUserImages() {
         return Mono.zip(getCurrentUsername(), getCurrentUserId())
-            .map(tuple -> {
+            .flatMap(tuple -> {
                 String username = tuple.getT1();
                 String userId = tuple.getT2();
                 System.out.println("Getting all images for user: " + username + " (ID: " + userId + ")");
                 try {
                     List<ImageDTO> res = controller.getAllUserImages(username);
-                    return ResponseEntity.ok(res);
+                    return Mono.just(ResponseEntity.ok(res));
                 } catch (Exception e) {
-                    throw new RuntimeException(e);
+                    return Mono.error(e);
                 }
             });
     }
 
     @DeleteMapping("/images/{id}")
     @PreAuthorize("isAuthenticated()")
-    public Mono<ResponseEntity<Void>> deleteImage(@PathVariable("id") String imageId) throws Exception {
+    public Mono<ResponseEntity<Void>> deleteImage(@PathVariable("id") String imageId) {
         return getCurrentUsername()
-            .map(username -> {
+            .flatMap(username -> {
                 System.out.println("Deleting image for user: " + username);
                 try {
                     controller.deleteImage(username, imageId);
-                    return ResponseEntity.ok().<Void>build();
+                    return Mono.just(ResponseEntity.ok().<Void>build());
                 } catch (Exception e) {
-                    throw new RuntimeException(e);
+                    return Mono.error(e);
                 }
             });
     }

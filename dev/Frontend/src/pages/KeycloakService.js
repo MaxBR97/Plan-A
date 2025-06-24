@@ -11,6 +11,7 @@ class KeycloakService {
     this.keycloak = null;
     this.initialized = false;
     this.initPromise = null;
+    this.tokenRefreshInterval = null;
     
     KeycloakService.instance = this;
   }
@@ -85,13 +86,30 @@ class KeycloakService {
   setupTokenRefresh() {
     if (this.keycloak && this.keycloak.authenticated) {
       console.log('Setting up token refresh...');
+      
+      // Set up token refresh before expiration (refresh 60 seconds before expiry)
       this.keycloak.onTokenExpired = () => {
         console.log('Token expired, refreshing...');
-        this.keycloak.updateToken(30).catch((error) => {
+        this.keycloak.updateToken(60).catch((error) => {
           console.error('Failed to refresh token:', error);
           this.logout();
         });
       };
+
+      // Proactive token refresh - check every 5 minutes and refresh if needed
+      this.tokenRefreshInterval = setInterval(() => {
+        if (this.keycloak && this.keycloak.authenticated) {
+          // Refresh token if it expires in less than 5 minutes
+          this.keycloak.updateToken(300).catch((error) => {
+            console.error('Failed to refresh token proactively:', error);
+            // Don't logout immediately on proactive refresh failure
+            // Only logout if the token is actually expired
+            if (this.keycloak.isTokenExpired()) {
+              this.logout();
+            }
+          });
+        }
+      }, 5 * 60 * 1000); // Check every 5 minutes
     }
   }
 
@@ -169,6 +187,12 @@ class KeycloakService {
     if (!this.keycloak) {
       console.error('Keycloak not initialized');
       return Promise.reject('Keycloak not initialized');
+    }
+
+    // Clear the token refresh interval
+    if (this.tokenRefreshInterval) {
+      clearInterval(this.tokenRefreshInterval);
+      this.tokenRefreshInterval = null;
     }
 
     this.initialized = false;

@@ -56,7 +56,6 @@
   /* Module section layout with flexbox */
   .module-section {
     display: flex;
-    /* grid-template-columns: repeat(2, 1fr); */
     flex-direction: row;
     flex-wrap: wrap;
     margin-bottom: 22.5px;
@@ -64,11 +63,17 @@
   
   .module-section > .section-title {
     width: 100%;
+    flex-basis: 100%;
     margin-bottom: 15px;
     padding-bottom: 10px;
     border-bottom: 2px solid #eee;
     color: #2c3e50;
     font-size: 1.2em;
+  }
+  
+  .section-title {
+    width: 100%;
+    flex-basis: 100%;
   }
   
   /* Container for input boxes */
@@ -77,6 +82,7 @@
     flex-wrap: wrap;
     gap: 15px;
     justify-content: space-between;
+    width: 100%;
   }
   
   /* ModuleBox, SetInputBox, and ParameterInputBox styles */

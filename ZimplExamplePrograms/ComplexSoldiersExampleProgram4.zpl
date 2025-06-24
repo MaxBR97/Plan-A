@@ -45,7 +45,7 @@ param planFromDay := "Sunday";
 param planFromHour := getHourFromStringFormat(planFromTimeFormal);
 param planFromMinute := getMinuteFromStringFormat(planFromTimeFormal);
 param planUntilTimeFormal := "20:20";
-param planUntilDay := "Monday";
+param planUntilDay := "Tuesday";
 param planUntilHour := getHourFromStringFormat(planUntilTimeFormal);
 param planUntilMinute := getMinuteFromStringFormat(planUntilTimeFormal);
 param nightTimeStart := "21:00";
@@ -54,7 +54,7 @@ param nightTimeStartHour := getHourFromStringFormat(nightTimeStart);
 param nightTimeStartMinute := getMinuteFromStringFormat(nightTimeStart);
 param nightTimeEndHour := getHourFromStringFormat(nightTimeEnd);
 param nightTimeEndMinute := getMinuteFromStringFormat(nightTimeEnd);
-param minimumRestHours := 0;
+param minimumRestHours := 2.0;
 
 do print "Planning days range must be valid!";
 do forall <day> in {planFromDay,planUntilDay} do check
@@ -162,54 +162,57 @@ defnumb CommonTimeDuration(fromHour, fromMinute, toHour, toMinute, fromHour2, fr
     else 0 
     end end end;
 
-#hard coded squads - each person belongs to one of the squads
-set Squads := {"1a","1b","1c","2a","2b","2c","none"};
 #hard coded roles, each person has one.
-set AvailableRoles := {"Hapash","Medic","Commander","Officer","none"};
+set AvailableRoles := {"Hapash","Medic","Commander","Officer"};
+subto ignoreThisConstraint:
+    card(AvailableRoles) >= 0;
 #<Name,Squad,Role>
 set Descriptive_Soldiers_List := {
-    <"Empty Soldier","none","none">,<"Max","1a","Hapash">, <"Erel","none","Medic">, <"Sheshar","none","Hapash">,
-    <"Yoni","none","none">,<"Tal","1a","Hapash">, <"Oded","none","Medic">, <"Moshe", "none", "Hapash">
-     ,<"Avi","none","none">,<"Nir","1a","Hapash">, <"Gadi","none","Medic">, <"Dekel","none","Commander">
-    # ,<"Gal","none","none">,<"Zinger","1a","Officer">, <"Koplovich","none","Medic">, <"Arsen","none","Commander">,
-    # <"Shahor","none","Commander">,<"Denis","1a","Officer">, <"Vayl","none","none">,<"Zalsman","none","Commander">,
-    # <"Melamed","none","Hapash">,<"Cohen Tov","1a","Hapash">, <"Zikri","none","Hapash">,<"Hason","none","Commander">,
-    # <"Navon","none","Officer">,<"Yedidya","1a","Hapash">, <"Yuri","none","Commander">,<"Tsefler","none","Hapash">
+    <"Empty Soldier","Hapash">,<"Max","Hapash">, <"Erel","Medic">, <"Sheshar","Hapash">
+     ,<"Avi","Medic">,<"Nir","Hapash">, <"Gadi","Hapash">, <"Dekel","Hapash">
+      ,<"Shahor","Commander">,<"Denis","Officer">, <"Israel","Medic">,<"Zalsman","Commander">
 };
 do print "Soldiers list must not be empty!";
 do check card(Descriptive_Soldiers_List) > 0;
 
 do print "Soldier names must be unique!";
-do forall <soldier,team,role> in Descriptive_Soldiers_List do check
-    sum <soldier2,team2,role2> in Descriptive_Soldiers_List | soldier2 == soldier: 1 == 1;
+do forall <soldier,role> in Descriptive_Soldiers_List do check
+    sum <soldier2,role2> in Descriptive_Soldiers_List | soldier2 == soldier: 1 == 1;
 
-do print "Descriptive soldiers list must be valid - team and role must match the declared lists!";
-do forall <soldier, team , role> in Descriptive_Soldiers_List do check
-    card({<team> in Squads}) == 1 and card({<role> in AvailableRoles}) == 1;
+do print "Descriptive soldiers list must be valid - role must match the declared lists!";
+do forall <soldier, role> in Descriptive_Soldiers_List do check
+    card({<role> in AvailableRoles}) == 1;
 
+defstrg getSoldierRole(sol) := ord({<sol2,ro2> in Descriptive_Soldiers_List | sol == sol2},1,2);
 set Soldiers := proj(Descriptive_Soldiers_List,<1>);
-#<station_name, required_people,FromStringTime,UntilStringTime,StringDurationTime>
+#<station_name, required_people,FromStringTime,UntilStringTime,StringDurationTime,Role>
 set Everyday_Missions_Formal := {
-    <"Patrol",1,"06:00","22:00","01:30">
-    , <"Night Patrol",2,"22:00","06:00","01:00">, <"Kitchen",1,"06:00","20:00","14:00">
+    <"Patrol",2,"06:00","22:00","04:00","Hapash">
+    , <"Night Patrol",1,"22:00","06:00","02:00","Medic">
+    , <"Kitchen",1,"06:00","20:00","14:00","Commander">
     };
-#<station_name, required_people,FromHour,FromMinute,UntilHour,UntilMinute, default_shift_duration_hours, default_shift_duration_minutes>
-set Everyday_Missions := {<station_name, required_people,FromStringTime,UntilStringTime,StringDurationTime> in Everyday_Missions_Formal :
-<station_name,required_people,getHourFromStringFormat(FromStringTime), getMinuteFromStringFormat(FromStringTime),getHourFromStringFormat(UntilStringTime),getMinuteFromStringFormat(UntilStringTime),getHourFromStringFormat(StringDurationTime),getMinuteFromStringFormat(StringDurationTime)>};
+#<station_name, required_people,FromHour,FromMinute,UntilHour,UntilMinute, default_shift_duration_hours, default_shift_duration_minutes, Role>
+set Everyday_Missions := {<station_name, required_people,FromStringTime,UntilStringTime,StringDurationTime,role> in Everyday_Missions_Formal :
+<station_name,required_people,getHourFromStringFormat(FromStringTime), getMinuteFromStringFormat(FromStringTime),getHourFromStringFormat(UntilStringTime),getMinuteFromStringFormat(UntilStringTime),getHourFromStringFormat(StringDurationTime),getMinuteFromStringFormat(StringDurationTime), role>};
 
-#<station_name, required_people,FromDay,FromTime,UntilDay,UntilTime, DurationTime>
-set OneTime_Missions_Formal := {<"Avodot Rasar",2,"Sunday","00:00","Sunday","00:00","01:00">};
-#<station_name, required_people,FromDay,FromHour,FromMinute,UntilDay,UntilHour,UntilMinute, default_shift_duration_hours, default_shift_duration_minutes>
+#<station_name, required_people,FromDay,FromTime,UntilDay,UntilTime, DurationTime, Role>
+set OneTime_Missions_Formal := {
+    <"Package Delivery",2,"Sunday","12:00","Sunday","14:00","01:00","Any">,
+    <"Organize Barracks",1,"Sunday","09:00","Sunday","12:00","03:00","Officer">
+};
+#<station_name, required_people,FromDay,FromHour,FromMinute,UntilDay,UntilHour,UntilMinute, default_shift_duration_hours, default_shift_duration_minutes, Role>
 set OneTime_Missions := {
-    <station_name,requiredPpl,fromDay,fromTimeString,untilDay,untilTimeString,duration> in OneTime_Missions_Formal:
-    <station_name,requiredPpl,fromDay,getHourFromStringFormat(fromTimeString),getMinuteFromStringFormat(fromTimeString),untilDay,getHourFromStringFormat(untilTimeString),getMinuteFromStringFormat(untilTimeString),getHourFromStringFormat(duration),getMinuteFromStringFormat(duration)>
+    <station_name,requiredPpl,fromDay,fromTimeString,untilDay,untilTimeString,duration,role> in OneTime_Missions_Formal:
+    <station_name,requiredPpl,fromDay,getHourFromStringFormat(fromTimeString),getMinuteFromStringFormat(fromTimeString),untilDay,getHourFromStringFormat(untilTimeString),getMinuteFromStringFormat(untilTimeString),getHourFromStringFormat(duration),getMinuteFromStringFormat(duration), role>
     };
 
 do print "Mission times must be valid - Enter valid weekdays and times in HH:MM format, required people must be greater than 0!";
-do forall <station_name,requiredPpl,from_day,from_time,until_day,until_time, duration> in OneTime_Missions_Formal do check
-    validateTimeInStringFormat(from_time) == 1 and validateTimeInStringFormat(until_time) == 1 and validateTimeInStringFormat(duration) == 1 and card({<from_day> in weekDays}) == 1 and card({<until_day> in weekDays}) == 1 and requiredPpl > 0;
-do forall <station_name,requiredPpl,from_time,until_time, duration> in Everyday_Missions_Formal do check
-    validateTimeInStringFormat(from_time) == 1 and validateTimeInStringFormat(until_time) == 1 and validateTimeInStringFormat(duration) == 1 and requiredPpl > 0;
+do forall <station_name,requiredPpl,from_day,from_time,until_day,until_time, duration, role> in OneTime_Missions_Formal do check
+    validateTimeInStringFormat(from_time) == 1 and validateTimeInStringFormat(until_time) == 1 and validateTimeInStringFormat(duration) == 1 and card({<from_day> in weekDays}) == 1 and card({<until_day> in weekDays}) == 1 and requiredPpl > 0 and card({<role> in AvailableRoles union {"Any"} }) == 1;
+do forall <station_name,requiredPpl,from_time,until_time, duration, role> in Everyday_Missions_Formal do check
+    validateTimeInStringFormat(from_time) == 1 and validateTimeInStringFormat(until_time) == 1 and validateTimeInStringFormat(duration) == 1 and requiredPpl > 0 and card({<role> in AvailableRoles union {"Any"}}) == 1;
+
+
 
 set PeopleAllowedToBeAssignedFromFormal := {<"Empty Soldier","Sunday","00:00">};
 set PeopleAllowedToBeAssignedUntilFormal := {<"Empty Soldier","Sunday","00:00">};
@@ -238,8 +241,9 @@ set Times := {0 .. planTimeRange};
 
 # Improved Shifts definition with fixed shift duration handling
 set Shifts := {
-    <station_name, required_people, fromHour, fromMinute, untilHour, untilMinute, default_shift_duration_hours, default_shift_duration_minutes, day, time_quant> 
+    <station_name, required_people, fromHour, fromMinute, untilHour, untilMinute, default_shift_duration_hours, default_shift_duration_minutes,role, day, time_quant> 
     in Everyday_Missions * weekDays * Times |
+        ((timeDifference(planFromDay,planFromHour,planFromMinute,day,fromHour,fromMinute) - time_quant) mod (default_shift_duration_hours*60 + default_shift_duration_minutes)) == 0 and # good for optimization, not necessary for correctness
         # Current time is within our planning range
         isBetweenDayHourMinute(planFromDay, planFromHour, planFromMinute, planUntilDay, planUntilHour, planUntilMinute, day, getHour(time_quant), getMinute(time_quant)) and
         
@@ -265,11 +269,12 @@ set Shifts := {
         # Ensure the shift doesn't exceed the planning period
         (time_quant + (default_shift_duration_hours*60 + default_shift_duration_minutes) <= planTimeRange) :
         
-        <station_name, default_shift_duration_hours*60 + default_shift_duration_minutes, required_people, time_quant>
+        <station_name, default_shift_duration_hours*60 + default_shift_duration_minutes, required_people, time_quant, role>
 } union 
 {
-    <station_name, required_people, fromDay, fromHour, fromMinute, untilDay, untilHour, untilMinute, default_shift_duration_hours, default_shift_duration_minutes, time_quant> 
+    <station_name, required_people, fromDay, fromHour, fromMinute, untilDay, untilHour, untilMinute, default_shift_duration_hours, default_shift_duration_minutes, role, time_quant> 
     in OneTime_Missions * Times | 
+        ((timeDifference(planFromDay,planFromHour,planFromMinute,fromDay,fromHour,fromMinute) - time_quant) mod (default_shift_duration_hours*60 + default_shift_duration_minutes)) == 0 and
         # Check if the time point is within our planning range
         isBetweenDayHourMinute(planFromDay, planFromHour, planFromMinute, planUntilDay, planUntilHour, planUntilMinute, getDay(time_quant), getHour(time_quant), getMinute(time_quant)) and
         
@@ -288,7 +293,7 @@ set Shifts := {
         # Ensure the shift doesn't exceed the planning period
         (time_quant + (default_shift_duration_hours*60 + default_shift_duration_minutes) <= planTimeRange) :
         
-        <station_name, default_shift_duration_hours*60 + default_shift_duration_minutes, required_people, time_quant>
+        <station_name, default_shift_duration_hours*60 + default_shift_duration_minutes, required_people, time_quant, role>
 };
 
 do print Shifts;
@@ -302,6 +307,13 @@ do print Shifts;
 # do print "-----";
 # do print (convertToMinutesRepresentation(planUntilDay,planUntilHour, planUntilMinute));
 
+defstrg getMissionRole(miss_name) := ord(proj({<station2, stationInterval2, requiredPeople2, time2, role2> in Shifts | station2 == miss_name}, <1,5>),1,2);
+
+defnumb isPersonAllowedToTakeShift(person_name,mission_name) := 
+    if getMissionRole(mission_name) == getSoldierRole(person_name) or getMissionRole(mission_name) == "Any"
+    then 1
+    else 0 end;
+
 set SoldiersToShifts := Soldiers * proj(Shifts,<1,4>);
 #<soldier,station,day,hour_and_minute>
 set preAssign := {<"Max","Patrol","1 Sunday","06:00",1.0>};
@@ -311,8 +323,8 @@ do forall <soldier,station,day,time,value> in preAssign do check
     validateDayPresentation(day) == 1;
 #<soldier,station,time,value>
 set encodedPreAssign := {<soldier,station,day,hour_minute,value> in preAssign: <soldier,station,timeDifference(planFromDay,planFromHour, planFromMinute, substr(day,2,10), getHourFromStringFormat(hour_minute), getMinuteFromStringFormat(hour_minute)), if value > -0.5 and value < 0.5 then 0 else 1 end>};
-set zero_out := { <soldier, station, stationInterval, requiredPeople, time> in Soldiers * Shifts | (sum <soldier2,station2,time2,value2> in encodedPreAssign | station == station2 and time == time2 and value2 == 1: 1) == requiredPeople and card({<soldier3,station3,time3,value3> in encodedPreAssign | soldier3 == soldier and station3 == station and time3 == time and value3 == 1}) == 0};
-param AntiPreAssignRate := 0.15;
+set zero_out := { <soldier, station, stationInterval, requiredPeople, time, role> in Soldiers * Shifts | (sum <soldier2,station2,time2,value2> in encodedPreAssign | station == station2 and time == time2 and value2 == 1: 1) == requiredPeople and card({<soldier3,station3,time3,value3> in encodedPreAssign | soldier3 == soldier and station3 == station and time3 == time and value3 == 1}) == 0};
+param AntiPreAssignRate := 0.0;
 do print "Anti-pre-assign rate must be valid - Enter a number between 0 and 1!";
 do check AntiPreAssignRate >= 0 and AntiPreAssignRate <= 1;
 set antiPreAss := {<soldier,station,time> in SoldiersToShifts | floor(random(0+AntiPreAssignRate,0.99999999+AntiPreAssignRate)) == 1} - proj(encodedPreAssign,<1,2,3>);
@@ -321,7 +333,7 @@ set RestTimes := { <soldier,station,interval,time> in Soldiers * proj(Shifts,<1,
 var NeighbouringShifts[<soldier,endTime> in RestTimes] real >= 0 <= max((max(Times)-endTime)/60,0);
 set RestTimes2 := { <soldier,station,interval,time> in Soldiers * proj(Shifts,<1,2,4>) : <soldier,time>} union {<soldier,zero_time> in Soldiers * {0}};
 #<station, interval, required, day , hour_and_minute>
-set FormalShiftsDescription := {<station, stationInterval, requiredPeople,time, day, hour, minute> in Shifts * FormalTimes | getMinute(time) == minute and getHour(time) == hour and getDay(time) == day :
+set FormalShiftsDescription := {<station, stationInterval, requiredPeople,time,role, day, hour, minute> in Shifts * FormalTimes | getMinute(time) == minute and getHour(time) == hour and getDay(time) == day :
  <station, stationInterval, requiredPeople, convertToPresentation[day], makeTimeInString(hour,minute)>};
 var Shift_Assignments[Soldiers * proj(FormalShiftsDescription,<1,4,5>)] binary; #
 
@@ -334,17 +346,23 @@ subto PreAssignZero:
     forall <soldier, station, time> in proj(zero_out,<1,2,5>) union antiPreAss :
         Edge[soldier,station,time] == 0;
 
-set already_satisfied_1 := { <station, stationInterval, requiredPeople, time> in Shifts | (sum <soldier2,station2,time2,value2> in encodedPreAssign | station == station2 and time == time2 and value2 == 1: 1) == requiredPeople };
+set already_satisfied_1 := { <station, stationInterval, requiredPeople, time, role> in Shifts | (sum <soldier2,station2,time2,value2> in encodedPreAssign | station == station2 and time == time2 and value2 == 1: 1) == requiredPeople };
 subto Satisfy_Required_People_For_Shift:
-    forall <station, stationInterval, requiredPeople, time> in Shifts - already_satisfied_1 : 
-        (sum<soldier,station2,time2> in SoldiersToShifts | station == station2 and time == time2 : Edge[soldier,station,time]) == requiredPeople;
+    forall <station, stationInterval, requiredPeople, time, role> in Shifts - already_satisfied_1 : 
+        (sum<soldier,station2,time2> in SoldiersToShifts | station == station2 and time == time2 and isPersonAllowedToTakeShift(soldier,station) == 1 : Edge[soldier,station,time]) == requiredPeople;
 
-do print "loaded All_Stations_One_Soldier";
+do print "loaded All_Stations_Enough_People";
+
+subto Enforce_Legal_Shift_Occupying_By_Role:
+    forall <soldier,station,time> in SoldiersToShifts | isPersonAllowedToTakeShift(soldier,station) == 0 :
+        Edge[soldier,station,time] == 0;
+
+do print "loaded Enforce_Legal_Shift_Occupying_By_Role";
 
 subto Soldier_Not_In_Two_Stations_Concurrently:
-    forall <soldier, station, stationInterval, requiredPeople, time> in Soldiers * Shifts : 
-        Edge[soldier,station,time] * (sum <soldier2, station2, stationInterval2, requiredPeople2, time2> in Soldiers * Shifts | 
-                                        soldier2 == soldier and ((time2 >= time and time2 < (time + stationInterval)) or ((time2+stationInterval2) > time and (time2+stationInterval2) < (time + stationInterval))) : Edge[soldier2,station2,time2]) <= 1;
+    forall <soldier, station, stationInterval, requiredPeople, time, role> in Soldiers * Shifts | isPersonAllowedToTakeShift(soldier,station) == 1 : 
+        Edge[soldier,station,time] * (sum <soldier2, station2, stationInterval2, requiredPeople2, time2, role2> in Soldiers * Shifts | 
+                                        soldier2 == soldier and isPersonAllowedToTakeShift(soldier2,station2) == 1 and ((time2 >= time and time2 < (time + stationInterval)) or ((time2+stationInterval2) > time and (time2+stationInterval2) < (time + stationInterval))) : Edge[soldier2,station2,time2]) <= 1;
 
 do print "loaded Soldier_Not_In_Two_Stations_Concurrently";
 
@@ -353,43 +371,43 @@ subto ConvertEnumeratedTimesToFormal:
         Shift_Assignments[soldier,station,convertToPresentation[getDay(time)],makeTimeInString(getHour(time), getMinute(time))] == Edge[soldier,station,time];
 
 
-set already_satisfied_5 := { <soldier, station, stationInterval, requiredPeople, time> in Soldiers * Shifts | (sum <soldier2,station2,time2,value2> in encodedPreAssign | station == station2 and time == time2 and value2 == 1: 1) == requiredPeople and card({<soldier3,station3,time3,value3> in encodedPreAssign | soldier3 == soldier and station3 == station and time3 == time and value3 == 1}) == 0};
-do print already_satisfied_5;
+set already_satisfied_5 := { <soldier, station, stationInterval, requiredPeople, time, role> in Soldiers * Shifts | (sum <soldier2,station2,time2,value2> in encodedPreAssign | station == station2 and time == time2 and value2 == 1: 1) == requiredPeople and card({<soldier3,station3,time3,value3> in encodedPreAssign | soldier3 == soldier and station3 == station and time3 == time and value3 == 1}) == 0};
+# do print already_satisfied_5;
 subto EnforceCalculationOfRestTimes1:
-    forall <soldier, station, stationInterval, requiredPeople, time> in (Soldiers * Shifts) - already_satisfied_5: 
-       forall <soldier2, station2, stationInterval2, requiredPeople2, time2> in (Soldiers * Shifts)  | soldier == soldier2 and time2 >= stationInterval+time:
+    forall <soldier, station, stationInterval, requiredPeople, time, role> in (Soldiers * Shifts) - already_satisfied_5 | isPersonAllowedToTakeShift(soldier,station) == 1: 
+       forall <soldier2, station2, stationInterval2, requiredPeople2, time2, role2> in (Soldiers * Shifts)  | soldier == soldier2 and time2 >= stationInterval+time and isPersonAllowedToTakeShift(soldier2,station2) == 1 :
             NeighbouringShifts[soldier,time+stationInterval]  * Edge[soldier,station,time] * Edge[soldier2,station2,time2] <= (((time2-time-(stationInterval)) / 60) );
         
 do print "loaded EnforceCalculationOfRestTimes1";
 
 subto EnforceCalculationOfRestTimes2:
-    forall <soldier, station, stationInterval, requiredPeople, time> in Soldiers * Shifts : 
+    forall <soldier, station, stationInterval, requiredPeople, time, role> in Soldiers * Shifts : 
             NeighbouringShifts[soldier,0] * Edge[soldier,station,time] <= time/60;
         
 do print "loaded EnforceCalculationOfRestTimes2";
 
 subto EnforceCalculationOfRestTimes3:
     forall <soldier, endTime> in RestTimes | endTime != 0 : 
-        vif (sum <soldier2, station2, stationInterval2, requiredPeople2, time2> in Soldiers * Shifts | time2+stationInterval2 == endTime and soldier == soldier2: Edge[soldier2,station2,time2]) == 0
+        vif (sum <soldier2, station2, stationInterval2, requiredPeople2, time2, role2> in Soldiers * Shifts | time2+stationInterval2 == endTime and soldier == soldier2 and isPersonAllowedToTakeShift(soldier2,station2) == 1: Edge[soldier2,station2,time2]) == 0
         then NeighbouringShifts[soldier,endTime] == 0 end;
         
 do print "loaded EnforceCalculationOfRestTimes3";
 
 subto EnforceAvailabilityUntil:
     forall <soldier, day,hour,minute> in PeopleAllowedToBeAssignedUntil : 
-        forall <soldier2, station2, stationInterval2, requiredPeople2, time2> in Soldiers * Shifts | soldier2 == soldier and time2+stationInterval2 > convertToMinutesRepresentation(day,hour,minute):
+        forall <soldier2, station2, stationInterval2, requiredPeople2, time2, role2> in Soldiers * Shifts | soldier2 == soldier and time2+stationInterval2 > convertToMinutesRepresentation(day,hour,minute):
             Edge[soldier2,station2,time2] == 0;
         
 do print "loaded EnforceInavailabilityUntil";
 
 subto EnforceAvailabilityFrom:
     forall <soldier, day,hour,minute> in PeopleAllowedToBeAssignedFrom : 
-        forall <soldier2, station2, stationInterval2, requiredPeople2, time2> in Soldiers * Shifts | soldier2 == soldier and time2 < convertToMinutesRepresentation(day,hour,minute):
+        forall <soldier2, station2, stationInterval2, requiredPeople2, time2, role2> in Soldiers * Shifts | soldier2 == soldier and time2 < convertToMinutesRepresentation(day,hour,minute):
             Edge[soldier2,station2,time2] == 0;
 
 subto EnforceMinimalRestTimeHeuristic:
-    forall <soldier, station, stationInterval, requiredPeople, time> in Soldiers * Shifts:
-        forall <station2, stationInterval2, requiredPeople2, time2> in Shifts | time2 > time and time2 < (time + minimumRestHours*60 + stationInterval):
+    forall <soldier, station, stationInterval, requiredPeople, time, role> in Soldiers * Shifts:
+        forall <station2, stationInterval2, requiredPeople2, time2, role2> in Shifts | time2 > time and time2 < (time + minimumRestHours*60 + stationInterval):
             Edge[soldier,station,time] * Edge[soldier,station2,time2] == 0;
 #         # can also replace by: 
 # do print "loaded EnforceInavailabilityFrom";
@@ -399,9 +417,9 @@ set preAssignShiftStatistics := {<"People Not Assigned Atleast Once", 1.0>};
 # set preAssignSoldierStatistics := {};
 # set preAssignShiftStatistics := {};
 set labelsForSoldierStatistics := {"Shift Spacing Mark", "Total Night Duty Hours", "Total Duty Hours", "Repetitivity Mark", "Total Rest Time"};
-var Per_Person_Statistics[Soldiers * labelsForSoldierStatistics] real;
+var Per_Person_Statistics[<soldier, label> in Soldiers * labelsForSoldierStatistics] real;
 set labelsGeneralStatistics := {"Problem size (people * possible_shifts)", "Total Shifts Assigned", "Average Shifts Per Person", "Average Rest Time Per Person", "People Not Assigned Atleast Once", "Average Night Hours", "Average Total Duty Hours", "Average Spacing Mark", "Average Repetitivity Mark", "Optimization Score"};
-var Total_Statistics[labelsGeneralStatistics] real;
+var Total_Statistics[<label> in labelsGeneralStatistics] real;
 var Assigned_Atleast_Once[Soldiers] binary;
 param x:=(max(Times)/60)+1; 
 do print "Pre-assigned soldier statistics must be valid - Enter valid names (from the declared list), valid labels, and reasonable values!";
@@ -444,18 +462,18 @@ do print "loaded CalculateShiftSpacingsCost";
 
 subto CalculateTotalNightDutyDuration:
     forall <soldier> in Soldiers :
-        Per_Person_Statistics[soldier,"Total Night Duty Hours"] == (sum <soldier2, station2, stationInterval2, requiredPeople2, time2> in Soldiers * Shifts | soldier == soldier2 and CommonTimeDuration(nightTimeStartHour,nightTimeStartMinute,nightTimeEndHour,nightTimeEndMinute,getHour(time2),getMinute(time2),getHour(time2+stationInterval2),getMinute(time2+stationInterval2)) > 0: Edge[soldier2,station2,time2] * CommonTimeDuration(nightTimeStartHour,nightTimeStartMinute,nightTimeEndHour,nightTimeEndMinute,getHour(time2),getMinute(time2),getHour(time2+stationInterval2),getMinute(time2+stationInterval2)))/60;
+        Per_Person_Statistics[soldier,"Total Night Duty Hours"] == (sum <soldier2, station2, stationInterval2, requiredPeople2, time2, role2> in Soldiers * Shifts | soldier == soldier2 and CommonTimeDuration(nightTimeStartHour,nightTimeStartMinute,nightTimeEndHour,nightTimeEndMinute,getHour(time2),getMinute(time2),getHour(time2+stationInterval2),getMinute(time2+stationInterval2)) > 0: Edge[soldier2,station2,time2] * CommonTimeDuration(nightTimeStartHour,nightTimeStartMinute,nightTimeEndHour,nightTimeEndMinute,getHour(time2),getMinute(time2),getHour(time2+stationInterval2),getMinute(time2+stationInterval2)))/60;
 do print "loaded CalculateTotalNightDutyDuration";
 
 subto CalculateTotalMissionsTimes:
     forall <soldier> in Soldiers :
-        Per_Person_Statistics[soldier,"Total Duty Hours"] == (sum <soldier2, station2, stationInterval2, requiredPeople2, time2> in Soldiers * Shifts | soldier == soldier2 : Edge[soldier2,station2,time2] * stationInterval2)/60;
+        Per_Person_Statistics[soldier,"Total Duty Hours"] == (sum <soldier2, station2, stationInterval2, requiredPeople2, time2, role2> in Soldiers * Shifts | soldier == soldier2 : Edge[soldier2,station2,time2] * stationInterval2)/60;
 
 do print "loaded CalculateTotalMissionsTimes";
 
 subto CalculateRepetitivity:
     forall <soldier> in Soldiers :                      #Multiple by TotalDutyHours instead of dividing the rhs by it.
-        Per_Person_Statistics[soldier,"Repetitivity Mark"] * (Per_Person_Statistics[soldier,"Total Duty Hours"])== (sum <soldier2, station2, stationInterval2, requiredPeople2, time2> in Soldiers * Shifts | soldier == soldier2 : Edge[soldier2,station2,time2] * (sum <soldier3,station3,time3> in SoldiersToShifts | soldier2 == soldier3 and (station3 != station2 or time3 != time2) and (station3 == station2 or time3 == time2) : 1));
+        Per_Person_Statistics[soldier,"Repetitivity Mark"] * (Per_Person_Statistics[soldier,"Total Duty Hours"])== (sum <soldier2, station2, stationInterval2, requiredPeople2, time2, role2> in Soldiers * Shifts | soldier == soldier2 : Edge[soldier2,station2,time2] * (sum <soldier3,station3,time3> in SoldiersToShifts | soldier2 == soldier3 and (station3 != station2 or time3 != time2) and (station3 == station2 or time3 == time2) : 1));
 
 do print "loaded CalculateRepetitivity";
 
@@ -484,13 +502,14 @@ subto CalculateIsAssigned:
 
 do print "loaded CalculateIsAssigned";
 
+param epsilon := 0.001;  # Small tolerance for basic calculations
 subto PreAssignShiftStatistics:
     forall <label,value> in preAssignShiftStatistics:
-        Total_Statistics[label] == value;
+        Total_Statistics[label] >= value - epsilon and Total_Statistics[label] <= value + epsilon;
 
 subto PreAssignSoldierStatistics:
     forall <soldier,label,value> in preAssignSoldierStatistics:
-        Per_Person_Statistics[soldier,label] == value; 
+        Per_Person_Statistics[soldier,label] >= value - epsilon and Per_Person_Statistics[soldier,label] <= value + epsilon; 
 
 subto PreAssign:
     forall<a,b,c,v> in encodedPreAssign :

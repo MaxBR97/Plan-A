@@ -1,0 +1,151 @@
+// Plan-A Application Entity-Relationship Diagram (ERD)
+// Database schema for mathematical optimization modeling application
+
+// Main Image entity - represents a complete optimization model configuration
+Table images {
+  image_id varchar [pk, not null]
+  owner varchar [not null]
+  image_name varchar
+  is_private boolean
+  image_description varchar(500)
+  is_configured boolean
+  is_popular boolean
+}
+
+// Module base table - uses single table inheritance with discriminator
+Table modules {
+  image_id varchar [not null]
+  name varchar [not null]
+  module_type varchar [note: 'CONSTRAINT, PREFERENCE, VARIABLE']
+  description varchar
+  
+  indexes {
+    (image_id, name) [pk]
+  }
+}
+
+// Model components - sets, parameters, functions, constraints, preferences, variables
+Table sets {
+  image_id varchar [not null]
+  name varchar(450) [not null]
+  module_name varchar
+  my_type text [note: 'Serialized ModelType']
+  alias varchar
+  tags text [note: 'Serialized String array']
+  
+  indexes {
+    (image_id, name) [pk]
+  }
+}
+
+Table parameters {
+  image_id varchar [not null]
+  name varchar(450) [not null]
+  module_name varchar
+  my_type text [note: 'Serialized ModelType']
+  alias varchar
+  tags text [note: 'Serialized String array']
+  is_cost_param boolean
+  
+  indexes {
+    (image_id, name) [pk]
+  }
+}
+
+Table functions {
+  image_id varchar [not null]
+  name varchar(450) [not null]
+  module_name varchar
+  my_type text [note: 'Serialized ModelType']
+  alias varchar
+  tags text [note: 'Serialized String array']
+  is_cost_func boolean
+  
+  indexes {
+    (image_id, name) [pk]
+  }
+}
+
+Table constraints {
+  image_id varchar [not null]
+  name varchar(450) [not null]
+  module_name varchar
+  
+  indexes {
+    (image_id, name) [pk]
+  }
+}
+
+Table preferences {
+  image_id varchar [not null]
+  name varchar(450) [not null]
+  module_name varchar
+  
+  indexes {
+    (image_id, name) [pk]
+  }
+}
+
+Table variables {
+  image_id varchar [not null]
+  name varchar(450) [not null]
+  module_name varchar
+  my_type text [note: 'Serialized ModelType']
+  alias varchar
+  tags text [note: 'Serialized String array']
+  is_complex boolean
+  is_binary boolean [not null]
+  bound_set_image_id varchar
+  bound_set_name varchar(450)
+  
+  indexes {
+    (image_id, name) [pk]
+  }
+}
+
+// Element collections for Image entity
+Table image_solver_scripts {
+  image_id varchar [not null]
+  script_key varchar [not null]
+  script_value text
+  
+  indexes {
+    (image_id, script_key) [pk]
+  }
+}
+
+
+
+// Element collection for PreferenceModule
+Table preference_module_cost_params {
+  image_id varchar [not null]
+  module_name varchar [not null]
+  param_identifier varchar [not null]
+  
+  indexes {
+    (image_id, module_name, param_identifier) [pk]
+  }
+}
+
+// Relationships
+Ref: images.image_id < modules.image_id
+Ref: images.image_id < sets.image_id
+Ref: images.image_id < parameters.image_id
+Ref: images.image_id < functions.image_id
+Ref: images.image_id < constraints.image_id
+Ref: images.image_id < preferences.image_id
+Ref: images.image_id < variables.image_id
+Ref: images.image_id < image_solver_scripts.image_id
+
+// Module relationships
+Ref: modules.image_id < preference_module_cost_params.image_id
+Ref: modules.name < preference_module_cost_params.module_name
+
+// Variable bound set relationship
+Ref: variables.bound_set_image_id > sets.image_id
+Ref: variables.bound_set_name > sets.name
+
+// Note: The following relationships are managed through JPA but not directly in database:
+// - Module input sets and parameters are managed through JPA collections
+// - Model component dependencies are managed through JPA collections
+// - Module constraints, preferences, and variables are managed through JPA collections 

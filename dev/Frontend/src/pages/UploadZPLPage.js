@@ -1,11 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useZPL } from "../context/ZPLContext";
 import { Link, useNavigate } from "react-router-dom";
 import ErrorDisplay from '../components/ErrorDisplay';
 import InfoIcon from '../reusableComponents/InfoIcon';
 import "./UploadZPLPage.css";
-import exampleZplContent from '../example.zpl';
 
 const UploadZPLPage = () => {
     const {
@@ -18,10 +17,42 @@ const UploadZPLPage = () => {
         resetModel
     } = useZPL();
 
-    const [fileContent, setFileContent] = useState(exampleZplContent);
+    const [fileContent, setFileContent] = useState("");
     const [message, setMessage] = useState("");
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
+
+    // Load the example ZPL file content
+    useEffect(() => {
+        const loadExampleZPL = async () => {
+            try {
+                // Try to load from public folder first
+                const response = await fetch('/example.zpl');
+                if (response.ok) {
+                    const content = await response.text();
+                    setFileContent(content);
+                } else {
+                    // If not in public folder, try the src folder
+                    const srcResponse = await fetch('/src/example.zpl');
+                    if (srcResponse.ok) {
+                        const content = await srcResponse.text();
+                        setFileContent(content);
+                    } else {
+                        throw new Error('Example file not found');
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to load example ZPL file:', error);
+                // Fallback to a simple example if file loading fails
+                setFileContent(`param example := 1;
+set ExampleSet := {"item1", "item2"};
+var ExampleVar[ExampleSet] binary;
+minimize objective: sum <item> in ExampleSet : ExampleVar[item];`);
+            }
+        };
+        
+        loadExampleZPL();
+    }, []);
 
     const handleUpload = async () => {
         if (!image.imageName.trim()) {

@@ -20,6 +20,7 @@ public class Solution {
     public enum SolutionStatus {
         OPTIMAL,
         SUBOPTIMAL,
+        INFEASIBLE,
         UNSOLVED;
     }
 
@@ -39,7 +40,9 @@ public class Solution {
     final HashMap<String, List<String>> variableTypes;
     double solvingTime;
     double objectiveValue; // the actual numeric value of the expression that was optimized
-
+    Pattern optimalSolutionPattern = Pattern.compile("solution status: optimal solution found");
+    Pattern infeasibleSolutionPattern = Pattern.compile("^solution status: infeasible");
+    Pattern objectiveValuePattern = Pattern.compile("objective value:\\s+(-?\\d+(?:\\.\\d+)?(?:[eE][-+]?\\d+)?|[+|-]infinity)");
 
     //helper fields
     Collection<ModelVariable> variables;
@@ -94,16 +97,19 @@ public class Solution {
 
         try (BufferedReader reader = new BufferedReader(new FileReader(solutionPath))) {
             String line;
-            Pattern optimalSolutionPattern = Pattern.compile("solution status: optimal solution found");
-            Pattern objectiveValuePattern = Pattern.compile("objective value:\\s+(-?\\d+(?:\\.\\d+)?(?:[eE][-+]?\\d+)?|[+|-]infinity)");
+            
             
             while ((line = reader.readLine()) != null) {
                 Matcher optimalMatcher = optimalSolutionPattern.matcher(line);
+                Matcher infeasibleMatcher = infeasibleSolutionPattern.matcher(line);
                 if (optimalMatcher.find()) {
                     solved = SolutionStatus.OPTIMAL;
                     return this;
                 }
-                
+                else if (infeasibleMatcher.find()) {
+                    solved = SolutionStatus.INFEASIBLE;
+                    return this;
+                }
                 // If we find an objective value but haven't found "optimal", it's suboptimal
                 Matcher objectiveMatcher = objectiveValuePattern.matcher(line);
                 if (objectiveMatcher.find()) {
@@ -145,18 +151,22 @@ public class Solution {
         try (BufferedReader reader = new BufferedReader(new FileReader(solutionPath))) {
             String line;
             boolean solutionSection = false;
-            Pattern optimalSolutionPattern = Pattern.compile("solution status: optimal solution found");
-            Pattern objectiveValuePattern = Pattern.compile("objective value:\\s+(-?\\d+(?:\\.\\d+)?(?:[eE][-+]?\\d+)?|[+|-]infinity)");
+            
             while ((line = reader.readLine()) != null) {
                 if (!solutionSection) {
                     // Check for the solved status
                     Matcher optimalMatcher = optimalSolutionPattern.matcher(line);
+                    Matcher infeasibleMatcher = infeasibleSolutionPattern.matcher(line);
+                    Matcher objectiveMatcher = objectiveValuePattern.matcher(line);
                     if (optimalMatcher.find()) {
                         solved = SolutionStatus.OPTIMAL;
                     }
+                    else if (infeasibleMatcher.find()) {
+                        solved = SolutionStatus.INFEASIBLE;
+                    }
 
                     // Extract objective value
-                    Matcher objectiveMatcher = objectiveValuePattern.matcher(line);
+                    
                     if (objectiveMatcher.find()) {
                         if(this.solved == SolutionStatus.UNSOLVED)
                             solved = SolutionStatus.SUBOPTIMAL;
@@ -233,13 +243,13 @@ public class Solution {
                     if (status.contains("optimal solution found")) {
                         solved = SolutionStatus.OPTIMAL;
                     } else if (status.contains("infeasible")) {
-                        solved = SolutionStatus.UNSOLVED;
-                    } else if (status.contains("interrupted")) {
-                        solved = SolutionStatus.SUBOPTIMAL;
-                    }
+                        solved = SolutionStatus.INFEASIBLE;
+                    } 
                 } 
                 else if (objectiveMatcher.find()) {
                     objectiveValue = Double.parseDouble(objectiveMatcher.group(1));
+                    if(solved == SolutionStatus.UNSOLVED)
+                        solved = SolutionStatus.SUBOPTIMAL;
                 }
                 else if (variableMatcher.find()) {
                     String varName = variableMatcher.group(1).trim();

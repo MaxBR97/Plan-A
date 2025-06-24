@@ -89,7 +89,7 @@ public class SolverTest {
         assertTrue(futureResult.get(COMPILATION_TIMEOUT_SECONDS, TimeUnit.SECONDS).equals(""));
 
         Solution solution = solverService.solve(filePath, SOLVING_TIMEOUT_SECONDS, "").parseSolution();
-        assertEquals(SolutionStatus.UNSOLVED, solution.parseSolutionStatus().getSolutionStatus());
+        assertEquals(SolutionStatus.INFEASIBLE, solution.parseSolutionStatus().getSolutionStatus());
     }
 
     // Tests that a simple TSP problem can be solved to optimality within the time limit

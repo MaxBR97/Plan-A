@@ -44,7 +44,7 @@ const parseErrorMessage = (error) => {
     }
 
     // Use the exception type if available
-    const title = errorObj.exception ? `Error (${errorObj.exception})` : 'Error';
+    const title = errorObj.exception ? `${errorObj.exception}` : 'Error';
 
     // Default error format
     return {

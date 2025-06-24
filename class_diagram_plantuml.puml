@@ -1,0 +1,242 @@
+@startuml Plan-A Application Class Diagram
+
+' Core Model Classes
+class Model {
+  -String id
+  -String originalSource
+  -Map<String, ModelSet> sets
+  -Map<String, ModelParameter> params
+  -Map<String, ModelFunction> funcs
+  -Map<String, ModelConstraint> constraints
+  -Map<String, ModelPreference> preferences
+  -Map<String, ModelVariable> variables
+  -Set<String> toggledOffFunctionalities
+  -Process currentProcess
+  -String solutionFileSuffix
+}
+
+' Identifier Classes
+class ModelComponentId {
+  -String identifier
+  -String imageId
+}
+
+class ModuleId {
+  -String id
+  -String name
+}
+
+' Base Classes
+abstract class ModelComponent {
+  -ModelComponentId id
+  -String module_name
+  -List<ModelSet> setDependencies
+  -List<ModelParameter> paramDependencies
+  -List<ModelFunction> functionDependencies
+}
+
+abstract class ModelInput {
+  -ModelType myType
+  -StructureBlock[] myStruct
+  -String alias
+  -String[] tags
+  -List<String> values
+  -List<String> def_values
+}
+
+abstract class ModelOutput {
+  -boolean isComplex
+  -ModelType myType
+  -String alias
+  -String[] tags
+}
+
+abstract class ModelFunctionality {
+}
+
+' Concrete Model Components
+class ModelSet {
+}
+
+class ModelParameter {
+  -boolean isCostParameter
+}
+
+class ModelVariable {
+  -ModelSet boundSet
+  -boolean isBinary
+}
+
+class ModelConstraint {
+}
+
+class ModelPreference {
+}
+
+class ModelFunction {
+  -boolean isCostFunction
+  -String value
+}
+
+' Solution and Types
+class Solution {
+  -String solutionPath
+  -HashMap<String, List<Tuple>> variableSolution
+  -HashMap<String, List<String>> variableStructure
+  -HashMap<String, List<String>> variableTypes
+  -double solvingTime
+  -double objectiveValue
+  -SolutionStatus solved
+  -String engineMsg
+  -boolean engineRunSuccess
+}
+
+class ModelType {
+}
+
+class Tuple {
+}
+
+' Image and Module Classes
+class Image {
+  -String id
+  -String name
+  -String description
+  -String owner
+  -boolean isPrivate
+  -Map<String, ConstraintModule> constraintsModules
+  -Map<String, PreferenceModule> preferenceModules
+  -Map<String, VariableModule> variables
+  -Map<String, String> solverScripts
+  -List<String> savedSolutions
+  -boolean isConfigured
+  -boolean isPopular
+  -ModelInterface model
+}
+
+abstract class Module {
+  -ModuleId id
+  -String description
+  -Set<ModelSet> inputSets
+  -Set<ModelParameter> inputParams
+  -Image image
+}
+
+class ConstraintModule {
+  -Map<String, ModelConstraint> constraints
+}
+
+class PreferenceModule {
+  -Map<String, ModelPreference> preferences
+  -Set<String> costParameter
+}
+
+class VariableModule {
+  -Map<String, ModelVariable> variables
+}
+
+' Solver Classes
+class ScipProcess {
+  -Process scipProcess
+  -ProcessBuilder processBuilder
+  -BufferedWriter processInput
+  -BlockingQueue<String> circularBuffer
+  -Thread readerThread
+  -boolean isRunning
+  -int currentTimeLimit
+  -String processStatus
+  -ByteArrayOutputStream solutionOutputStream
+  -boolean waitingForSolution
+  -AtomicBoolean capturingSolution
+}
+
+class SolverService {
+  -ScipProcessPool scipProcessPool
+  -ModelRepository modelRepository
+  -String SOLUTION_FILE_SUFFIX
+}
+
+' DTO Classes
+class ModelDTO {
+  +Set<ConstraintDTO> constraints
+  +Set<PreferenceDTO> preferences
+  +Set<VariableDTO> variables
+  +Map<String, List<String>> setTypes
+  +Map<String, String> paramTypes
+  +Map<String, List<String>> varTypes
+}
+
+class InputDTO {
+  +Map<String, List<List<String>>> setsToValues
+  +Map<String, List<String>> paramsToValues
+  +List<String> constraintModulesToggledOff
+  +List<String> preferenceModulesToggledOff
+}
+
+' Enums
+enum SolutionStatus {
+  OPTIMAL
+  SUBOPTIMAL
+  UNSOLVED
+}
+
+' Relationships with Cardinalities
+Model "1" *-- "0..*" ModelSet : contains
+Model "1" *-- "0..*" ModelParameter : contains
+Model "1" *-- "0..*" ModelFunction : contains
+Model "1" *-- "0..*" ModelConstraint : contains
+Model "1" *-- "0..*" ModelPreference : contains
+Model "1" *-- "0..*" ModelVariable : contains
+
+ModelComponent "1" *-- "1" ModelComponentId : has
+ModelComponent "1" o-- "0..*" ModelSet : depends on
+ModelComponent "1" o-- "0..*" ModelParameter : depends on
+ModelComponent "1" o-- "0..*" ModelFunction : depends on
+
+ModelInput --|> ModelComponent : extends
+ModelOutput --|> ModelComponent : extends
+ModelFunctionality --|> ModelComponent : extends
+
+ModelSet --|> ModelInput : extends
+ModelParameter --|> ModelInput : extends
+ModelFunction --|> ModelInput : extends
+ModelVariable --|> ModelOutput : extends
+ModelConstraint --|> ModelFunctionality : extends
+ModelPreference --|> ModelFunctionality : extends
+
+ModelInput "1" *-- "1" ModelType : has
+ModelOutput "1" *-- "1" ModelType : has
+ModelType <|-- Tuple : extends
+
+Image "1" *-- "0..*" ConstraintModule : contains
+Image "1" *-- "0..*" PreferenceModule : contains
+Image "1" *-- "1" VariableModule : contains
+Image "1" *-- "1" Model : has
+
+Module "1" *-- "1" ModuleId : has
+Module "1" *-- "1" Image : belongs to
+Module "1" o-- "0..*" ModelSet : has input
+Module "1" o-- "0..*" ModelParameter : has input
+
+ConstraintModule --|> Module : extends
+PreferenceModule --|> Module : extends
+VariableModule --|> Module : extends
+
+ConstraintModule "1" *-- "0..*" ModelConstraint : contains
+PreferenceModule "1" *-- "0..*" ModelPreference : contains
+VariableModule "1" *-- "0..*" ModelVariable : contains
+
+ModelVariable "0..*" o-- "1" ModelSet : bound to
+
+SolverService "1" *-- "0..*" ScipProcess : manages
+ScipProcess "1" *-- "1" Solution : produces
+
+ModelDTO "1" *-- "0..*" ConstraintDTO : contains
+ModelDTO "1" *-- "0..*" PreferenceDTO : contains
+ModelDTO "1" *-- "0..*" VariableDTO : contains
+InputDTO "1" o-- "0..*" ModelSet : references
+InputDTO "1" o-- "0..*" ModelParameter : references
+
+Solution "1" *-- "1" SolutionStatus : has
+
+@enduml 

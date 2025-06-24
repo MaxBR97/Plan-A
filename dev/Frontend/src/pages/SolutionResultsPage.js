@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useZPL } from "../context/ZPLContext";
 import "./SolutionResultsPage.css";
 import SuperTable from "../reusableComponents/SuperTable.js";
@@ -28,7 +28,7 @@ const SolutionResultsPage = ({
   const pollIntervalMillisec = 3000;
   const [selectedVariable, setSelectedVariable] = useState(image?.variablesModule?.variablesOfInterest[0]?.identifier || undefined);
   const [displayValue, setDisplayValue] = useState(true);
-  const [displayStructure, setDisplayStructure] = useState([]);
+  const [customDisplayStructure, setCustomDisplayStructure] = useState(null);
   const [dynamicSolutions, setDynamicSolutions] = useState({});
   const [tableEditMode, setTableEditMode] = useState(false);
   const [globalSelectedTuples, setGlobalSelectedTuples] = useState({});
@@ -37,7 +37,7 @@ const SolutionResultsPage = ({
   const [solutionStatus, setSolutionStatus] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState(null);
-  console.log("image?.variablesModule?.variablesOfInterest[0]?.identifier", image?.variablesModule?.variablesOfInterest[0]?.identifier)
+
   const [selectedScript, setSelectedScript] = useState(() => {
     // Find the "Default" or "default" key in solverSettings
     const defaultKey = Object.keys(image.solverSettings).find(key => 
@@ -143,32 +143,30 @@ const SolutionResultsPage = ({
 
   // Initialize selected variable and display structure
   useEffect(() => {
+    
     if (image?.variablesModule?.variablesOfInterest) {
+    
       const variables = image.variablesModule.variablesOfInterest.map(v => v.identifier);
       if (variables.length > 0) {
+    
         // Always set the first variable if none is selected or if the current selection is not valid
         const firstVariable = variables[0];
         const shouldSetVariable = !selectedVariable || !variables.includes(selectedVariable);
-        
-        if (shouldSetVariable) {
-          const initialSetStructure = getSetStructure(firstVariable);
-          const initialDisplayValue = !isBinary(firstVariable);
-
+        const initialDisplayValue = !isBinary(firstVariable);
+        setDisplayValue(initialDisplayValue);
+        // if (shouldSetVariable) {
           setSelectedVariable(firstVariable);
-          setDisplayValue(initialDisplayValue);
-          setDisplayStructure(initialDisplayValue 
-            ? [...initialSetStructure, "value"] 
-            : [...initialSetStructure]);
-        }
+          setCustomDisplayStructure(null);
+        // }
       }
     }
   }, [image, solutionResponse]);
-
+  
   // Reset solutionResponse to default state on component load
   useEffect(() => {
     resetSolutionResponse();
   }, []); // Empty dependency array means this runs only once on mount
-
+  
   const getSetStructure = (variable) => {
     const varObj = image.variablesModule?.variablesOfInterest?.find((varObj) => varObj.identifier == variable);
     if(varObj?.tags && varObj?.tags?.length == varObj.type.length){
@@ -184,25 +182,50 @@ const SolutionResultsPage = ({
     return image.variablesModule.variablesOfInterest.find((varObj) => varObj.identifier == variable).isBinary
   };
 
-  const variableData = dynamicSolutions[selectedVariable] || { solutions: [], setStructure: [] };
-  const setStructure = selectedVariable ? getSetStructure(selectedVariable) : [];
-  const solutions = variableData.solutions || [];
-  console.log("solutions", solutions);
-  console.log("selectedVariable", selectedVariable);
-  console.log("setStructure", setStructure);
-  console.log("displayStructure", displayStructure);
+  // Use useMemo to ensure React tracks these values for re-renders
+  const variableData = useMemo(() => {
+    return dynamicSolutions[selectedVariable] || { solutions: [], setStructure: [] };
+  }, [dynamicSolutions, selectedVariable]);
+
+  const setStructure = useMemo(() => {
+    return selectedVariable ? getSetStructure(selectedVariable) : [];
+  }, [selectedVariable, image]);
+
+  const solutions = useMemo(() => {
+    return variableData.solutions || [];
+  }, [variableData]);
+
+  // Compute displayStructure from setStructure and displayValue, or use custom if set
+  const displayStructure = useMemo(() => {
+    if (customDisplayStructure) {
+      return customDisplayStructure;
+    }
+    
+    if (!setStructure || setStructure.length === 0) {
+      return [];
+    }
+    
+    return displayValue 
+      ? [...setStructure, "value"] 
+      : [...setStructure];
+  }, [setStructure, displayValue, customDisplayStructure]);
+
+  // console.log("solutions", solutions);
+  // console.log("selectedVariable", selectedVariable);
+  // console.log("setStructure", setStructure);
+  // console.log("displayStructure", displayStructure);
+  // console.log("variableData", variableData);
+  // console.log("dynamicSolutions", dynamicSolutions);
   const handleVariableChange = (event) => {
     const newVariable = event.target.value;
     if (!newVariable) return;
     
     const newDisplayValue = !isBinary(newVariable);
-    const newSetStructure = getSetStructure(newVariable);
     
     setSelectedVariable(newVariable);
     setDisplayValue(newDisplayValue);
-    setDisplayStructure(newDisplayValue 
-      ? [...newSetStructure, "value"] 
-      : newSetStructure);
+    // Clear custom display structure when variable changes
+    setCustomDisplayStructure(null);
   };
 
   function addObjectiveValueToSolutions(solutions) {
@@ -223,7 +246,7 @@ const SolutionResultsPage = ({
     const newSetStructure = Array.from(displayStructure);
     const [reorderedItem] = newSetStructure.splice(result.source.index, 1);
     newSetStructure.splice(result.destination.index, 0, reorderedItem);
-    setDisplayStructure(newSetStructure);
+    setCustomDisplayStructure(newSetStructure);
   };
 
   // Handle adding a new dimension to the table
@@ -244,7 +267,7 @@ const SolutionResultsPage = ({
       newDisplayStructure = [...displayStructure, newDimension];
     }
     
-    setDisplayStructure(newDisplayStructure);
+    setCustomDisplayStructure(newDisplayStructure);
   };
 
   const handleSelectScript = (key) => {

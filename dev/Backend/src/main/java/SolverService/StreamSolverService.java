@@ -40,10 +40,12 @@ public class StreamSolverService implements StreamSolver {
     public Solution solve(String fileId, int timeout, String solverScript) throws Exception {
         try {
             return solveAsync(fileId, timeout, solverScript).get();
-        } catch (ExecutionException e) {
+        } catch (Exception e) {
             Throwable cause = e.getCause();
-            if (cause instanceof Exception) throw (Exception) cause;
-                throw new RuntimeException("Unexpected error at solver", cause);
+            if (cause instanceof Exception) 
+                
+            throw (Exception) cause;
+            throw new RuntimeException("Unexpected error at solver", cause);
         }
         
     }

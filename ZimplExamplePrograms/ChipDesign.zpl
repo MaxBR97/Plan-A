@@ -80,7 +80,7 @@ defnumb getCompMaxTemp(comp_id) :=
 defnumb getPresentationFormat(comp_id,t) := toString[comp_id] + "_" + t;
 
 
-set preassign_components := {<"X","1_CPU",0.01>};
+set preassign_components := {<"X","1_CPU",0.0>};
 do print "Selected components must reference valid components! Format should be 'ComponentIndex_Type";
 do forall <xy,id_t,val> in preassign_components do check
     card({<id2,t2> in Components | id_t == getPresentationFormat(id2,t2)}) == 1;

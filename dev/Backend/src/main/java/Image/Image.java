@@ -460,10 +460,12 @@ public class Image {
         );
         constraintsModules.put(module.moduleName(), new ConstraintModule(this, module));
     }
+
     @Transactional
     public void setConstraintsModules(HashMap<String,ConstraintModule> constraintsModules){
         this.constraintsModules = constraintsModules;
     }
+    
     @Transactional
     public void setPreferencesModules(HashMap<String,PreferenceModule> prefs){
         this.preferenceModules = prefs;

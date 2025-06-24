@@ -26,7 +26,7 @@ import Utils.*;
 
 public class ScipProcess {
     private static final int BUFFER_SIZE = 10000; // Number of lines to keep
-    private final boolean DEBUG = true;
+    private final boolean DEBUG = false;
     private Process scipProcess;
     private ProcessBuilder processBuilder;
     private BufferedWriter processInput;

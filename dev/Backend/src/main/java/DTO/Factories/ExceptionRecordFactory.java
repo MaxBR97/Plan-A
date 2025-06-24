@@ -25,22 +25,22 @@ public class ExceptionRecordFactory {
     public static ExceptionDTO makeDTO(Exception exception) {
         //TODO: LOG
         //return new ExceptionDTO("An unknown error occurred, see log for details, or contract the developer");
-        return new ExceptionDTO("UnexpectedError", "Unexpected error in the server: " + exception.getMessage());
+        return new ExceptionDTO("Unexpected Error", exception.getMessage());
     }
 
     public static ExceptionDTO makeDTO(BadRequestException exception) {
         //TODO: LOG
         //return new ExceptionDTO("An unknown error occurred, see log for details, or contract the developer");
-        return new ExceptionDTO("BadRequest", exception.getMessage());
+        return new ExceptionDTO("Bad Request", exception.getMessage());
     }
 
     public static ExceptionDTO makeDTO(ZimpleCompileException exception) {
         // Handle general compilation errors
-        return new ExceptionDTO("CompilationError", exception.getMessage());
+        return new ExceptionDTO("Compilation Error", exception.getMessage());
     }
 
     public static ExceptionDTO makeDTO(ZimpleDataIntegrityException exception) {
         // Handle specific integrity errors (error 900)
-        return new ExceptionDTO("IntegrityError", exception.getMessage());
+        return new ExceptionDTO("Integrity Error", exception.getMessage());
     }
 }

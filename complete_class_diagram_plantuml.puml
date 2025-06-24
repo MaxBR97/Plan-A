@@ -1,0 +1,582 @@
+@startuml Plan-A Backend Complete Class Diagram
+
+' Core Model Classes
+class Model {
+  -String id
+  -String originalSource
+  -Map<String, ModelSet> sets
+  -Map<String, ModelParameter> params
+  -Map<String, ModelFunction> funcs
+  -Map<String, ModelConstraint> constraints
+  -Map<String, ModelPreference> preferences
+  -Map<String, ModelVariable> variables
+  -Set<String> toggledOffFunctionalities
+  -Process currentProcess
+  -String solutionFileSuffix
+  -ModelRepository modelRepository
+  -ModifierVisitor modifier
+  +Model(ModelRepository repo, String id)
+  +Model(ModelRepository repo, String id, Set<ModelSet> persistedSets, Set<ModelParameter> persistedParams)
+  +void setId(String id)
+  +InputStream getSource()
+  +String getSourcePathToFile()
+  +String getSolutionPathToFile(String suffix)
+  +void writeToSource(String newSource)
+  +void writeSolution(String content, String suffix)
+  +void prepareParse()
+  +void parseSource()
+  +void appendToSet(ModelSet set, String value)
+  +void removeFromSet(ModelSet set, String value)
+  +void applyChangesToParseTree(boolean reparse)
+  +void setInput(ModelParameter identifier, String value)
+  +void setInput(ModelSet identifier, String[] values)
+  +String[] getInput(ModelParameter parameter)
+  +List<String[]> getInput(ModelSet set)
+  +void toggleFunctionality(ModelFunctionality mf, boolean turnOn)
+  +void commentOutToggledFunctionalities()
+  +void restoreToggledFunctionalities()
+  +boolean isCompiling(float timeout)
+  +ModelSet getSet(String identifier)
+  +ModelParameter getParameter(String identifier)
+  +ModelFunction getFunction(String identifier)
+  +ModelConstraint getConstraint(String identifier)
+  +Collection<ModelConstraint> getConstraints()
+  +ModelPreference getPreference(String identifier)
+  +Collection<ModelPreference> getPreferences()
+  +ModelVariable getVariable(String identifier)
+  +Collection<ModelVariable> getVariables()
+  +Collection<ModelVariable> getVariables(Collection<String> identifiers)
+  +ModelComponent getComponent(String mc)
+  +void setModelComponent(ModelComponent mc)
+  +Collection<ModelSet> getSets()
+  +Collection<ModelParameter> getParameters()
+  +Collection<ModelFunction> getFunctions()
+}
+
+' Identifier Classes
+class ModelComponentId {
+  -String identifier
+  -String imageId
+  +ModelComponentId()
+  +ModelComponentId(String identifier, String imageId)
+  +String getIdentifier()
+  +void setIdentifier(String identifier)
+  +String getImageId()
+  +void setImageId(String imageId)
+  +boolean equals(Object o)
+  +int hashCode()
+  +String toString()
+}
+
+class ModuleId {
+  -String id
+  -String name
+  +ModuleId()
+  +ModuleId(String id, String name)
+  +String getId()
+  +void setId(String id)
+  +String getName()
+  +void setName(String name)
+  +boolean equals(Object o)
+  +int hashCode()
+}
+
+' Base Classes
+abstract class ModelComponent {
+  -ModelComponentId id
+  -String module_name
+  -List<ModelSet> setDependencies
+  -List<ModelParameter> paramDependencies
+  -List<ModelFunction> functionDependencies
+  +ModelComponent()
+  +ModelComponent(String imageId, String identifier)
+  +ModelComponent(String imageId, String identifier, List<ModelSet> setDep, List<ModelParameter> paramDep, List<ModelFunction> funcDep)
+  +void dynamicLoadTransient(ModelComponent mc)
+  +String getIdentifier()
+  +ModelComponentId getModelComponentId()
+  +ModelSet findSetDependency(String identifier)
+  +ModelParameter findParamDependency(String identifier)
+  +ModelFunction findFuncDependency(String identifier)
+  +List<ModelSet> getSetDependencies()
+  +List<ModelParameter> getParamDependencies()
+  +List<ModelFunction> getFuncDependencies()
+  +void setSetDependencies(List<ModelSet> dependencies)
+  +void setParamDependencies(List<ModelParameter> dependencies)
+  +void setFuncDependencies(List<ModelFunction> dependencies)
+  +void addSetDependency(ModelSet dependency)
+  +void removeSetDependency(ModelSet dependency)
+  +void addParamDependency(ModelParameter dependency)
+  +void removeParamDependency(ModelParameter dependency)
+  +boolean isPrimitive()
+  +void getPrimitiveParameters(Set<ModelParameter> parameters)
+  +void getPrimitiveSets(Set<ModelSet> sets)
+  +void setModuleName(String name)
+}
+
+abstract class ModelInput {
+  -ModelType myType
+  -StructureBlock[] myStruct
+  -String alias
+  -String[] tags
+  -List<String> values
+  -List<String> def_values
+  +ModelInput(String imageId, String identifier, ModelType type)
+  +ModelInput(String imageId, String identifier, ModelType type, List<ModelSet> a, List<ModelParameter> b, List<ModelFunction> c)
+  +ModelInput()
+  +ModelInput(String imageId, String identifier, ModelType type, List<ModelSet> a, List<ModelParameter> b, List<ModelFunction> c, StructureBlock[] struct)
+  +void dynamicLoadTransient(ModelInput mc)
+  +void setAlias(String alias)
+  +String getAlias()
+  +ModelType getType()
+  +boolean isCompatible(ModelType val)
+  +boolean isCompatible(String str)
+  +void clearSetDependencies()
+  +void clearParamDependencies()
+  +void clearAllDependencies()
+  +boolean isPrimitive()
+  +String[] getTags()
+  +void setTags(String[] tags)
+  +StructureBlock[] getStructure()
+}
+
+abstract class ModelOutput {
+  -boolean isComplex
+  -ModelType myType
+  -String alias
+  -String[] tags
+  +ModelOutput(String imageId, String identifier)
+  +ModelOutput(String imageId, String ident, List<ModelSet> dep, List<ModelParameter> paramDep, List<ModelFunction> funcDep, ModelType type)
+  +ModelOutput()
+  +void dynamicLoadTransient(ModelOutput mc)
+  +String[] getTags()
+  +String[] getDefaultTags(int size)
+  +void setTags(String[] tags)
+  +boolean isComplex()
+  +StructureBlock[] getStructure()
+  +ModelType getType()
+}
+
+abstract class ModelFunctionality {
+  +ModelFunctionality(String imageId, String identifier)
+  +ModelFunctionality(String imageId, String name, List<ModelSet> basicSets, List<ModelParameter> basicParams, List<ModelFunction> basicFuncs)
+  +ModelFunctionality()
+}
+
+' Concrete Model Components
+class ModelSet {
+  +ModelSet()
+  +ModelSet(String imageId, String identifier, ModelType type)
+  +ModelSet(String imageId, String setName, ModelType type, List<ModelSet> basicSets, List<ModelParameter> basicParams, List<ModelFunction> basicFuncs)
+  +ModelSet(String imageId, String setName, List<ModelSet> basicSets, List<ModelParameter> basicParams, List<ModelFunction> basicFuncs, StructureBlock[] resultingStructure)
+  +void update(SetDefinitionDTO dto)
+  +List<String> getElements()
+  +List<String> getDefaultElements()
+  +String getElement(int index)
+  +void setElements(List<String> elements)
+  +void setDefaultElements(List<String> elements)
+  +void addElement(String element)
+  +void removeElement(String element)
+  +void clearElements()
+  +int size()
+  +boolean isEmpty()
+}
+
+class ModelParameter {
+  -boolean isCostParameter
+  +ModelParameter()
+  +ModelParameter(String imageId, String identifier, ModelType type)
+  +ModelParameter(String imageId, String paramName, ModelType type, List<ModelSet> basicSets, List<ModelParameter> basicParams, List<ModelFunction> funcDep)
+  +void update(ParameterDefinitionDTO dto)
+  +boolean isPrimitive()
+  +String getValue()
+  +void setValue(String value)
+  +String getDefaultValue()
+  +void setDefaultValue(String value)
+  +boolean hasValue()
+  +void clearValue()
+  +void setCostParameter(boolean isCostParam)
+  +boolean isCostParameter()
+}
+
+class ModelVariable {
+  -ModelSet boundSet
+  -boolean isBinary
+  +ModelVariable(String imageId, String identifier, boolean isBinary)
+  +ModelVariable()
+  +ModelVariable(String imageId, String ident, List<ModelSet> dep, List<ModelParameter> paramDep, List<ModelFunction> basicFuncs, ModelType type, boolean isComplex, boolean isBinary)
+  +void update(VariableDTO dto)
+  +void setBoundSet(ModelSet s)
+  +ModelSet getBoundSet()
+  +boolean isBinary()
+}
+
+class ModelConstraint {
+  +ModelConstraint()
+  +ModelConstraint(String imageId, String identifier)
+  +ModelConstraint(String imageId, String constName, List<ModelSet> basicSets, List<ModelParameter> basicParams, List<ModelFunction> basicFuncs)
+}
+
+class ModelPreference {
+  +ModelPreference()
+  +ModelPreference(String imageId, String identifier)
+  +ModelPreference(String imageId, String preferenceName, List<ModelSet> basicSets, List<ModelParameter> basicParams, List<ModelFunction> basicFuncs)
+}
+
+class ModelFunction {
+  -boolean isCostFunction
+  -String value
+  +ModelFunction()
+  +ModelFunction(String imageId, String identifier, ModelType type)
+  +ModelFunction(String imageId, String paramName, ModelType type, List<ModelSet> basicSets, List<ModelParameter> basicParams, List<ModelFunction> basicFuncs)
+  +boolean isPrimitive()
+  +String getValue()
+  +void setValue(String value)
+  +boolean hasValue()
+  +void clearValue()
+  +void setCostParameter(boolean isCostFunction)
+  +boolean isCostFunction()
+}
+
+' Solution and Types
+class Solution {
+  -String solutionPath
+  -HashMap<String, List<Tuple<List<String>, Double>>> variableSolution
+  -HashMap<String, List<String>> variableStructure
+  -HashMap<String, List<String>> variableTypes
+  -double solvingTime
+  -double objectiveValue
+  -SolutionStatus solved
+  -String engineMsg
+  -boolean engineRunSuccess
+  -Collection<ModelVariable> variables
+  +Solution(String solutionPath)
+  +Solution()
+  +Solution(String solutionPath, String engineMsg, boolean engineRunSuccess)
+  +List<String> getVariableTypes(String identifier)
+  +Solution parseSolutionStatus()
+  +void parseSolution(ModelInterface model, Set<String> varsToParse)
+  +Solution parseSolution()
+  +boolean parsed()
+  +SolutionStatus getSolutionStatus()
+  +HashMap<String, List<Tuple<List<String>, Double>>> getVariableSolution()
+  +List<Tuple<List<String>, Double>> getVariableSolution(String identifier)
+  +HashMap<String, List<String>> getVariableStructure()
+  +double getSolvingTime()
+  +double getObjectiveValue()
+  +Collection<ModelVariable> getVariables()
+  +List<String> getVariableStructure(String variableName)
+}
+
+class ModelType {
+  +boolean isCompatible(ModelType val)
+  +List<String> typeList()
+}
+
+class Tuple {
+  +int size()
+  +void append(ModelPrimitives prim)
+  +List<ModelPrimitives> getTypes()
+}
+
+' Image and Module Classes
+class Image {
+  -String id
+  -String name
+  -String description
+  -String owner
+  -boolean isPrivate
+  -Map<String, ConstraintModule> constraintsModules
+  -Map<String, PreferenceModule> preferenceModules
+  -Map<String, VariableModule> variables
+  -Map<String, String> solverScripts
+  -List<String> savedSolutions
+  -boolean isConfigured
+  -boolean isPopular
+  -ModelInterface model
+  -ModelRepository modelRepository
+  +Image()
+  +Image(String id, String name, String description, String ownerUser, Boolean isPrivate)
+  +void setModelFactory(ModelFactory factory)
+  +void initializeTransientFields()
+  +void setSolverScripts(Map<String, String> solverScripts)
+  +void update(ImageDTO imageDTO)
+  +boolean isConfigured()
+  +void setIsConfigured(boolean isConfigured)
+  +String getName()
+  +String getDescription()
+  +String getOwner()
+  +boolean isPrivate()
+  +void setIsPrivate(boolean isPrivate)
+  +void addConstraintModule(String moduleName, String description)
+  +void addConstraintModule(ConstraintModuleDTO module)
+  +void setConstraintsModules(HashMap<String, ConstraintModule> constraintsModules)
+  +void setPreferencesModules(HashMap<String, PreferenceModule> prefs)
+  +void addPreferenceModule(String moduleName, String description)
+  +void addPreferenceModule(PreferenceModuleDTO module)
+  +ConstraintModule getConstraintsModule(String name)
+  +PreferenceModule getPreferencesModule(String name)
+  +Map<String, ConstraintModule> getConstraintsModules()
+  +Map<String, PreferenceModule> getPreferenceModules()
+  +void addConstraint(String moduleName, ConstraintDTO constraint)
+  +void removeConstraint(String moduleName, ConstraintDTO constraint)
+  +void addPreference(String moduleName, PreferenceDTO preferenceDTO)
+  +void setVariablesModule(VariableModuleDTO moduleDTO)
+  +VariableModule getVariablesModule()
+  +void removePreference(String moduleName, PreferenceDTO preferenceDTO)
+  +Map<String, ModelVariable> getVariables()
+  +SolutionDTO parseSolution(Solution solution)
+  +ModelInterface getModel()
+  +String getId()
+  +void setVariablesModule(Map<String, ModelVariable> variables, Collection<String> sets, Collection<String> params)
+  +Set<ModelSet> getAllInvolvedSets()
+  +Set<ModelParameter> getAllInvolvedParams()
+  +Set<ModelSet> getAllInputSets()
+  +Set<ModelParameter> getAllInputParameters()
+  +InputDTO getInput()
+  +void configureModelInputs(Set<SetDefinitionDTO> inputSets, Set<ParameterDefinitionDTO> inputParams)
+  +void setConstraintsModule(ConstraintModuleDTO moduleDTO)
+  +void setPreferencesModule(PreferenceModuleDTO moduleDTO)
+  +String prepareInput(InputDTO input)
+  +void restoreInput(String tmpModelId)
+  +void validateCode()
+}
+
+abstract class Module {
+  -ModuleId id
+  -String description
+  -Set<ModelSet> inputSets
+  -Set<ModelParameter> inputParams
+  -Image image
+  +Module()
+  +Module(Image image, String name, String description)
+  +Module(Image image, String name, String description, Collection<ModelSet> inputSets, Collection<ModelParameter> inputParams)
+  +Module(Image image, String moduleName, String description, Set<SetDefinitionDTO> inputSets, Set<ParameterDefinitionDTO> inputParams)
+  +String getId()
+  +void setId(String id)
+  +String getName()
+  +String getDescription()
+  +void setDescription(String description)
+  +Set<ModelSet> getInputSets()
+  +Set<ModelParameter> getInputParams()
+  +ModelComponent loadFullComponent(ModelComponent mc)
+  +Set<ModelSet> getInvolvedSets()
+  +Set<ModelParameter> getInvolvedParameters()
+  +void addParam(ParameterDefinitionDTO paramDTO)
+  +void addSet(SetDefinitionDTO setDTO)
+  +void addParam(ModelParameter param)
+  +void addSet(ModelSet set)
+  +void removeSet(ModelSet set)
+  +void removeParam(ModelParameter param)
+  +boolean isInput(String modelInputId)
+}
+
+class ConstraintModule {
+  -Map<String, ModelConstraint> constraints
+  +ConstraintModule(Image image, ConstraintModuleDTO dto)
+  +ConstraintModule(Image image, String name, String description)
+  +ConstraintModule(Image image, String name, String description, Collection<ModelConstraint> constraints, Collection<ModelSet> inputSets, Collection<ModelParameter> inputParams)
+  +ConstraintModule()
+  +Set<ModelSet> getInvolvedSets()
+  +Set<ModelParameter> getInvolvedParameters()
+  +Map<String, ModelConstraint> getConstraints()
+  +ModelConstraint getConstraint(String constraintName)
+  +void addConstraint(ModelConstraint constraint)
+  +void removeConstraint(ModelConstraint constraint)
+  +void removeConstraint(String identifier)
+  +void update(ConstraintModuleDTO dto)
+}
+
+class PreferenceModule {
+  -Map<String, ModelPreference> preferences
+  -Set<String> costParameter
+  +PreferenceModule(Image image, PreferenceModuleDTO dto)
+  +PreferenceModule()
+  +PreferenceModule(Image image, String name, String description)
+  +PreferenceModule(Image image, String name, String description, Collection<ModelPreference> preferences, Collection<ModelSet> inputSets, Collection<ModelParameter> inputParams, Collection<ModelParameter> coefficients)
+  +Set<ModelSet> getInvolvedSets()
+  +Set<ModelParameter> getInvolvedParameters()
+  +ModelPreference getPreference(String name)
+  +Map<String, ModelPreference> getPreferences()
+  +void addPreference(ModelPreference preference)
+  +void removePreference(ModelPreference preference)
+  +void removePreference(String identifier)
+  +Set<ModelParameter> getCostParameters()
+  +void update(PreferenceModuleDTO dto)
+  +Set<ModelParameter> getInputParameters()
+  +boolean isInput(String id)
+}
+
+class VariableModule {
+  -Map<String, ModelVariable> variables
+  +Map<String, ModelVariable> getVariables()
+  +VariableModule(Image image, VariableModuleDTO dto)
+  +VariableModule()
+  +VariableModule(Image image, String name, String description)
+  +VariableModule(Image image, Map<String, ModelVariable> variables, Collection<ModelSet> inputSets, Collection<ModelParameter> inputParams)
+  +String getVariableModuleName()
+  +void clear()
+  +Set<String> getIdentifiers()
+  +ModelVariable get(String name)
+  +void addVariable(ModelVariable variable)
+  +Set<ModelSet> getInvolvedSets()
+  +Set<ModelParameter> getInvolvedParameters()
+  +Set<ModelSet> getInputSets()
+  +void update(VariableModuleDTO dto)
+  +boolean isInput(String id)
+}
+
+' Solver Classes
+class ScipProcess {
+  -Process scipProcess
+  -ProcessBuilder processBuilder
+  -BufferedWriter processInput
+  -BlockingQueue<String> circularBuffer
+  -Thread readerThread
+  -boolean isRunning
+  -int currentTimeLimit
+  -String compilationErrorMessage
+  -String solutionStatus
+  -AtomicReference<String> progressQuote
+  -ByteArrayOutputStream solutionOutputStream
+  -boolean waitingForSolution
+  -AtomicBoolean capturingSolution
+  -String processStatus
+  +ScipProcess()
+  +void start()
+  +void read(String file)
+  +void solverSettings(String settings)
+  +InputStream getSolution()
+  +void setTimeLimit(int seconds)
+  +int getCurrentTimeLimit()
+  +void optimize()
+  +boolean isRunning()
+  +String getPid()
+  +String getStatus()
+  +String getCompilationError()
+  +void exit()
+  +String pollLog()
+  +List<String> pollLogAll()
+  +String getProgressQuote()
+  -void pipeInput(String input)
+  -void updateStatus(String line)
+}
+
+class SolverService {
+  -ScipProcessPool scipProcessPool
+  -String SOLUTION_FILE_SUFFIX
+  -ModelRepository modelRepository
+  +SolverService(ModelRepository modelRepository)
+  +Solution solve(String fileId, int timeout, String solverScript)
+  +CompletableFuture<Solution> solveAsync(String fileId, int timeout, String solverScript)
+  +String isCompiling(String fileId, int timeout)
+  +CompletableFuture<String> isCompilingAsync(String fileId, int timeout)
+  -Solution getNextSolution(String id, ScipProcess scipProcess)
+  -String getSolutionPathToFile(String fileId, String suffix)
+  -void writeSolution(String fileId, String suffix, InputStream inputStream)
+  +void shutdown()
+}
+
+' Repository Classes
+interface ImageRepository {
+  +Image findByIdAndOwner(String imageId, String owner)
+  +Image findByIdAndAccessible(String imageId, String owner)
+  +List<ShallowImageProjection> searchShallowImages(String searchPhrase, String owner, Pageable pageable)
+  +List<ShallowImageProjection> searchShallowImages(String searchPhrase, Pageable pageable)
+  +List<ShallowImageProjection> findByOwner(String owner)
+  +String findOwner(String imageId)
+  +void deleteImageAndRelatedData(String imageId, String owner)
+}
+
+interface ModelRepository {
+  +InputStream downloadDocument(String id)
+  +void uploadDocument(String id, InputStream inputStream)
+  +Path getLocalStoreDir()
+}
+
+' DTO Classes
+class ModelDTO {
+  +Set<ConstraintDTO> constraints
+  +Set<PreferenceDTO> preferences
+  +Set<VariableDTO> variables
+  +Map<String, List<String>> setTypes
+  +Map<String, String> paramTypes
+  +Map<String, List<String>> varTypes
+}
+
+class InputDTO {
+  +Map<String, List<List<String>>> setsToValues
+  +Map<String, List<String>> paramsToValues
+  +List<String> constraintModulesToggledOff
+  +List<String> preferenceModulesToggledOff
+}
+
+' Enums
+enum SolutionStatus {
+  OPTIMAL
+  SUBOPTIMAL
+  UNSOLVED
+}
+
+' Relationships with Cardinalities
+Model "1" *-- "0..*" ModelSet : contains
+Model "1" *-- "0..*" ModelParameter : contains
+Model "1" *-- "0..*" ModelFunction : contains
+Model "1" *-- "0..*" ModelConstraint : contains
+Model "1" *-- "0..*" ModelPreference : contains
+Model "1" *-- "0..*" ModelVariable : contains
+
+ModelComponent "1" *-- "1" ModelComponentId : has
+ModelComponent "1" o-- "0..*" ModelSet : depends on
+ModelComponent "1" o-- "0..*" ModelParameter : depends on
+ModelComponent "1" o-- "0..*" ModelFunction : depends on
+
+ModelInput --|> ModelComponent : extends
+ModelOutput --|> ModelComponent : extends
+ModelFunctionality --|> ModelComponent : extends
+
+ModelSet --|> ModelInput : extends
+ModelParameter --|> ModelInput : extends
+ModelFunction --|> ModelInput : extends
+ModelVariable --|> ModelOutput : extends
+ModelConstraint --|> ModelFunctionality : extends
+ModelPreference --|> ModelFunctionality : extends
+
+ModelInput "1" *-- "1" ModelType : has
+ModelOutput "1" *-- "1" ModelType : has
+ModelType <|-- Tuple : extends
+
+Image "1" *-- "0..*" ConstraintModule : contains
+Image "1" *-- "0..*" PreferenceModule : contains
+Image "1" *-- "1" VariableModule : contains
+Image "1" *-- "1" Model : has
+
+Module "1" *-- "1" ModuleId : has
+Module "1" *-- "1" Image : belongs to
+Module "1" o-- "0..*" ModelSet : has input
+Module "1" o-- "0..*" ModelParameter : has input
+
+ConstraintModule --|> Module : extends
+PreferenceModule --|> Module : extends
+VariableModule --|> Module : extends
+
+ConstraintModule "1" *-- "0..*" ModelConstraint : contains
+PreferenceModule "1" *-- "0..*" ModelPreference : contains
+VariableModule "1" *-- "0..*" ModelVariable : contains
+
+ModelVariable "0..*" o-- "1" ModelSet : bound to
+
+SolverService "1" *-- "0..*" ScipProcess : manages
+ScipProcess "1" *-- "1" Solution : produces
+
+ModelDTO "1" *-- "0..*" ConstraintDTO : contains
+ModelDTO "1" *-- "0..*" PreferenceDTO : contains
+ModelDTO "1" *-- "0..*" VariableDTO : contains
+InputDTO "1" o-- "0..*" ModelSet : references
+InputDTO "1" o-- "0..*" ModelParameter : references
+
+Solution "1" *-- "1" SolutionStatus : has
+
+Image "1" o-- "1" ImageRepository : uses
+Model "1" o-- "1" ModelRepository : uses
+
+@enduml 

@@ -152,10 +152,12 @@ const ConfigureInputsOutputs = () => {
         const variablesOfInterestObjects = selectedVars.map(v => {
             const boundSetValue = variableBoundSets[v.identifier];
             // Create base variable object without boundSet
+            
             const variableObject = {
                 identifier: v.identifier,
                 tags: variablesTags[v.identifier] || Array(model.varTypes[v.identifier]?.length || 0).fill(''),
-                type: model.varTypes[v.identifier] || []
+                type: model.varTypes[v.identifier] || [],
+                isBinary: v.isBinary
             };
 
             // Only add boundSet if it's a real set (either a set named 'none' or any other set)
