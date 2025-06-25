@@ -29,6 +29,9 @@ set I := {1 .. sudoku_size};  # rows
 set J := {1 .. sudoku_size};  # columns
 set N := {1 .. sudoku_size};  # numbers
 
+do print "Empty Cell Representation must be non-number!";
+do check isStringNumber(empty_cell_char) == 0;
+
 # Decision variables: x[i,j,n] = 1 if number n is placed at position (i,j)
 var Solution[ <i,j,n> in I*J*N] binary priority round(random(100,1000)) * (i*j*n mod i*j);
 set Nstr := {<i> in N : <numberToString(i)>};

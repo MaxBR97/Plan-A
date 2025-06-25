@@ -226,7 +226,11 @@ public class ScipProcess {
         if(processStatus.equals("paused")){
             processStatus = "solving";
         }
-        pipeInput("set write printzeros TRUE optimize");
+        pipeInput(
+        "set write printzeros TRUE " +
+        "set randomization permutationseed 72 " +
+        "set randomization advanced permutevars TRUE " +
+         " optimize");
 
     }
 

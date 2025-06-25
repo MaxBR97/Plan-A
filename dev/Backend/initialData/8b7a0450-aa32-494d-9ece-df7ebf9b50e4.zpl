@@ -53,7 +53,7 @@ set CourseData := {
     <"Computer Security", "Computer Science", 2.5, "false">
 };
 
-do print "Course data must be valid - course names must be unique, points must be in the range 0-10, and is_mandatory must be 0 or 1!";
+do print "Course data must be valid - course names must be unique, points must be in the range 0-10, and is_mandatory must be true or false!";
 do check card(CourseData) > 0;  # Must have at least one course
 do forall <course,dept,points,is_mandatory> in CourseData do check
     card({<c,d,p,m> in CourseData | c == course}) == 1 and  # Course names must be unique
