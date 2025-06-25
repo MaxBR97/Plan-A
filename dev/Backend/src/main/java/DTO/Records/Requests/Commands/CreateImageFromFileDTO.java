@@ -2,7 +2,7 @@ package DTO.Records.Requests.Commands;
 
 import jakarta.validation.constraints.NotBlank;
 
-public record CreateImageFromFileDTO(@NotBlank String imageName,
+public record CreateImageFromFileDTO(String imageName,
                                     String imageDescription,
                                     @NotBlank String owner ,
                                     Boolean isPrivate ,

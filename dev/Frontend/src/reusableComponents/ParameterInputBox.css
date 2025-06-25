@@ -1,60 +1,82 @@
 .parameter-input {
   display: flex;
-  flex-wrap: wrap; /* Allow wrapping */
+  flex-wrap: wrap;
   align-items: center;
   width: 100%;
   max-width: 450px;
-  border: 1px solid #ddd;
+  border: 2px solid #9c021c;
   border-radius: 6px;
-  padding: 11.25px;
-  margin: 7.5px 0;
-  background-color: white;
-  box-shadow: 0 1.5px 3.75px rgba(0,0,0,0.1);
+  padding: 0.75rem;
+  margin: 0.5rem 0;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.95) 100%);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   box-sizing: border-box;
-  gap: 7.5px; /* Space between label and input */
+  gap: 0.75rem;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.parameter-input::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  /* background: linear-gradient(90deg, #0ea5e9 0%, #06b6d4 100%); */
+  border-radius: 8px 8px 0 0;
+}
+
+.parameter-input:hover {
+  border-color: #e30321;
+  box-shadow: 0 4px 12px rgba(14, 165, 233, 0.15);
 }
 
 .parameter-name {
-  font-size: 12px;
+  font-size: 0.875rem;
   font-weight: 600;
-  color: #333;
-  flex: 1 1 150px; /* flexible, min width 150px */
+  color: #1e293b;
+  flex: 1 1 150px;
   min-width: 100px;
-  white-space: normal; /* allow wrapping */
+  white-space: normal;
   overflow-wrap: break-word;
   word-break: break-word;
   margin: 0;
+  letter-spacing: -0.25px;
 }
 
 .parameter-entry-atom {
-  flex: 2 1 200px; /* flexible, min width 200px */
+  flex: 2 1 200px;
   width: 100%;
-  padding: 7.5px;
-  border: 1px solid #ddd;
-  border-radius: 3px;
-  font-size: 10.5px;
-  background-color: #f9f9f9;
-  transition: border-color 0.3s, box-shadow 0.3s;
+  padding: 0.375rem 0.5rem;
+  border: 1px solid rgba(59, 130, 246, 0.15);
+  border-radius: 4px;
+  font-size: 0.875rem;
+  background: rgba(255, 255, 255, 0.9);
+  color: #1e293b;
+  transition: all 0.2s ease;
+  font-weight: 500;
 }
 
 .parameter-entry-atom:focus {
-  border-color: #1890ff;
+  border-color: #0ea5e9;
   outline: none;
-  box-shadow: 0 0 0 1.5px rgba(24, 144, 255, 0.2);
+  box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.1);
+  background: #ffffff;
 }
 
+.parameter-entry-atom::placeholder {
+  color: #94a3b8;
+  font-weight: 400;
+}
 
 .parameter-type {
-  font-size: 10.5px;
-  margin: 0 0 9px 0;
-  color: #666;
+  font-size: 0.75rem;
+  margin: 0 0 0.5rem 0;
+  color: #64748b;
   width: 90%;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-}
-
-
-.parameter-entry-atom::placeholder {
-  color: #bbb;
+  font-weight: 500;
 }

@@ -62,7 +62,7 @@ const ModuleBox = ({
         {/* Only render input sets section if there are input sets */}
         {inputSets && inputSets.length > 0 && (
           <div className="module-set-inputs">
-            <h4>Input Sets:</h4>
+            <h4>Input Sets</h4>
             {inputSets.map((set, sIndex) => (
               <SetInputBox
                 key={sIndex}

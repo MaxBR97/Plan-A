@@ -3,10 +3,13 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 1.5rem;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    min-height: 100vh;
+    width: 100%;
+    margin: 0;
     font-family: Arial, sans-serif;
-    max-width: 1050px;
-    margin: 0 auto;
+    /* max-width: 1050px; */
+    /* width: 90%; */
 }
 
 .page-title {
@@ -20,7 +23,7 @@
     display: grid;
     grid-template-columns: 30% 40% 30%;
     gap: 1.5rem;
-    width: 100%;
+    width: 83%;
     margin-top: 1.5rem;
 }
 
@@ -28,7 +31,7 @@
 .module-list-panel {
     background: #f8f9fa;
     border-radius: 6px;
-    padding: 1.125rem;
+    /* padding: 1.125rem; */
     box-shadow: 0 1.5px 3px rgba(0, 0, 0, 0.1);
     display: flex;
     flex-direction: column;

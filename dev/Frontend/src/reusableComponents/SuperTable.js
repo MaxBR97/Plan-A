@@ -157,6 +157,7 @@ const SuperTable = ({
 
       // Add to solutions
       const updatedSolutions = [...solutions, ...newSolutions];
+      console.log("old solutions: ", solutions, "new solutions: ", newSolutions, "updated solutions: ", updatedSolutions);
       
       if (onSolutionUpdate) {
         onSolutionUpdate(updatedSolutions);
@@ -364,6 +365,7 @@ function extractValuesInDisplayOrder(tuple) {
  * Toggle selection for tuples matching the filters
  */
 const toggleSelection = (filters) => {
+  
   if (selectionDisabled) return;
   // Find displayed solutions matching the filters
   const matchingDisplayed = filterByParentValues(displayedSolutions, filters);
@@ -479,6 +481,7 @@ const toggleSelection = (filters) => {
   };
 
 const applyEdit = () => {
+
   if (!editingCell) return;
   const { level, filters } = editingCell;
   
@@ -486,7 +489,7 @@ const applyEdit = () => {
   const editingDimension = displayStructure[level];
   const indexInSetStructure = setStructure.indexOf(editingDimension);
   if (indexInSetStructure === -1) return; // Dimension not found in set structure
-  
+
   // Find matching displayed solutions
   const matchingDisplayed = filterByParentValues(displayedSolutions, filters);
   
@@ -496,6 +499,7 @@ const applyEdit = () => {
   // Update all matching solutions
   const updatedSolutions = solutions.map(sol => {
     const isMatch = matchingOriginals.some(original => {
+
       // Compare only non-value parts
       const originalValues = original.values.filter((_, i) => 
         displayStructure.includes(setStructure[i]) && setStructure[i] !== valueSetName
@@ -515,8 +519,11 @@ const applyEdit = () => {
       const currentVal = sol.values[indexInSetStructure];
       const parsedEditValue = typeof currentVal === 'number' && editValue !== '' ? Number(editValue) : editValue;
       newValues[indexInSetStructure] = parsedEditValue;
+      console.log("1")
+      
       return { ...sol, values: newValues.slice(0,displayStructure.length) };
     }
+    console.log("2")
     
     return { ...sol, values: sol.values.slice(0,displayStructure.length) };
   });
@@ -553,7 +560,7 @@ const applyEdit = () => {
     // Update the selected tuples
     onSelectedTuplesChange(updatedSelectedTuples);
   }
-  console.log("Updated Solutions: ", updatedSolutions);
+  console.log("updatedSolutions: ", updatedSolutions);
   // Clear editing state
   setEditingCell(null);
   setEditValue("");

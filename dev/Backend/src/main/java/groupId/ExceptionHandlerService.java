@@ -14,6 +14,8 @@ import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.bind.support.WebExchangeBindException;
+import org.springframework.validation.FieldError;
 
 import DTO.Records.Requests.Responses.ExceptionDTO;
 
@@ -43,10 +45,23 @@ public class ExceptionHandlerService {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
     }
     
+    @ExceptionHandler(WebExchangeBindException.class)
+    public ResponseEntity<ExceptionDTO> handleValidationException(WebExchangeBindException ex) {
+        // Extract the first validation error message
+        String errorMessage = ex.getBindingResult().getFieldErrors().stream()
+            .map(FieldError::getDefaultMessage)
+            .findFirst()
+            .orElse("Validation failed");
+        
+        ExceptionDTO errorResponse = ExceptionRecordFactory.makeDTO(new BadRequestException(errorMessage));
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+    }
+    
     // Most generic catch-all handler
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ExceptionDTO> handleAll(Exception ex) {
-        ExceptionDTO errorResponse = ExceptionRecordFactory.makeDTO(ex);
+        ExceptionDTO errorResponse = ExceptionRecordFactory.makeDTO(new Exception("Error Occured."));
+        ex.printStackTrace();
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
     }
 }

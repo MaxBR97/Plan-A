@@ -27,7 +27,7 @@ const SolutionResultsPage = ({
 
   const pollIntervalMillisec = 3000;
   const [selectedVariable, setSelectedVariable] = useState(image?.variablesModule?.variablesOfInterest[0]?.identifier || undefined);
-  const [displayValue, setDisplayValue] = useState(true);
+  const [displayValue, setDisplayValue] = useState(!(image?.variablesModule?.variablesOfInterest[0]?.isBinary));
   const [customDisplayStructure, setCustomDisplayStructure] = useState(null);
   const [dynamicSolutions, setDynamicSolutions] = useState({});
   const [tableEditMode, setTableEditMode] = useState(false);
@@ -156,6 +156,8 @@ const SolutionResultsPage = ({
 
   // Update global selected tuples
   const updateSelectedTuples = (tuples) => {
+    console.log("dynamicSolutions", dynamicSolutions);
+    // console.log("updateSelectedTuples", tuples);
     setGlobalSelectedTuples(prev => ({
       ...prev,
       [selectedVariable]: tuples
@@ -189,9 +191,10 @@ const SolutionResultsPage = ({
         // Always set the first variable if none is selected or if the current selection is not valid
         const firstVariable = variables[0];
         const shouldSetVariable = !selectedVariable || !variables.includes(selectedVariable);
-        const initialDisplayValue = !isBinary(firstVariable);
-        setDisplayValue(initialDisplayValue);
+        
         if (shouldSetVariable) {
+          const initialDisplayValue = !isBinary(firstVariable);
+          setDisplayValue(initialDisplayValue);
           setSelectedVariable(firstVariable);
           setCustomDisplayStructure(null);
         }

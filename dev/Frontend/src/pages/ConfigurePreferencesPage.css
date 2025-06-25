@@ -4,8 +4,10 @@
     flex-direction: column;
     align-items: center;
     padding: 1.5rem;
-    max-width: 1050px;
-    margin: 0 auto;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    min-height: 100vh;
+    width: 100%;
+    margin: 0;
 }
 
 .page-title {
@@ -19,15 +21,15 @@
     display: grid;
     grid-template-columns: 35% 40% 25%;
     gap: 1.5rem;
-    width: 100%;
-    margin-bottom: 1.5rem;
+    width: 83%;
+    /* margin-bottom: 1.5rem; */
 }
 
 /* Module List Panel */
 .module-list-panel {
     background-color: #f8f9fa;
     border-radius: 6px;
-    padding: 1.125rem;
+    /* padding: 1.125rem; */
     box-shadow: 0 1.5px 3px rgba(0, 0, 0, 0.1);
     position: relative;
     overflow: visible;

@@ -883,7 +883,7 @@ public class ServiceTest {
         ).build();
         ResponseEntity<?> nullNameResponse = requestsManager.sendCreateImageRequest(nullNameRequest);
         ExceptionDTO nullNameError = expectError(nullNameResponse, HttpStatus.INTERNAL_SERVER_ERROR);
-        assertTrue(nullNameError.msg().toLowerCase().contains("name"), "Error should mention invalid name");
+        assertTrue(nullNameError.msg().toLowerCase().contains("name"), "Error should mention invalid name but was: " + nullNameError.msg());
 
         // Test Case 2: Empty image name
         CreateImageFromFileDTO emptyNameRequest = new CreateImageRequestBuilder(
@@ -895,7 +895,7 @@ public class ServiceTest {
         ).build();
         ResponseEntity<?> emptyNameResponse = requestsManager.sendCreateImageRequest(emptyNameRequest);
         ExceptionDTO emptyNameError = expectError(emptyNameResponse, HttpStatus.INTERNAL_SERVER_ERROR);
-        assertTrue(emptyNameError.msg().toLowerCase().contains("name"), "Error should mention invalid name");
+        assertTrue(emptyNameError.msg().toLowerCase().contains("name"), "Error should mention invalid name but was: " + emptyNameError.msg());
 
         // Test Case 3: Null description (should be allowed)
         CreateImageFromFileDTO nullDescRequest = new CreateImageRequestBuilder(
@@ -951,7 +951,7 @@ public class ServiceTest {
         );
         ResponseEntity<?> invalidUpdateResponse = requestsManager.sendConfigImageRequest(invalidUpdateRequest);
         ExceptionDTO invalidUpdateError = expectError(invalidUpdateResponse, HttpStatus.INTERNAL_SERVER_ERROR);
-        assertTrue(invalidUpdateError.msg().toLowerCase().contains("name"), "Error should mention invalid name");
+        assertTrue(invalidUpdateError.msg().toLowerCase().contains("name"), "Error should mention invalid name but was: " + invalidUpdateError.msg());
     }
 
     @Test
