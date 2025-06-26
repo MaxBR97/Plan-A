@@ -3,9 +3,10 @@
   padding: 15px;
   font-family: Arial, sans-serif;
   gap: 15px;
-  height: calc(100vh - 30px);
+  min-height: calc(100vh - 30px);
   width: 100%;
   box-sizing: border-box;
+  align-items: stretch;
 }
 
 /* Control Panel Styles */
@@ -21,7 +22,6 @@
   gap: 15px;
   overflow: visible;
   position: relative;
-  min-height: 0;
   flex-shrink: 0;
 }
 
@@ -30,13 +30,11 @@
   flex-direction: column;
   gap: 7.5px;
   overflow: visible;
-  min-height: 0;
 }
 
 .control-panel-section:last-child {
-  flex: 1;
-  min-height: 0;
-  overflow: hidden;
+  flex: 0 0 auto;
+  overflow: visible;
 }
 
 .section-header {
@@ -120,7 +118,6 @@
   flex-direction: column;
   min-width: 0;
   min-height: 0;
-  height: 100%; /* Ensure it takes full height */
 }
 
 .table-header {
@@ -452,14 +449,14 @@
 
 /* LogBoard Styles */
 .log-board {
-  margin-top: auto;
   background-color: white;
   border: 1px solid #ddd;
   border-radius: 3px;
   padding: 7.5px;
-  max-height: 160px;
   overflow-y: auto;
   font-size: 9.75px;
+  min-height: 100px;
+  max-height: 300px;
 }
 
 /* Processing Status */
