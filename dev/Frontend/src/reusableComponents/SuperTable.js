@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from "react";
 import "./SuperTable.css";
 
-const SuperTable = ({ 
+//This is a development variable to treat the value dimension as unique
+
+const treatValueDimensionAsUnique = false;
+const SuperTable = ({
   solutions = [], 
   setStructure, 
   displayStructure, 
@@ -76,7 +79,7 @@ const SuperTable = ({
           
           // Set the new dimension value
           baseValues[indexInSetStructure] = newDimName;
-          
+          console.log("4")
           newSolutions.push({
             values: baseValues,
             objectiveValue: defaultObjectiveValue
@@ -97,7 +100,7 @@ const SuperTable = ({
               baseValues[idx] = val;
             }
           });
-          
+          console.log("3")
           newSolutions.push({
             values: baseValues,
             objectiveValue: defaultObjectiveValue
@@ -127,7 +130,7 @@ const SuperTable = ({
                   baseValues[idx] = val;
                 }
               });
-              
+              console.log("2")
               // All deeper nested values remain as ""
               newSolutions.push({
                 values: baseValues,
@@ -135,6 +138,7 @@ const SuperTable = ({
               });
             });
           } else {
+            console.log("1")
             // If no column values exist, create a single empty entry
             const baseValues = Array(setStructure.length).fill("");
             baseValues[indexInSetStructure] = newDimName;
@@ -155,12 +159,21 @@ const SuperTable = ({
         }
       }
 
-      // Add to solutions
-      const updatedSolutions = [...solutions, ...newSolutions];
-      console.log("old solutions: ", solutions, "new solutions: ", newSolutions, "updated solutions: ", updatedSolutions);
+      //TODO: This is a temporary fix to avoid duplicates, see why duplicates
+      // are being added in the first place in newSolutions.
+
+      // Filter out duplicates from newSolutions before adding
+      const uniqueNewSolutions = newSolutions.filter((newSol, index, self) => 
+        index === self.findIndex(sol => 
+          JSON.stringify(sol.values) === JSON.stringify(newSol.values)
+        )
+      );
+      
+      const finalUpdatedSolutions = [...solutions, ...uniqueNewSolutions];
+      console.log("old solutions: ", solutions, "new solutions: ", uniqueNewSolutions, "updated solutions: ", finalUpdatedSolutions);
       
       if (onSolutionUpdate) {
-        onSolutionUpdate(updatedSolutions);
+        onSolutionUpdate(finalUpdatedSolutions);
       }
     } else {
       // Adding a new dimension
@@ -303,21 +316,21 @@ function findMatchingOriginalSolutions(filters, displayedSolutions) {
       // Build dimension -> value maps for both original and display solutions
       const originalMap = {};
       setStructure.forEach((dim, i) => {
-        if (dim !== valueSetName) {
+        if (!treatValueDimensionAsUnique || dim !== valueSetName) 
           originalMap[dim] = originalSol.values[i];
-        }
+        
       });
 
       const displayMap = {};
       displayStructure.forEach((dim, i) => {
-        if (dim !== valueSetName) {
+        if (!treatValueDimensionAsUnique || dim !== valueSetName) 
           displayMap[dim] = displaySol.values[i];
-        }
+        
       });
 
       // Compare all relevant dimensions in displayStructure
       return displayStructure.every(dim => {
-        if (dim === valueSetName) return true; // Skip value comparison
+        if (treatValueDimensionAsUnique &&dim === valueSetName) return true; // Skip value comparison
         return originalMap[dim] === displayMap[dim];
       });
     })
@@ -331,9 +344,9 @@ function findMatchingOriginalSolutions(filters, displayedSolutions) {
     displayStructure.forEach((dim, i) => {
       dimToValueMap[dim] = displaySol.values[i];
     });
-  
+    
     // Get the dimensions we're going to match on (excluding valueSetName)
-    const matchDims = displayStructure.filter(dim => dim !== valueSetName);
+    const matchDims = treatValueDimensionAsUnique ? displayStructure.filter(dim => dim !== valueSetName) : displayStructure;
   
     return selectedTuples.some(selected => {
       // Rebuild selected dim -> value based on setStructure
@@ -357,7 +370,7 @@ function extractValuesInDisplayOrder(tuple) {
   });
 
   return displayStructure
-    .filter(dim => dim !== valueSetName)
+    .filter(dim => !treatValueDimensionAsUnique || dim !== valueSetName)
     .map(dim => dimToVal[dim]);
 }
 
@@ -373,6 +386,7 @@ const toggleSelection = (filters) => {
 
   // Find corresponding original solutions
   const matchingOriginals = findMatchingOriginalSolutions(filters, displayedSolutions);
+  
   // Check if they're all selected already
   const allSelected = matchingOriginals.every(original =>
     selectedTuples.some(selected => {
@@ -410,7 +424,7 @@ const toggleSelection = (filters) => {
   }
 
   newSelection.forEach(obj => obj.values = obj.values.filter(v => v !== undefined));
-  
+
   if (onSelectedTuplesChange) {
     onSelectedTuplesChange(newSelection);
   }
@@ -495,18 +509,18 @@ const applyEdit = () => {
   
   // Find corresponding original solutions
   const matchingOriginals = findMatchingOriginalSolutions(filters, displayedSolutions);
-  console.log("Solutions: ", solutions);
+  // console.log("Solutions: ", solutions);
   // Update all matching solutions
   const updatedSolutions = solutions.map(sol => {
     const isMatch = matchingOriginals.some(original => {
 
       // Compare only non-value parts
       const originalValues = original.values.filter((_, i) => 
-        displayStructure.includes(setStructure[i]) && setStructure[i] !== valueSetName
+        displayStructure.includes(setStructure[i]) && (!treatValueDimensionAsUnique || setStructure[i] !== valueSetName)
       );
       
       const solValues = sol.values.filter((_, i) => 
-        displayStructure.includes(setStructure[i]) && setStructure[i] !== valueSetName
+        displayStructure.includes(setStructure[i]) && (!treatValueDimensionAsUnique || setStructure[i] !== valueSetName)
       );
       
       const minLength = Math.min(originalValues.length, solValues.length);
@@ -519,26 +533,24 @@ const applyEdit = () => {
       const currentVal = sol.values[indexInSetStructure];
       const parsedEditValue = typeof currentVal === 'number' && editValue !== '' ? Number(editValue) : editValue;
       newValues[indexInSetStructure] = parsedEditValue;
-      console.log("1")
       
       return { ...sol, values: newValues.slice(0,displayStructure.length) };
     }
-    console.log("2")
     
     return { ...sol, values: sol.values.slice(0,displayStructure.length) };
   });
-  
+  // console.log("inter updatedSolutions: ", updatedSolutions);
   // Also update any matching tuples in the selectedTuples array
   if (selectedTuples && onSelectedTuplesChange) {
     const updatedSelectedTuples = selectedTuples.map(selectedTuple => {
       const isMatch = matchingOriginals.some(original => {
         // Compare only non-value parts
         const originalValues = original.values.filter((_, i) => 
-          displayStructure.includes(setStructure[i]) && setStructure[i] !== valueSetName
+          displayStructure.includes(setStructure[i]) && (!treatValueDimensionAsUnique || setStructure[i] !== valueSetName)
         );
         
         const selectedValues = selectedTuple.values.filter((_, i) => 
-          displayStructure.includes(setStructure[i]) && setStructure[i] !== valueSetName
+          displayStructure.includes(setStructure[i]) && (!treatValueDimensionAsUnique || setStructure[i] !== valueSetName)
         );
         
         const minLength = Math.min(originalValues.length, selectedValues.length);
@@ -556,10 +568,11 @@ const applyEdit = () => {
       
       return selectedTuple;
     });
-    
+    console.log("3")
     // Update the selected tuples
     onSelectedTuplesChange(updatedSelectedTuples);
   }
+
   console.log("updatedSolutions: ", updatedSolutions);
   // Clear editing state
   setEditingCell(null);

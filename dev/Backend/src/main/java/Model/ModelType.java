@@ -21,9 +21,16 @@ public interface ModelType {
         if(element.matches("\".*\"")){
             return new String[]{element.substring(1, element.length()-1)};
         } else if (element.matches("<.*>")){
-            String[] splitted = element.substring(1, element.length()-1).split(",");
+            // Remove the outer angle brackets
+            String content = element.substring(1, element.length()-1);
+            
+            // Split by comma, but only when not inside quotes
+            // This regex matches commas that are not inside quotes
+            String[] splitted = content.split(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)");
+            
             for(String subPart : splitted){
-                String[] tmp = convertStringToAtoms(subPart);
+                String trimmedPart = subPart.trim();
+                String[] tmp = convertStringToAtoms(trimmedPart);
                 ans.addAll(List.of(tmp));
             }
             return ans.toArray(new String[0]);

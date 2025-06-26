@@ -15,12 +15,14 @@ const ModuleBox = ({
   handleTupleChange,
   handleParamChange,
   isRowSelected,
-  inputSets,
-  inputParams
+  inputSets = module.inputSets,
+  inputParams = module.inputParams,
+  variableValues,
+  paramValues
 }) => {
   // Add state for minimized status
   const [minimized, setMinimized] = useState(false);
-
+  const [nonCostParams, setNonCostParams] = useState(module.costParams ? inputParams.filter(param => !module.costParams.some(costParam => costParam.name === param.name)) : inputParams);
   // Toggle minimize/maximize
   const toggleMinimize = () => {
     setMinimized(!minimized);
@@ -63,36 +65,36 @@ const ModuleBox = ({
         {inputSets && inputSets.length > 0 && (
           <div className="module-set-inputs">
             <h4>Input Sets</h4>
-            {inputSets.map((set, sIndex) => (
+            {inputSets.map((set, sIndex) => ( 
               <SetInputBox
                 key={sIndex}
                 index={sIndex}
                 typeList={set.type}
                 tupleTags={set.tags || []}
-                setName={set.setName}
+                setName={set.name}
                 setAlias={set.alias}
                 handleAddTuple={handleAddTuple}
                 handleTupleChange={handleTupleChange}
                 handleTupleToggle={handleTupleToggle}
                 handleRemoveTuple={handleRemoveTuple}
                 isRowSelected={isRowSelected}
-                setValues={set.setValues}
+                setValues={variableValues[set.name] || []}
               />
             ))}
           </div>
         )}
 
         {/* Only render input parameters section if there are input parameters */}
-        {inputParams && inputParams.length > 0 && (
+        {nonCostParams && nonCostParams.length > 0 && (
           <div className="module-parameter-inputs">
             <h4>Input Parameters</h4>
-            {inputParams.map((param, pIndex) => (
+            {nonCostParams.map((param, pIndex) => (
               <ParameterInputBox
                 key={pIndex}
                 paramName={param.paramName}
                 paramAlias={param.alias}
                 type={param.type}
-                value={param.value}
+                value={paramValues[param.name] || ""}
                 onChange={handleParamChange}
               />
             ))}

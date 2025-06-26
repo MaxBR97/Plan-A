@@ -1,8 +1,7 @@
 .configure-menu-container {
-  /* max-width: 900px; */
   margin: 0 auto;
   padding: 1.5rem;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  background: #f3f8ff;
   min-height: 100vh;
 }
 
@@ -10,9 +9,9 @@
   text-align: center;
   margin-bottom: 2.25rem;
   background: rgba(255, 255, 255, 0.9);
-  border-radius: 12px;
+  border-radius: 4px;
   padding: 2rem;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
@@ -68,36 +67,19 @@
 
 .configure-menu-item {
   background: rgba(255, 255, 255, 0.95);
-  border-radius: 10px;
+  border-radius: 4px;
   padding: 1.5rem;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
-  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: background-color 0.2s ease;
   cursor: pointer;
   position: relative;
   overflow: hidden;
   border: 1px solid rgba(226, 232, 240, 0.8);
 }
 
-.configure-menu-item::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, #4299e1 0%, #3182ce 100%);
-  transform: scaleX(0);
-  transition: transform 0.2s ease;
-}
-
 .configure-menu-item:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  background-color: #f8f9fa;
   border-color: #4299e1;
-}
-
-.configure-menu-item:hover::before {
-  transform: scaleX(1);
 }
 
 .configure-menu-item h2 {
@@ -119,7 +101,7 @@
   right: 1rem;
   width: 28px;
   height: 28px;
-  background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
+  background: #4299e1;
   color: white;
   border-radius: 50%;
   display: flex;
@@ -127,7 +109,6 @@
   justify-content: center;
   font-weight: 600;
   font-size: 0.8rem;
-  box-shadow: 0 2px 6px rgba(66, 153, 225, 0.2);
 }
 
 .configure-menu-footer {
@@ -147,11 +128,11 @@
   padding: 0.75rem 1.5rem;
   font-size: 0.875rem;
   border: none;
-  border-radius: 6px;
+  border-radius: 3px;
   background: #e2e8f0;
   color: #4a5568;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background-color 0.2s ease;
   font-weight: 500;
   border: 1px solid #cbd5e0;
 }
@@ -159,25 +140,22 @@
 .quit-button:hover {
   background: #cbd5e0;
   color: #2d3748;
-  transform: translateY(-1px);
 }
 
 .finish-button {
   padding: 0.75rem 1.5rem;
   font-size: 0.875rem;
   border: none;
-  border-radius: 6px;
-  background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
+  border-radius: 3px;
+  background: #4299e1;
   color: white;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background-color 0.2s ease;
   font-weight: 500;
-  box-shadow: 0 2px 8px rgba(66, 153, 225, 0.2);
 }
 
 .finish-button:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(66, 153, 225, 0.3);
+  background: #3182ce;
 }
 
 .finish-button:disabled {
@@ -237,7 +215,7 @@
 .editable-field {
   position: relative;
   padding: 0.75rem;
-  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  /* background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%); */
   border: 1px solid #e9ecef;
   border-radius: 12px;
   cursor: pointer;
@@ -256,7 +234,7 @@
   margin: 0;
   font-size: 1.25rem;
   color: #2c3e50;
-  background: linear-gradient(135deg, #667eea 0%, #431d10 100%);
+  background: linear-gradient(135deg, #040a23 0%, #431d10 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -300,7 +278,7 @@
 
 .image-name input {
   font-size: 0.8rem;
-  color: #2c3e50;
+  color: #cc0f0f;
   font-weight: 600;
 }
 
@@ -317,8 +295,8 @@
 .image-name input:focus,
 .image-description textarea:focus {
   outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.2);
+  border-color: #000000;
+  box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.2);
   transform: translateY(-1px);
 }
 
@@ -329,7 +307,7 @@
 
 .image-name h2 {
   font-size: 1.5rem;
-  color: #0d58db;
+  color: #000000;
   margin: 0;
   display: inline-block;
   padding: 0.375rem 0.75rem;
@@ -369,7 +347,7 @@
 }
 
 .toggle-container input[type="checkbox"] {
-  accent-color: #3952c2;
+  accent-color: #000000;
   width: 1.0em;
   height: 1.1em;
   margin-right: 0.5em;

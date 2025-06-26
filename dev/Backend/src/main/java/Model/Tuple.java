@@ -60,7 +60,9 @@ public class Tuple implements ModelType {
         }
         
 
-        String[] elements = content.split(",");
+        // Split by comma, but only when not inside quotes
+        // This regex matches commas that are not inside quotes
+        String[] elements = content.split(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)");
         
 
         if (elements.length != val.size()) {

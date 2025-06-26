@@ -33,6 +33,7 @@ const MainPage = () => {
     const [searchLoading, setSearchLoading] = useState(false);
     const [error, setError] = useState(null);
     const [expandedDescriptions, setExpandedDescriptions] = useState({});
+    const [activeTab, setActiveTab] = useState('public'); // 'public' or 'my'
     
     const authInitialized = useRef(false);
     
@@ -105,13 +106,14 @@ const MainPage = () => {
     };
     
 
-    const toggleDescription = (imageId, event) => {
+    const toggleDescription = (imageId, panelType, event) => {
         if (event) {
             event.stopPropagation();
         }
+        const key = `${imageId}-${panelType}`;
         setExpandedDescriptions(prev => ({
             ...prev,
-            [imageId]: !prev[imageId]
+            [key]: !prev[key]
         }));
     };
 
@@ -200,6 +202,134 @@ const MainPage = () => {
         }
     };
 
+    const handleTabChange = (tab) => {
+        setActiveTab(tab);
+        if (tab === 'public') {
+            handleSearch(); // Refresh public images when switching to public tab
+        } else if (tab === 'my' && user.isLoggedIn) {
+            fetchImages(); // Refresh my images when switching to my tab
+        }
+    };
+
+    const renderPublicImagesTab = () => (
+        <div className="images-container">
+            <div className="search-container">
+                <div className="search-input-group">
+                    <input
+                        type="text"
+                        id="search-input"
+                        className="search-input"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        onKeyPress={handleSearchKeyPress}
+                        placeholder="Enter image name..."
+                    />
+                    <button 
+                        className="search-button"
+                        onClick={handleSearch}
+                        disabled={searchLoading}
+                    >
+                        {searchLoading ? 'Searching...' : 'Search'}
+                    </button>
+                </div>
+            </div>
+            {searchResults.length == 20 && (
+                <div className="no-images-message">
+                    Showing top 20 results.
+                </div>
+            )}
+            {searchResults.length > 0 && (
+                <div className="images-grid">
+                    {searchResults.map((image, index) => (
+                        <div 
+                            className="image-card" 
+                            key={image.imageId || index}
+                            onClick={() => navigateToImageDetails(image.imageId)}
+                            style={{ cursor: 'pointer' }}
+                        >
+                            <div className="image-card-header">
+                                <h3>{image.imageName}</h3>
+                            </div>
+                            <div className="image-card-content">
+                                <div className="image-info">
+                                    <div className={`description-container ${expandedDescriptions[`${image.imageId}-public`] ? 'expanded' : ''}`}> 
+                                        <p>{image.imageDescription}</p>
+                                    </div>
+                                    {image.imageDescription && image.imageDescription.length > 150 && (
+                                        <button 
+                                            className="read-more-button"
+                                            onClick={(e) => toggleDescription(image.imageId, 'public', e)}
+                                        >
+                                            {expandedDescriptions[`${image.imageId}-public`] ? 'Show less' : 'Read more'}
+                                        </button>
+                                    )}
+                                    <div className="image-owner">Owner: {image.owner || 'Unknown'}</div>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            )}
+            {searchResults.length === 0 && !searchLoading && (
+                <div className="no-images-message">
+                    No public images found. Try searching for something else.
+                </div>
+            )}
+        </div>
+    );
+
+    const renderMyImagesTab = () => (
+        <div className="images-container">
+            {loading && <div className="loading-spinner">Loading images...</div>}
+            
+            {!loading && !error && myImages.length === 0 && (
+                <div className="no-images-message">
+                    No images found. {user.isLoggedIn ? 'Create your first image by clicking the button below.' : 'Please log in to create images.'}
+                </div>
+            )}
+
+            <div className="images-grid">
+                {myImages.map((image, index) => (
+                    <div 
+                        className="image-card" 
+                        key={image.imageId || index}
+                        onClick={() => navigateToImageDetails(image.imageId)}
+                        style={{ cursor: 'pointer' }}
+                    >
+                        <div className="image-card-header">
+                            <h3>{image.imageName}</h3>
+                            {user.isLoggedIn && (
+                                <button 
+                                    className="delete-button"
+                                    onClick={(e) => handleDeleteImage(image.imageId, e)}
+                                    aria-label="Delete image"
+                                >
+                                    ×
+                                </button>
+                            )}
+                        </div>
+                        <div className="image-card-content">
+                            <div className="image-info">
+                                <div className={`description-container ${expandedDescriptions[`${image.imageId}-my`] ? 'expanded' : ''}`}> 
+                                    <p>{image.imageDescription}</p>
+                                </div>
+                                {image.imageDescription && image.imageDescription.length > 150 && (
+                                    <button 
+                                        className="read-more-button"
+                                        onClick={(e) => toggleDescription(image.imageId, 'my', e)}
+                                    >
+                                        {expandedDescriptions[`${image.imageId}-my`] ? 'Show less' : 'Read more'}
+                                    </button>
+                                )}
+                                <div className="image-owner">Owner: {image.owner || 'Unknown'}</div>
+                            </div>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+
     return (
         <div className="main-page">
             <div className="auth-section">
@@ -218,133 +348,32 @@ const MainPage = () => {
             
             <p className="main-description">
                 Welcome to Plan A! Here you can manage your optimization problems by creating new images or working with existing ones.
-                Each image represents a unique optimization problem with its own configuration. Choose one to get started, or   a new one.
+                Each image represents a unique optimization problem with its own configuration. Choose one to get started, or create a new one.
             </p>
 
-            <div className="my-images-container">
-                <div className="my-images-header">
-                    <label htmlFor="search-input" className="search-label">Public Images</label>
-                </div>
-                <div className="search-container">
-                    <div className="search-input-group">
-                        <input
-                            type="text"
-                            id="search-input"
-                            className="search-input"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            onKeyPress={handleSearchKeyPress}
-                            placeholder="Enter image name..."
-                        />
-                        <button 
-                            className="search-button"
-                            onClick={handleSearch}
-                            disabled={searchLoading}
-                        >
-                            {searchLoading ? 'Searching...' : 'Search'}
-                        </button>
-                    </div>
-                </div>
-                {searchResults.length == 20 && (
-                    <div className="no-images-message">
-                        Showing top 20 results.
-                    </div>
-                )}
-                {searchResults.length > 0 && (
-                    <div className="images-grid">
-                        {searchResults.map((image, index) => (
-                            <div 
-                                className="image-card" 
-                                key={image.imageId || index}
-                                onClick={() => navigateToImageDetails(image.imageId)}
-                                style={{ cursor: 'pointer' }}
-                            >
-                                <div className="image-card-header">
-                                    <h3>{image.imageName}</h3>
-                                </div>
-                                <div className="image-card-content">
-                                    <div className="image-info">
-                                        <div className={`description-container ${expandedDescriptions[image.imageId] ? 'expanded' : ''}`}> 
-                                            <p>{image.imageDescription}</p>
-                                        </div>
-                                        {image.imageDescription && image.imageDescription.length > 150 && (
-                                            <button 
-                                                className="read-more-button"
-                                                onClick={(e) => toggleDescription(image.imageId, e)}
-                                            >
-                                                {expandedDescriptions[image.imageId] ? 'Show less' : 'Read more'}
-                                            </button>
-                                        )}
-                                        <div className="image-owner">Owner: {image.owner || 'Unknown'}</div>
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                )}
-            </div>
-            <div className="my-images-container">
-                <div className="my-images-header">
-                    <h2>My Images</h2>
+            {/* Tabs */}
+            <div className="tabs-container">
+                <div className="tabs">
                     <button 
-                        className="refresh-button"
-                        onClick={() => user.isLoggedIn ? fetchImages() : null}
-                        disabled={loading}
+                        className={`tab ${activeTab === 'public' ? 'active' : ''}`}
+                        onClick={() => handleTabChange('public')}
                     >
-                        Refresh
+                        Public Images
+                    </button>
+                    <button 
+                        className={`tab ${activeTab === 'my' ? 'active' : ''}`}
+                        onClick={() => handleTabChange('my')}
+                        disabled={!user.isLoggedIn}
+                    >
+                        My Images
                     </button>
                 </div>
-    
-                {loading && <div className="loading-spinner">Loading images...</div>}
-                
-                {error && <ErrorDisplay error={error} onClose={() => setError(null)} />}
-                
-                {!loading && !error && myImages.length === 0 && (
-                    <div className="no-images-message">
-                        No images found. {user.isLoggedIn ? 'Create your first image by clicking the button below.' : 'Please log in to create images.'}
-                    </div>
-                )}
-    
-                <div className="images-grid">
-                    {myImages.map((image, index) => (
-                        <div 
-                            className="image-card" 
-                            key={image.imageId || index}
-                            onClick={() => navigateToImageDetails(image.imageId)}
-                            style={{ cursor: 'pointer' }}
-                        >
-                            <div className="image-card-header">
-                                <h3>{image.imageName}</h3>
-                                {user.isLoggedIn && (
-                                    <button 
-                                        className="delete-button"
-                                        onClick={(e) => handleDeleteImage(image.imageId, e)}
-                                        aria-label="Delete image"
-                                    >
-                                        ×
-                                    </button>
-                                )}
-                            </div>
-                            <div className="image-card-content">
-                                <div className="image-info">
-                                    <div className={`description-container ${expandedDescriptions[image.imageId] ? 'expanded' : ''}`}> 
-                                        <p>{image.imageDescription}</p>
-                                    </div>
-                                    {image.imageDescription && image.imageDescription.length > 150 && (
-                                        <button 
-                                            className="read-more-button"
-                                            onClick={(e) => toggleDescription(image.imageId, e)}
-                                        >
-                                            {expandedDescriptions[image.imageId] ? 'Show less' : 'Read more'}
-                                        </button>
-                                    )}
-                                    <div className="image-owner">Owner: {image.owner || 'Unknown'}</div>
-                                </div>
-                            </div>
-                        </div>
-                    ))}
-                </div>
             </div>
+
+            {error && <ErrorDisplay error={error} onClose={() => setError(null)} />}
+            
+            {activeTab === 'public' && renderPublicImagesTab()}
+            {activeTab === 'my' && renderMyImagesTab()}
             
             <div className="footer-button-container">
                 {user.isLoggedIn ? (

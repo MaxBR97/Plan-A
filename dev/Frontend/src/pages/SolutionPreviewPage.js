@@ -29,7 +29,8 @@ const SolutionPreviewPage = ({isDesktop=false}) => {
     updateSolutionResponse,
     initialImageState,
     fetchAndSetImage,
-    deleteImage
+    deleteImage,
+    clearError
   } = useZPL();
 
   const [variableValues, setVariableValues] = useState({});
@@ -47,12 +48,25 @@ const SolutionPreviewPage = ({isDesktop=false}) => {
   const [showResults, setShowResults] = useState(false);
   const [activeTab, setActiveTab] = useState(null);
   const [isHeaderSticky, setIsHeaderSticky] = useState(true);
+  const [isLoadingImage, setIsLoadingImage] = useState(false);
+  const [isLoadingInputs, setIsLoadingInputs] = useState(false);
   const resultsRef = useRef(null);
   const headerRef = useRef(null);
   const navigate = useNavigate(); 
   const isImageFetched = useRef(false);
   const isImageSet = useRef(false);
   const debounceTimeout = useRef();
+
+  const fetchAndSetImageWithLoading = async () => {
+    try {
+      setIsLoadingImage(true);
+      await fetchAndSetImage();
+    } catch (error) {
+      console.error("Error fetching image:", error);
+    } finally {
+      setIsLoadingImage(false);
+    }
+  };
 
   const handleAddValue = (setName) => {
     setVariableValues((prev) => ({
@@ -219,6 +233,7 @@ const SolutionPreviewPage = ({isDesktop=false}) => {
 
 const loadInputs = async () => {
   try {
+      setIsLoadingInputs(true);
       console.log("fetching inputs from: ", image.imageId)
       // GET /api/images/{id}/inputs
       const response = await axios.get(`/api/images/${image.imageId}/inputs`);
@@ -227,7 +242,6 @@ const loadInputs = async () => {
       console.log("load input response: ", data)
       const allParamsMap = getAllParams(image);
       const allSetsMap = getAllSets(image);
-      console.log("allParamsMap: ", allParamsMap)
       const filteredParamsToValues = Object.keys(data.paramsToValues)
           .filter((paramKey) => allParamsMap.has(paramKey))
           .reduce((filteredObject, paramKey) => {
@@ -248,16 +262,18 @@ const loadInputs = async () => {
       Object.keys(data.setsToValues).forEach((setName) => {
         preSelectedVariables[setName] = data.setsToValues[setName].map((_, index) => index);
       });
-
-    setSelectedVariableValues(preSelectedVariables);
+ 
+      setSelectedVariableValues(preSelectedVariables);
       
   } catch (error) {
       console.error("Error fetching inputs:", error);
+  } finally {
+      setIsLoadingInputs(false);
   }
 };
 
 useEffect(() => {
-    fetchAndSetImage();
+    fetchAndSetImageWithLoading();
     isImageFetched.current = true;
 }, []);
 
@@ -392,29 +408,6 @@ useEffect(() => {
           <div className="module-section">
             {constraintModules.length > 0 ? (
               constraintModules.map((module, index) => {
-                let inputSets = [];
-                let inputParams = [];
-                
-                module.inputSets.forEach((setDef) => {
-                  const inputSet = {
-                    setName: setDef.name,
-                    type: setDef.type,
-                    tags: setDef.type,
-                    alias: setDef.alias,
-                    setValues: variableValues[setDef.name] || [],
-                  };
-                  inputSets = [...inputSets, inputSet];
-                });
-                
-                module.inputParams.forEach((paramDef) => {
-                  const inputParam = {
-                    paramName: paramDef.name,
-                    value: paramValues[paramDef.name] || "",
-                    type: paramDef.type,
-                    alias: paramDef.alias,
-                  };
-                  inputParams = [...inputParams, inputParam];
-                });
                 
                 return (
                   <ModuleBox
@@ -429,8 +422,8 @@ useEffect(() => {
                     handleTupleChange={handleVariableChange}
                     handleParamChange={handleParamChange}
                     isRowSelected={isRowSelected}
-                    inputSets={inputSets}
-                    inputParams={inputParams}
+                    variableValues={variableValues}
+                    paramValues={paramValues}
                   />
                 );
               })
@@ -446,28 +439,7 @@ useEffect(() => {
             {preferenceModules.length > 0 ? (
               <>
                 {preferenceModules.map((module, index) => {
-                  let inputSets = [];
-                  let inputParams = [];
-                  
-                  module.inputSets.forEach((setDef) => {
-                    const inputSet = {
-                      setName: setDef.name,
-                      type: setDef.type,
-                      tags: setDef.type,
-                      setValues: variableValues[setDef.name] || [],
-                    };
-                    inputSets = [...inputSets, inputSet];
-                  });
-                  
-                  module.inputParams.forEach((paramDef) => {
-                    const inputParam = {
-                      paramName: paramDef.name,
-                      value: paramValues[paramDef.name] || "",
-                      type: paramDef.type,
-                    };
-                    inputParams = [...inputParams, inputParam];
-                  });
-                  
+
                   return (
                     <ModuleBox
                       key={index}
@@ -481,8 +453,8 @@ useEffect(() => {
                       handleTupleChange={handleVariableChange}
                       handleParamChange={handleParamChange}
                       isRowSelected={isRowSelected}
-                      inputSets={inputSets}
-                      inputParams={inputParams}
+                      variableValues={variableValues}
+                      paramValues={paramValues}
                     />
                   );
                 })}
@@ -558,13 +530,25 @@ useEffect(() => {
 
   return (
     <div className="solution-preview-page">
+      {/* Loading Overlay */}
+      {(isLoadingImage || isLoadingInputs) && (
+        <div className="loading-overlay">
+          <div className="loading-spinner">
+            <div className="spinner"></div>
+            <p className="loading-text">
+              {isLoadingImage ? "Loading image..." : "Loading inputs..."}
+            </p>
+          </div>
+        </div>
+      )}
+      
       <div className="page-header" >
         {(!image.isConfigured || image.isConfigured === undefined) && (
           <h1 className="preview-title">Image Preview</h1>
         )}
         <h1 className="page-title">{image.imageName}</h1>
         <p className="image-description">{image.imageDescription}</p>
-        {error && <ErrorDisplay error={error} />}
+        {error && <ErrorDisplay error={error} onClose={clearError} />}
         <div className="tab-bar">
           <button
             className={`tab-button ${activeTab === 'variables' ? 'active' : ''} ${!hasVariablesContent() ? 'disabled' : ''}`}
@@ -611,7 +595,6 @@ useEffect(() => {
 
       <button className="home-button" onClick={() => {
         if(image.isConfigured) {
-          console.log("image is configured")
           navigate("/")
         } else {
           deleteImage()

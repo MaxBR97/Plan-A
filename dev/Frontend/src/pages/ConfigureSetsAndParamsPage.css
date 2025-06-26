@@ -1,8 +1,7 @@
 .configure-sets-params-page {
-    /* max-width: 1200px; */
     margin: 0 auto;
     padding: 1.5rem;
-    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    background: #f5f7fa;
     min-height: 100vh;
 }
 
@@ -29,38 +28,19 @@
     margin-bottom: 1.5rem;
     background: rgba(255, 255, 255, 0.95);
     padding: 1.5rem;
-    border-radius: 10px;
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     width: 100%;
     box-sizing: border-box;
     border: 1px solid rgba(226, 232, 240, 0.8);
-    transition: all 0.2s ease;
+    transition: background-color 0.2s ease;
     position: relative;
     overflow: visible;
 }
 
-.sets-section::before,
-.params-section::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 3px;
-    background: linear-gradient(90deg, #4299e1 0%, #3182ce 100%);
-    transform: scaleX(0);
-    transition: transform 0.2s ease;
-}
-
-.sets-section:hover::before,
-.params-section:hover::before {
-    transform: scaleX(1);
-}
-
 .sets-section:hover,
 .params-section:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    background-color: #f8f9fa;
     border-color: #4299e1;
 }
 
@@ -112,19 +92,18 @@
     background: rgba(255, 255, 255, 0.8);
     padding: 1rem;
     padding-right: 0px;
-    border-radius: 8px;
+    border-radius: 3px;
     margin-bottom: 0.75rem;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     width: 98%;
     box-sizing: border-box;
     border: 1px solid rgba(226, 232, 240, 0.6);
-    transition: all 0.2s ease;
+    transition: background-color 0.2s ease;
 }
 
 .item-card:hover {
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+    background-color: #f8f9fa;
     border-color: rgba(66, 153, 225, 0.2);
-    transform: translateY(-1px);
 }
 
 .item-card h3 {
@@ -170,17 +149,17 @@
     flex: 1;
     padding: 0.5rem;
     border: 1px solid #e2e8f0;
-    border-radius: 6px;
+    border-radius: 3px;
     font-size: 0.75rem;
     background: rgba(255, 255, 255, 0.9);
     max-width: 160px;
-    transition: all 0.2s ease;
+    transition: border-color 0.2s ease;
 }
 
 .alias-group input:focus {
     outline: none;
     border-color: #4299e1;
-    box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
+    box-shadow: 0 0 0 1px rgba(66, 153, 225, 0.1);
 }
 
 .tag-inputs-container {
@@ -236,86 +215,76 @@
 .tag-input-group input:focus {
     outline: none;
     border-color: #4299e1;
-    box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
+    box-shadow: 0 0 0 1px rgba(66, 153, 225, 0.1);
 }
 
-/* Scope the global input styles to only affect this page's components, not SetEntry */
 .configure-sets-params-page input[type="text"] {
     width: 100%;
     padding: 0.5rem;
     border: 1px solid #e2e8f0;
-    border-radius: 6px;
+    border-radius: 3px;
     font-size: 0.75rem;
     background: rgba(255, 255, 255, 0.9);
-    box-sizing: border-box;
-    transition: all 0.2s ease;
+    transition: border-color 0.2s ease;
 }
 
 .configure-sets-params-page input[type="text"]:focus {
     outline: none;
     border-color: #4299e1;
-    box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
+    box-shadow: 0 0 0 1px rgba(66, 153, 225, 0.1);
 }
 
 .navigation-buttons {
     display: flex;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
     justify-content: center;
-    margin-top: 2rem;
 }
 
 .continue-button,
 .back-button {
     padding: 0.75rem 1.5rem;
+    border-radius: 3px;
     font-size: 0.875rem;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: all 0.2s ease;
     font-weight: 500;
-    text-decoration: none;
-    display: inline-block;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    border: none;
 }
 
 .continue-button {
-    background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
+    background: #4299e1;
     color: white;
-    box-shadow: 0 2px 8px rgba(66, 153, 225, 0.2);
+    text-decoration: none;
 }
 
 .continue-button:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(66, 153, 225, 0.3);
-    text-decoration: none;
-    color: white;
+    background: #3182ce;
 }
 
 .back-button {
-    background: #e2e8f0;
-    color: #4a5568;
-    border: 1px solid #cbd5e0;
-    margin-right: 0.75rem;
+    background: #6c757d;
+    color: white;
 }
 
 .back-button:hover {
-    background: #cbd5e0;
-    color: #2d3748;
-    transform: translateY(-1px);
+    background: #5a6268;
 }
 
 .no-data-message {
     text-align: center;
-    color: #64748b;
-    font-style: italic;
     padding: 2rem;
+    color: #6c757d;
+    font-style: italic;
     background: rgba(255, 255, 255, 0.5);
-    border-radius: 8px;
-    border: 1px dashed #cbd5e0;
+    border-radius: 3px;
+    border: 1px dashed #dee2e6;
 }
 
 .tags-group {
-    margin-top: 0.75rem;
-    padding-top: 0.75rem;
-    border-top: 1px solid #e2e8f0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
 }
 
 @media (max-width: 960px) {

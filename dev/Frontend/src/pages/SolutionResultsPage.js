@@ -153,11 +153,11 @@ const SolutionResultsPage = ({
       [selectedVariable]: []
     }));
   };
-
+  console.log("globalSelectedTuples", globalSelectedTuples);
   // Update global selected tuples
   const updateSelectedTuples = (tuples) => {
     console.log("dynamicSolutions", dynamicSolutions);
-    // console.log("updateSelectedTuples", tuples);
+    console.log("updateSelectedTuples", tuples);
     setGlobalSelectedTuples(prev => ({
       ...prev,
       [selectedVariable]: tuples

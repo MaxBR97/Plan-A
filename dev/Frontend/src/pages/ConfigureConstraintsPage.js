@@ -306,8 +306,25 @@ const ConfigureConstraintsPage = () => {
         navigate('/configuration-menu');
     };
 
-    const handlePageClick = () => {
-        // Clear the form and selection when clicking outside
+    const handleCancel = () => {
+        // Only restore constraints to available list if we're creating a new module (not editing)
+        if (selectedModuleIndex === null && selectedConstraints.length > 0) {
+            const constraintsToRestore = selectedConstraints.map(constraintId => 
+                Array.from(model.constraints).find(c => c.identifier === constraintId)
+            ).filter(Boolean);
+            
+            setAvailableConstraints(prev => {
+                const updated = [...prev];
+                constraintsToRestore.forEach(constraint => {
+                    if (!prev.some(c => c.identifier === constraint.identifier)) {
+                        updated.push(constraint);
+                    }
+                });
+                return updated;
+            });
+        }
+        
+        // Clear the form and selection
         setSelectedModuleIndex(null);
         setModuleName('');
         setModuleDescription('');
@@ -316,6 +333,10 @@ const ConfigureConstraintsPage = () => {
         setInvolvedParams([]);
         setSelectedSets([]);
         setSelectedParams([]);
+    };
+
+    const handlePageClick = () => {
+        // Do nothing when clicking outside - removed cancel functionality
     };
 
     const handleModuleClick = (e) => {
@@ -452,6 +473,14 @@ const ConfigureConstraintsPage = () => {
                         >
                             {selectedModuleIndex === null ? 'Create Module' : 'Update Module'}
                         </button>
+                        {(selectedModuleIndex !== null || selectedConstraints.length > 0) && (
+                            <button 
+                                className="cancel-button"
+                                onClick={handleCancel}
+                            >
+                                Cancel
+                            </button>
+                        )}
                     </div>
                 </div>
 

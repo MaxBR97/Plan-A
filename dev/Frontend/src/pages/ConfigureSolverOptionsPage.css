@@ -1,8 +1,7 @@
 .configure-solver-container {
-  /* max-width: 750px; */
   margin: 0 auto;
   padding: 1.5rem;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  background: #f5f7fa;
   min-height: 100vh;
 }
 
@@ -10,33 +9,16 @@ section {
   margin-bottom: 2rem;
   background: rgba(255, 255, 255, 0.95);
   padding: 1.5rem;
-  border-radius: 10px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   border: 1px solid rgba(226, 232, 240, 0.8);
-  transition: all 0.2s ease;
+  transition: background-color 0.2s ease;
   position: relative;
   overflow: visible;
 }
 
-section::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, #4299e1 0%, #3182ce 100%);
-  transform: scaleX(0);
-  transition: transform 0.2s ease;
-}
-
-section:hover::before {
-  transform: scaleX(1);
-}
-
 section:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  background-color: #f8f9fa;
   border-color: #4299e1;
 }
 
@@ -68,15 +50,13 @@ h2 {
 .setting-option {
   padding: 1rem;
   background: rgba(255, 255, 255, 0.8);
-  border-radius: 8px;
-  transition: all 0.2s ease;
+  border-radius: 3px;
+  transition: background-color 0.2s ease;
   border: 1px solid rgba(226, 232, 240, 0.6);
 }
 
 .setting-option:hover {
   background: rgba(255, 255, 255, 0.95);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  transform: translateY(-1px);
   border-color: rgba(66, 153, 225, 0.2);
 }
 
@@ -123,14 +103,14 @@ h2 {
 .custom-script-pair {
   background: rgba(255, 255, 255, 0.8);
   border: 1px solid rgba(226, 232, 240, 0.6);
-  border-radius: 8px;
+  border-radius: 3px;
   padding: 1rem;
-  transition: all 0.2s ease;
+  transition: background-color 0.2s ease;
 }
 
 .custom-script-pair:hover {
+  background-color: #f8f9fa;
   border-color: rgba(66, 153, 225, 0.2);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .script-header {
@@ -144,39 +124,39 @@ h2 {
   flex-grow: 1;
   padding: 0.5rem;
   border: 1px solid #e2e8f0;
-  border-radius: 6px;
+  border-radius: 3px;
   font-size: 0.75rem;
   margin-right: 0.5rem;
   background: rgba(255, 255, 255, 0.9);
-  transition: all 0.2s ease;
+  transition: border-color 0.2s ease;
 }
 
 .script-name-input:focus {
   outline: none;
   border-color: #4299e1;
-  box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
+  box-shadow: 0 0 0 1px rgba(66, 153, 225, 0.1);
 }
 
 .script-content-textarea {
   width: 100%;
   padding: 0.75rem;
   border: 1px solid #e2e8f0;
-  border-radius: 6px;
+  border-radius: 3px;
   font-family: monospace;
   font-size: 0.75rem;
   resize: vertical;
   background: rgba(255, 255, 255, 0.9);
-  transition: all 0.2s ease;
+  transition: border-color 0.2s ease;
 }
 
 .script-content-textarea:focus {
   outline: none;
   border-color: #4299e1;
-  box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
+  box-shadow: 0 0 0 1px rgba(66, 153, 225, 0.1);
 }
 
 .remove-script-btn {
-  background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%);
+  background: #e53e3e;
   color: white;
   border: none;
   border-radius: 50%;
@@ -187,65 +167,51 @@ h2 {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: background-color 0.2s ease;
 }
 
 .remove-script-btn:hover {
-  background: linear-gradient(135deg, #c53030 0%, #a52a2a 100%);
-  transform: scale(1.05);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  background: #c53030;
 }
 
 .add-script-btn {
-  background: linear-gradient(135deg, #38a169 0%, #2f855a 100%);
+  background: #4299e1;
   color: white;
   border: none;
-  padding: 0.75rem 1rem;
-  border-radius: 6px;
+  border-radius: 3px;
+  padding: 0.5rem 1rem;
   font-size: 0.875rem;
   cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  transition: all 0.2s ease;
-  margin-top: 1rem;
+  transition: background-color 0.2s ease;
   font-weight: 500;
-  box-shadow: 0 2px 8px rgba(56, 161, 105, 0.2);
 }
 
 .add-script-btn:hover {
-  background: linear-gradient(135deg, #2f855a 0%, #276749 100%);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(56, 161, 105, 0.3);
+  background: #3182ce;
 }
 
-/* Navigation */
 .navigation-buttons {
   display: flex;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
   justify-content: center;
-  margin-top: 2rem;
 }
 
 .continue-button {
-  background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
+  background: #4299e1;
   color: white;
-  text-decoration: none;
-  padding: 0.75rem 1.5rem;
-  border-radius: 6px;
-  font-weight: 500;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 8px rgba(66, 153, 225, 0.2);
   border: none;
-  cursor: pointer;
+  border-radius: 3px;
+  padding: 0.75rem 1.5rem;
   font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  text-decoration: none;
 }
 
 .continue-button:hover {
-  background: linear-gradient(135deg, #3182ce 0%, #2c5282 100%);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(66, 153, 225, 0.3);
-  text-decoration: none;
-  color: white;
+  background: #3182ce;
 }
 
 /* Responsive adjustments */

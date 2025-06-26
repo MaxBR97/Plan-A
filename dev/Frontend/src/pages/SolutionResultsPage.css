@@ -3,7 +3,7 @@
   padding: 15px;
   font-family: Arial, sans-serif;
   gap: 15px;
-  height: calc(150vh - 30px);
+  height: calc(100vh - 30px);
   width: 100%;
   box-sizing: border-box;
 }

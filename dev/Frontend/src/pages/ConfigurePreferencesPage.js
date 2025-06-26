@@ -380,8 +380,23 @@ const ConfigurePreferencesPage = () => {
         setSelectedCostParam(paramName);
     };
 
-    const handlePageClick = () => {
-        // Clear the form and selection when clicking outside
+    const handleCancel = () => {
+        // Only restore preference to available list if we're creating a new module (not editing)
+        if (selectedModuleIndex === null && selectedPreference) {
+            const preferenceObj = Array.from(model.preferences)
+                .find(p => p.identifier === selectedPreference);
+            if (preferenceObj) {
+                setAvailablePreferences(prev => {
+                    const updated = [...prev];
+                    if (!prev.some(p => p.identifier === preferenceObj.identifier)) {
+                        updated.push(preferenceObj);
+                    }
+                    return filterDuplicatePreferences(updated);
+                });
+            }
+        }
+        
+        // Clear the form and selection
         setSelectedModuleIndex(null);
         setModuleName('');
         setModuleDescription('');
@@ -391,6 +406,10 @@ const ConfigurePreferencesPage = () => {
         setInvolvedParams([]);
         setSelectedSets([]);
         setSelectedParams([]);
+    };
+
+    const handlePageClick = () => {
+        // Do nothing when clicking outside - removed cancel functionality
     };
 
     const handleModuleClick = (e) => {
@@ -550,6 +569,14 @@ const ConfigurePreferencesPage = () => {
                         >
                             {selectedModuleIndex === null ? 'Create Module' : 'Update Module'}
                         </button>
+                        {(selectedModuleIndex !== null || selectedPreference) && (
+                            <button 
+                                className="cancel-button"
+                                onClick={handleCancel}
+                            >
+                                Cancel
+                            </button>
+                        )}
                     </div>
                 </div>
 
