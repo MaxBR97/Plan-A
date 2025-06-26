@@ -81,7 +81,7 @@
     left: 0;
     width: 60px;
     height: 2px;
-    background: linear-gradient(90deg, #3b82f6 0%, #0ea5e9 100%);
+    /* background: linear-gradient(90deg, #000000 0%, #0ea5e9 100%); */
   }
   
   .section-title {
@@ -163,7 +163,7 @@
     left: 0;
     right: 0;
     height: 3px;
-    background: linear-gradient(90deg, #020303 0%, #ed0000 50%, #000000 100%);
+    background: linear-gradient(90deg, #2c79ff 0%, #ed0000 50%, #000000 100%);
     border-radius: 12px 12px 0 0;
   }
   

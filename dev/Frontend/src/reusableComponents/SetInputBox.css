@@ -166,7 +166,8 @@
   /* Account for checkbox and delete button space */
   margin-left: 26px; /* Space for checkbox (approximately 16px + 10px margin) */
   margin-right: 26px; /* Space for delete button (approximately 20px + 6px margin) */
-  width: calc(100% - 52px); /* Subtract total space for checkbox and delete button */
+  width: calc(100% - 70px); /* Subtract total space for checkbox and delete button */
+  background-color: #a0c6ff;
 }
 
 .tag-label {
