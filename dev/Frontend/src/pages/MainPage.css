@@ -7,13 +7,43 @@
 }
 
 .main-title {
-    font-size: 2.5rem;
-    color: #2d3748;
-    margin-bottom: 1rem;
+    font-size: 3.2rem;
+    color: #2c3e50;
+    margin-bottom: 1.5rem;
     text-align: center;
-    font-weight: 700;
-    letter-spacing: -1px;
+    font-weight: 300;
+    letter-spacing: 4px;
     position: relative;
+    font-family: 'Playfair Display', 'Georgia', serif;
+    text-transform: uppercase;
+    background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    padding: 0.5rem 0;
+    transition: all 0.4s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.main-title::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+    transition: left 0.5s ease;
+}
+
+.main-title:hover::before {
+    left: 100%;
+}
+
+.main-title:hover {
+    transform: translateY(-1px);
+    text-shadow: 0 2px 4px rgba(44, 62, 80, 0.1);
 }
 
 .main-title::after {
@@ -23,9 +53,14 @@
     left: 50%;
     transform: translateX(-50%);
     width: 60px;
-    height: 3px;
-    background: #4299e1;
-    border-radius: 2px;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #34495e, transparent);
+    border-radius: 1px;
+    transition: width 0.3s ease;
+}
+
+.main-title:hover::after {
+    width: 80px;
 }
 
 .main-description {
