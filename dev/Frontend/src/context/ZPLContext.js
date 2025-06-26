@@ -175,6 +175,11 @@ export const ZPLProvider = ({ children, initialState = {} }) => {
     });
   };
 
+  // Function to clear error
+  const clearError = () => {
+    setError(null);
+  };
+
   const fetchAndSetImage = async (imageId) => {
     try {
       const response = await axios.get(`/api/images/${imageId ? imageId : image.imageId}`);
@@ -227,6 +232,7 @@ export const ZPLProvider = ({ children, initialState = {} }) => {
         resetImage,
         resetModel,
         resetSolutionResponse,
+        clearError,
         fetchAndSetImage,
         deleteImage,
         patchImage

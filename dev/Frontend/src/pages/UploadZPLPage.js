@@ -108,7 +108,7 @@ minimize objective: sum <item> in ExampleSet : ExampleVar[item];`);
 
     return (
         <div className="upload-zpl-page">
-            <h1 className="page-title">Create a model</h1>
+            <h1 className="page-title">Create A Model</h1>
             <p className="page-description">
                 Create a new model. Write your model's core logic in ZIMPL language: <a href="https://zimpl.zib.de/download/zimpl.pdf" target="_blank" rel="noopener noreferrer">https://zimpl.zib.de/download/zimpl.pdf</a>
             </p>

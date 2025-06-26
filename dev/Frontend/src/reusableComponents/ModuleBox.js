@@ -22,8 +22,7 @@ const ModuleBox = ({
 }) => {
   // Add state for minimized status
   const [minimized, setMinimized] = useState(false);
-  console.log("variableValues: ", variableValues)
-  console.log("paramValues: ", paramValues)
+  const [nonCostParams, setNonCostParams] = useState(inputParams.filter(param => !module.costParams.some(costParam => costParam.name === param.name)));
   // Toggle minimize/maximize
   const toggleMinimize = () => {
     setMinimized(!minimized);
@@ -86,10 +85,10 @@ const ModuleBox = ({
         )}
 
         {/* Only render input parameters section if there are input parameters */}
-        {inputParams && inputParams.length > 0 && (
+        {nonCostParams && nonCostParams.length > 0 && (
           <div className="module-parameter-inputs">
             <h4>Input Parameters</h4>
-            {inputParams.map((param, pIndex) => (
+            {nonCostParams.map((param, pIndex) => (
               <ParameterInputBox
                 key={pIndex}
                 paramName={param.paramName}
