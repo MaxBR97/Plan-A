@@ -227,7 +227,6 @@ const loadInputs = async () => {
       console.log("load input response: ", data)
       const allParamsMap = getAllParams(image);
       const allSetsMap = getAllSets(image);
-      console.log("allParamsMap: ", allParamsMap)
       const filteredParamsToValues = Object.keys(data.paramsToValues)
           .filter((paramKey) => allParamsMap.has(paramKey))
           .reduce((filteredObject, paramKey) => {
@@ -248,7 +247,7 @@ const loadInputs = async () => {
       Object.keys(data.setsToValues).forEach((setName) => {
         preSelectedVariables[setName] = data.setsToValues[setName].map((_, index) => index);
       });
-
+      // console.log("preSelectedVariables: ", preSelectedVariables)
     setSelectedVariableValues(preSelectedVariables);
       
   } catch (error) {
@@ -392,29 +391,6 @@ useEffect(() => {
           <div className="module-section">
             {constraintModules.length > 0 ? (
               constraintModules.map((module, index) => {
-                let inputSets = [];
-                let inputParams = [];
-                
-                module.inputSets.forEach((setDef) => {
-                  const inputSet = {
-                    setName: setDef.name,
-                    type: setDef.type,
-                    tags: setDef.type,
-                    alias: setDef.alias,
-                    setValues: variableValues[setDef.name] || [],
-                  };
-                  inputSets = [...inputSets, inputSet];
-                });
-                
-                module.inputParams.forEach((paramDef) => {
-                  const inputParam = {
-                    paramName: paramDef.name,
-                    value: paramValues[paramDef.name] || "",
-                    type: paramDef.type,
-                    alias: paramDef.alias,
-                  };
-                  inputParams = [...inputParams, inputParam];
-                });
                 
                 return (
                   <ModuleBox
@@ -429,8 +405,8 @@ useEffect(() => {
                     handleTupleChange={handleVariableChange}
                     handleParamChange={handleParamChange}
                     isRowSelected={isRowSelected}
-                    inputSets={inputSets}
-                    inputParams={inputParams}
+                    variableValues={variableValues}
+                    paramValues={paramValues}
                   />
                 );
               })
@@ -446,28 +422,7 @@ useEffect(() => {
             {preferenceModules.length > 0 ? (
               <>
                 {preferenceModules.map((module, index) => {
-                  let inputSets = [];
-                  let inputParams = [];
-                  
-                  module.inputSets.forEach((setDef) => {
-                    const inputSet = {
-                      setName: setDef.name,
-                      type: setDef.type,
-                      tags: setDef.type,
-                      setValues: variableValues[setDef.name] || [],
-                    };
-                    inputSets = [...inputSets, inputSet];
-                  });
-                  
-                  module.inputParams.forEach((paramDef) => {
-                    const inputParam = {
-                      paramName: paramDef.name,
-                      value: paramValues[paramDef.name] || "",
-                      type: paramDef.type,
-                    };
-                    inputParams = [...inputParams, inputParam];
-                  });
-                  
+                  console.log("module: ", selectedVariableValues)
                   return (
                     <ModuleBox
                       key={index}
@@ -481,8 +436,8 @@ useEffect(() => {
                       handleTupleChange={handleVariableChange}
                       handleParamChange={handleParamChange}
                       isRowSelected={isRowSelected}
-                      inputSets={inputSets}
-                      inputParams={inputParams}
+                      variableValues={variableValues}
+                      paramValues={paramValues}
                     />
                   );
                 })}
@@ -611,7 +566,6 @@ useEffect(() => {
 
       <button className="home-button" onClick={() => {
         if(image.isConfigured) {
-          console.log("image is configured")
           navigate("/")
         } else {
           deleteImage()

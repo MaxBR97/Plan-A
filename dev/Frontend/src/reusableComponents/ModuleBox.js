@@ -15,12 +15,15 @@ const ModuleBox = ({
   handleTupleChange,
   handleParamChange,
   isRowSelected,
-  inputSets,
-  inputParams
+  inputSets = module.inputSets,
+  inputParams = module.inputParams,
+  variableValues,
+  paramValues
 }) => {
   // Add state for minimized status
   const [minimized, setMinimized] = useState(false);
-
+  console.log("variableValues: ", variableValues)
+  console.log("paramValues: ", paramValues)
   // Toggle minimize/maximize
   const toggleMinimize = () => {
     setMinimized(!minimized);
@@ -63,20 +66,20 @@ const ModuleBox = ({
         {inputSets && inputSets.length > 0 && (
           <div className="module-set-inputs">
             <h4>Input Sets</h4>
-            {inputSets.map((set, sIndex) => (
+            {inputSets.map((set, sIndex) => ( 
               <SetInputBox
                 key={sIndex}
                 index={sIndex}
                 typeList={set.type}
                 tupleTags={set.tags || []}
-                setName={set.setName}
+                setName={set.name}
                 setAlias={set.alias}
                 handleAddTuple={handleAddTuple}
                 handleTupleChange={handleTupleChange}
                 handleTupleToggle={handleTupleToggle}
                 handleRemoveTuple={handleRemoveTuple}
                 isRowSelected={isRowSelected}
-                setValues={set.setValues}
+                setValues={variableValues[set.name] || []}
               />
             ))}
           </div>
@@ -92,7 +95,7 @@ const ModuleBox = ({
                 paramName={param.paramName}
                 paramAlias={param.alias}
                 type={param.type}
-                value={param.value}
+                value={paramValues[param.name] || ""}
                 onChange={handleParamChange}
               />
             ))}
