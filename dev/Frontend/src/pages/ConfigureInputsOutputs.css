@@ -1,9 +1,8 @@
 /* ConfigureVariables.css - Updated to match ConfigureImageMenu theme */
 .configure-variables-page {
-    /* max-width: 900px; */
     margin: 0 auto;
     padding: 1.5rem;
-    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    background: #f5f7fa;
     min-height: 100vh;
 }
 
@@ -45,36 +44,17 @@
 .involved-section {
     background: rgba(255, 255, 255, 0.95);
     padding: 1.5rem;
-    border-radius: 10px;
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
-    transition: all 0.2s ease;
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.2s ease;
     border: 1px solid rgba(226, 232, 240, 0.8);
     position: relative;
     overflow: visible;
 }
 
-.available-variables::before,
-.involved-section::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 3px;
-    background: linear-gradient(90deg, #4299e1 0%, #3182ce 100%);
-    transform: scaleX(0);
-    transition: transform 0.2s ease;
-}
-
-.available-variables:hover::before,
-.involved-section:hover::before {
-    transform: scaleX(1);
-}
-
 .available-variables:hover,
 .involved-section:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    background-color: #f8f9fa;
     border-color: #4299e1;
 }
 
@@ -114,49 +94,32 @@
 .tags-container {
     background: rgba(255, 255, 255, 0.95);
     padding: 1.5rem;
-    border-radius: 10px;
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     margin-top: 0.75rem;
     border: 1px solid rgba(226, 232, 240, 0.8);
-    transition: all 0.2s ease;
+    transition: background-color 0.2s ease;
     position: relative;
     overflow: visible;
 }
 
-.tags-container::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 3px;
-    background: linear-gradient(90deg, #4299e1 0%, #3182ce 100%);
-    transform: scaleX(0);
-    transition: transform 0.2s ease;
-}
-
-.tags-container:hover::before {
-    transform: scaleX(1);
-}
-
 .tags-container:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    background-color: #f8f9fa;
     border-color: #4299e1;
 }
 
 .variable-config-item {
     background: rgba(255, 255, 255, 0.8);
     padding: 1rem;
-    border-radius: 8px;
+    border-radius: 3px;
     margin-bottom: 1rem;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     border: 1px solid rgba(226, 232, 240, 0.6);
-    transition: all 0.2s ease;
+    transition: background-color 0.2s ease;
 }
 
 .variable-config-item:hover {
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+    background-color: #f8f9fa;
     border-color: rgba(66, 153, 225, 0.2);
 }
 
@@ -195,83 +158,71 @@
     width: 100%;
     padding: 0.5rem;
     border: 1px solid #e2e8f0;
-    border-radius: 6px;
+    border-radius: 3px;
     font-size: 0.75rem;
     background: rgba(255, 255, 255, 0.9);
-    box-sizing: border-box;
-    transition: all 0.2s ease;
+    transition: border-color 0.2s ease;
 }
 
 .tag-input-group input:focus,
 .tag-input-group select:focus {
     outline: none;
     border-color: #4299e1;
-    box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
+    box-shadow: 0 0 0 1px rgba(66, 153, 225, 0.1);
 }
 
 .bound-set-selector {
-    margin-top: 0.5rem;
-    padding-top: 0.5rem;
-    border-top: 1px solid #e2e8f0;
+    display: flex;
+    flex-direction: column;
+    width: 135px;
 }
 
 .bound-set-selector select {
-    width: 135px;
+    width: 100%;
     padding: 0.5rem;
     border: 1px solid #e2e8f0;
-    border-radius: 6px;
+    border-radius: 3px;
     font-size: 0.75rem;
     background: rgba(255, 255, 255, 0.9);
-    box-sizing: border-box;
-    transition: all 0.2s ease;
+    transition: border-color 0.2s ease;
 }
 
 .bound-set-selector select:focus {
     outline: none;
     border-color: #4299e1;
-    box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
+    box-shadow: 0 0 0 1px rgba(66, 153, 225, 0.1);
 }
 
 .checkbox-container {
     display: flex;
     align-items: center;
-    margin-bottom: 0.75rem;
-    padding: 0.75rem;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    border-radius: 3px;
+    transition: background-color 0.2s ease;
     cursor: pointer;
-    background: rgba(255, 255, 255, 0.8);
-    border-radius: 6px;
-    transition: all 0.2s ease;
-    border: 1px solid rgba(226, 232, 240, 0.6);
 }
 
 .checkbox-container:hover {
-    background: rgba(255, 255, 255, 0.95);
-    border-color: rgba(66, 153, 225, 0.2);
-    transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    background-color: rgba(66, 153, 225, 0.05);
 }
 
 .checkbox-container input[type="checkbox"] {
-    margin-right: 0.75rem;
+    margin: 0;
     cursor: pointer;
-    width: 16px;
-    height: 16px;
-    accent-color: #4299e1;
 }
 
 .checkbox-container label {
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     color: #4a5568;
     cursor: pointer;
-    line-height: 1.4;
-    font-weight: 500;
+    margin: 0;
 }
 
 .continue-button {
     display: block;
     width: 150px;
     margin: 2rem auto 0;
-    background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
     color: white;
     text-align: center;
     padding: 0.75rem 1rem;
@@ -285,31 +236,25 @@
 }
 
 .continue-button:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(66, 153, 225, 0.3);
-    text-decoration: none;
-    color: white;
+    background: #3182ce;
 }
 
 .back-button {
-    position: fixed;
-    top: 15px;
-    right: 15px;
-    padding: 7.5px 11.25px;
-    background-color: #f0f0f0;
-    color: #333;
-    text-decoration: none;
+    background: #6c757d;
+    color: white;
+    border: none;
     border-radius: 3px;
+    padding: 0.75rem 1.5rem;
+    font-size: 0.875rem;
     font-weight: 500;
-    transition: background-color 0.3s;
-    box-shadow: 0 1.5px 3px rgba(0, 0, 0, 0.1);
-    display: flex;
-    align-items: center;
-    z-index: 101;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    margin-top: 1.5rem;
+    margin-right: 0.75rem;
 }
 
 .back-button:hover {
-    background-color: #e0e0e0;
+    background: #5a6268;
 }
 
 @media (max-width: 992px) {

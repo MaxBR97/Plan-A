@@ -360,22 +360,6 @@
     transition: all 0.2s ease;
   }
 
-  .image-description:hover {
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
-    /* border-color: #3b82f6; */
-  }
-
-  .image-description::before {
-    position: absolute;
-    top: -8px;
-    left: 20px;
-    background: white;
-    padding: 4px 8px;
-    border-radius: 50%;
-    font-size: 0.8rem;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  }
-
   .section-container {
     background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.95) 100%);
     border-radius: 8px;
