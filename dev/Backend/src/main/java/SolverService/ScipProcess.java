@@ -25,8 +25,8 @@ import static com.sun.jna.platform.win32.Wincon.CTRL_C_EVENT;
 import Utils.*;
 
 public class ScipProcess {
-    private static final int BUFFER_SIZE = 10000; // Number of lines to keep
-    private final boolean DEBUG = false;
+    private static final int BUFFER_SIZE = 400; // Number of lines to keep
+    private final boolean DEBUG = true;
     private Process scipProcess;
     private ProcessBuilder processBuilder;
     private BufferedWriter processInput;
@@ -228,9 +228,10 @@ public class ScipProcess {
         }
         pipeInput(
         "set write printzeros TRUE " +
+        "set numerics feastol 0.001 " +
         "set randomization permutationseed 72 " +
         "set randomization advanced permutevars TRUE " +
-         " optimize");
+        "optimize");
 
     }
 
