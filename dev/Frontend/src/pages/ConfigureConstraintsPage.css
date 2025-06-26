@@ -232,8 +232,24 @@
 }
 
 .save-module-button:disabled {
-    background: #6c757d;
+    background-color: #ced4da;
     cursor: not-allowed;
+}
+
+.cancel-button {
+    background-color: #6c757d;
+    color: white;
+    border: none;
+    padding: 0.5625rem 1.125rem;
+    border-radius: 3px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    margin-top: 0.375rem;
+}
+
+.cancel-button:hover {
+    background-color: #5a6268;
 }
 
 /* Available Constraints Panel */

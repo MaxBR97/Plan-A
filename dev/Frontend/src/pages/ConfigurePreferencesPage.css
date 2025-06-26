@@ -29,7 +29,7 @@
 .module-list-panel {
     background-color: #f8f9fa;
     border-radius: 6px;
-    /* padding: 1.125rem; */
+    padding: 1.125rem;
     box-shadow: 0 1.5px 3px rgba(0, 0, 0, 0.1);
     position: relative;
     overflow: visible;
@@ -225,6 +225,22 @@
 .save-module-button:disabled {
     background-color: #ced4da;
     cursor: not-allowed;
+}
+
+.cancel-button {
+    background-color: #6c757d;
+    color: white;
+    border: none;
+    padding: 0.5625rem 1.125rem;
+    border-radius: 3px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    margin-top: 0.375rem;
+}
+
+.cancel-button:hover {
+    background-color: #5a6268;
 }
 
 /* Available Preferences Panel */

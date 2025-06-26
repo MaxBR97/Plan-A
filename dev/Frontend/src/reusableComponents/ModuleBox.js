@@ -22,7 +22,7 @@ const ModuleBox = ({
 }) => {
   // Add state for minimized status
   const [minimized, setMinimized] = useState(false);
-  const [nonCostParams, setNonCostParams] = useState(inputParams.filter(param => !module.costParams.some(costParam => costParam.name === param.name)));
+  const [nonCostParams, setNonCostParams] = useState(module.costParams ? inputParams.filter(param => !module.costParams.some(costParam => costParam.name === param.name)) : inputParams);
   // Toggle minimize/maximize
   const toggleMinimize = () => {
     setMinimized(!minimized);
