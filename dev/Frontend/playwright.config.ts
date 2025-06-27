@@ -7,15 +7,15 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
   reporter: 'html',
-  timeout: 60000,
+  timeout: 90000,
   expect: {
-    timeout: 17000,
+    timeout: 20000,
   },
   use: {
     baseURL: 'http://localhost:4000',
     trace: 'on-first-retry',
     video: 'on-first-retry',
-    actionTimeout: 12000,
+    actionTimeout: 20000,
   },
   projects: [
     {

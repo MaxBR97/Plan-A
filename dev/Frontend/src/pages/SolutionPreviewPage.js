@@ -263,7 +263,7 @@ const loadInputs = async () => {
         preSelectedVariables[setName] = data.setsToValues[setName].map((_, index) => index);
       });
  
-      setSelectedVariableValues(preSelectedVariables);
+    setSelectedVariableValues(preSelectedVariables);
       
   } catch (error) {
       console.error("Error fetching inputs:", error);

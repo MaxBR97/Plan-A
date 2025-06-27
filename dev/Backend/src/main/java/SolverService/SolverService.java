@@ -31,7 +31,7 @@ public class SolverService implements Solver {
 
     public SolverService(ModelRepository modelRepository) {
         this.modelRepository = modelRepository;
-        this.scipProcessPool = new ScipProcessPool(100);
+        this.scipProcessPool = new ScipProcessPool(30);
     }
 
     @Override
@@ -192,7 +192,7 @@ public class SolverService implements Solver {
 
     private void writeSolution(String fileId, String suffix, InputStream inputStream) throws Exception {
         modelRepository.uploadDocument(fileId + suffix, inputStream);
-        modelRepository.downloadDocument(fileId + suffix);
+        // modelRepository.downloadDocument(fileId + suffix);
     }
 
     public void shutdown() throws Exception{

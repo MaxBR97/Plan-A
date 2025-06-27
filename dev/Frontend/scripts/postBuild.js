@@ -61,6 +61,6 @@ console.log(`✓ Found server.port = ${port}`);
 // === 5. Update config.json ===
 const configContent = fs.readFileSync(configPath, "utf-8");
 const config = JSON.parse(configContent);
-config.API_PORT = port;
+config.REACT_APP_API_PORT = port;
 fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
-console.log("✓ Updated config.json with API_PORT =", port);
+console.log("✓ Updated config.json with REACT_APP_API_PORT =", port);

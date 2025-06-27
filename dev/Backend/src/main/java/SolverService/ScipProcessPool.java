@@ -10,7 +10,7 @@ public class ScipProcessPool {
     private final BlockingQueue<ScipProcess> availableProcesses;
     private final List<ScipProcess> allProcesses;
     private final int poolSize;
-    private static final long PROCESS_WAIT_TIMEOUT = 5; // seconds
+    private static final long PROCESS_WAIT_TIMEOUT = 25; // seconds
 
     public ScipProcessPool(int poolSize) {
         this.poolSize = poolSize;
@@ -44,9 +44,11 @@ public class ScipProcessPool {
 
     public void releaseProcess(ScipProcess process) throws Exception {
         if (process != null) {
-            // Clean up the process for reuse
             try {
-                
+                // Properly stop the process before returning it to pool
+                if (process.isRunning()) {
+                    process.exit();
+                }
                 availableProcesses.offer(process);
             } catch (Exception e) {
                 throw new Exception("Failed to release process: " + e.getMessage());

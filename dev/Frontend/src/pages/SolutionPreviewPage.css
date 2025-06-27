@@ -1,7 +1,7 @@
 /* Navigation button styles (unchanged from before) */
 .back-button {
     position: fixed;
-    top: 15px;
+    top: 5px;
     right: 15px;
     padding: 7.5px 11.25px;
     background-color: #f0f0f0;
@@ -408,8 +408,8 @@
 
   .configuration-buttons {
     position: fixed;
-    top: 4rem;
-    right: 1rem;
+    top: 5rem;
+    right: 27px;
     display: flex;
     flex-direction: column;
     gap: 0.75rem;

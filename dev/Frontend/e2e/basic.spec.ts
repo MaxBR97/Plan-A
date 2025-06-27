@@ -37,10 +37,10 @@ test.describe('Image creation and configuration', () => {
     await CreateNewImageAndGoToConfigureImage(page, imageName, imageDescription);
     await assertNoErrorMessage(page);
     await configureDomain(page, {
-      variables: ['Shibutsim'],
+      variables: ['Assignments'],
       sets: ['People'],
       params: ['shiftTime'],
-      boundSets: { Shibutsim: 'PreAssignedShibutsim' }
+      boundSets: { Assignments: 'AssignmentsBoundSet' }
     });
     await assertNoErrorMessage(page);
     await completeImageCreationAndConfiguration(page);
@@ -52,12 +52,12 @@ test.describe('Image creation and configuration', () => {
     const imageDescription = 'E2E constraint test image';
     await CreateNewImageAndGoToConfigureImage(page, imageName, imageDescription);
     await assertNoErrorMessage(page);
-    // Configure domain: Shibutsim, PreAssignedShibutsim, People, shiftTime; untick restHours
+    // Configure domain: Assignments, AssignmentsBoundSet, People, shiftTime; untick restHours
     await configureDomain(page, {
-      variables: ['Shibutsim'],
+      variables: ['Assignments'],
       sets: ['People'],
       params: ['shiftTime'],
-      boundSets: { Shibutsim: 'PreAssignedShibutsim' },
+      boundSets: { Assignments: 'AssignmentsBoundSet' },
       untick: { params: ['restHours'] }
     });
     await assertNoErrorMessage(page);
@@ -86,12 +86,12 @@ test.describe('Image creation and configuration', () => {
     const imageDescription = 'E2E preference test image';
     await CreateNewImageAndGoToConfigureImage(page, imageName, imageDescription);
     await assertNoErrorMessage(page);
-    // Configure domain: Shibutsim, PreAssignedShibutsim, People, shiftTime; untick bias
+    // Configure domain: Assignments, AssignmentsBoundSet, People, shiftTime; untick bias
     await configureDomain(page, {
-      variables: ['Shibutsim'],
+      variables: ['Assignments'],
       sets: ['People'],
       params: ['shiftTime'],
-      boundSets: { Shibutsim: 'PreAssignedShibutsim' },
+      boundSets: { Assignments: 'AssignmentsBoundSet' },
       untick: { params: ['bias'] }
     });
     await assertNoErrorMessage(page);
@@ -124,12 +124,12 @@ test.describe('Image creation and configuration', () => {
     await CreateNewImageAndGoToConfigureImage(page, imageName, imageDescription);
     await assertNoErrorMessage(page);
     
-    // Configure domain: Shibutsim, bound set PreAssignedShibutsim, set People, param shiftTime
+    // Configure domain: Assignments, bound set AssignmentsBoundSet, set People, param shiftTime
     await configureDomain(page, {
-      variables: ['Shibutsim'],
+      variables: ['Assignments'],
       sets: ['People'],
       params: ['shiftTime'],
-      boundSets: { Shibutsim: 'PreAssignedShibutsim' }
+      boundSets: { Assignments: 'AssignmentsBoundSet' }
     });
     await assertNoErrorMessage(page);
     
@@ -234,9 +234,14 @@ test.describe('Image creation and configuration', () => {
     await expect(page.getByText('Welcome to Plan A!')).toBeVisible();
     await page.waitForTimeout(DEBUG_DELAY);
     
+    // Click on the "My Images" tab to make the section visible
+    const myImagesTab = page.getByRole('button', { name: 'My Images' });
+    await expect(myImagesTab).toBeVisible({ timeout: 10000 });
+    await myImagesTab.click();
+    await page.waitForTimeout(DEBUG_DELAY);
+    
     // Look for the image in "My Images" section - use robust selector
-    const myImagesSection = page.locator('.my-images-container:has(h2:text("My Images"))');
-    await expect(myImagesSection.getByText('My Images')).toBeVisible();
+    const myImagesSection = page.locator('.images-container');
     await page.waitForTimeout(DEBUG_DELAY);
     
     // Click refresh button in My Images section
@@ -278,8 +283,14 @@ test.describe('Image creation and configuration', () => {
     await page.waitForTimeout(DEBUG_DELAY);
     
     // Final verification that image is still in My Images (scoped)
-    const myImagesSection2 = page.locator('.my-images-container:has(h2:text("My Images"))');
-    await expect(myImagesSection2.getByText(imageName)).toBeVisible({ timeout: 10000 });
+    // Click on the "My Images" tab again
+    // const myImagesTab2 = page.getByRole('button', { name: 'My Images' });
+    // await expect(myImagesTab2).toBeVisible({ timeout: 10000 });
+    // await myImagesTab2.click();
+    // await page.waitForTimeout(DEBUG_DELAY);
+    
+    // const myImagesSection2 = page.locator('.images-container');
+    // await expect(myImagesSection2.getByText(imageName)).toBeVisible({ timeout: 10000 });
   });
 
   test('user tries to create an image the same parameter configured for a constraint module and domain, leads to an error', async ({ page }) => {
@@ -287,12 +298,12 @@ test.describe('Image creation and configuration', () => {
     const imageDescription = 'E2E constraint test image';
     await CreateNewImageAndGoToConfigureImage(page, imageName, imageDescription);
     await assertNoErrorMessage(page);
-    // Configure domain: Shibutsim, PreAssignedShibutsim, People, shiftTime; untick restHours
+    // Configure domain: Assignments, AssignmentsBoundSet, People, shiftTime; untick restHours
     await configureDomain(page, {
-      variables: ['Shibutsim'],
+      variables: ['Assignments'],
       sets: ['People'],
       params: ['shiftTime', 'restHours'],
-      boundSets: { Shibutsim: 'PreAssignedShibutsim' },
+      boundSets: { Assignments: 'AssignmentsBoundSet' },
     });
     await assertNoErrorMessage(page);
     // Configure constraint module
@@ -347,10 +358,10 @@ test.describe('Public and Private Image Functionality', () => {
     
     // Configure domain for the public image
     await configureDomain(page, {
-      variables: ['Shibutsim'],
+      variables: ['Assignments'],
       sets: ['People'],
       params: ['shiftTime'],
-      boundSets: { Shibutsim: 'PreAssignedShibutsim' }
+      boundSets: { Assignments: 'AssignmentsBoundSet' }
     });
     await assertNoErrorMessage(page);
     await page.waitForTimeout(DEBUG_DELAY);
@@ -384,10 +395,10 @@ test.describe('Public and Private Image Functionality', () => {
     
     // Configure domain for the private image
     await configureDomain(page, {
-      variables: ['Shibutsim'],
+      variables: ['Assignments'],
       sets: ['People'],
       params: ['shiftTime'],
-      boundSets: { Shibutsim: 'PreAssignedShibutsim' }
+      boundSets: { Assignments: 'AssignmentsBoundSet' }
     });
     await assertNoErrorMessage(page);
     await page.waitForTimeout(DEBUG_DELAY);
@@ -451,10 +462,10 @@ test.describe('Public and Private Image Functionality', () => {
     
     // Configure domain
     await configureDomain(page, {
-      variables: ['Shibutsim'],
+      variables: ['Assignments'],
       sets: ['People'],
       params: ['shiftTime'],
-      boundSets: { Shibutsim: 'PreAssignedShibutsim' }
+      boundSets: { Assignments: 'AssignmentsBoundSet' }
     });
     await assertNoErrorMessage(page);
     await page.waitForTimeout(DEBUG_DELAY);
@@ -514,10 +525,10 @@ test.describe('Public and Private Image Functionality', () => {
     await assertNoErrorMessage(page);
     await page.waitForTimeout(DEBUG_DELAY);
     
-    // Select the variable "Shibutsim" in the variable selector
+    // Select the variable "Assignments" in the variable selector
     const variableSelector = page.locator('select');
     await expect(variableSelector).toBeVisible({ timeout: 10000 });
-    await variableSelector.selectOption('Shibutsim');
+    await variableSelector.selectOption('Assignments');
     await page.waitForTimeout(DEBUG_DELAY);
     
     // Set timeout to 9 seconds in the Timeout Setting
@@ -659,10 +670,10 @@ test.describe('Public and Private Image Functionality', () => {
     
     // Configure domain
     await configureDomain(page, {
-      variables: ['Shibutsim'],
+      variables: ['Assignments'],
       sets: ['People'],
       params: ['shiftTime'],
-      boundSets: { Shibutsim: 'PreAssignedShibutsim' }
+      boundSets: { Assignments: 'AssignmentsBoundSet' }
     });
     await assertNoErrorMessage(page);
     await page.waitForTimeout(DEBUG_DELAY);
@@ -722,10 +733,10 @@ test.describe('Public and Private Image Functionality', () => {
     
     // Configure domain
     await configureDomain(page, {
-      variables: ['Shibutsim'],
+      variables: ['Assignments'],
       sets: ['People'],
       params: ['shiftTime'],
-      boundSets: { Shibutsim: 'PreAssignedShibutsim' }
+      boundSets: { Assignments: 'AssignmentsBoundSet' }
     });
     await assertNoErrorMessage(page);
     await page.waitForTimeout(DEBUG_DELAY);

@@ -25,7 +25,7 @@ import static com.sun.jna.platform.win32.Wincon.CTRL_C_EVENT;
 import Utils.*;
 
 public class ScipProcess {
-    private static final int BUFFER_SIZE = 400; // Number of lines to keep
+    private static final int BUFFER_SIZE = 200; // Number of lines to keep
     private final boolean DEBUG = true;
     private Process scipProcess;
     private ProcessBuilder processBuilder;
