@@ -22,32 +22,39 @@ services:
   #     - zookeeper
 
   app:
-    image: plan-a-dev
+    image: maxbr1/plan-a-dev
     volumes:
-      - .:/Plan-A
-      - ~/.aws:/root/.aws:ro
+      - app_data:/Plan-A/dev/Backend/data
     environment:
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
       - AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION:-us-east-1}
       - AWS_PROFILE=${AWS_PROFILE:-default}
+      - SPRING_PROFILES_ACTIVE=H2,securityAndGateway,kafkaSolver
+      - KEYCLOAK_ISSUER_URI=${KEYCLOAK_PUBLIC_URL}/realms/plan-a
+      - KEYCLOAK_JWK_SET_URI=${KEYCLOAK_INTERNAL_URL}/realms/plan-a/protocol/openid-connect/certs
     ports:
-      
       - "4000:4000"
     working_dir: /Plan-A
-    stdin_open: true
-    tty: true
+    depends_on:
+      - keycloak
+    restart: unless-stopped
 
   keycloak:
     image: quay.io/keycloak/keycloak:24.0.1
     command: start-dev --import-realm
     environment:
       KEYCLOAK_ADMIN: admin
-      KEYCLOAK_ADMIN_PASSWORD: admin
-      KC_HOSTNAME_URL: http://localhost:8080
-      KC_HOSTNAME_ADMIN_URL: http://localhost:8080
-      KEYCLOAK_IMPORT: /opt/keycloak/data/import/plan-a-dev-realm.json
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+      KC_HOSTNAME_URL: ${KEYCLOAK_PUBLIC_URL}
+      KC_HOSTNAME_ADMIN_URL: ${KEYCLOAK_PUBLIC_URL}
+      KEYCLOAK_IMPORT: /opt/keycloak/data/import/plan-a-prod-realm.json
     ports:
       - "8080:8080"
     volumes:
-      - ./realm-config/dev:/opt/keycloak/data/import
+      - ./realm-config/prod:/opt/keycloak/data/import:ro
+    restart: unless-stopped
+
+volumes:
+  app_data:
+    driver: local

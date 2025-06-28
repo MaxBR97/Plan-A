@@ -26,8 +26,6 @@ services:
       KEYCLOAK_ADMIN_PASSWORD: admin
       KC_HOSTNAME_URL: http://localhost:8080
       KC_HOSTNAME_ADMIN_URL: http://localhost:8080
-      # KC_HOSTNAME_STRICT: false
-      # KC_HOSTNAME_STRICT_HTTPS: false
       KEYCLOAK_IMPORT: /opt/keycloak/data/import/plan-a-compose-realm.json
     ports:
       - "8080:8080"
