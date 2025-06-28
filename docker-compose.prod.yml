@@ -34,7 +34,7 @@ services:
       - KEYCLOAK_ISSUER_URI=${KEYCLOAK_PUBLIC_URL}/realms/plan-a
       - KEYCLOAK_JWK_SET_URI=${KEYCLOAK_INTERNAL_URL}/realms/plan-a/protocol/openid-connect/certs
     ports:
-      - "4000:4000"
+      - "80:4000"
     working_dir: /Plan-A
     depends_on:
       - keycloak
