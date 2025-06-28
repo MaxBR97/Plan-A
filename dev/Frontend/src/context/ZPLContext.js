@@ -61,16 +61,7 @@ export const ZPLProvider = ({ children, initialState = {} }) => {
     if (initialState.image) {
       return initialState.image;
     }
-    // Then try localStorage
-    const savedImage = localStorage.getItem('zpl_image');
-    if (savedImage) {
-      try {
-        return JSON.parse(savedImage);
-      } catch (e) {
-        console.error('Failed to parse saved image:', e);
-        return initialImageState;
-      }
-    }
+    
     return initialImageState;
   });
 

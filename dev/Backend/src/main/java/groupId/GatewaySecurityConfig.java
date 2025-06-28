@@ -34,6 +34,7 @@ public class GatewaySecurityConfig {
                     .jwtAuthenticationConverter(new ReactiveJwtAuthenticationConverterAdapter(jwtAuthenticationConverter()))
                 )
             )
+            .headers(headers -> headers.frameOptions().disable())
             .csrf(csrf -> csrf.disable()); 
         
         return http.build();
@@ -48,16 +49,5 @@ public class GatewaySecurityConfig {
         JwtAuthenticationConverter jwtAuthenticationConverter = new JwtAuthenticationConverter();
         jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(grantedAuthoritiesConverter);
         return jwtAuthenticationConverter;
-    }
-
-    @Bean
-    public org.springframework.web.server.WebFilter xFrameOptionsHeaderFilter() {
-        return (exchange, chain) -> {
-            if ("/silent-check-sso.html".equals(exchange.getRequest().getURI().getPath())) {
-                // Remove X-Frame-Options header for silent SSO check
-                exchange.getResponse().getHeaders().remove("X-Frame-Options");
-            }
-            return chain.filter(exchange);
-        };
     }
 }

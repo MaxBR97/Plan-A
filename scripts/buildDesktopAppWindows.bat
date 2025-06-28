@@ -9,7 +9,7 @@ set "scriptLocation=%~dp0"
 :: Compile Frontend
 cd /d "%scriptLocation%\..\dev\Frontend"
 echo Compiling the frontend...
-call npm run build-win
+call npm run build
 if %errorlevel% neq 0 (
     echo Frontend build failed!
     exit /b %errorlevel%

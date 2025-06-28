@@ -110,8 +110,16 @@ export async function deleteTestImage(page: Page, imageName: string) {
   // Set up dialog handler to automatically accept the confirmation dialog
   page.on('dialog', dialog => dialog.accept());
   
+  // First, click on the "My Images" tab to make the section visible
+  const myImagesTab = page.getByRole('button', { name: 'My Images' });
+  await expect(myImagesTab).toBeVisible({ timeout: 10000 });
+  await myImagesTab.click();
+  
+  // Wait for the tab content to load
+  await page.waitForTimeout(1000);
+  
   // Find the image card by name in the My Images section
-  const myImagesSection = page.locator('.my-images-container:has(h2:text("My Images"))');
+  const myImagesSection = page.locator('.images-container');
   const imageCard = myImagesSection.locator('.image-card', { hasText: imageName });
   await expect(imageCard).toBeVisible({ timeout: 10000 });
   
@@ -576,9 +584,22 @@ export async function logout(page: Page) {
  * Check if an image is visible in the public images section (search results)
  */
 export async function checkImageInPublicImages(page: Page, imageName: string, shouldBeVisible: boolean = true) {
-  // The public images are displayed through search functionality
-  // First, search for the image name
+  // First, ensure we're on the "Public Images" tab
+  const publicImagesTab = page.getByRole('button', { name: 'Public Images' });
+  await expect(publicImagesTab).toBeVisible({ timeout: 10000 });
+  
+  // Check if the tab is already active, if not click it
+  const classAttribute = await publicImagesTab.getAttribute('class');
+  const isActive = classAttribute ? classAttribute.includes('active') : false;
+  if (!isActive) {
+    await publicImagesTab.click();
+    // Wait for the tab content to load
+    await page.waitForTimeout(1000);
+  }
+  
+  // Now search for the image name
   const searchInput = page.locator('#search-input');
+  await expect(searchInput).toBeVisible({ timeout: 10000 });
   await searchInput.fill(imageName);
   await page.locator('.search-button').click();
   
@@ -600,12 +621,58 @@ export async function checkImageInPublicImages(page: Page, imageName: string, sh
  * Check if an image is visible in the user's private images section
  */
 export async function checkImageInMyImages(page: Page, imageName: string, shouldBeVisible: boolean = true) {
-  // Find the my images section
-  const myImagesSection = page.locator('.my-images-container:has(h2:text("My Images"))');
+  // First, try to find the "My Images" tab
+  const myImagesTab = page.getByRole('button', { name: 'My Images' });
+  
+  // Check if the tab exists and is enabled
+  const tabExists = await myImagesTab.count() > 0;
+  const tabEnabled = tabExists && !(await myImagesTab.isDisabled());
   
   if (shouldBeVisible) {
+    // If we expect the image to be visible, the tab should be clickable
+    if (!tabExists) {
+      throw new Error('My Images tab not found');
+    }
+    if (!tabEnabled) {
+      throw new Error('My Images tab is disabled but image should be visible');
+    }
+    
+    // Click on the "My Images" tab to make the section visible
+    await expect(myImagesTab).toBeVisible({ timeout: 10000 });
+    await myImagesTab.click();
+    
+    // Wait for the tab content to load
+    await page.waitForTimeout(1000);
+    
+    // Find the my images section
+    const myImagesSection = page.locator('.images-container');
+    
     await expect(myImagesSection.getByText(imageName)).toBeVisible({ timeout: 10000 });
   } else {
+    // If we expect the image to NOT be visible, we have different scenarios:
+    
+    if (!tabExists) {
+      // Tab doesn't exist (e.g., guest user), so image definitely shouldn't be visible
+      console.log('My Images tab not found - image should not be visible');
+      return;
+    }
+    
+    if (!tabEnabled) {
+      // Tab exists but is disabled (e.g., logged out user), so image shouldn't be visible
+      console.log('My Images tab is disabled - image should not be visible');
+      return;
+    }
+    
+    // Tab exists and is enabled, so we can click it and check
+    await expect(myImagesTab).toBeVisible({ timeout: 10000 });
+    await myImagesTab.click();
+    
+    // Wait for the tab content to load
+    await page.waitForTimeout(1000);
+    
+    // Find the my images section
+    const myImagesSection = page.locator('.images-container');
+    
     await expect(myImagesSection.getByText(imageName)).toHaveCount(0);
   }
 }
@@ -661,7 +728,7 @@ export async function addEntryToSetInPreview(page: Page, setName: string, entryV
   await page.waitForTimeout(2000);
   
   // Debug: Log all available set names
-  const allSetNames = page.locator('.set-input h3.set-name');
+  const allSetNames = page.locator('.set-name');
   const setCount = await allSetNames.count();
   console.log(`Found ${setCount} sets in the Domain tab:`);
   for (let i = 0; i < setCount; i++) {
@@ -670,13 +737,25 @@ export async function addEntryToSetInPreview(page: Page, setName: string, entryV
   }
   console.log(`Looking for set: "${setName}"`);
   
-  // Find the set container by its title (set-name class contains the alias/name)
-  // Use a more flexible selector that looks for the set name in the h3 element
-  const setContainer = page.locator('.set-input h3.set-name', { hasText: setName }).locator('..');
-  await expect(setContainer).toBeVisible({ timeout: 10000 });
+  // Find the set container by finding all set names and filtering for the one with the required text
+  const allSetContainers = page.locator('.set-input');
+  let targetSetContainer: any = null;
+  
+  for (let i = 0; i < await allSetContainers.count(); i++) {
+    const setContainer = allSetContainers.nth(i);
+    const setTitle = await setContainer.locator('.set-name').textContent();
+    if (setTitle === setName) {
+      targetSetContainer = setContainer;
+      break;
+    }
+  }
+  
+  if (!targetSetContainer) {
+    throw new Error(`Set with name "${setName}" not found`);
+  }
   
   // Look for the "Add Entry" button within this set container
-  const addButton = setContainer.locator('button.add-set-entry-button');
+  const addButton = targetSetContainer.locator('button.add-set-entry-button');
   await expect(addButton).toBeVisible({ timeout: 10000 });
   await addButton.click();
   
@@ -684,7 +763,7 @@ export async function addEntryToSetInPreview(page: Page, setName: string, entryV
   await page.waitForTimeout(1000);
   
   // Find the new entry in the entries-container
-  const entriesContainer = setContainer.locator('.entries-container');
+  const entriesContainer = targetSetContainer.locator('.entries-container');
   const newEntry = entriesContainer.locator('.set-entry').last();
   
   // Find the input field in the new entry

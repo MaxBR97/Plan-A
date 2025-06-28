@@ -1,4 +1,5 @@
 import Keycloak from 'keycloak-js';
+import configService from '../services/configService';
 
 
 // Create a singleton KeycloakService class
@@ -16,7 +17,7 @@ class KeycloakService {
     KeycloakService.instance = this;
   }
 
-  init() {
+  async init() {
     console.log('Initializing Keycloak...');
     
     if (this.initialized && this.keycloak) {
@@ -29,12 +30,16 @@ class KeycloakService {
       return this.initPromise;
     }
 
-    // Initialize Keycloak instance
+    // Ensure configuration is loaded
+    await configService.initialize();
+    const keycloakConfig = configService.getKeycloakConfig();
+
+    // Initialize Keycloak instance with runtime configuration
     console.log('Creating new Keycloak instance...');
     this.keycloak = new Keycloak({
-      url: 'http://localhost:8080',
-      realm: 'plan-a',
-      clientId: 'spring-gateway'
+      url: keycloakConfig.url || 'http://localhost:8080',
+      realm: keycloakConfig.realm || 'plan-a',
+      clientId: keycloakConfig.clientId || 'spring-gateway'
     });
 
     const currentPath = window.location.pathname;
@@ -44,7 +49,6 @@ class KeycloakService {
       console.log('Starting Keycloak initialization...');
       this.keycloak.init({ 
         onLoad: 'check-sso',
-        silentCheckSsoRedirectUri: window.location.origin + '/silent-check-sso.html',
         checkLoginIframe: false,
         pkceMethod: 'S256',
         enableLogging: true
@@ -145,16 +149,15 @@ class KeycloakService {
     );
   }
 
-  login() {
+  async login() {
     console.log('Attempting login...');
     if (!this.keycloak) {
       console.error('Keycloak not initialized, attempting to initialize...');
-      return this.init().then(() => {
-        if (!this.keycloak) {
-          throw new Error('Failed to initialize Keycloak');
-        }
-        return this.performLogin();
-      });
+      await this.init();
+      if (!this.keycloak) {
+        throw new Error('Failed to initialize Keycloak');
+      }
+      return this.performLogin();
     }
     return this.performLogin();
   }
@@ -209,16 +212,15 @@ class KeycloakService {
     });
   }
 
-  register() {
+  async register() {
     console.log('Attempting registration...');
     if (!this.keycloak) {
       console.error('Keycloak not initialized, attempting to initialize...');
-      return this.init().then(() => {
-        if (!this.keycloak) {
-          throw new Error('Failed to initialize Keycloak');
-        }
-        return this.performRegister();
-      });
+      await this.init();
+      if (!this.keycloak) {
+        throw new Error('Failed to initialize Keycloak');
+      }
+      return this.performRegister();
     }
     return this.performRegister();
   }

@@ -37,6 +37,7 @@ const SolutionResultsPage = ({
   const [solutionStatus, setSolutionStatus] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState(null);
+  const [logText, setLogText] = useState('');
 
   const [selectedScript, setSelectedScript] = useState(() => {
     // Find the "Default" or "default" key in solverSettings
@@ -153,11 +154,9 @@ const SolutionResultsPage = ({
       [selectedVariable]: []
     }));
   };
-  console.log("globalSelectedTuples", globalSelectedTuples);
+
   // Update global selected tuples
   const updateSelectedTuples = (tuples) => {
-    console.log("dynamicSolutions", dynamicSolutions);
-    console.log("updateSelectedTuples", tuples);
     setGlobalSelectedTuples(prev => ({
       ...prev,
       [selectedVariable]: tuples
@@ -344,7 +343,7 @@ const SolutionResultsPage = ({
     setIsSolving(true);
     requestCancelledRef.current = false;
     if(!isContinue){
-      // window.clearLogs();
+      setLogText('');
     }
 
     // Create new AbortController for this request
@@ -441,10 +440,16 @@ const SolutionResultsPage = ({
               try {
                 isPolling = true;
                 console.log("Polling");
-                const poll = await axios.post("/api/solve/poll", requestBody, {
+                const poll = await axios.post("/solve/poll", requestBody, {
                   signal: currentAbortController.current.signal
                 });
-                window.appendLog(JSON.stringify(poll.data) + "\n");
+                console.log("poll", poll.data);
+                const pollDataString = JSON.stringify(poll.data);
+                if (pollDataString && pollDataString.trim() !== '' && pollDataString !== '""') {
+                  // Remove surrounding quotes and replace \n with actual newlines
+                  const cleanText = pollDataString.replace(/^"|"$/g, '').replace(/\\n/g, '\n');
+                  setLogText(cleanText);
+                }
                 lastPollTime = currentTime;
               } catch (error) {
                 if (error.name === 'AbortError') {
@@ -462,8 +467,8 @@ const SolutionResultsPage = ({
       setShowModal(true);
       let solveUrl = "/api/solve";
       // If you have /api/solve/continue or /api/solve/start, adjust here
-      if (isContinue) solveUrl = "/api/solve/continue";
-      else if (isDesktop) solveUrl = "/api/solve/start";
+      if (isContinue) solveUrl = "/solve/continue";
+      else if (isDesktop) solveUrl = "/solve/start";
       const response = await axios.post(solveUrl, requestBody, {
         signal: currentAbortController.current.signal
       });
@@ -717,11 +722,11 @@ const SolutionResultsPage = ({
         {isDesktop && (
           <div className="control-panel-section">
             <div className="section-header">
-              <h3 className="section-title">Solution Log</h3>
+              <h3 className="section-title">Solver Log</h3>
               <InfoIcon tooltip="Detailed log of the optimization process" />
               
             </div>
-            <LogBoard />
+            <LogBoard text={logText} />
           </div>
         )}
       </div>

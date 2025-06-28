@@ -1,6 +1,7 @@
 {
-  "API_HOST": "http://localhost",
-  "API_PORT": "4000",
+  "REACT_APP_API_HOST": "http://localhost",
+  "REACT_APP_API_PORT": "4000",
+  "IS_DESKTOP": true,
   "keycloak": {
     "url": "http://localhost:8080",
     "realm": "plan-a",

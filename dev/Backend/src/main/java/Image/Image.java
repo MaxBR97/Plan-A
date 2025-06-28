@@ -285,7 +285,7 @@ public class Image {
         if (constraintModules != null) {
             for (ConstraintModuleDTO module : constraintModules) {
                 if (moduleNames.containsKey(module.moduleName())) {
-                    throw new RuntimeException("two modules have the same name: " + module.moduleName());
+                    throw new BadRequestException("two modules have the same name: " + module.moduleName());
                 }
                 moduleNames.put(module.moduleName(), "constraint");
             }
@@ -294,7 +294,7 @@ public class Image {
         if (preferenceModules != null) {
             for (PreferenceModuleDTO module : preferenceModules) {
                 if (moduleNames.containsKey(module.moduleName())) {
-                    throw new RuntimeException("two modules have the same name: " + module.moduleName());
+                    throw new BadRequestException("two modules have the same name: " + module.moduleName());
                 }
                 moduleNames.put(module.moduleName(), "optimization");
             }
@@ -412,7 +412,7 @@ public class Image {
         });
         
         if (errorMessage.length() > 0) {
-            throw new IllegalArgumentException(
+            throw new BadRequestException(
                 String.format("Module conflicts detected:%n%s", errorMessage.toString())
             );
         }
@@ -510,7 +510,7 @@ public class Image {
     @Transactional
     public void addConstraint(String moduleName, ConstraintDTO constraint) {
         if(!constraintsModules.containsKey(moduleName))
-            throw new IllegalArgumentException("No constraint module with name: " + moduleName);
+            throw new BadRequestException("No constraint module with name: " + moduleName);
         constraintsModules.get(moduleName).addConstraint(model.getConstraint(constraint.identifier()));
     }
 
@@ -520,14 +520,14 @@ public class Image {
     @Transactional
     public void removeConstraint(String moduleName, ConstraintDTO constraint) {
         if(!constraintsModules.containsKey(moduleName))
-            throw new IllegalArgumentException("No constraint module with name: " + moduleName);
+            throw new BadRequestException("No constraint module with name: " + moduleName);
         constraintsModules.get(moduleName).removeConstraint(model.getConstraint(constraint.identifier()));
     }
 
     @Transactional
     public void addPreference(String moduleName, PreferenceDTO preferenceDTO) {
         if(!preferenceModules.containsKey(moduleName))
-            throw new IllegalArgumentException("No optimization module with name: " + moduleName);
+            throw new BadRequestException("No optimization module with name: " + moduleName);
         preferenceModules.get(moduleName).addPreference(model.getPreference(preferenceDTO.identifier()));
     }
 
@@ -554,7 +554,7 @@ public class Image {
     @Transactional
     public void removePreference(String moduleName, PreferenceDTO preferenceDTO) {
         if(!preferenceModules.containsKey(moduleName))
-            throw new IllegalArgumentException("No optimization module with name: " + moduleName);
+            throw new BadRequestException("No optimization module with name: " + moduleName);
         preferenceModules.get(moduleName).removePreference(model.getPreference(preferenceDTO.identifier()));
     }
 
@@ -845,7 +845,7 @@ public class Image {
         modelRepository.deleteDocument(tmpModelId);
     }
     
-    private void validateInputExclusivity(Set<String> newSetIds, Set<String> newParamIds, String moduleId) throws IllegalArgumentException {
+    private void validateInputExclusivity(Set<String> newSetIds, Set<String> newParamIds, String moduleId) throws Exception {
         // Check against constraint modules
         for (Map.Entry<String, ConstraintModule> entry : constraintsModules.entrySet()) {
             if (!entry.getKey().equals(moduleId)) {
@@ -858,7 +858,7 @@ public class Image {
                     .collect(Collectors.toSet());
                 
                 if (!conflictingSets.isEmpty() || !conflictingParams.isEmpty()) {
-                    throw new IllegalArgumentException(
+                    throw new BadRequestException(
                         String.format("Input conflict between modules:%n" +
                             "- Constraint module '%s'%n" +
                             "- Attempting to use in module '%s'%n" +
@@ -897,7 +897,7 @@ public class Image {
                             conflictingSets.isEmpty() ? "" : String.format("- Sets: %s%n", String.join(", ", conflictingSets)),
                             conflictingParams.isEmpty() ? "" : String.format("- Parameters: %s%n", String.join(", ", conflictingParams)));
                     
-                    throw new IllegalArgumentException(
+                    throw new BadRequestException(
                         String.format("Conflict between modules:%n" +
                             "- Optimization module '%s'%n" +
                             "- Attempting to use in module '%s'%n" +
@@ -934,7 +934,7 @@ public class Image {
                         conflictingSets.isEmpty() ? "" : String.format("- Sets: %s%n", String.join(", ", conflictingSets)),
                         conflictingParams.isEmpty() ? "" : String.format("- Parameters: %s%n", String.join(", ", conflictingParams)));
                 
-                throw new IllegalArgumentException(
+                throw new BadRequestException(
                     String.format("Conflict between modules:%n" +
                         "- Domain module%n" +
                         "- Attempting to use in module '%s'%n" +
