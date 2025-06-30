@@ -12,10 +12,11 @@ export default defineConfig({
     timeout: 20000,
   },
   use: {
-    baseURL: 'http://localhost:4000',
+    baseURL: 'https://localhost/',
     trace: 'on-first-retry',
     video: 'on-first-retry',
     actionTimeout: 20000,
+    ignoreHTTPSErrors: true,
   },
   projects: [
     {

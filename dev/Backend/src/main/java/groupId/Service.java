@@ -23,6 +23,7 @@ import DTO.Records.Requests.Commands.CreateImageFromFileDTO;
 import DTO.Records.Requests.Commands.ImageConfigDTO;
 import DTO.Records.Requests.Commands.SolveCommandDTO;
 import DTO.Records.Requests.Responses.CreateImageResponseDTO;
+import Exceptions.UnauthorizedException;
 import jakarta.validation.Valid;
 
 //TODO: make all returned status codes to comply with best practices/REST conventions including /api routes
@@ -84,18 +85,18 @@ public class Service {
     @PostMapping("/images")
     @PreAuthorize("isAuthenticated()")
     public Mono<ResponseEntity<CreateImageResponseDTO>> createImage(@Valid @RequestBody CreateImageFromFileDTO data) {
-        return Mono.zip(getCurrentUsername(), getCurrentUserId())
-            .flatMap(tuple -> {
-                String username = tuple.getT1();
-                String userId = tuple.getT2();
-                System.out.println("Creating image for user: " + username + " (ID: " + userId + ")");
-                try {
-                    CreateImageResponseDTO response = controller.createImageFromFile(username, data);
-                    return Mono.just(ResponseEntity.ok(response));
-                } catch (Exception e) {
-                    return Mono.error(e);
-                }
-            });
+        return getCurrentUserId()
+            .switchIfEmpty(Mono.error(new UnauthorizedException("Authentication required to create images")))
+            .flatMap(userId -> getCurrentUsername()
+                .flatMap(username -> {
+                    System.out.println("Creating image for user: " + username + " (ID: " + userId + ")");
+                    try {
+                        CreateImageResponseDTO response = controller.createImageFromFile(username, data);
+                        return Mono.just(ResponseEntity.ok(response));
+                    } catch (Exception e) {
+                        return Mono.error(e);
+                    }
+                }));
     }
 
     @PatchMapping("/images")

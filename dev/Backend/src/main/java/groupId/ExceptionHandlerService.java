@@ -2,6 +2,7 @@ package groupId;
 import DTO.Factories.ExceptionRecordFactory;
 import DTO.Factories.RecordFactory;
 import Exceptions.BadRequestException;
+import Exceptions.UnauthorizedException;
 import Exceptions.ZimpleCompileException;
 import Exceptions.ZimpleDataIntegrityException;
 
@@ -57,11 +58,18 @@ public class ExceptionHandlerService {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
     }
     
+    @ExceptionHandler(UnauthorizedException.class)
+    public ResponseEntity<ExceptionDTO> handleUnauthorized(UnauthorizedException ex) {
+        ExceptionDTO errorResponse = ExceptionRecordFactory.makeDTO(ex);
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
+    }
+    
     // Most generic catch-all handler
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ExceptionDTO> handleAll(Exception ex) {
         ExceptionDTO errorResponse = ExceptionRecordFactory.makeDTO(new Exception("Error Occured."));
         ex.printStackTrace();
+        System.out.println("Message: " + ex.getMessage());
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
     }
 }

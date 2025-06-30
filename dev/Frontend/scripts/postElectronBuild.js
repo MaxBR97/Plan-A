@@ -21,7 +21,7 @@ try {
   const config = JSON.parse(configContent);
   
   // Restore the original IS_DESKTOP value
-  config.IS_DESKTOP = originalIsDesktop;
+  config.IS_DESKTOP = false;
   
   // Write the updated config back to file
   fs.writeFileSync(configPath, JSON.stringify(config, null, 4));

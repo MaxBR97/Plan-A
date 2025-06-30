@@ -91,7 +91,7 @@ const ModuleBox = ({
             {nonCostParams.map((param, pIndex) => (
               <ParameterInputBox
                 key={pIndex}
-                paramName={param.paramName}
+                paramName={param.name}
                 paramAlias={param.alias}
                 type={param.type}
                 value={paramValues[param.name] || ""}
