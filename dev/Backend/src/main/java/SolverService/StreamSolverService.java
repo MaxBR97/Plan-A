@@ -187,7 +187,8 @@ public class StreamSolverService implements StreamSolver {
                         && !scipProcess.getStatus().equals("paused")) {
                     
                     // Check for timeout
-                    if (System.currentTimeMillis() - startTime > scipProcess.getCurrentTimeLimit() * 1000L) {
+                    if (System.currentTimeMillis() - startTime > (scipProcess.getCurrentTimeLimit() * 1000L)+2000) {
+                        System.out.println("Timeout while waiting for solution, returning empty solution");
                         return new Solution();
                     }
 
@@ -235,7 +236,7 @@ public class StreamSolverService implements StreamSolver {
 
     private void writeSolution(String fileId, String suffix, InputStream inputStream) throws Exception {
         modelRepository.uploadDocument(fileId + suffix, inputStream);
-        modelRepository.downloadDocument(fileId + suffix);
+        // modelRepository.downloadDocument(fileId + suffix);
     }
 
     public void shutdown() throws Exception{

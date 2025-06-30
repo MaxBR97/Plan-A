@@ -30,11 +30,10 @@
         rm -rf /var/lib/apt/lists/*
 
     # Install Maven from their repository
-    RUN apt-get update && apt-get install -y maven && \
-        rm -rf /var/lib/apt/lists/*
-
     # Install SCIP dependencies
-    RUN apt-get update && apt-get install -y \
+    RUN apt-get update && apt-get install -y maven \
+        vim \
+        jq \
         libblas3 \
         libboost-program-options1.83.0 \
         libboost-serialization1.83.0 \
@@ -46,21 +45,26 @@
         libtbb12 && \
         rm -rf /var/lib/apt/lists/*
 
-    ENV AWS_ACCESS_KEY_ID=""
-    ENV AWS_SECRET_ACCESS_KEY=""
-    ENV AWS_DEFAULT_REGION="us-east-1"
-    ENV AWS_SESSION_TOKEN=""
+    # ENV AWS_ACCESS_KEY_ID=""
+    # ENV AWS_SECRET_ACCESS_KEY=""
+    # ENV AWS_DEFAULT_REGION="us-east-1"
+    # ENV AWS_SESSION_TOKEN=""
+    # ENV PUBLIC_URL="https://localhost"
+    # ENV PUBLIC_PORT="443"
+    # ENV PUBLIC_KEYCLOAK_URL="https://localhost:8080"
 
     WORKDIR /Plan-A
     COPY . .
 
-    RUN dpkg -i SCIPOptSuite-9.2.0-Linux-ubuntu24.deb
-    RUN cd /Plan-A/dev/Frontend && npm install
-    RUN cd /Plan-A/dev/Frontend && npm run build
-    RUN cd /Plan-A/dev/Backend && mvn clean install -DskipTests
-    RUN cd /Plan-A/dev/Backend && mvn clean compile -DskipTests
+    RUN dpkg -i SCIPOptSuite-9.2.0-Linux-ubuntu24.deb && \
+        cd /Plan-A/dev/Frontend && npm install && npm run build && \
+        cd /Plan-A/dev/Backend && mvn clean install -DskipTests && mvn clean compile -DskipTests && \
+        rm -rf /Plan-A/dev/Frontend && rm -rf /Plan-A/SCIPOptSuite-9.2.0-Linux-ubuntu24.deb
 
+    # Convert script to Unix line endings and make it executable
+    RUN dos2unix scripts/containerEntryScript.sh && \
+    chmod +x scripts/containerEntryScript.sh
 
     EXPOSE 3000 4000
 
-    CMD ["/bin/bash", "-c" , "cd dev/Backend && mvn spring-boot:run"]
+    CMD ["/bin/bash", "-c" , "scripts/containerEntryScript.sh"]
