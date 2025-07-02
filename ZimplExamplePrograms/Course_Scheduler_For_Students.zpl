@@ -1,4 +1,11 @@
-# Courses Assignment For Students
+# Build a weekly course schedule for your next semester, such that all your requirements and preferences will be accounted for.
+# 1. List all the available courses. 
+# 2. Elaborate on their groups and times. 
+# 3. Adjust optimization goals to conform with your preferences.
+# 4. Click optimize to get an initial schedule.
+# 5. In the Assignments table, you can edit and select partial schedules to "pin", and reoptimize.
+
+# Have fun!
 
 
 param toString[{0..9}] := <0> "0", <1> "1", <2> "2", <3> "3", <4> "4", <5> "5", <6> "6", <7> "7", <8> "8", <9> "9";
@@ -288,6 +295,6 @@ param weight_preffered_teachers := 0; # higher means get preffered teachers more
 minimize objective:
     weight_points * abs(Total_Academic_Points["Total Points"] - target_points) + 
     weight_days * (sum <w> in Weekdays: Days_With_Classes[w]) +
-    weight_day_start_early * (sum <c,g,w> in proj(CourseSchedule, <1,2,5>): (first_activity_of_the_day[c,g,w] * (min <c2,g2,t2,st2,wd2,sh2,eh2> in CourseSchedule | c == c2 and g == g2 and w == wd2: sh2))) +
+    weight_day_start_early * (sum <c,g,w> in proj(CourseSchedule, <1,2,5>): (first_activity_of_the_day[c,g,w] * (min <c2,g2,t2,st2,wd2,sh2,eh2> in CourseSchedule | c == c2 and g == g2 and w == wd2: (sh2-8)))) +
     (-1 * weight_preffered_courses) * (sum <c> in Courses: (Courses_Taken[c] * getCourseRating(c)/sumOfPrefferedCoursesRatings)) +
     (-1 * weight_preffered_teachers) * (sum <c> in Courses: (Courses_Taken[c] * getTeacherRating(c)/sumOfPrefferedTeachersRatings));

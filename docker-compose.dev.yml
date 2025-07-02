@@ -30,7 +30,7 @@ services:
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
       - AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION:-us-east-1}
       - AWS_PROFILE=${AWS_PROFILE:-default}
-      - SPRING_PROFILES_ACTIVE=H2,securityAndGateway,kafkaSolver
+      - SPRING_PROFILES_ACTIVE=H2,securityAndGateway,streamSolver
       - KEYCLOAK_ISSUER_URI=http://localhost:8080/realms/plan-a
       - KEYCLOAK_JWK_SET_URI=http://localhost:8080/realms/plan-a/protocol/openid-connect/certs
     ports:
