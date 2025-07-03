@@ -1,3 +1,5 @@
+# Plan-A - A video about this project
+https://vimeo.com/manage/videos/1098556514
 # Plan-A Deployment and Development Guide
 
 This repository provides a flexible setup for running the **Plan-A** application in development, end-to-end (E2E) testing, and production environments. The system uses Docker Compose to orchestrate services like the backend, frontend, Keycloak (authentication), and NGINX (reverse proxy).
