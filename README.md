@@ -1,4 +1,4 @@
-# Plan-A - A video about this project
+# A video about this project
 https://vimeo.com/manage/videos/1098556514
 # Plan-A Deployment and Development Guide
 
