@@ -191,6 +191,24 @@ https://<your-domain>/
 
 ---
 
+### 💻 Package to Desktop App
+
+To build a standalone desktop application:
+
+- **For Windows:**
+  ```bash
+  scripts\buildDesktopAppWindows.bat
+  ```
+
+- **For Linux (Debian-based distros):**
+  ```bash
+  scripts/buildDesktopApp.sh
+  ```
+
+This creates an installable `.exe` or `.deb` file respectively.
+
+---
+
 ## 🛠 Quick Commands
 
 | Action                      | Command                                                                 |
@@ -204,6 +222,7 @@ https://<your-domain>/
 | Run production              | `docker compose --env-file env.prod.template -f docker-compose.prod.yml up -d` |
 
 ---
+
 
 ## 💬 Questions?
 
