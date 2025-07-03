@@ -1,5 +1,6 @@
 # Courses Assignment For Students
 
+# Description
 
 param toString[{0..9}] := <0> "0", <1> "1", <2> "2", <3> "3", <4> "4", <5> "5", <6> "6", <7> "7", <8> "8", <9> "9";
 param stringToNumber[{"0","1","2","3","4","5","6","7","8","9"}] := <"0"> 0, <"1"> 1, <"2"> 2, <"3"> 3, <"4"> 4, <"5"> 5, <"6"> 6, <"7"> 7, <"8"> 8, <"9"> 9;
@@ -288,6 +289,6 @@ param weight_preffered_teachers := 0; # higher means get preffered teachers more
 minimize objective:
     weight_points * abs(Total_Academic_Points["Total Points"] - target_points) + 
     weight_days * (sum <w> in Weekdays: Days_With_Classes[w]) +
-    weight_day_start_early * (sum <c,g,w> in proj(CourseSchedule, <1,2,5>): (first_activity_of_the_day[c,g,w] * (min <c2,g2,t2,st2,wd2,sh2,eh2> in CourseSchedule | c == c2 and g == g2 and w == wd2: sh2))) +
+    weight_day_start_early * (sum <c,g,w> in proj(CourseSchedule, <1,2,5>): (first_activity_of_the_day[c,g,w] * (min <c2,g2,t2,st2,wd2,sh2,eh2> in CourseSchedule | c == c2 and g == g2 and w == wd2: (sh2-8)))) +
     (-1 * weight_preffered_courses) * (sum <c> in Courses: (Courses_Taken[c] * getCourseRating(c)/sumOfPrefferedCoursesRatings)) +
     (-1 * weight_preffered_teachers) * (sum <c> in Courses: (Courses_Taken[c] * getTeacherRating(c)/sumOfPrefferedTeachersRatings));

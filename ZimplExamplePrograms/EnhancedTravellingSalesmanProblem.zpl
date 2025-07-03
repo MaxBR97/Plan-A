@@ -1,10 +1,11 @@
-# The good old TSP problem, in an ENHANCED version with multiple optimization criterias.
+# The good old classic TSP problem (the symmetric version), in an ENHANCED version with multiple optimization criterias.
 # Define cities with their Cartesian coordinates, and plan an optimized route!
 
-# Edges variable - displays the transitions between cities in the outcome.
+# Edges table - displays the transitions between cities in the outcome.
 # Visits - Displays the list of visited cities.
 # Totals - Display statistics of the solution.
 # Visit_Order - Displays a suggestion to an order of transitioning between the cities. Cities with value 0 are excluded from the tour.
+# The starting city is also the ending city. Therefore in Visit_Order it will appear as the last city in the order.
 
 # good settings:
 # set emph opt set presolv emph aggr

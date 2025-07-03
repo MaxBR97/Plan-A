@@ -4,7 +4,7 @@ import { useZPL } from "../context/ZPLContext";
 import "./ConfigureSolverOptionsPage.css";
 
 // Configuration flag to enable/disable custom scripts section
-const ENABLE_CUSTOM_SCRIPTS = true;
+const ENABLE_CUSTOM_SCRIPTS = false;
 
 const ConfigureSolverOptionsPage = () => {
   const { image, updateImageField } = useZPL();

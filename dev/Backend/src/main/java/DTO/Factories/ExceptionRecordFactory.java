@@ -4,7 +4,7 @@ import DTO.Records.Requests.Responses.ExceptionDTO;
 import Exceptions.BadRequestException;
 import Exceptions.ZimpleCompileException;
 import Exceptions.ZimpleDataIntegrityException;
-
+import Exceptions.UnauthorizedException;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import org.springframework.core.NestedRuntimeException;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -42,5 +42,10 @@ public class ExceptionRecordFactory {
     public static ExceptionDTO makeDTO(ZimpleDataIntegrityException exception) {
         // Handle specific integrity errors (error 900)
         return new ExceptionDTO("Integrity Error", exception.getMessage());
+    }
+
+    public static ExceptionDTO makeDTO(UnauthorizedException exception) {
+        // Handle specific integrity errors (error 900)
+        return new ExceptionDTO("Authorization Error", exception.getMessage());
     }
 }

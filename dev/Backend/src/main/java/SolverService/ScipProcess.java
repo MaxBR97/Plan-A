@@ -196,9 +196,9 @@ public class ScipProcess {
         
         // Wait for the first SCIP> prompt
         long startTime = System.currentTimeMillis();
-        long timeout = 15000; // 15 second timeout
+        long timeout = 7000; // 7 second timeout
         
-       Thread.sleep(20);
+       Thread.sleep(25);
         // Then wait for capture to complete
         while(capturingSolution.get()) {
             if (System.currentTimeMillis() - startTime > timeout) {
@@ -228,7 +228,8 @@ public class ScipProcess {
         }
         pipeInput(
         "set write printzeros TRUE " +
-        "set numerics feastol 0.001 " +
+        // "set numerics infinity 100000000000 " +
+        "set limits memory 300 " +
         "set randomization permutationseed 72 " +
         "set randomization advanced permutevars TRUE " +
         "optimize");
@@ -267,6 +268,13 @@ public class ScipProcess {
                     System.out.println("exception at scip process destroying1: "+ scipProcess.toString());
             }
         }
+        this.currentTimeLimit = 0;
+        this.compilationErrorMessage = null;
+        this.capturingSolution = new AtomicBoolean(false);
+        this.waitingForSolution = false;
+        this.progressQuote = new AtomicReference<>("");
+        this.solutionStatus = null;
+        this.processStatus = "not started";
         if(DEBUG)
             System.out.println("piped quit and closed reader thread, attempting to destroy scip process: "+ scipProcess.toString() + " | time: "+ (System.currentTimeMillis() - startTime));
         if (scipProcess != null) {

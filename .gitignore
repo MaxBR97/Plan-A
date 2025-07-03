@@ -7,3 +7,5 @@ User/Models
 idea/
 Distribution
 /dev/Backend/src/test/Utilities/ZimplExamples/ExampleZimplProgram.zplSOLUTION
+/certs/prod
+./diagrams

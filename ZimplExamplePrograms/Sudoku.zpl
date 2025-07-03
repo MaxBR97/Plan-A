@@ -1,3 +1,11 @@
+# Play a sudoku game! 
+# Choose a sudoku board size, and how many clues you would like to generate with the "Get A Clue" constraint.
+# Click optimize to get an initial Game_Board, and its Solution.
+# Play by filling numbers in the Game_Board. If you are stuck you can generate more clues with the "Get A Clue" constraint, or pick at the Solution table.
+# When you have finished, select the entire Game_Board and click "Optimize". If solving status is "Optimal" -  you made it, if "Infeasible" you are mistaken. 
+# Note: board size greater than 16 might get too hard to generate.
+
+
 param stringToNumber[{"0","1","2","3","4","5","6","7","8","9"}] := <"0"> 0, <"1"> 1, <"2"> 2, <"3"> 3, <"4"> 4, <"5"> 5, <"6"> 6, <"7"> 7, <"8"> 8, <"9"> 9;
 param toString[{0..9}] := <0> "0", <1> "1", <2> "2", <3> "3", <4> "4", 
                          <5> "5", <6> "6", <7> "7", <8> "8", <9> "9";

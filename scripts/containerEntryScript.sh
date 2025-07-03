@@ -42,5 +42,7 @@ jq --arg host "$HOST" \
     .keycloak.clientId = "spring-gateway"' \
     "$CONFIG_FILE" > "$CONFIG_FILE.tmp" && mv "$CONFIG_FILE.tmp" "$CONFIG_FILE"
 
-# Start Spring Boot application
-cd /Plan-A/dev/Backend && mvn spring-boot:run
+# the package step should have been done at build time,
+# but it causes a problem where the package embbeds the config.json file into the jar 
+# prior to this script, making it not aware of the new domains and ports.
+cd /Plan-A/dev/Backend && mvn package -DskipTests && java -jar target/artifactid-0.0.1-SNAPSHOT.jar --app.file.storage-dir=../../../Plan-A/dev/Backend/data

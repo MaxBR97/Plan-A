@@ -85,7 +85,7 @@ if exist "%scriptLocation%\..\dev\Frontend\Distribution" (
     move "%scriptLocation%\..\dev\Frontend\Distribution" "%scriptLocation%\.."
 )
 
-echo Script completed successfully.
+echo Script completed successfully. App is available in the Distribution folder. If not present, check at dev/Frontend.
 
 endlocal
 pause
