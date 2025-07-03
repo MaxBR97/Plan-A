@@ -62,7 +62,7 @@ param nightTimeStartHour := getHourFromStringFormat(nightTimeStart);
 param nightTimeStartMinute := getMinuteFromStringFormat(nightTimeStart);
 param nightTimeEndHour := getHourFromStringFormat(nightTimeEnd);
 param nightTimeEndMinute := getMinuteFromStringFormat(nightTimeEnd);
-param minimumRestHours := 2.0;
+param minimumRestHours := 1.0;
 
 do print "Planning days range must be valid!";
 do forall <day> in {planFromDay,planUntilDay} do check
@@ -73,7 +73,7 @@ do forall <time> in {planFromTimeFormal,planUntilTimeFormal,nightTimeStart,night
     validateTimeInStringFormat(time) == 1;
 
 do print "Minimum rest hours must be greater than or equal to 0!";
-do check minimumRestHours >= 0;
+do check minimumRestHours >= 1.0;
 
 
 # Define relative day numbering based on planFromDay
@@ -176,8 +176,8 @@ subto ignoreThisConstraint:
     card(AvailableRoles) >= 0;
 #<Name,Squad,Role>
 set Descriptive_Soldiers_List := {
-    <"Empty Person","Combatant">,<"Max","Combatant">, <"Yoni","Medic">, <"Ben","Combatant">
-     ,<"Avi","Medic">,<"Nir","Combatant">, <"Gadi","Combatant">, <"Dekel","Combatant">
+    <"Max","Combatant">, <"Yoni","Medic">, <"Ben","Combatant">
+     ,<"Avi","Medic">,<"Nir","Combatant">, <"Gadi","Combatant">
       ,<"Omri","Commander">,<"Denis","Officer">, <"Israel","Medic">,<"Zaslevsky","Commander">
 };
 do print "Peoples list must not be empty!";
@@ -195,7 +195,7 @@ defstrg getSoldierRole(sol) := ord({<sol2,ro2> in Descriptive_Soldiers_List | so
 set Soldiers := proj(Descriptive_Soldiers_List,<1>);
 #<station_name, required_people,FromStringTime,UntilStringTime,StringDurationTime,Role>
 set Everyday_Missions_Formal := {
-    <"Patrol",2,"06:00","22:00","04:00","Combatant">
+    <"Patrol",2,"06:00","22:00","04:00","Any">
     , <"Night Patrol",1,"22:00","06:00","02:00","Medic">
     , <"Kitchen",1,"06:00","20:00","14:00","Commander">
     };
@@ -222,8 +222,8 @@ do forall <station_name,requiredPpl,from_time,until_time, duration, role> in Eve
 
 
 
-set PeopleAllowedToBeAssignedFromFormal := {<"Empty Person","Sunday","00:00">};
-set PeopleAllowedToBeAssignedUntilFormal := {<"Empty Person","Sunday","00:00">};
+set PeopleAllowedToBeAssignedFromFormal := {<"Max","Sunday","02:00">};
+set PeopleAllowedToBeAssignedUntilFormal := {<"Yoni","Monday","00:00">};
 
 do print "People allowed to be assigned from/to must be valid - Enter valid names (from the declared list), weekdays and times in HH:MM format!";
 do forall <soldier,day,time> in PeopleAllowedToBeAssignedFromFormal union PeopleAllowedToBeAssignedUntilFormal do check
@@ -324,7 +324,7 @@ defnumb isPersonAllowedToTakeShift(person_name,mission_name) :=
 
 set SoldiersToShifts := Soldiers * proj(Shifts,<1,4>);
 #<soldier,station,day,hour_and_minute>
-set preAssign := {};#{<"Max","Patrol","1 Sunday","06:00",1.0>};
+set preAssign := {<"Max","Patrol","1 Sunday","06:00",1.0>};
 do print "Selected shift assignment must be valid - Enter valid names (from the declared list), weekdays (x Weekday - where 'x' is the index of the weekday compared to the first day of the planning period) and times in HH:MM format!";
 do forall <soldier,station,day,time,value> in preAssign do check
     validateTimeInStringFormat(time) == 1 and card({<soldier> in Soldiers}) == 1 and card({<station> in proj(AllMissions,<1>)}) == 1 and
@@ -420,8 +420,8 @@ subto EnforceMinimalRestTimeHeuristic:
 #         # can also replace by: 
 # do print "loaded EnforceInavailabilityFrom";
 
-set preAssignSoldierStatistics := {<"Empty Person", "Total Duty Hours", 0.0>};
-set preAssignShiftStatistics := {<"People Not Assigned Atleast Once", 1.0>};
+set preAssignSoldierStatistics := {<"Max", "Total Duty Hours", 4.0>};
+set preAssignShiftStatistics := {<"People Not Assigned Atleast Once", 0.0>};
 # set preAssignSoldierStatistics := {};
 # set preAssignShiftStatistics := {};
 set labelsForSoldierStatistics := {"Shift Spacing Mark", "Total Night Duty Hours", "Total Duty Hours", "Repetitivity Mark", "Total Rest Time"};

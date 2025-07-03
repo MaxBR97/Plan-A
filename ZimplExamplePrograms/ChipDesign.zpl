@@ -114,6 +114,7 @@ do forall <xy,id_t,val> in preassign_components do check
 
 # for some reason, for windows scip epsilon should be 0.001 to get an answer, and 0.00001 to get an answer on linux SCIP.
 param epsilon := 0.001;
+param epsilon2 := 0.6;
 do print "Epsilon must be positive!";
 do check epsilon > 0;
 var epsilon_var[{epsilon}] >= 0;
@@ -129,7 +130,7 @@ var Chip_Temperature[<a,b> in {"X", "Y", "temp"} * {"max_temp", "min_temp"}] rea
 
 # Auxiliary variables for heat contribution at points of interest
 var heat_at_max_point[Components] real >= 0 <= 500;  # Heat contribution of each component at max temp point
-var Heat_Infliction_Of_Components[PresentationFormatOfComponents * PresentationFormatOfComponents] real >= 0 <= 200;  # Heat from component j at component i's location
+var Heat_Infliction_Of_Components[<comp1,comp2> in  PresentationFormatOfComponents * PresentationFormatOfComponents] real >= 0;
 var Total_Heat_At_Each_Component[PresentationFormatOfComponents] real >= 0 <= 500;  # Total heat at each component's location
 var heat_at_min_point[Components] real >= 0  <= 500;  # Heat contribution of each component at min temp point
 
@@ -139,7 +140,10 @@ var is_under[Components * Components] binary;      # 1 if component i is under c
 var dummy_variables[ComponentTypes] binary;
 
 # Wire length variables for connected components
-var Wire_Lengths[{<from_id,to_id,connection_priority> in Connections : <from_id,to_id>}] real >= 0;  # Distance between closest points of connected components
+var Wire_Lengths[<from_id,to_id> in {<from_id,to_id,connection_priority> in Connections : <from_id,to_id>}] real >= 0 <= if from_id == to_id then 0 else infinity end;  # Distance between closest points of connected components
+
+# Define auxiliary variable for center-to-center distance between i and j, eucalidean
+var Dist_Between_Components[<comp1,comp2> in PresentationFormatOfComponents * PresentationFormatOfComponents] real >= 0  <= if comp1 == comp2 then 0 else infinity end;
 
 # Constraints
 
@@ -191,57 +195,85 @@ subto consistent_positioning:
             # Cannot be both under and above
             is_under[id_1,type_1,id_2,type_2] + is_under[id_2,type_2,id_1,type_1] <= 1;
 
+# Enforce Euclidean distance constraint (still nonlinear, but isolated)
+subto define_distances:
+    forall <id1,t1> in Components:
+        forall <id2,t2> in Components | id1 != id2:
+            (Dist_Between_Components[getPresentationFormat(id1,t1), getPresentationFormat(id2,t2)] ** 2) -
+                (((Component_Placement["X",getPresentationFormat(id1,t1)] + getCompWidth(id1)/2) -
+                 (Component_Placement["X",getPresentationFormat(id2,t2)] + getCompWidth(id2)/2)) ** 2 +
+                ((Component_Placement["Y",getPresentationFormat(id1,t1)] + getCompHeight(id1)/2) -
+                 (Component_Placement["Y",getPresentationFormat(id2,t2)] + getCompHeight(id2)/2)) ** 2) <= epsilon;
+
+
+var Distance_to_Max[Components] >= 0;
+var Distance_to_Min[Components] >= 0;
+
+subto distance_to_max_temp:
+    forall <id,t> in Components:
+        abs(
+            Distance_to_Max[id,t]**2 -
+            ((Chip_Temperature["X","max_temp"] - (Component_Placement["X",getPresentationFormat(id,t)] + getCompWidth(id)/2))**2 +
+            (Chip_Temperature["Y","max_temp"] - (Component_Placement["Y",getPresentationFormat(id,t)] + getCompHeight(id)/2))**2)
+        ) <= epsilon2;
+
+subto distance_to_min_temp:
+    forall <id,t> in Components:
+        abs(
+            Distance_to_Min[id,t]**2 -
+            ((Chip_Temperature["X","min_temp"] - (Component_Placement["X",getPresentationFormat(id,t)] + getCompWidth(id)/2))**2 +
+            (Chip_Temperature["Y","min_temp"] - (Component_Placement["Y",getPresentationFormat(id,t)] + getCompHeight(id)/2))**2)
+        ) <= epsilon2;
+
 # Calculate individual heat contributions at maximum temperature point
 subto heat_contribution_at_max_point:
     forall <id,t> in Components:
-        heat_at_max_point[id,t] * (1 + sqrt((Chip_Temperature["X","max_temp"] - (Component_Placement["X",getPresentationFormat(id,t)] + getCompWidth(id)/2))**2 + 
-                                           (Chip_Temperature["Y","max_temp"] - (Component_Placement["Y",getPresentationFormat(id,t)] + getCompHeight(id)/2))**2)) - getCompPower(id) <= epsilon
-        and
-        heat_at_max_point[id,t] * (1 + sqrt((Chip_Temperature["X","max_temp"] - (Component_Placement["X",getPresentationFormat(id,t)] + getCompWidth(id)/2))**2 + 
-                                           (Chip_Temperature["Y","max_temp"] - (Component_Placement["Y",getPresentationFormat(id,t)] + getCompHeight(id)/2))**2)) - getCompPower(id) >= -1 * epsilon;
-
+        abs(
+                heat_at_max_point[id,t] * (1 + Distance_to_Max[id,t]) - getCompPower(id)
+            ) <= epsilon2;
 
 subto heat_contribution_at_min_point:
     forall <id,t> in Components:
-        heat_at_min_point[id,t] * (1 + sqrt((Chip_Temperature["X","min_temp"] - (Component_Placement["X",getPresentationFormat(id,t)] + getCompWidth(id)/2))**2 + 
-                                            (Chip_Temperature["Y","min_temp"] - (Component_Placement["Y",getPresentationFormat(id,t)] + getCompHeight(id)/2))**2)) - getCompPower(id) <= epsilon
-        and
-        heat_at_min_point[id,t] * (1 + sqrt((Chip_Temperature["X","min_temp"] - (Component_Placement["X",getPresentationFormat(id,t)] + getCompWidth(id)/2))**2 + 
-                                            (Chip_Temperature["Y","min_temp"] - (Component_Placement["Y",getPresentationFormat(id,t)] + getCompHeight(id)/2))**2)) - getCompPower(id) >= -1 * epsilon;
-
+       abs(
+            heat_at_min_point[id,t] * (1 + Distance_to_Min[id,t]) - getCompPower(id)
+        ) <= epsilon2;
+        
 # Maximum temperature point aggregates all heat
 subto temperature_calculation:
-    Chip_Temperature["temp","max_temp"] - sum <id,t> in Components: heat_at_max_point[id,t]<= epsilon
-    and
-    Chip_Temperature["temp","max_temp"] - sum <id,t> in Components: heat_at_max_point[id,t]>= -1 * epsilon;
+    abs(Chip_Temperature["temp","max_temp"] - sum <id,t> in Components: heat_at_max_point[id,t]) <= epsilon2;
 
 subto min_temperature_calculation:
-    Chip_Temperature["temp","min_temp"] - sum <id,t> in Components: heat_at_min_point[id,t]<= epsilon
-    and
-    Chip_Temperature["temp","min_temp"] - sum <id,t> in Components: heat_at_min_point[id,t]>= -1 * epsilon;
-
+    abs(Chip_Temperature["temp","min_temp"] - sum <id,t> in Components: heat_at_min_point[id,t]) <= epsilon2;
+    
 subto max_temp_higher_than_each_component:
     forall <id,t> in Components:
-        Chip_Temperature["temp","max_temp"] >= getCompPower(id);
+        Chip_Temperature["temp","max_temp"] >= Total_Heat_At_Each_Component[getPresentationFormat(id,t)];
 
 
 
 # Calculate heat contributions at each component's location
 subto heat_contribution_at_components:
     forall <id1,t1> in Components:
-        forall <id2,t2> in Components:
-            Heat_Infliction_Of_Components[getPresentationFormat(id1,t1),getPresentationFormat(id2,t2)] * (1 + sqrt(((Component_Placement["X",getPresentationFormat(id1,t1)] + getCompWidth(id1)/2) - (Component_Placement["X",getPresentationFormat(id2,t2)] + getCompWidth(id2)/2))**2 + 
-                                                        ((Component_Placement["Y",getPresentationFormat(id1,t1)] + getCompHeight(id1)/2) - (Component_Placement["Y",getPresentationFormat(id2,t2)] + getCompHeight(id2)/2))**2)) - getCompPower(id2) <= epsilon
-            and
-            Heat_Infliction_Of_Components[getPresentationFormat(id1,t1),getPresentationFormat(id2,t2)] * (1 + sqrt(((Component_Placement["X",getPresentationFormat(id1,t1)] + getCompWidth(id1)/2) - (Component_Placement["X",getPresentationFormat(id2,t2)] + getCompWidth(id2)/2))**2 + 
-                                                        ((Component_Placement["Y",getPresentationFormat(id1,t1)] + getCompHeight(id1)/2) - (Component_Placement["Y",getPresentationFormat(id2,t2)] + getCompHeight(id2)/2))**2)) - getCompPower(id2) >= -1 * epsilon;
+        forall <id2,t2> in Components | id1 != id2:
+            Heat_Infliction_Of_Components[getPresentationFormat(id1,t1), getPresentationFormat(id2,t2)] *
+                (1 + Dist_Between_Components[getPresentationFormat(id1,t1), getPresentationFormat(id2,t2)]) - 
+                getCompPower(id2)
+                <= epsilon
+        and
+            Heat_Infliction_Of_Components[getPresentationFormat(id1,t1), getPresentationFormat(id2,t2)] *
+                (1 + Dist_Between_Components[getPresentationFormat(id1,t1), getPresentationFormat(id2,t2)]) - 
+                getCompPower(id2)
+                >= -epsilon;
+
+subto self_heat_infliction:
+    forall <id1,t1> in Components:
+        Heat_Infliction_Of_Components[getPresentationFormat(id1,t1), getPresentationFormat(id1,t1)] == getCompPower(id1);
 
 # Calculate total heat at each component
 subto total_heat_calculation:
     forall <id,t> in Components:
-        sum <id2,t2> in Components: Heat_Infliction_Of_Components[getPresentationFormat(id,t),getPresentationFormat(id2,t2)] - Total_Heat_At_Each_Component[getPresentationFormat(id,t)] <= epsilon
-        and
-        sum <id2,t2> in Components: Heat_Infliction_Of_Components[getPresentationFormat(id,t),getPresentationFormat(id2,t2)] - Total_Heat_At_Each_Component[getPresentationFormat(id,t)] >= -1 * epsilon;
+        abs((sum <id2,t2> in Components: Heat_Infliction_Of_Components[getPresentationFormat(id2,t2),getPresentationFormat(id,t)]) - Total_Heat_At_Each_Component[getPresentationFormat(id,t)] ) <= epsilon;
+        
 
 # Maximum temperature constraints for each component
 subto temperature_limits:
@@ -249,28 +281,28 @@ subto temperature_limits:
         Total_Heat_At_Each_Component[getPresentationFormat(id,t)] <= getCompMaxTemp(id);
 
 # Auxiliary variables for absolute differences
-var X_diff[Connections] >= 0;
-var Y_diff[Connections] >= 0;
+var X_diff[Connections] >= 0 <= 999;
+var Y_diff[Connections] >= 0 <= 999;
 
 # Enforce absolute value semantics
 subto wire_abs_differences:
     forall <from_id, to_id, pr> in Connections:
         X_diff[from_id,to_id,pr] >= Component_Placement["X", getPresentationFormat(from_id, getCompType(from_id))] 
-                                          - Component_Placement["X", getPresentationFormat(to_id, getCompType(to_id))] and
+                                          - (Component_Placement["X", getPresentationFormat(to_id, getCompType(to_id))] + getCompWidth(to_id)) and
 
         X_diff[from_id,to_id,pr] >= Component_Placement["X", getPresentationFormat(to_id, getCompType(to_id))] 
-                                          - Component_Placement["X", getPresentationFormat(from_id, getCompType(from_id))] and
+                                          - (Component_Placement["X", getPresentationFormat(from_id, getCompType(from_id))] + getCompWidth(from_id)) and
 
         Y_diff[from_id,to_id,pr] >= Component_Placement["Y", getPresentationFormat(from_id, getCompType(from_id))] 
-                                          - Component_Placement["Y", getPresentationFormat(to_id, getCompType(to_id))] and
+                                          - (Component_Placement["Y", getPresentationFormat(to_id, getCompType(to_id))] + getCompHeight(to_id)) and
 
         Y_diff[from_id,to_id,pr] >= Component_Placement["Y", getPresentationFormat(to_id, getCompType(to_id))] 
-                                          - Component_Placement["Y", getPresentationFormat(from_id, getCompType(from_id))];
+                                          - (Component_Placement["Y", getPresentationFormat(from_id, getCompType(from_id))] + getCompHeight(from_id));
 
 # Define Manhattan wire length
 subto wire_length_equals_manhattan_distance:
     forall <from_id, to_id, pr> in Connections:
-        (Wire_Lengths[from_id, to_id] - (X_diff[from_id,to_id,pr] + Y_diff[from_id,to_id,pr])) <= epsilon;
+        abs(Wire_Lengths[from_id, to_id] - (X_diff[from_id,to_id,pr] + Y_diff[from_id,to_id,pr])) <= epsilon;
 
 
 # Minimize:

@@ -163,7 +163,7 @@ public class SolverService implements Solver {
                 && !scipProcess.getStatus().equals("paused")) {
             
             // Check for timeout
-            if (System.currentTimeMillis() - startTime > (scipProcess.getCurrentTimeLimit() * 1000L)+2000) {
+            if (System.currentTimeMillis() - startTime > (scipProcess.getCurrentTimeLimit() * 1000L)+3000) {
                 System.out.println("Timeout while waiting for solution, returning empty solution");
                 return new Solution();
             }
