@@ -9,22 +9,22 @@
 
 ## 📚 Table of Contents
 - [Introduction](#-introduction)  
-- [Highlights & Features](#highlights--features)  
-- [Architecture (high level)](#architecture-high-level)  
-- [Getting started — Quickstart (demo)](#getting-started---quickstart-demo)  
-- [Development & Deployment (full guide)](#development--deployment-full-guide)  
-  - [Compose configurations](#compose-configurations)  
-  - [Development (web)](#development-web)  
-  - [Backend debug (IDE)](#backend-debug-ide)  
-  - [Develop inside a container](#develop-inside-a-container)  
+- [Highlights & Features](#-highlights--features)  
+- [Architecture (high level)](#-architecture-high-level)  
+- [Getting started — Quickstart (demo)](#-getting-started---quickstart-demo)  
+- [Development & Deployment (full guide)](#-development--deployment-full-guide)  
+  - [Compose configurations](#-compose-configurations)  
+  - [Development (web)](#-development-web)  
+  - [Backend debug (IDE)](#-backend-debug-ide)  
+  - [Develop inside a container](#-develop-inside-a-container)  
   - [📌 Development Notes](#-development-notes)  
 - [🧪 E2E Testing Setup](#-e2e-testing-setup)  
-- [🚢 Production deployment](#production-deployment)  
-- [⚡ Quick commands](#quick-commands)  
-- [🧩 Use cases (detailed examples)](#use-cases-detailed-examples)  
-- [🙏 Credits & Acknowledgements](#credits--acknowledgements)  
-- [📖 The story behind Plan-A](#the-story-behind-plan-a)  
-- [✉️ Contact](#contact)
+- [🚢 Production deployment](#-production-deployment)  
+- [⚡ Quick commands](#-quick-commands)  
+- [🧩 Use cases (detailed examples)](#-use-cases-detailed-examples)  
+- [🙏 Credits & Acknowledgements](#-credits--acknowledgements)  
+- [📖 The story behind Plan-A](#-the-story-behind-plan-a)  
+- [✉️ Contact](#-contact)
 
 ---
 
@@ -276,4 +276,5 @@ The idea came from my experience in the IDF after the 7/10 events. My unit neede
 Any questions or thoughts:
 - Open an issue in this repository.  
 - Or contact: linmaxi@gmail.com
+
 
