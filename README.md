@@ -8,7 +8,7 @@
 ---
 
 ## 📚 Table of Contents
-- [Introduction](#introduction)  
+- [Introduction](#-introduction)  
 - [Highlights & Features](#highlights--features)  
 - [Architecture (high level)](#architecture-high-level)  
 - [Getting started — Quickstart (demo)](#getting-started---quickstart-demo)  
@@ -276,3 +276,4 @@ The idea came from my experience in the IDF after the 7/10 events. My unit neede
 Any questions or thoughts:
 - Open an issue in this repository.  
 - Or contact: linmaxi@gmail.com
+
