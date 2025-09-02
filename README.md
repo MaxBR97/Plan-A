@@ -1,6 +1,7 @@
 
 # 🚀✨ Plan-A
 **Modeling & solving real-world constraint and optimization problems**  
+
 <!-- PROJECT POSTER -->
 ![plan-a poster v5](https://github.com/user-attachments/assets/1d168c5d-5b3f-4e0f-a442-7b75056541b0)
 
@@ -8,26 +9,27 @@
 ---
 
 ## 📚 Table of Contents
-- [Introduction](#-introduction)  
-- [Highlights & Features](#-highlights--features)  
-- [Architecture (high level)](#-architecture-high-level)  
-- [Getting started — Quickstart (demo)](#-getting-started---quickstart-demo)  
-- [Development & Deployment (full guide)](#-development--deployment-full-guide)  
-  - [Compose configurations](#-compose-configurations)  
-  - [Development (web)](#-development-web)  
-  - [Backend debug (IDE)](#-backend-debug-ide)  
-  - [Develop inside a container](#-develop-inside-a-container)  
+- [Introduction](#introduction)  
+- [Highlights & Features](#highlights--features)  
+- [Architecture (high level)](#architecture-high-level)  
+- [Getting started — Quickstart (demo)](#getting-started---quickstart-demo)  
+- [Development & Deployment (full guide)](#development--deployment-full-guide)  
+  - [Compose configurations](#compose-configurations)  
+  - [Development (web)](#development-web)  
+  - [Backend debug (IDE)](#backend-debug-ide)  
+  - [Develop inside a container](#develop-inside-a-container)  
   - [📌 Development Notes](#-development-notes)  
 - [🧪 E2E Testing Setup](#-e2e-testing-setup)  
-- [🚢 Production deployment](#-production-deployment)  
-- [⚡ Quick commands](#-quick-commands)  
-- [🧩 Use cases (detailed examples)](#-use-cases-detailed-examples)  
-- [🙏 Credits & Acknowledgements](#-credits--acknowledgements)  
-- [📖 The story behind Plan-A](#-the-story-behind-plan-a)  
-- [✉️ Contact](#-contact)
+- [🚢 Production deployment](#production-deployment)  
+- [⚡ Quick commands](#quick-commands)  
+- [🧩 Use cases (detailed examples)](#use-cases-detailed-examples)  
+- [🙏 Credits & Acknowledgements](#credits--acknowledgements)  
+- [📖 The story behind Plan-A](#the-story-behind-plan-a)  
+- [✉️ Contact](#contact)
 
 ---
 
+<a id="introduction"></a>
 ## 🎬 Introduction
 **Intro video:**  
 https://vimeo.com/manage/videos/1098556514
@@ -47,6 +49,7 @@ This repository contains the full stack: frontend (React; optional Electron), ba
 
 ---
 
+<a id="highlights--features"></a>
 ## ✨ Highlights & Features
 - 🖼️ **Images**: a reusable artifact representing a named optimization model (model + metadata + interactive input schema).  
 - 🧾 **Declarative modeling** with a ZIMPL-like syntax (ANTLR grammar: `Formulation.g4`).  
@@ -63,6 +66,7 @@ This repository contains the full stack: frontend (React; optional Electron), ba
 
 ---
 
+<a id="architecture-high-level"></a>
 ## 🏛️ Architecture (high level)
 <img width="940" height="542" alt="image" src="https://github.com/user-attachments/assets/61394b1e-82c0-4648-9d35-227429f694cf" />
 
@@ -88,6 +92,7 @@ Plan-A supports two deployment modes:
 
 ---
 
+<a id="getting-started---quickstart-demo"></a>
 ## 🧭 Getting started — Quickstart (demo)
 A minimal path to run a local demo, given you already have Docker Desktop:
 
@@ -99,15 +104,18 @@ then visit: 👉 [https://localhost](https://localhost)
 
 ---
 
+<a id="development--deployment-full-guide"></a>
 ## 🛠️ Development & Deployment (full guide)
 _Complete developer and ops instructions (dev / E2E / prod)._
 
+<a id="compose-configurations"></a>
 ### 🧩 Compose configurations
 Three main compose files:
 - `docker-compose.dev.yml` — development  
 - `docker-compose.e2e.yml` — E2E testing  
 - `docker-compose.prod.yml` — production
 
+<a id="development-web"></a>
 ### 🧑‍💻 Development (web)
 1. Start dev stack:
 ```bash
@@ -122,6 +130,7 @@ npm run start
 3. Backend:
 - Backend runs in a container by default. To run locally with hot debugging, see Backend Debug.
 
+<a id="backend-debug-ide"></a>
 ### 🐞 Backend debug (IDE)
 1. Start Keycloak only:
 ```bash
@@ -135,6 +144,7 @@ mvn install
 ```
 3. For desktop development, set `IS_DESKTOP: true` in `dev/Frontend/public/config.json`.
 
+<a id="develop-inside-a-container"></a>
 ### 🐳 Develop inside a container
 1. Build dev image:
 ```bash
@@ -150,6 +160,7 @@ cd dev/Backend
 mvn spring-boot:run
 ```
 
+<a id="-development-notes"></a>
 ### 📌 Development Notes
 - ✅ **Keycloak** is **required even in development**, as authentication is integral to the system.  
 - ✅ To run backend tests:
@@ -181,6 +192,7 @@ mvn spring-boot:run
 
 ---
 
+<a id="-e2e-testing-setup"></a>
 ## 🧪 E2E Testing Setup
 1. **Spin up test environment**:
    ```bash
@@ -200,6 +212,7 @@ You can also manually test at: 👉 [https://localhost](https://localhost)
 
 ---
 
+<a id="production-deployment"></a>
 ## 🚢 Production deployment
 1. Clone repository on server.  
 2. Provide TLS certificate & key at:
@@ -227,6 +240,7 @@ Password: <value from env.prod.template>
 
 ---
 
+<a id="quick-commands"></a>
 ## ⚡ Quick commands
 | Action                      | Command                                                                 |
 |-----------------------------|-------------------------------------------------------------------------|
@@ -240,6 +254,7 @@ Password: <value from env.prod.template>
 
 ---
 
+<a id="use-cases-detailed-examples"></a>
 ## 🧩 Use cases (detailed examples)
 - 🕒 **Shift scheduling** — ensure coverage, minimize payroll, balance workload and night/weekend shifts.  
 - 🎓 **Course scheduling** — resolve conflicts, ensure required courses are included, maximize free days and early finish times.  
@@ -251,6 +266,7 @@ Password: <value from env.prod.template>
 
 ---
 
+<a id="credits--acknowledgements"></a>
 ## 🙏 Credits & Acknowledgements
 Thanks & acknowledgements to the projects that made Plan-A possible:
 - **ZIMPL** (inspiration for modeling language)  
@@ -267,14 +283,14 @@ Thanks & acknowledgements to the projects that made Plan-A possible:
 
 ---
 
+<a id="the-story-behind-plan-a"></a>
 ## 📖 The story behind Plan-A
 The idea came from my experience in the IDF after the 7/10 events. My unit needed to assign manpower to missions under dynamic, changing constraints. Tasks appeared or disappeared, personnel were fatigued, and small changes could force the whole plan to be redone. I initially implemented a scheduler in C++ but found it too rigid. I needed a declarative, flexible approach that could generalize across domains (army scheduling, workplace rotas, course scheduling). That led me to Integer Linear Programming and tools like SCIP and ZIMPL, and ultimately to building Plan-A as a reusable, model-driven optimization platform.
 
 ---
 
+<a id="contact"></a>
 ## ✉️ Contact
-Any questions or thoughts:
+Questions and thoughts:
 - Open an issue in this repository.  
 - Or contact: linmaxi@gmail.com
-
-
