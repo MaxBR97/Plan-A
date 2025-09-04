@@ -79,7 +79,7 @@ Plan-A supports two deployment modes:
 - 🧮 Solver Service — manage SCIP instances, compile & run solves, enforce time limits.  
 - 📨 Kafka — request/response messaging between Image Service and Solver Service (decoupled, asynchronous).  
 
-**2. Desktop (monolith)**  
+**2. [Deprecated] Desktop (monolith)**  
 - 🧩 All services packaged together; Image Service and Solver run in-process; no Kafka.  
 - 💻 Simplified local deployment; ideal for offline or single-user usage.
 
@@ -294,3 +294,4 @@ The idea came from my experience in the IDF after the 7/10 events. My unit neede
 Questions and thoughts:
 - Open an issue in this repository.  
 - Or contact: linmaxi@gmail.com
+
